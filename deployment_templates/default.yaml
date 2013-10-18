@@ -1,0 +1,234 @@
+precise-default:
+  product: compute
+  name: default
+  os: precise
+  os-features:
+    monitoring:
+      - default
+    mysql:
+      - default
+    glance:
+      - default
+    cinder:
+      - local
+    nova:
+      - default
+    horizon:
+      - default
+    keystone:
+      - default
+    osops:
+      - default
+    osopsnetworks:
+      - default
+  rpcs-features:
+  nodes:
+    - [chefserver]
+    - [controller, cinder]
+    - [compute]
+
+centos-default:
+  product: compute
+  name: default
+  os: centos
+  os-features:
+    glance:
+      - cf
+    cinder:
+      - local
+    nova:
+      - default
+    horizon:
+      - default
+    keystone:
+      - default
+    osops:
+      - default
+    osopsnetworks:
+      - default
+  rpcs-features:
+  nodes:
+    - [chefserver]
+    - [controller, cinder]
+    - [compute]
+
+precise-ha:
+  product: compute
+  name: ha
+  os: precise
+  os-features:
+    glance:
+      - cf
+    cinder:
+      - local
+    nova:
+      - default
+    horizon:
+      - default
+    keystone:
+      - default
+    osops:
+      - default
+    osopsnetworks:
+      - default
+  rpcs-features:
+    - ha
+  nodes:
+    - [chefserver]
+    - [controller]
+    - [controller]
+    - [compute]
+
+centos-ha:
+  product: compute
+  name: ha
+  os: centos
+  os-features:
+    glance:
+      - cf
+    cinder:
+      - local
+    nova:
+      - default
+    horizon:
+      - default
+    keystone:
+      - default
+    osops:
+      - default
+    osopsnetworks:
+      - default
+  rpcs-features:
+    - ha
+  nodes:
+    - [chefserver]
+    - [controller]
+    - [controller]
+    - [compute]
+
+precise-openldap:
+  product: compute
+  name: openldap
+  os: precise
+  os-features:
+    glance:
+      - cf
+    cinder:
+      - local
+    nova:
+      - default
+    horizon:
+      - default
+    keystone:
+      - openldap
+    osops:
+      - default
+    osopsnetworks:
+      - default
+  rpcs-features:
+    - openldap
+  nodes:
+    - [openldap]
+    - [chefserver]
+    - [controller]
+    - [compute]
+
+centos-openldap:
+  product: compute
+  name: openldap
+  os: centos
+  os-features:
+    glance:
+      - cf
+    cinder:
+      - local
+    nova:
+      - default
+    horizon:
+      - default
+    keystone:
+      - openldap
+    osops:
+      - default
+    osopsnetworks:
+      - default
+  rpcs-features:
+    - openldap
+  nodes:
+    - [openldap]
+    - [chefserver]
+    - [controller]
+    - [compute]
+
+precise-neutron:
+  product: compute
+  name: neutron
+  os: precise
+  os-features:
+    glance:
+      - cf
+    cinder:
+      - local
+    nova:
+      - default
+    neutron:
+      - defaultl
+    horizon:
+      - default
+    keystone:
+      - default
+    osops:
+      - default
+    osopsnetworks:
+      - default
+  features:
+    - neutron
+    - ha
+  nodes:
+    - [chefserver]
+    - [controller, neutron]
+    - [controller, neutron]
+    - [compute]
+
+centos-neutron:
+  product: compute
+  name: neutron
+  os: centos
+  features:
+    - neutron
+    - ha
+  nodes:
+    - [chefserver]
+    - [controller, neutron]
+    - [controller, neutron]
+    - [compute]
+
+precise-swift:
+  product: storage
+  name: swift
+  os: precise
+  features:
+    - swift
+  nodes:
+    - [chefserver]
+    - [controller]
+    - [proxy]
+    - [proxy]
+    - [storage]
+    - [storage]
+    - [storage]
+
+centos-swift:
+  product: storage
+  name: swift
+  os: centos
+  features:
+    - swift
+  nodes:
+    - [chefserver]
+    - [controller]
+    - [proxy]
+    - [proxy]
+    - [storage]
+    - [storage]
+    - [storage]

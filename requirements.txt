@@ -1,0 +1,6 @@
+argh
+argcomplete
+requests
+paramiko
+pychef
+pyyaml
