@@ -13,7 +13,7 @@ from monster.Deployments import ChefRazorDeployment
 
 
 def build(name="precise-default", branch="grizzly", template_path=None,
-          config=None, destroy=True):
+          config=None, destroy=False, dry=False):
     """
     Builds an OpenStack Cluster
     """
@@ -24,12 +24,15 @@ def build(name="precise-default", branch="grizzly", template_path=None,
                                               template_path)
     util.logger.info(deployment)
 
-    try:
-        deployment.build()
-    except Exception:
-        util.logger.error(traceback.print_exc())
-        deployment.destroy()
-        sys.exit(1)
+    if dry:
+        deployment.update_environment()
+    else:
+        try:
+            deployment.build()
+        except Exception:
+            util.logger.error(traceback.print_exc())
+            deployment.destroy()
+            sys.exit(1)
 
     util.logger.info(deployment)
     if destroy:
@@ -40,7 +43,7 @@ def destroy(name="precise-default", config=None):
     config = Config(config)
     deployment = ChefRazorDeployment.from_chef_environment(name, config)
     print deployment
-    # deployment.destroy()
+    deployment.destroy()
 
 
 if __name__ == "__main__":

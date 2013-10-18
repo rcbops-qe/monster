@@ -151,6 +151,8 @@ class ChefRazorNode(Node):
         """
         Node can set chef attributes
         """
+        util.logger.debug("setting {0} to {1} on {2}".format(item, value,
+                                                             self.name))
         lnode = CNode(self.name, api=self.environment.local_api)
         lnode[item] = value
         lnode.save()
@@ -160,10 +162,12 @@ class ChefRazorNode(Node):
             rnode.save()
 
     def destroy(self):
+        util.logger.info("Destroying node:{0}".format(self.name))
         cnode = CNode(self.name)
         if self['in_use'] == "provisioned":
             # Return to pool if the node is clean
-            self['in_use'] = "0"
+            cnode['in_use'] = 0
+            cnode['features'] = []
             cnode.chef_environment = "_default"
             cnode.save()
         else:

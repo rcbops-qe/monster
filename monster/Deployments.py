@@ -114,11 +114,12 @@ class ChefRazorDeployment(Deployment):
         self.razor = razor
         self.has_controller = False
 
-        self.save_to_environment()
-
     def save_to_environment(self):
-        deployment = {'features': map(str, self.features),
-                      'rpcs_features': None,
+        features = {key: value for (key, value) in
+                    map(lambda x: (str(x).lower(), x.rpcs_feature),
+                        self.features)}
+        deployment = {'os_features': features,
+                      'rpcs_features': {},
                       'name': self.name,
                       'os_name': self.os,
                       'branch': self.branch}
@@ -170,6 +171,10 @@ class ChefRazorDeployment(Deployment):
         """
         Rebuilds a Deployment given a chef environment
         """
+        if not path:
+            path = os.path.join(os.path.dirname(__file__),
+                                os.pardir,
+                                'deployment_templates/default.yaml')
         local_api = autoconfigure()
         env = Environment(environment, api=local_api)
         deployment_args = env.override_attributes['deployment']
@@ -208,17 +213,16 @@ class ChefRazorDeployment(Deployment):
         deployment = cls(name, os_name, branch, config, chef,
                          razor)
         deployment.add_features(os_features)
-        try:
+        if rpcs_features:
             deployment.add_features(rpcs_features)
-        except AttributeError:
-            pass
+        deployment.save_to_environment()
         return deployment
 
     def add_features(self, features):
         classes = {k.lower(): v for (k, v) in
                    getmembers(deployment_features, isclass)}
         for feature, rpcs_feature in features.items():
-            self.features.append(classes[feature](self, rpcs_feature[0]))
+            self.features.append(classes[feature](self, rpcs_feature))
 
     @classmethod
     def node_search(cls, query, environment=None, tries=10):

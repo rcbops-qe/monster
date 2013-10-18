@@ -23,13 +23,13 @@ class Environment(dict):
 class Chef(Environment):
 
     def __init__(self, name, local_api, chef_server_name=None, remote_api=None,
-                 description='', default={}, override={}):
+                 description='', default=None, override=None):
         super(Chef, self).__init__(name, description)
         self.cookbook_versions = {}
         self.json_class = "Chef::Environment"
         self.chef_type = "environment"
-        self.default_attributes = default
-        self.override_attributes = override
+        self.default_attributes = default or {}
+        self.override_attributes = override or {}
         self.local_api = local_api
         self.remote_api = remote_api
         self.chef_server_name = chef_server_name

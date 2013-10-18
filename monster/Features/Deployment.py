@@ -10,8 +10,9 @@ class Deployment(Feature):
     """ Represents a feature across a deployment
     """
 
-    def __init__(self, deployment):
+    def __init__(self, deployment, rpcs_feature):
         super(Deployment, self).__init__(deployment.config)
+        self.rpcs_feature = rpcs_feature
         self.deployment = deployment
 
     def __repr__(self):
@@ -36,12 +37,13 @@ class Deployment(Feature):
 ############################ OpenStack Features #############################
 #############################################################################
 
+
 class OpenStack(Deployment):
     """ Represents a Rackspace Private Cloud Software Feature
     """
 
-    def __init__(self, deployment):
-        super(OpenStack, self).__init__(deployment)
+    def __init__(self, deployment, rpcs_feature):
+        super(OpenStack, self).__init__(deployment, rpcs_feature)
 
     def __repr__(self):
         """ Print out current instance
@@ -55,7 +57,7 @@ class Neutron(Deployment):
     """
 
     def __init__(self, deployment, rpcs_feature):
-        super(Neutron, self).__init__(deployment)
+        super(Neutron, self).__init__(deployment, rpcs_feature)
         self.environment = \
             self.config['environments'][self.__class__.__name__.lower()][
                 rpcs_feature]
@@ -108,7 +110,7 @@ class Swift(Deployment):
     """
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(Swift, self).__init__(deployment)
+        super(Swift, self).__init__(deployment, rpcs_feature)
         self.environment = \
             self.config['environments'][self.__class__.__name__.lower()][
                 rpcs_feature]
@@ -248,7 +250,8 @@ class Swift(Deployment):
             print "#" * 30
             print "## Info to manually set up swift rings: ##"
             print "## Log into root@{0} "\
-                  "and run the following commands: ##".format(controller.ipaddress)
+                  "and run the following commands: ##".format(
+                      controller.ipaddress)
             for command in commands:
                 print command
 
@@ -266,20 +269,21 @@ class Swift(Deployment):
         else:
             print "## On node root@{0} "\
                   "and run the following command: ##".format(
-                    controller.ipaddress)
+                      controller.ipaddress)
             print command
 
         print "#" * 30
         print "## PULL RING ONTO PROXY NODES ##"
         for proxy_node in proxy_nodes:
             if auto:
-                print "## Pulling swift ring down on proxy node @ {0}: ##".format(
-                    proxy_node.ipaddress)
+                print ("## Pulling swift ring down on "
+                       "proxy node @ {0}: ##".format(
+                           proxy_node.ipaddress))
                 proxy_node.run_cmd(command)
             else:
                 print "## On node root@{0} "\
                       "and run the following command: ##".format(
-                        proxy_node.ipaddress)
+                          proxy_node.ipaddress)
                 print command
 
         print "#" * 30
@@ -292,7 +296,7 @@ class Swift(Deployment):
             else:
                 print "## On node root@{0} "\
                       "and run the following command: ##".format(
-                        storage_node.ipaddress)
+                          storage_node.ipaddress)
                 print command
 
         print "#" * 30
@@ -304,7 +308,7 @@ class Glance(Deployment):
     """
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(Glance, self).__init__(deployment)
+        super(Glance, self).__init__(deployment, rpcs_feature)
         self.environment = \
             self.config['environments'][self.__class__.__name__.lower()][
                 rpcs_feature]
@@ -325,7 +329,7 @@ class Keystone(Deployment):
     """
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(Keystone, self).__init__(deployment)
+        super(Keystone, self).__init__(deployment, rpcs_feature)
         self.environment = \
             self.config['environments'][self.__class__.__name__.lower()][
                 rpcs_feature]
@@ -346,7 +350,7 @@ class Nova(Deployment):
     """
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(Nova, self).__init__(deployment)
+        super(Nova, self).__init__(deployment, rpcs_feature)
         self.environment = \
             self.config['environments'][self.__class__.__name__.lower()][
                 rpcs_feature]
@@ -367,7 +371,7 @@ class Horizon(Deployment):
     """
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(Horizon, self).__init__(deployment)
+        super(Horizon, self).__init__(deployment, rpcs_feature)
         self.environment = \
             self.config['environments'][self.__class__.__name__.lower()][
                 rpcs_feature]
@@ -388,7 +392,7 @@ class Cinder(Deployment):
     """
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(Cinder, self).__init__(deployment)
+        super(Cinder, self).__init__(deployment, rpcs_feature)
         self.environment = \
             self.config['environments'][self.__class__.__name__.lower()][
                 rpcs_feature]
@@ -407,12 +411,13 @@ class Cinder(Deployment):
 ############### Rackspace Private Cloud Software Features ###################
 #############################################################################
 
+
 class RPCS(Deployment):
     """ Represents a Rackspace Private Cloud Software Feature
     """
 
-    def __init__(self, deployment, name):
-        super(RPCS, self).__init__(deployment)
+    def __init__(self, deployment, rpcs_feature, name):
+        super(RPCS, self).__init__(deployment, rpcs_feature)
         self.name = name
 
     def __repr__(self):
@@ -430,7 +435,7 @@ class Monitoring(RPCS):
     """
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(Monitoring, self).__init__(deployment,
+        super(Monitoring, self).__init__(deployment, rpcs_feature,
                                          self.__class__.__name__.lower())
         self.environment = \
             self.config['environments'][self.name][rpcs_feature]
@@ -451,7 +456,7 @@ class MySql(RPCS):
     """
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(MySql, self).__init__(deployment,
+        super(MySql, self).__init__(deployment, rpcs_feature,
                                     self.__class__.__name__.lower())
         self.environment = \
             self.config['environments'][self.name][rpcs_feature]
@@ -472,7 +477,7 @@ class OsOps(RPCS):
     """
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(OsOps, self).__init__(deployment,
+        super(OsOps, self).__init__(deployment, rpcs_feature,
                                     self.__class__.__name__.lower())
         self.environment = \
             self.config['environments'][self.name][rpcs_feature]
@@ -493,7 +498,8 @@ class DeveloperMode(RPCS):
     """
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(DeveloperMode, self).__init__(deployment, 'developer_mode')
+        super(DeveloperMode, self).__init__(deployment, rpcs_feature,
+                                            'developer_mode')
         self.environment = \
             self.config['environments'][self.name][rpcs_feature]
 
@@ -513,7 +519,8 @@ class OsOpsNetworks(RPCS):
     """
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(OsOpsNetworks, self).__init__(deployment, 'osops_networks')
+        super(OsOpsNetworks, self).__init__(deployment, rpcs_feature,
+                                            'osops_networks')
         self.environment = \
             self.config['environments'][self.name][rpcs_feature]
 
@@ -532,8 +539,8 @@ class HighAvailability(RPCS):
     """ Represents a highly available cluster
     """
 
-    def __init__(self, deployment):
-        super(HighAvailability, self).__init__(deployment, 'ha')
+    def __init__(self, deployment, rpcs_feature):
+        super(HighAvailability, self).__init__(deployment, rpcs_feature, 'ha')
         self.environment = \
             self.config['environments'][self.name][deployment.os]
 
@@ -552,9 +559,9 @@ class OpenLDAP(RPCS):
     """ Represents a keystone with an openldap backend
     """
 
-    def __init__(self, deployment):
-        super(OpenLDAP, self).__init__(deployment,
-                                   self.__class__.__name__.lower())
+    def __init__(self, deployment, rpcs_feature):
+        super(OpenLDAP, self).__init__(deployment, rpcs_feature,
+                                       self.__class__.__name__.lower())
         self.environment = \
             self.config['environments'][self.name]
 
