@@ -108,6 +108,9 @@ class Node(object):
         self.post_configure()
 
     def destroy(self):
+        """
+        Destroy interface
+        """
         raise NotImplementedError
 
 
@@ -126,18 +129,10 @@ class ChefRazorNode(Node):
         super(ChefRazorNode, self).__init__(ip, user, password, os, product,
                                             environment, deployment)
 
-    def __str__(self):
-        features = "{0}".format(", ".join(map(str, self.features)))
-        node = ("\n\tNode: \n\t\tName: {0}\n\t\tOS: {1}\n\t\t"
-                "Product: {2}\n\t\tBranch: {3}\n\t\t"
-                "Features: {4}\n").format(self.name,
-                                          self.os,
-                                          self.product,
-                                          self.branch,
-                                          features)
-        return node
-
     def apply_feature(self):
+        """
+        Runs chef-client before applying features
+        """
         if self.run_list:
             self.run_cmd("chef-client")
         super(ChefRazorNode, self).apply_feature()
@@ -173,6 +168,9 @@ class ChefRazorNode(Node):
             rnode.save()
 
     def destroy(self):
+        """
+        Destroys node resets attributes if clean restores razor image if dirty
+        """
         util.logger.info("Destroying node:{0}".format(self.name))
         cnode = CNode(self.name)
         if self['in_use'] == "provisioned":
@@ -206,6 +204,9 @@ class ChefRazorNode(Node):
     @classmethod
     def from_chef_node(cls, node, os, product, environment, deployment,
                        provisioner, branch):
+        """
+        Restores node from chef node
+        """
         ip = node['ipaddress']
         user = node['current_user']
         password = node['password']
