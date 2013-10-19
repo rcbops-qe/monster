@@ -7,8 +7,9 @@ from monster import util
 from time import sleep
 from chef import Node as CNode
 from chef import Client as CClient
-import monster.Features.Node as node_features
 from inspect import getmembers, isclass
+
+import monster.Features.Node as node_features
 from monster.server_helper import ssh_cmd, scp_to, scp_from
 
 
@@ -22,7 +23,7 @@ class Node(object):
         self.ipaddress = ip
         self.user = user
         self.password = password
-        self.os = os
+        self.os_name = os
         self.product = product
         self.environment = environment
         self.deployment = deployment
@@ -223,13 +224,13 @@ class ChefRazorNode(Node):
         """
         Restores node from chef node
         """
-        ip = node['ipaddress']
+        ipaddress = node['ipaddress']
         user = node['current_user']
         password = node['password']
         name = node.name
         archive = node.get('node', {})
         status = archive.get('status', "provisioning")
-        crnode = cls(ip, user, password, os, product, environment, deployment,
-                     name, provisioner, branch, status=status)
+        crnode = cls(ipaddress, user, password, os, product, environment,
+                     deployment, name, provisioner, branch, status=status)
         crnode.add_features(archive.get('features', []))
         return crnode

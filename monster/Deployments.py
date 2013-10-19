@@ -1,25 +1,26 @@
+"""
+OpenStack deployments
+"""
+
 import os
 import types
 from monster import util
 from time import sleep
-from Config import Config
-from razor_api import razor_api
-from Environments import Chef
-from Nodes import ChefRazorNode
 from chef import autoconfigure, Search, Environment
 from inspect import getmembers, isclass
-import Features.Deployment as deployment_features
 
-"""
-OpenStack deployments
-"""
+from monster.Config import Config
+from monster.razor_api import razor_api
+from monster.Environments import Chef
+from monster.Nodes import ChefRazorNode
+import monster.Features.Deployment as deployment_features
 
 
 class Deployment(object):
     """Base for OpenStack deployments"""
     def __init__(self, name, os_name, branch, config, status="provisioning"):
         self.name = name
-        self.os = os_name
+        self.os_name = os_name
         self.branch = branch
         self.config = config
         self.features = []
@@ -33,10 +34,10 @@ class Deployment(object):
         for attr in self.__dict__:
             if attr == 'features':
                 features = "\tFeatures: {0}".format(
-                    ", ".join(map(str, self.features)))
+                    ", ".join((str(f) for f in self.features)))
             elif attr == 'nodes':
                 nodes = "\tNodes: {0}".format(
-                    "".join(map(str, self.nodes)))
+                    "".join((str(n) for n in self.nodes)))
             elif isinstance(getattr(self, attr), types.NoneType):
                 outl += '\n\t{0} : {1}'.format(attr, 'None')
             else:
@@ -98,7 +99,6 @@ class Deployment(object):
         self.build_nodes()
         util.logger.debug("Deployment step: post-configure")
         self.post_configure()
-        self.save_to_environment()
         self.status = "done"
 
     @classmethod
@@ -131,15 +131,21 @@ class ChefRazorDeployment(Deployment):
         Save deployment restore attributes to chef environment
         """
         features = {key: value for (key, value) in
-                    map(lambda x: (str(x).lower(), x.rpcs_feature),
-                        self.features)}
+                    ((str(x).lower(), x.rpcs_feature) for x in self.features)}
         deployment = {'os_features': features,
                       'rpcs_features': {},
                       'name': self.name,
-                      'os_name': self.os,
+                      'os_name': self.os_name,
                       'branch': self.branch,
                       'status': self.status}
         self.environment.add_override_attr('deployment', deployment)
+
+    def build(self):
+        """
+        Saves deployment for restore after build
+        """
+        super(ChefRazorDeployment, self).build()
+        self.save_to_environment()
 
     def update_environment(self):
         """
@@ -282,7 +288,7 @@ class ChefRazorDeployment(Deployment):
         """
         Returns nodes the have the desired role
         """
-        features = map(str, self.features)
+        features = (str(f) for f in self.features)
         return (node for node in self.nodes if feature in features)
 
     def destroy(self):
