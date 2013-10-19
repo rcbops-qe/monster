@@ -50,6 +50,9 @@ class Node(object):
         return "\n".join([outl, features])
 
     def run_cmd(self, remote_cmd, user=None, password=None, quiet=False):
+        """
+        Runs a command on the node
+        """
         user = user or self.user
         password = password or self.password
         util.logger.info("Running: {0} on {1}".format(remote_cmd, self.name))
@@ -57,12 +60,18 @@ class Node(object):
                        password=password, quiet=quiet)
 
     def scp_to(self, local_path, user=None, password=None, remote_path=""):
+        """
+        Sends a file to the node
+        """
         user = user or self.user
         password = password or self.password
         return scp_to(self.ipaddress, local_path, user=user, password=password,
                       remote_path=remote_path)
 
     def scp_from(self, remote_path, user=None, password=None, local_path=""):
+        """
+        Retreives a file from the node
+        """
         user = user or self.user
         password = password or self.password
         return scp_from(self.ipaddress, remote_path, user=user,
@@ -104,6 +113,9 @@ class Node(object):
         self.status = "done"
 
     def destroy(self):
+        """
+        Destroy interface
+        """
         raise NotImplementedError
 
 
@@ -122,17 +134,6 @@ class ChefRazorNode(Node):
         super(ChefRazorNode, self).__init__(ip, user, password, os, product,
                                             environment, deployment)
 
-    def __str__(self):
-        features = "{0}".format(", ".join(map(str, self.features)))
-        node = ("\n\tNode: \n\t\tName: {0}\n\t\tOS: {1}\n\t\t"
-                "Product: {2}\n\t\tBranch: {3}\n\t\t"
-                "Features: {4}\n").format(self.name,
-                                          self.os,
-                                          self.product,
-                                          self.branch,
-                                          features)
-        return node
-
     def apply_feature(self):
         """
         Runs chef client before apply features on node
@@ -143,10 +144,12 @@ class ChefRazorNode(Node):
         super(ChefRazorNode, self).apply_feature()
 
     def add_run_list_item(self, items):
-        util.logger.debug("items:" + str(items))
+        """
+        Adds list of items to run_list
+        """
+        util.logger.debug("run_list:{0}add:{1}".format(self.run_list, items))
         self.run_list.extend(items)
         cnode = CNode(self.name)
-        util.logger.debug("pre-run_list:" + str(cnode.run_list))
         cnode.run_list = self.run_list
         cnode.save()
 
@@ -171,6 +174,9 @@ class ChefRazorNode(Node):
             rnode.save()
 
     def destroy(self):
+        """
+        Destroys node resets attributes if clean restores razor image if dirty
+        """
         util.logger.info("Destroying node:{0}".format(self.name))
         cnode = CNode(self.name)
         if self['in_use'] == "provisioned":
@@ -204,6 +210,9 @@ class ChefRazorNode(Node):
     @classmethod
     def from_chef_node(cls, node, os, product, environment, deployment,
                        provisioner, branch):
+        """
+        Restores node from chef node
+        """
         ip = node['ipaddress']
         user = node['current_user']
         password = node['password']
