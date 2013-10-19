@@ -18,7 +18,7 @@ class Node(object):
     Provides server related functions
     """
     def __init__(self, ip, user, password, os, product, environment,
-                 deployment):
+                 deployment, status="provisioning"):
         self.ipaddress = ip
         self.user = user
         self.password = password
@@ -28,6 +28,7 @@ class Node(object):
         self.deployment = deployment
         self.features = []
         self._cleanups = []
+        self.status = status
 
     def __repr__(self):
         """ Print out current instance
@@ -69,6 +70,7 @@ class Node(object):
 
     def pre_configure(self):
         """Pre configures node for each feature"""
+        self.status = "pre-configure"
         for feature in self.features:
             log = "Node feature: pre-configure: {0}"\
                 .format(str(feature))
@@ -76,6 +78,7 @@ class Node(object):
             feature.pre_configure()
 
     def apply_feature(self):
+        self.status = "apply-feature"
         """Applies each feature"""
         for feature in self.features:
             log = "Node feature: update environment: {0}"\
@@ -85,6 +88,7 @@ class Node(object):
 
     def post_configure(self):
         """Post configures node for each feature"""
+        self.status = "post-configure"
         for feature in self.features:
             log = "Node feature: post-configure: {0}"\
                 .format(str(feature))
@@ -97,6 +101,7 @@ class Node(object):
         self.pre_configure()
         self.apply_feature()
         self.post_configure()
+        self.status = "done"
 
     def destroy(self):
         raise NotImplementedError
@@ -129,6 +134,10 @@ class ChefRazorNode(Node):
         return node
 
     def apply_feature(self):
+        """
+        Runs chef client before apply features on node
+        """
+        self.status = "apply-feature"
         if self.run_list:
             self.run_cmd("chef-client")
         super(ChefRazorNode, self).apply_feature()
