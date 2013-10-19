@@ -125,14 +125,22 @@ class ChefRazorNode(Node):
     Provides chef related server fuctions
     """
     def __init__(self, ip, user, password, os, product, environment,
-                 deployment, name, provisioner, branch):
+                 deployment, name, provisioner, branch, status="provisioning"):
+        super(ChefRazorNode, self).__init__(ip, user, password, os, product,
+                                            environment, deployment, status)
         self.name = name
         self.razor = provisioner
         self.branch = branch
         self.run_list = []
         self.features = []
-        super(ChefRazorNode, self).__init__(ip, user, password, os, product,
-                                            environment, deployment)
+
+    def save_to_node(self):
+        """
+        Save deployment restore attributes to chef environment
+        """
+        node = {'features': self.features,
+                'status': self.status}
+        self.environment.add_override_attr('node', node)
 
     def apply_feature(self):
         """
@@ -177,12 +185,13 @@ class ChefRazorNode(Node):
         """
         Destroys node resets attributes if clean restores razor image if dirty
         """
+        self.status = "Destroying"
         util.logger.info("Destroying node:{0}".format(self.name))
         cnode = CNode(self.name)
         if self['in_use'] == "provisioned":
             # Return to pool if the node is clean
             cnode['in_use'] = 0
-            cnode['features'] = []
+            cnode['node'] = {}
             cnode.chef_environment = "_default"
             cnode.save()
         else:
@@ -193,6 +202,7 @@ class ChefRazorNode(Node):
             CClient(self.name).delete()
             cnode.delete()
             sleep(15)
+        self.status = "Destroyed"
 
     def add_features(self, features):
         """
@@ -205,7 +215,7 @@ class ChefRazorNode(Node):
             self.features.append(feature_class)
 
         # save features for restore
-        self['features'] = features
+        self.save_to_node()
 
     @classmethod
     def from_chef_node(cls, node, os, product, environment, deployment,
@@ -217,7 +227,9 @@ class ChefRazorNode(Node):
         user = node['current_user']
         password = node['password']
         name = node.name
+        archive = node.get('node', {})
+        status = archive.get('status', "provisioning")
         crnode = cls(ip, user, password, os, product, environment, deployment,
-                     name, provisioner, branch)
-        crnode.add_features(node.get('features', []))
+                     name, provisioner, branch, status=status)
+        crnode.add_features(archive.get('features', []))
         return crnode
