@@ -49,6 +49,9 @@ class Node(object):
         return "\n".join([outl, features])
 
     def run_cmd(self, remote_cmd, user=None, password=None, quiet=False):
+        """
+        Runs a command on the node
+        """
         user = user or self.user
         password = password or self.password
         util.logger.info("Running: {0} on {1}".format(remote_cmd, self.name))
@@ -56,12 +59,18 @@ class Node(object):
                        password=password, quiet=quiet)
 
     def scp_to(self, local_path, user=None, password=None, remote_path=""):
+        """
+        Sends a file to the node
+        """
         user = user or self.user
         password = password or self.password
         return scp_to(self.ipaddress, local_path, user=user, password=password,
                       remote_path=remote_path)
 
     def scp_from(self, remote_path, user=None, password=None, local_path=""):
+        """
+        Retreives a file from the node
+        """
         user = user or self.user
         password = password or self.password
         return scp_from(self.ipaddress, remote_path, user=user,
