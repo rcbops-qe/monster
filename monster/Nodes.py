@@ -18,7 +18,7 @@ class Node(object):
     Provides server related functions
     """
     def __init__(self, ip, user, password, os, product, environment,
-                 deployment):
+                 deployment, status="provisioning"):
         self.ipaddress = ip
         self.user = user
         self.password = password
@@ -28,6 +28,7 @@ class Node(object):
         self.deployment = deployment
         self.features = []
         self._cleanups = []
+        self.status = status
 
     def __repr__(self):
         """ Print out current instance
@@ -49,6 +50,9 @@ class Node(object):
         return "\n".join([outl, features])
 
     def run_cmd(self, remote_cmd, user=None, password=None, quiet=False):
+        """
+        Runs a command on the node
+        """
         user = user or self.user
         password = password or self.password
         util.logger.info("Running: {0} on {1}".format(remote_cmd, self.name))
@@ -56,12 +60,18 @@ class Node(object):
                        password=password, quiet=quiet)
 
     def scp_to(self, local_path, user=None, password=None, remote_path=""):
+        """
+        Sends a file to the node
+        """
         user = user or self.user
         password = password or self.password
         return scp_to(self.ipaddress, local_path, user=user, password=password,
                       remote_path=remote_path)
 
     def scp_from(self, remote_path, user=None, password=None, local_path=""):
+        """
+        Retreives a file from the node
+        """
         user = user or self.user
         password = password or self.password
         return scp_from(self.ipaddress, remote_path, user=user,
@@ -69,6 +79,7 @@ class Node(object):
 
     def pre_configure(self):
         """Pre configures node for each feature"""
+        self.status = "pre-configure"
         for feature in self.features:
             log = "Node feature: pre-configure: {0}"\
                 .format(str(feature))
@@ -76,6 +87,7 @@ class Node(object):
             feature.pre_configure()
 
     def apply_feature(self):
+        self.status = "apply-feature"
         """Applies each feature"""
         for feature in self.features:
             log = "Node feature: update environment: {0}"\
@@ -85,6 +97,7 @@ class Node(object):
 
     def post_configure(self):
         """Post configures node for each feature"""
+        self.status = "post-configure"
         for feature in self.features:
             log = "Node feature: post-configure: {0}"\
                 .format(str(feature))
@@ -97,8 +110,12 @@ class Node(object):
         self.pre_configure()
         self.apply_feature()
         self.post_configure()
+        self.status = "done"
 
     def destroy(self):
+        """
+        Destroy interface
+        """
         raise NotImplementedError
 
 
@@ -108,36 +125,39 @@ class ChefRazorNode(Node):
     Provides chef related server fuctions
     """
     def __init__(self, ip, user, password, os, product, environment,
-                 deployment, name, provisioner, branch):
+                 deployment, name, provisioner, branch, status="provisioning"):
+        super(ChefRazorNode, self).__init__(ip, user, password, os, product,
+                                            environment, deployment, status)
         self.name = name
         self.razor = provisioner
         self.branch = branch
         self.run_list = []
         self.features = []
-        super(ChefRazorNode, self).__init__(ip, user, password, os, product,
-                                            environment, deployment)
 
-    def __str__(self):
-        features = "{0}".format(", ".join(map(str, self.features)))
-        node = ("\n\tNode: \n\t\tName: {0}\n\t\tOS: {1}\n\t\t"
-                "Product: {2}\n\t\tBranch: {3}\n\t\t"
-                "Features: {4}\n").format(self.name,
-                                          self.os,
-                                          self.product,
-                                          self.branch,
-                                          features)
-        return node
+    def save_to_node(self):
+        """
+        Save deployment restore attributes to chef environment
+        """
+        node = {'features': self.features,
+                'status': self.status}
+        self.environment.add_override_attr('node', node)
 
     def apply_feature(self):
+        """
+        Runs chef client before apply features on node
+        """
+        self.status = "apply-feature"
         if self.run_list:
             self.run_cmd("chef-client")
         super(ChefRazorNode, self).apply_feature()
 
     def add_run_list_item(self, items):
-        util.logger.debug("items:" + str(items))
+        """
+        Adds list of items to run_list
+        """
+        util.logger.debug("run_list:{0}add:{1}".format(self.run_list, items))
         self.run_list.extend(items)
         cnode = CNode(self.name)
-        util.logger.debug("pre-run_list:" + str(cnode.run_list))
         cnode.run_list = self.run_list
         cnode.save()
 
@@ -162,12 +182,16 @@ class ChefRazorNode(Node):
             rnode.save()
 
     def destroy(self):
+        """
+        Destroys node resets attributes if clean restores razor image if dirty
+        """
+        self.status = "Destroying"
         util.logger.info("Destroying node:{0}".format(self.name))
         cnode = CNode(self.name)
         if self['in_use'] == "provisioned":
             # Return to pool if the node is clean
             cnode['in_use'] = 0
-            cnode['features'] = []
+            cnode['node'] = {}
             cnode.chef_environment = "_default"
             cnode.save()
         else:
@@ -178,6 +202,7 @@ class ChefRazorNode(Node):
             CClient(self.name).delete()
             cnode.delete()
             sleep(15)
+        self.status = "Destroyed"
 
     def add_features(self, features):
         """
@@ -190,16 +215,21 @@ class ChefRazorNode(Node):
             self.features.append(feature_class)
 
         # save features for restore
-        self['features'] = features
+        self.save_to_node()
 
     @classmethod
     def from_chef_node(cls, node, os, product, environment, deployment,
                        provisioner, branch):
+        """
+        Restores node from chef node
+        """
         ip = node['ipaddress']
         user = node['current_user']
         password = node['password']
         name = node.name
+        archive = node.get('node', {})
+        status = archive.get('status', "provisioning")
         crnode = cls(ip, user, password, os, product, environment, deployment,
-                     name, provisioner, branch)
-        crnode.add_features(node.get('features', []))
+                     name, provisioner, branch, status=status)
+        crnode.add_features(archive.get('features', []))
         return crnode
