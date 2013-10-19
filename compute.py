@@ -42,8 +42,14 @@ def build(name="precise-default", branch="grizzly", template_path=None,
 def destroy(name="precise-default", config=None):
     config = Config(config)
     deployment = ChefRazorDeployment.from_chef_environment(name, config)
-    print deployment
+    util.logger.info(deployment)
     deployment.destroy()
+
+
+def test(name="precise-default", config=None):
+    config = Config(config)
+    deployment = ChefRazorDeployment.from_chef_environment(name, config)
+    deployment.test()
 
 
 if __name__ == "__main__":

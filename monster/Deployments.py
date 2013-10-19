@@ -89,16 +89,11 @@ class Deployment(object):
         util.logger.debug("Deployment step: post-configure")
         self.post_configure()
 
-    @classmethod
-    def test(cls):
-        deployment = cls("Test Deployment",
-                         "precuse",
-                         "grizzly",
-                         "config.yaml")
-        features = ['ha', 'ldap']
-        setattr(deployment, 'features', features)
-
-        print deployment
+    def test(self):
+        """
+        Run tests on deployment
+        """
+        pass
 
 
 class ChefRazorDeployment(Deployment):
