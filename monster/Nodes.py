@@ -134,10 +134,12 @@ class ChefRazorNode(Node):
         super(ChefRazorNode, self).apply_feature()
 
     def add_run_list_item(self, items):
-        util.logger.debug("items:" + str(items))
+        """
+        Adds list of items to run_list
+        """
+        util.logger.debug("run_list:{0}add:{1}".format(self.run_list, items))
         self.run_list.extend(items)
         cnode = CNode(self.name)
-        util.logger.debug("pre-run_list:" + str(cnode.run_list))
         cnode.run_list = self.run_list
         cnode.save()
 
