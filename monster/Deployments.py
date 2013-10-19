@@ -48,7 +48,7 @@ class Deployment(object):
     def destroy(self):
         """ Destroys an OpenStack deployment """
         self.status = "destroying"
-        util.logger.info("Destroying deployment:{0}".format("self.name"))
+        util.logger.info("Destroying deployment:{0}".format(self.name))
         for node in self.nodes:
             node.destroy()
         self.status = "destroyed"
@@ -119,9 +119,10 @@ class ChefRazorDeployment(Deployment):
     Puppet's Razor as provisioner and
     Opscode's Chef as configuration management
     """
-    def __init__(self, name, os_name, branch, config, environment, razor):
+    def __init__(self, name, os_name, branch, config, environment, razor,
+                 status="provisioning"):
         super(ChefRazorDeployment, self).__init__(name, os_name, branch,
-                                                  config)
+                                                  config, status=status)
         self.environment = environment
         self.razor = razor
         self.has_controller = False
@@ -245,7 +246,7 @@ class ChefRazorDeployment(Deployment):
 
     @classmethod
     def deployment_config(cls, os_features, rpcs_features, name, os_name,
-                          branch, config, chef, razor):
+                          branch, config, chef, razor, status="provisioning"):
         """
         Returns deployment given dictionaries of features
         """
