@@ -38,10 +38,10 @@ def remove_chef(node):
     """ Removes chef from the given node
     """
 
-    if node.os == "precise":
+    if node.os_name == "precise":
         commands = ["apt-get remove --purge -y chef",
                     "rm -rf /etc/chef"]
-    if node.os in ["centos", "rhel"]:
+    if node.os_name in ["centos", "rhel"]:
         commands = ["yum remove -y chef",
                     "rm -rf /etc/chef /var/chef"]
 

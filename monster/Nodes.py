@@ -7,8 +7,9 @@ from monster import util
 from time import sleep
 from chef import Node as CNode
 from chef import Client as CClient
-import monster.Features.Node as node_features
 from inspect import getmembers, isclass
+
+import monster.Features.Node as node_features
 from monster.server_helper import ssh_cmd, scp_to, scp_from
 
 
@@ -22,7 +23,7 @@ class Node(object):
         self.ipaddress = ip
         self.user = user
         self.password = password
-        self.os = os
+        self.os_name = os
         self.product = product
         self.environment = environment
         self.deployment = deployment
@@ -45,8 +46,6 @@ class Node(object):
                     outl += '\n\t{0} : {1}'.format(attr, 'None')
                 else:
                     outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
-            outl += '\n\tIP : {1}'.format(self.ipaddress)
-
         return "\n".join([outl, features])
 
     def run_cmd(self, remote_cmd, user=None, password=None, quiet=False):
@@ -138,9 +137,10 @@ class ChefRazorNode(Node):
         """
         Save deployment restore attributes to chef environment
         """
-        node = {'features': self.features,
+        features = [str(f).lower() for f in self.features]
+        node = {'features': features,
                 'status': self.status}
-        self.environment.add_override_attr('node', node)
+        self['archive'] = node
 
     def apply_feature(self):
         """
@@ -191,7 +191,7 @@ class ChefRazorNode(Node):
         if self['in_use'] == "provisioned":
             # Return to pool if the node is clean
             cnode['in_use'] = 0
-            cnode['node'] = {}
+            cnode['archive'] = {}
             cnode.chef_environment = "_default"
             cnode.save()
         else:
@@ -208,6 +208,8 @@ class ChefRazorNode(Node):
         """
         Adds a list of feature classes
         """
+        util.logger.debug("node:{0} feature add:{1}".format(self.name,
+                                                            features))
         classes = {k.lower(): v for (k, v) in
                    getmembers(node_features, isclass)}
         for feature in features:
@@ -223,13 +225,20 @@ class ChefRazorNode(Node):
         """
         Restores node from chef node
         """
-        ip = node['ipaddress']
+        ipaddress = node['ipaddress']
         user = node['current_user']
         password = node['password']
         name = node.name
-        archive = node.get('node', {})
+        archive = node.get('archive', {})
         status = archive.get('status', "provisioning")
-        crnode = cls(ip, user, password, os, product, environment, deployment,
-                     name, provisioner, branch, status=status)
+        crnode = cls(ipaddress, user, password, os, product, environment,
+                     deployment, name, provisioner, branch, status=status)
         crnode.add_features(archive.get('features', []))
         return crnode
+
+    def __str__(self):
+        features = ", ".join((str(f) for f in self.features))
+        node = ("Node - name:{0}, os:{1}, branch:{2}, ip:{3}, status:{4}\n\t\t"
+                "Features: {5}").format(self.name, self.os_name, self.branch,
+                                        self.ipaddress, self.status, features)
+        return node

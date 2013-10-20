@@ -1,25 +1,26 @@
+"""
+OpenStack deployments
+"""
+
 import os
 import types
 from monster import util
 from time import sleep
-from Config import Config
-from razor_api import razor_api
-from Environments import Chef
-from Nodes import ChefRazorNode
-from chef import autoconfigure, Search, Environment
+from chef import autoconfigure, Search, Environment, Node
 from inspect import getmembers, isclass
-import Features.Deployment as deployment_features
 
-"""
-OpenStack deployments
-"""
+from monster.Config import Config
+from monster.razor_api import razor_api
+from monster.Environments import Chef
+from monster.Nodes import ChefRazorNode
+import monster.Features.Deployment as deployment_features
 
 
 class Deployment(object):
     """Base for OpenStack deployments"""
     def __init__(self, name, os_name, branch, config, status="provisioning"):
         self.name = name
-        self.os = os_name
+        self.os_name = os_name
         self.branch = branch
         self.config = config
         self.features = []
@@ -33,10 +34,10 @@ class Deployment(object):
         for attr in self.__dict__:
             if attr == 'features':
                 features = "\tFeatures: {0}".format(
-                    ", ".join(map(str, self.features)))
+                    ", ".join((str(f) for f in self.features)))
             elif attr == 'nodes':
                 nodes = "\tNodes: {0}".format(
-                    "".join(map(str, self.nodes)))
+                    "".join((str(n) for n in self.nodes)))
             elif isinstance(getattr(self, attr), types.NoneType):
                 outl += '\n\t{0} : {1}'.format(attr, 'None')
             else:
@@ -47,7 +48,7 @@ class Deployment(object):
     def destroy(self):
         """ Destroys an OpenStack deployment """
         self.status = "destroying"
-        util.logger.info("Destroying deployment:{0}".format("self.name"))
+        util.logger.info("Destroying deployment:{0}".format(self.name))
         for node in self.nodes:
             node.destroy()
         self.status = "destroyed"
@@ -98,7 +99,6 @@ class Deployment(object):
         self.build_nodes()
         util.logger.debug("Deployment step: post-configure")
         self.post_configure()
-        self.save_to_environment()
         self.status = "done"
 
     def test(self):
@@ -114,9 +114,10 @@ class ChefRazorDeployment(Deployment):
     Puppet's Razor as provisioner and
     Opscode's Chef as configuration management
     """
-    def __init__(self, name, os_name, branch, config, environment, razor):
+    def __init__(self, name, os_name, branch, config, environment, razor,
+                 status="provisioning"):
         super(ChefRazorDeployment, self).__init__(name, os_name, branch,
-                                                  config)
+                                                  config, status=status)
         self.environment = environment
         self.razor = razor
         self.has_controller = False
@@ -126,15 +127,23 @@ class ChefRazorDeployment(Deployment):
         Save deployment restore attributes to chef environment
         """
         features = {key: value for (key, value) in
-                    map(lambda x: (str(x).lower(), x.rpcs_feature),
-                        self.features)}
-        deployment = {'os_features': features,
+                    ((str(x).lower(), x.rpcs_feature) for x in self.features)}
+        nodes = [n.name for n in self.nodes]
+        deployment = {'nodes': nodes,
+                      'os_features': features,
                       'rpcs_features': {},
                       'name': self.name,
-                      'os_name': self.os,
+                      'os_name': self.os_name,
                       'branch': self.branch,
                       'status': self.status}
         self.environment.add_override_attr('deployment', deployment)
+
+    def build(self):
+        """
+        Saves deployment for restore after build
+        """
+        super(ChefRazorDeployment, self).build()
+        self.save_to_environment()
 
     def update_environment(self):
         """
@@ -188,10 +197,12 @@ class ChefRazorDeployment(Deployment):
         return deployment
 
     @classmethod
-    def from_chef_environment(cls, environment, config, path=None):
+    def from_chef_environment(cls, environment, config=None, path=None):
         """
         Rebuilds a Deployment given a chef environment
         """
+        if not config:
+            config = Config()
         if not path:
             path = os.path.join(os.path.dirname(__file__),
                                 os.pardir,
@@ -207,11 +218,11 @@ class ChefRazorDeployment(Deployment):
         razor = razor_api(config['razor']['ip'])
         deployment_args['razor'] = razor
         deployment_args['config'] = config
+        nodes = deployment_args.pop('nodes')
         deployment = cls.deployment_config(**deployment_args)
         template = Config(path)[environment]
         product = template['product']
-        query = "chef_environment:{0}".format(environment)
-        for node in cls.node_search(query):
+        for node in (Node(n) for n in nodes):
             crnode = ChefRazorNode.from_chef_node(node,
                                                   deployment_args['os_name'],
                                                   product, chef,
@@ -234,7 +245,7 @@ class ChefRazorDeployment(Deployment):
 
     @classmethod
     def deployment_config(cls, os_features, rpcs_features, name, os_name,
-                          branch, config, chef, razor):
+                          branch, config, chef, razor, status="provisioning"):
         """
         Returns deployment given dictionaries of features
         """
@@ -277,7 +288,7 @@ class ChefRazorDeployment(Deployment):
         """
         Returns nodes the have the desired role
         """
-        features = map(str, self.features)
+        features = (str(f) for f in self.features)
         return (node for node in self.nodes if feature in features)
 
     def destroy(self):
@@ -290,3 +301,11 @@ class ChefRazorDeployment(Deployment):
         super(ChefRazorDeployment, self).destroy()
         self.environment.destroy()
         self.status = "Destroyed"
+
+    def __str__(self):
+        nodes = "\n\t".join(str(node) for node in self.nodes)
+        deployment = ("Deployment - name:{0}, os:{1}, branch:{2}, status:{3}\n"
+                      "{4}\nNodes:\n\t{5}".format(self.name, self.os_name,
+                                                  self.branch, self.status,
+                                                  self.environment, nodes))
+        return deployment

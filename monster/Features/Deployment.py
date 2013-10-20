@@ -75,7 +75,7 @@ class Neutron(Deployment):
     def post_configure(self):
         """ Runs cluster post configure commands
         """
-        if self.deployment.os in ['centos', 'rhel']:
+        if self.deployment.os_name in ['centos', 'rhel']:
             self._reboot_cluster()
 
     def _reboot_cluster(self):
@@ -542,7 +542,7 @@ class HighAvailability(RPCS):
     def __init__(self, deployment, rpcs_feature):
         super(HighAvailability, self).__init__(deployment, rpcs_feature, 'ha')
         self.environment = \
-            self.config['environments'][self.name][deployment.os]
+            self.config['environments'][self.name][deployment.os_name]
 
     def __repr__(self):
         """ Print out current instance
