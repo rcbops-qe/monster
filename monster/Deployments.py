@@ -6,7 +6,7 @@ import os
 import types
 from monster import util
 from time import sleep
-from chef import autoconfigure, Search, Environment
+from chef import autoconfigure, Search, Environment, Node
 from inspect import getmembers, isclass
 
 from monster.Config import Config
@@ -133,7 +133,9 @@ class ChefRazorDeployment(Deployment):
         """
         features = {key: value for (key, value) in
                     ((str(x).lower(), x.rpcs_feature) for x in self.features)}
-        deployment = {'os_features': features,
+        nodes = [n.name for n in self.nodes]
+        deployment = {'nodes': nodes,
+                      'os_features': features,
                       'rpcs_features': {},
                       'name': self.name,
                       'os_name': self.os_name,
@@ -200,10 +202,12 @@ class ChefRazorDeployment(Deployment):
         return deployment
 
     @classmethod
-    def from_chef_environment(cls, environment, config, path=None):
+    def from_chef_environment(cls, environment, config=None, path=None):
         """
         Rebuilds a Deployment given a chef environment
         """
+        if not config:
+            config = Config()
         if not path:
             path = os.path.join(os.path.dirname(__file__),
                                 os.pardir,
@@ -219,11 +223,11 @@ class ChefRazorDeployment(Deployment):
         razor = razor_api(config['razor']['ip'])
         deployment_args['razor'] = razor
         deployment_args['config'] = config
+        nodes = deployment_args.pop('nodes')
         deployment = cls.deployment_config(**deployment_args)
         template = Config(path)[environment]
         product = template['product']
-        query = "chef_environment:{0}".format(environment)
-        for node in cls.node_search(query):
+        for node in (Node(n) for n in nodes):
             crnode = ChefRazorNode.from_chef_node(node,
                                                   deployment_args['os_name'],
                                                   product, chef,
@@ -302,3 +306,11 @@ class ChefRazorDeployment(Deployment):
         super(ChefRazorDeployment, self).destroy()
         self.environment.destroy()
         self.status = "Destroyed"
+
+    def __str__(self):
+        nodes = "\n\t".join(str(node) for node in self.nodes)
+        deployment = ("Deployment - name:{0}, os:{1}, branch:{2}, status:{3}\n"
+                      "{4}\nNodes:\n\t{5}".format(self.name, self.os_name,
+                                                  self.branch, self.status,
+                                                  self.environment, nodes))
+        return deployment
