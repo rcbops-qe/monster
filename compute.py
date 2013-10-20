@@ -13,20 +13,27 @@ from monster.Deployments import ChefRazorDeployment
 
 
 def build(name="precise-default", branch="grizzly", template_path=None,
-          config=None, destroy=False, dry=False):
+          config=None, destroy=False, dry=False, log=None,
+          log_level="INFO"):
     """
     Builds an OpenStack Cluster
     """
+    # set log level and file
+    util.set_log_level(log_level)
+    if log:
+        util.log_to_file(log)
+
+    # provisiong deployment
     config = Config(config)
-    deployment = ChefRazorDeployment.fromfile(name,
-                                              branch,
-                                              config,
+    deployment = ChefRazorDeployment.fromfile(name, branch, config,
                                               template_path)
     util.logger.info(deployment)
 
     if dry:
+        # build environment
         deployment.update_environment()
     else:
+        # build deployment
         try:
             deployment.build()
         except Exception:
@@ -39,14 +46,23 @@ def build(name="precise-default", branch="grizzly", template_path=None,
         deployment.destroy()
 
 
-def destroy(name="precise-default", config=None):
+def destroy(name="precise-default", config=None, log=None, log_level="INFO"):
+    # set log level and file
+    util.set_log_level(log_level)
+    if log:
+        util.log_to_file(log)
+
+    # load deployment and destroy
     config = Config(config)
     deployment = ChefRazorDeployment.from_chef_environment(name, config)
     util.logger.info(deployment)
     deployment.destroy()
 
 
-def test(name="precise-default", config=None):
+def test(name="precise-default", config=None, log=None, log_level="INFO"):
+    util.set_log_level(log_level)
+    if log:
+        util.log_to_file(log)
     config = Config(config)
     deployment = ChefRazorDeployment.from_chef_environment(name, config)
     deployment.test()
