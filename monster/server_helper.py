@@ -3,6 +3,8 @@ from cStringIO import StringIO
 from paramiko import SSHClient, AutoAddPolicy
 from subprocess import check_call, CalledProcessError
 
+from monster import util
+
 
 def run_cmd(command):
     """
@@ -19,7 +21,7 @@ def run_cmd(command):
                 'command': command}
 
 
-def ssh_cmd(ip, remote_cmd, user='root', password=None, quiet=False):
+def ssh_cmd(ip, remote_cmd, user='root', password=None):
     """
     @param server_ip
     @param user
@@ -35,9 +37,8 @@ def ssh_cmd(ip, remote_cmd, user='root', password=None, quiet=False):
     stdin, stdout, stderr = ssh.exec_command(remote_cmd)
     stdin.close()
     for line in stdout.xreadlines():
-        if not quiet:
-            sys.stdout.write(line)
-            output.write(line)
+        util.logger.INFO("output:{0}".format(line))
+        output.write(line)
     for line in stderr.xreadlines():
         sys.stdout.write(line)
         error.write(line)
