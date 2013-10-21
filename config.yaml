@@ -309,3 +309,6 @@ swift:
             port: 6001
         account:
             port: 6002
+
+cinder:
+    device: sdb1

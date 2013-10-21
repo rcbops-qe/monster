@@ -187,8 +187,10 @@ class Cinder(Node):
         """
 
         # Clean up any VG errors
-        commands = ["vg=`pvdisplay | grep sdb1 -A 1 | grep VG | "
-                    "awk '{print $3}'`",
+        # Hardcoded sdb1, need to make this configurable
+        device = self.config['cinder']['device']
+        commands = ["vg=`pvdisplay | grep {0} -A 1 | grep VG | "
+                    "awk '{print $3}'`".format(device),
                     "for i in `lvdisplay | grep $vg "
                     "| awk '{print $3}'`; do lvremove $i; done",
                     "vgreduce $vg --removemissing"]
@@ -196,7 +198,8 @@ class Cinder(Node):
         self.node.run_cmd(command)
 
         # Gather the created volume group for cinder
-        command = "vgdisplay 2> /dev/null | grep pool | awk '{print $3}'"
+        command = ("pvdisplay | grep {0} -A 1 | grep VG | "
+                   "awk '{print $3}'".format(device))
         ret = self.node.run_cmd(command)
         volume_group = ret['return'].replace("\n", "").replace("\r", "")
 
