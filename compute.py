@@ -6,7 +6,9 @@ Command Line interface for Building Openstack clusters
 
 import sys
 import argh
+import logging
 import traceback
+import webbrowser
 from monster import util
 from monster.Config import Config
 from monster.Deployments import ChefRazorDeployment
@@ -68,7 +70,33 @@ def test(name="precise-default", config=None, log=None, log_level="INFO"):
     deployment.test()
 
 
+def openrc(name="precise-default", config=None, log=None, log_level="INFO"):
+    # set log level and file
+    util.set_log_level(log_level)
+    if log:
+        util.log_to_file(log)
+
+    # load deployment and source openrc
+    config = Config(config)
+    deployment = ChefRazorDeployment.from_chef_environment(name, config)
+    deployment.openrc()
+
+
+def horizon(name="precise-default", config=None, log=None, log_level="INFO"):
+    # set log level and file
+    util.set_log_level(log_level)
+    if log:
+        util.log_to_file(log)
+
+    # load deployment and source openrc
+    config = Config(config)
+    deployment = ChefRazorDeployment.from_chef_environment(name, config)
+    ip = deployment.horizon_ip()
+    url = "https://%s" % ip
+    webbrowser.open_new_tab(url)
+
+
 if __name__ == "__main__":
     parser = argh.ArghParser()
-    parser.add_commands([build, destroy])
+    parser.add_commands([build, destroy, openrc, horizon])
     parser.dispatch()

@@ -229,6 +229,7 @@ class ChefRazorDeployment(Deployment):
                                                   deployment, razor,
                                                   deployment_args['branch'])
             deployment.nodes.append(crnode)
+        deployment.save_to_environment()
         return deployment
 
     # NOTE: This probably should be in node instead and use from_chef_node
@@ -288,8 +289,9 @@ class ChefRazorDeployment(Deployment):
         """
         Returns nodes the have the desired role
         """
-        features = (str(f) for f in self.features)
-        return (node for node in self.nodes if feature in features)
+        return (node for node in
+                self.nodes if feature in
+                (str(f).lower() for f in node.features))
 
     def destroy(self):
         """
@@ -309,3 +311,27 @@ class ChefRazorDeployment(Deployment):
                                                   self.branch, self.status,
                                                   self.environment, nodes))
         return deployment
+
+    def openrc(self):
+        user_name = self.environment.override_attributes['keystone'][
+            'admin_user']
+        user = self.environment.override_attributes['keystone']['users'][
+            user_name]
+        password = user['password']
+        tenant = user['roles'].keys()[0]
+        controller = next(self.search_role('controller'))
+        url = Node(controller.name).normal['keystone']['publicURL']
+        strategy = 'keystone'
+        openrc = {'OS_USERNAME': user_name, 'OS_PASSWORD': password,
+                  'OS_TENANT_NAME': tenant, 'OS_AUTH_URL': url,
+                  'OS_AUTH_STRATEGY': strategy, 'OS_NO_CACHE': '1'}
+        for key in openrc.keys():
+            os.putenv(key, openrc[key])
+        os.system(os.environ['SHELL'])
+
+    def horizon_ip(self):
+        controller = next(self.search_role('controller'))
+        ip = controller.ipaddress
+        if "vips" in self.environment.override_attributes:
+            ip = self.environment.override_attributes['vips']['nova-api']
+        return ip
