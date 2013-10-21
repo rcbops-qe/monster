@@ -177,8 +177,14 @@ class ChefRazorDeployment(Deployment):
             path = os.path.join(os.path.dirname(__file__),
                                 os.pardir,
                                 'deployment_templates/default.yaml')
-        template = Config(path)[name]
         local_api = autoconfigure()
+
+        if Environment('name', api=local_api).exists:
+            # Use previous dry build if exists
+            return cls.from_chef_environment(name, config, path)
+
+        template = Config(path)[name]
+
         chef = Chef(name, local_api, description=name)
         razor = razor_api(config['razor']['ip'])
         os_name = template['os']
