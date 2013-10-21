@@ -187,9 +187,9 @@ class Cinder(Node):
         """
 
         # Clean up any VG errors
-        commands = ["vg=`pvdisplay | grep unknown -A 1 | grep VG | "
+        commands = ["vg=`pvdisplay | grep sdb1 -A 1 | grep VG | "
                     "awk '{print $3}'`",
-                    "for i in `lvdisplay | grep 'LV Name' | grep $vg "
+                    "for i in `lvdisplay | grep $vg "
                     "| awk '{print $3}'`; do lvremove $i; done",
                     "vgreduce $vg --removemissing"]
         command = "; ".join(commands)
