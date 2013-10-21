@@ -48,7 +48,7 @@ class Node(object):
                     outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
         return "\n".join([outl, features])
 
-    def run_cmd(self, remote_cmd, user=None, password=None, quiet=False):
+    def run_cmd(self, remote_cmd, user=None, password=None):
         """
         Runs a command on the node
         """
@@ -56,7 +56,7 @@ class Node(object):
         password = password or self.password
         util.logger.info("Running: {0} on {1}".format(remote_cmd, self.name))
         return ssh_cmd(self.ipaddress, remote_cmd=remote_cmd, user=user,
-                       password=password, quiet=quiet)
+                       password=password)
 
     def scp_to(self, local_path, user=None, password=None, remote_path=""):
         """
