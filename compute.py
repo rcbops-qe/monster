@@ -20,10 +20,7 @@ def build(name="precise-default", branch="grizzly", template_path=None,
     """
     Builds an OpenStack Cluster
     """
-    # set log level and file
-    util.set_log_level(log_level)
-    if log:
-        util.log_to_file(log)
+    _set_log(log, log_level)
 
     # provisiong deployment
     config = Config(config)
@@ -49,54 +46,54 @@ def build(name="precise-default", branch="grizzly", template_path=None,
 
 
 def destroy(name="precise-default", config=None, log=None, log_level="INFO"):
-    # set log level and file
-    util.set_log_level(log_level)
-    if log:
-        util.log_to_file(log)
-
-    # load deployment and destroy
-    config = Config(config)
-    deployment = ChefRazorDeployment.from_chef_environment(name, config)
+    _set_log(log, log_level)
+    deployment = _load(name, config)
     util.logger.info(deployment)
     deployment.destroy()
 
 
 def test(name="precise-default", config=None, log=None, log_level="INFO"):
-    util.set_log_level(log_level)
-    if log:
-        util.log_to_file(log)
-    config = Config(config)
-    deployment = ChefRazorDeployment.from_chef_environment(name, config)
+    _set_log(log, log_level)
+    deployment = _load(name, config)
     deployment.test()
 
 
 def openrc(name="precise-default", config=None, log=None, log_level="INFO"):
-    # set log level and file
-    util.set_log_level(log_level)
-    if log:
-        util.log_to_file(log)
-
-    # load deployment and source openrc
-    config = Config(config)
-    deployment = ChefRazorDeployment.from_chef_environment(name, config)
+    _set_log(log, log_level)
+    deployment = _load(name, config)
     deployment.openrc()
 
 
 def horizon(name="precise-default", config=None, log=None, log_level="INFO"):
-    # set log level and file
-    util.set_log_level(log_level)
-    if log:
-        util.log_to_file(log)
-
-    # load deployment and source openrc
-    config = Config(config)
-    deployment = ChefRazorDeployment.from_chef_environment(name, config)
+    _set_log(log, log_level)
+    deployment = _load(name, config)
     ip = deployment.horizon_ip()
     url = "https://%s" % ip
     webbrowser.open_new_tab(url)
 
 
+def load(name="precise-default", config=None, log=None, log_level="INFO"):
+    _set_log(log, log_level)
+    # load deployment and source openrc
+    deployment = _load(name, config)
+    util.logger.info(str(deployment))
+
+
+def _load(name="precise-default", config=None):
+    # load deployment and source openrc
+    config = Config(config)
+    deployment = ChefRazorDeployment.from_chef_environment(name, config)
+    return deployment
+
+
+def _set_log(log, log_level):
+    # set log level and file
+    util.set_log_level(log_level)
+    if log:
+        util.log_to_file(log)
+
+
 if __name__ == "__main__":
     parser = argh.ArghParser()
-    parser.add_commands([build, destroy, openrc, horizon])
+    parser.add_commands([build, destroy, openrc, horizon, load])
     parser.dispatch()
