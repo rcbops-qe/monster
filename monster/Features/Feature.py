@@ -47,4 +47,4 @@ def remove_chef(node):
 
     command = "; ".join(commands)
 
-    return node.run_cmd(command, quiet=True)
+    return node.run_cmd(command)
