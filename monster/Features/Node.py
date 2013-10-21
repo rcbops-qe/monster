@@ -186,34 +186,17 @@ class Cinder(Node):
         """ Prepares the node for use with cinder
         """
 
-        # Clean up any VG errors
-        device = self.config['cinder']['device']
-        util.logging.info("Cinder Device on {0}: {1}".format(
-            self.node.name, device))
-        commands = ["vg=`pvdisplay | grep {0} -A 1 | "
-                    "grep VG | awk '{{print $3}}'`".format(device),
-                    "for i in `lvdisplay | grep $vg | awk '{print $3}'`; "
-                    "do lvremove $i; done",
-                    "vgreduce $vg --removemissing"]
-        command = "; ".join(commands)
-        self.node.run_cmd(command)
-
-        # Gather the created volume group for cinder
-        command = ("pvdisplay | grep {0} -A 1 | grep VG | "
-                   "awk '{{print $3}}'".format(device))
-        ret = self.node.run_cmd(command)
-        volume_group = ret['return'].replace("\n", "").replace("\r", "")
-
         # Update our environment
         env = self.node.environment
+        vol_group = self.config['cinder']['vg_name']
         cinder = {
             "storage": {
                 "lvm": {
-                    "volume_group": volume_group
+                    "volume_group": vol_group
                 }
             }
         }
-        util.log.info("Setting cinder volume to {0}".format(volume_group))
+        util.log.info("Setting cinder volume to {0}".format(vol_group))
         env.add_override_attr("cinder", cinder)
 
 

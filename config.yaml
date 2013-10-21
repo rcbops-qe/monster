@@ -311,4 +311,4 @@ swift:
             port: 6002
 
 cinder:
-    device: sdb1
+    vg_name: vg_storage
