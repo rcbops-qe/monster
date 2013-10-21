@@ -196,7 +196,7 @@ class Cinder(Node):
                 }
             }
         }
-        util.log.info("Setting cinder volume to {0}".format(vol_group))
+        util.logging.info("Setting cinder volume to {0}".format(vol_group))
         env.add_override_attr("cinder", cinder)
 
 
