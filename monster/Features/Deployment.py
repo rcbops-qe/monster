@@ -365,6 +365,16 @@ class Nova(Deployment):
         self.deployment.environment.add_override_attr(
             self.__class__.__name__.lower(), self.environment)
 
+        if self.deployment.os_name in ['centos, rhel']:
+            bridge_dev = 'em1'
+            env = self.deployment.environment
+
+            util.logger.info("Setting bridge_dev to {0}}".format(bridge_dev))
+            env.override_attributes['nova']['networks']\
+                                   ['public']['bridge_dev'] = bridge_dev
+
+            self.deployment.environment.save()
+
 
 class Horizon(Deployment):
     """ Represents the monitoring feature
