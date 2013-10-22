@@ -36,15 +36,18 @@ def ssh_cmd(ip, remote_cmd, user='root', password=None):
     stdin, stdout, stderr = ssh.exec_command(remote_cmd)
     stdin.close()
     for line in stdout:
+        print line
+        util.logger.debug(line)
         output.write(line)
     for line in stderr:
+        print line
+        util.error.debug(line)
         error.write(line)
     exit_status = stdout.channel.recv_exit_status()
     ret = {'success': True if exit_status == 0 else False,
            'return': output.getvalue(),
            'exit_status': exit_status,
            'error': error.getvalue()}
-    util.logger.debug("output:{0}".format(ret))
     return ret
 
 
