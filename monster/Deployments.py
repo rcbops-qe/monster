@@ -124,6 +124,14 @@ class ChefRazorDeployment(Deployment):
         self.razor = razor
         self.has_controller = False
 
+    def __str__(self):
+        nodes = "\n\t".join(str(node) for node in self.nodes)
+        deployment = ("Deployment - name:{0}, os:{1}, branch:{2}, status:{3}\n"
+                      "{4}\nNodes:\n\t{5}".format(self.name, self.os_name,
+                                                  self.branch, self.status,
+                                                  self.environment, nodes))
+        return deployment
+
     def save_to_environment(self):
         """
         Save deployment restore attributes to chef environment
@@ -132,8 +140,7 @@ class ChefRazorDeployment(Deployment):
                     ((str(x).lower(), x.rpcs_feature) for x in self.features)}
         nodes = [n.name for n in self.nodes]
         deployment = {'nodes': nodes,
-                      'os_features': features,
-                      'rpcs_features': {},
+                      'features': features,
                       'name': self.name,
                       'os_name': self.os_name,
                       'branch': self.branch,
@@ -167,8 +174,8 @@ class ChefRazorDeployment(Deployment):
                 node['in_use'] = "provisioned"
                 node.save()
                 return node
-        raise Exception("No more nodes!!")
         self.destroy()
+        raise Exception("No more nodes!!")
 
     @classmethod
     def fromfile(cls, name, branch, config, path=None):
@@ -193,8 +200,7 @@ class ChefRazorDeployment(Deployment):
         product = template['product']
         name = template['name']
 
-        deployment = cls.deployment_config(template['os-features'],
-                                           template['rpcs-features'], name,
+        deployment = cls.deployment_config(template['features'], name,
                                            os_name, branch, config, chef,
                                            razor)
         for features in template['nodes']:
@@ -253,16 +259,14 @@ class ChefRazorDeployment(Deployment):
         return node
 
     @classmethod
-    def deployment_config(cls, os_features, rpcs_features, name, os_name,
+    def deployment_config(cls, features, name, os_name,
                           branch, config, chef, razor, status="provisioning"):
         """
         Returns deployment given dictionaries of features
         """
         deployment = cls(name, os_name, branch, config, chef,
                          razor)
-        deployment.add_features(os_features)
-        if rpcs_features:
-            deployment.add_features(rpcs_features)
+        deployment.add_features(features)
         deployment.save_to_environment()
         return deployment
 
@@ -276,6 +280,8 @@ class ChefRazorDeployment(Deployment):
         classes = {k.lower(): v for (k, v) in
                    getmembers(deployment_features, isclass)}
         for feature, rpcs_feature in features.items():
+            util.logger.debug("feature: {0}, rpcs_feature: {1}".format(
+                feature,rpcs_feature))
             self.features.append(classes[feature](self, rpcs_feature))
 
     @classmethod
@@ -311,14 +317,6 @@ class ChefRazorDeployment(Deployment):
         super(ChefRazorDeployment, self).destroy()
         self.environment.destroy()
         self.status = "Destroyed"
-
-    def __str__(self):
-        nodes = "\n\t".join(str(node) for node in self.nodes)
-        deployment = ("Deployment - name:{0}, os:{1}, branch:{2}, status:{3}\n"
-                      "{4}\nNodes:\n\t{5}".format(self.name, self.os_name,
-                                                  self.branch, self.status,
-                                                  self.environment, nodes))
-        return deployment
 
     def openrc(self):
         user_name = self.environment.override_attributes['keystone'][

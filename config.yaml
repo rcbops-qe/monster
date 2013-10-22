@@ -143,12 +143,12 @@ environments:
                     apply_patches: True
     cinder:
         default:
-        local:
-            storage:
-                lvm:
-                    volume_group: "vgubuntu01"
+            local:
+                storage:
+                    lvm:
+                        volume_group: "vgubuntu01"
     swift:
-        default:
+        rpcs:
             swift-private-cloud:
                 network:
                     management: ""

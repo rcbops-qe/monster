@@ -112,9 +112,8 @@ class Swift(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Swift, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments'][self.__class__.__name__.lower()][
-                rpcs_feature]
-        self.commands
+            self.config['environments']\
+                       [self.__class__.__name__.lower()][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance

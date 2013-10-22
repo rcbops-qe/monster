@@ -48,6 +48,9 @@ def build(name="precise-swift", branch="grizzly", template_path=None,
 
 
 def destroy(name="precise-swift", config=None, log=None, log_level="INFO"):
+    """ Tears down a OpenStack Storage cluster
+    """
+
     _set_log(log, log_level)
     deployment = _load(name, config)
     util.logger.info(deployment)
@@ -55,17 +58,26 @@ def destroy(name="precise-swift", config=None, log=None, log_level="INFO"):
 
 
 def test(name="precise-swift", config=None, log=None, log_level="INFO"):
+    """ Tests a OpenStack Storage cluster
+    """
+
     _set_log(log, log_level)
     deployment = _load(name, config)
     deployment.test()
 
 
 def openrc(name="precise-swift", config=None, log=None, log_level="INFO"):
+    """ Loads the admin environment locally for a OpenStack Storage cluster
+    """
+
     _set_log(log, log_level)
     deployment = _load(name, config)
     deployment.openrc()
 
 def load(name="precise-swift", config=None, log=None, log_level="INFO"):
+    """ Loads a preconfigured OpenStack Storage cluster
+    """
+    
     _set_log(log, log_level)
     # load deployment and source openrc
     deployment = _load(name, config)

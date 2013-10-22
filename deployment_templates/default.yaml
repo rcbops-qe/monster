@@ -193,10 +193,9 @@ precise-swift:
   product: storage
   name: swift
   os: precise
-  os-features:
+  features:
     keystone: swift
-  rpcs-features:
-    - swift
+    swift: default
   nodes:
     - [chefserver]
     - [controller]
@@ -211,7 +210,8 @@ centos-swift:
   name: swift
   os: centos
   features:
-    - swift
+    keystone: swift
+    swift: rpcs
   nodes:
     - [chefserver]
     - [controller]
