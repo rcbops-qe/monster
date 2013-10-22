@@ -2,9 +2,6 @@
 Base Feature
 """
 
-from monster import util
-
-
 class Feature(object):
     """ Represents a OpenStack Feature
     """

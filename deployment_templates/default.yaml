@@ -195,7 +195,7 @@ precise-swift:
   os: precise
   features:
     keystone: swift
-    swift: default
+    swift: rpcs
   nodes:
     - [chefserver]
     - [controller]

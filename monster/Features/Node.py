@@ -1,7 +1,6 @@
 """
 A nodes features
 """
-
 from monster import util
 from Feature import Feature, remove_chef
 from chef import ChefAPI
@@ -122,7 +121,7 @@ class Storage(Node):
     """
 
     def __init__(self, node):
-        super(Proxy, self).__init__(node)
+        super(Storage, self).__init__(node)
 
     def __repr__(self):
         """ Print out current instance
