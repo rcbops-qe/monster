@@ -133,6 +133,33 @@ class ChefRazorNode(Node):
         self.run_list = []
         self.features = []
 
+    def __str__(self):
+        features = ", ".join((str(f) for f in self.features))
+        node = ("Node - name:{0}, os:{1}, branch:{2}, ip:{3}, status:{4}\n\t\t"
+                "Features: {5}").format(self.name, self.os_name, self.branch,
+                                        self.ipaddress, self.status, features)
+        return node
+
+    def __getitem__(self, item):
+        """
+        Node has access to chef attributes
+        """
+        return CNode(self.name, api=self.environment.local_api)[item]
+
+    def __setitem__(self, item, value):
+        """
+        Node can set chef attributes
+        """
+        util.logger.debug("setting {0} to {1} on {2}".format(item, value,
+                                                             self.name))
+        lnode = CNode(self.name, api=self.environment.local_api)
+        lnode[item] = value
+        lnode.save()
+        if self.environment.remote_api:
+            rnode = CNode(self.name, api=self.environment.remote_api)
+            rnode[item] = value
+            rnode.save()
+    
     def save_to_node(self):
         """
         Save deployment restore attributes to chef environment
@@ -160,26 +187,6 @@ class ChefRazorNode(Node):
         cnode = CNode(self.name)
         cnode.run_list = self.run_list
         cnode.save()
-
-    def __getitem__(self, item):
-        """
-        Node has access to chef attributes
-        """
-        return CNode(self.name, api=self.environment.local_api)[item]
-
-    def __setitem__(self, item, value):
-        """
-        Node can set chef attributes
-        """
-        util.logger.debug("setting {0} to {1} on {2}".format(item, value,
-                                                             self.name))
-        lnode = CNode(self.name, api=self.environment.local_api)
-        lnode[item] = value
-        lnode.save()
-        if self.environment.remote_api:
-            rnode = CNode(self.name, api=self.environment.remote_api)
-            rnode[item] = value
-            rnode.save()
 
     def destroy(self):
         """
@@ -235,10 +242,3 @@ class ChefRazorNode(Node):
                      deployment, name, provisioner, branch, status=status)
         crnode.add_features(archive.get('features', []))
         return crnode
-
-    def __str__(self):
-        features = ", ".join((str(f) for f in self.features))
-        node = ("Node - name:{0}, os:{1}, branch:{2}, ip:{3}, status:{4}\n\t\t"
-                "Features: {5}").format(self.name, self.os_name, self.branch,
-                                        self.ipaddress, self.status, features)
-        return node

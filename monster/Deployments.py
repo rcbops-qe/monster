@@ -17,7 +17,9 @@ import monster.Features.Deployment as deployment_features
 
 
 class Deployment(object):
-    """Base for OpenStack deployments"""
+    """Base for OpenStack deployments
+    """
+    
     def __init__(self, name, os_name, branch, config, status="provisioning"):
         self.name = name
         self.os_name = os_name
@@ -109,11 +111,11 @@ class Deployment(object):
 
 
 class ChefRazorDeployment(Deployment):
-    """
-    Deployment mechinisms specific to deployment using:
+    """ Deployment mechinisms specific to deployment using:
     Puppet's Razor as provisioner and
     Opscode's Chef as configuration management
     """
+
     def __init__(self, name, os_name, branch, config, environment, razor,
                  status="provisioning"):
         super(ChefRazorDeployment, self).__init__(name, os_name, branch,
