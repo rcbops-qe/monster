@@ -293,6 +293,7 @@ tests:
     - object_storage
 
 swift:
+    master_env_key: swift-private-cloud
     auto_build_rings: False
     disk: "sdb"
     disk_label: "sdb1"

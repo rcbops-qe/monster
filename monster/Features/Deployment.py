@@ -125,6 +125,8 @@ class Swift(Deployment):
         self.deployment.environment.add_override_attr(
             self.__class__.__name__.lower(), self.environment)
 
+        self._fix_environment(self)
+
     def post_configure(self):
         build_rings = bool(self.config['swift']['auto_build_rings'])
         self._build_rings(build_rings)
@@ -300,6 +302,22 @@ class Swift(Deployment):
 
         print "#" * 30
         print "## Done setting up swift rings ##"
+
+    def _fix_environment(self):
+        env = self.deployment.environment
+        master_key = self.config['swift']['master_env_key']
+        util.logger.info(
+            "Matching environment: {0} to RPCS swift requirements".format(
+                env.name))
+        keystone = env.override_attributes['keystone']
+        swift = env.override_attributes['swift'][master_key]
+        swift['keystone'] = keystone
+
+        env.del_override_attr('keystone')
+        env.del_override_attr('swift')
+        env.add_override_attr(master_key, swift)
+
+        env.save()
 
 
 class Glance(Deployment):

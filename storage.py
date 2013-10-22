@@ -77,7 +77,7 @@ def openrc(name="precise-swift", config=None, log=None, log_level="INFO"):
 def load(name="precise-swift", config=None, log=None, log_level="INFO"):
     """ Loads a preconfigured OpenStack Storage cluster
     """
-    
+
     _set_log(log, log_level)
     # load deployment and source openrc
     deployment = _load(name, config)

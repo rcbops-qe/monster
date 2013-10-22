@@ -43,11 +43,11 @@ class Chef(Environment):
         self.default_attributes[key] = value
         self.save()
 
-    def del_override_attr(self, key, value):
+    def del_override_attr(self, key):
         del self.override_attributes[key]
         self.save()
 
-    def del_default_attr(self, key, value):
+    def del_default_attr(self, key):
         del self.default_attributes[key]
         self.save()
 
