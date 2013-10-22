@@ -125,7 +125,7 @@ class Swift(Deployment):
         self.deployment.environment.add_override_attr(
             self.__class__.__name__.lower(), self.environment)
 
-        self._fix_environment(self)
+        self._fix_environment()
 
     def post_configure(self):
         build_rings = bool(self.config['swift']['auto_build_rings'])
