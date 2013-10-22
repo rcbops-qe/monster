@@ -1,3 +1,4 @@
+import sys
 from cStringIO import StringIO
 from paramiko import SSHClient, AutoAddPolicy
 from subprocess import check_call, CalledProcessError
@@ -36,12 +37,12 @@ def ssh_cmd(ip, remote_cmd, user='root', password=None):
     stdin, stdout, stderr = ssh.exec_command(remote_cmd)
     stdin.close()
     for line in stdout:
-        print line
+        sys.stdout.write(line)
         util.logger.debug(line)
         output.write(line)
     for line in stderr:
-        print line
-        util.error.debug(line)
+        sys.stderr.write(line)
+        util.logger.error(line)
         error.write(line)
     exit_status = stdout.channel.recv_exit_status()
     ret = {'success': True if exit_status == 0 else False,

@@ -142,11 +142,10 @@ environments:
                     provider: quantum
                     apply_patches: True
     cinder:
-        default:
-            local:
-                storage:
-                    lvm:
-                        volume_group: "vgubuntu01"
+        local:
+            storage:
+                lvm:
+                    volume_group: "vgubuntu01"
     swift:
         rpcs:
             swift-private-cloud:
