@@ -19,7 +19,7 @@ import monster.Features.Deployment as deployment_features
 class Deployment(object):
     """Base for OpenStack deployments
     """
-    
+
     def __init__(self, name, os_name, branch, config, status="provisioning"):
         self.name = name
         self.os_name = os_name
@@ -237,13 +237,9 @@ class ChefRazorDeployment(Deployment):
         template = Config(path)[environment]
         product = template['product']
         for node in (Node(n) for n in nodes):
-            crnode = ChefRazorNode.from_chef_node(node,
-                                                  deployment_args['os_name'],
-                                                  product, chef,
-                                                  deployment, razor,
-                                                  deployment_args['branch'])
-            deployment.nodes.append(crnode)
-        deployment.save_to_environment()
+            ChefRazorNode.from_chef_node(node, deployment_args['os_name'],
+                                         product, chef, deployment, razor,
+                                         deployment_args['branch'])
         return deployment
 
     # NOTE: This probably should be in node instead and use from_chef_node
@@ -255,8 +251,9 @@ class ChefRazorDeployment(Deployment):
         cnode = self.free_node(os_name, chef)
         node = ChefRazorNode.from_chef_node(cnode, os_name, product, chef,
                                             self, razor, branch)
+        self.nodes.append(node)
+        self.save_to_environment()
         node.add_features(features)
-        return node
 
     @classmethod
     def deployment_config(cls, features, name, os_name,
@@ -281,7 +278,7 @@ class ChefRazorDeployment(Deployment):
                    getmembers(deployment_features, isclass)}
         for feature, rpcs_feature in features.items():
             util.logger.debug("feature: {0}, rpcs_feature: {1}".format(
-                feature,rpcs_feature))
+                feature, rpcs_feature))
             self.features.append(classes[feature](self, rpcs_feature))
 
     @classmethod

@@ -2,8 +2,7 @@ precise-default:
   product: compute
   name: default
   os: precise
-  rpcs-features:
-  os-features:
+  features:
     monitoring: default
     mysql: default
     glance: default
@@ -22,8 +21,7 @@ centos-default:
   product: compute
   name: default
   os: centos
-  rpcs-features:
-  os-features:
+  features:
     monitoring: default
     mysql: default
     glance: default
