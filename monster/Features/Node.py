@@ -77,7 +77,7 @@ class Controller(Node):
         self.node.deployment.has_controller = True
 
         if self.number == 2:
-            controllers = self.deployment.search_role('controller')
+            controllers = self.node.deployment.search_role('controller')
             controller1 = next(controllers)
             controller1.run_cmd('chef-client')
 
