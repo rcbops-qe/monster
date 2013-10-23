@@ -6,7 +6,6 @@ precise-default:
     monitoring: default
     mysql: default
     glance: cf
-    cinder: local
     nova: default
     horizon: default
     keystone: default
@@ -14,7 +13,7 @@ precise-default:
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller, cinder]
+    - [controller]
     - [compute]
 
 centos-default:
@@ -42,7 +41,6 @@ precise-ha:
   os: precise
   features:
     glance: cf
-    cinder: local
     nova: default
     horizon: default
     keystone: default
