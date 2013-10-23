@@ -7,17 +7,21 @@ from yaml import load
 
 class Config(object):
     """Application config object"""
-    def __init__(self, file=None):
+    def __init__(self, file=None, secret_path=None):
         if not file:
             file = os.path.join(os.path.dirname(__file__),
                                 os.pardir,
                                 'config.yaml')
+            secret_path = secret_path or os.path.join(os.path.dirname(file),
+                                                      "secret.yaml")
+
         f = open(file)
         self.config = load(f)
-        # Add secrets to config object
-        secret_file = os.path.join(os.path.dirname(file), "secret.yaml")
-        secrets = load(secret_file)
-        self.config['secrets'] = secrets
+
+        if secret_path:
+            secret_file = open(secret_path)
+            secrets = load(secret_file)
+            self.config['secrets'] = secrets
 
     def __getitem__(self, name):
         return self.config[name]
