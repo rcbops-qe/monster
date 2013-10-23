@@ -6,7 +6,6 @@ Command Line interface for Building Openstack clusters
 
 import sys
 import argh
-import logging
 import traceback
 import webbrowser
 from monster import util
@@ -30,7 +29,13 @@ def build(name="precise-default", branch="grizzly", template_path=None,
 
     if dry:
         # build environment
-        deployment.update_environment()
+        try:
+            deployment.update_environment()
+        except Exception:
+            util.logger.error(traceback.print_exc())
+            deployment.destroy()
+            sys.exit(1)
+
     else:
         # build deployment
         try:
