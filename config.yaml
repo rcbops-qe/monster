@@ -122,15 +122,6 @@ environments:
                 swift_store_key: <Tenant_Password>
                 swift_store_auth_version: "2"
                 swift_store_auth_address: https://identity.api.rackspacecloud.com/v2.0
-            services:
-                api:
-                    path:
-                admin-api:
-                    path:
-                internal-api:
-                    path:
-                registry:
-                    path:
             image_upload: true
             images:
                 - cirros
