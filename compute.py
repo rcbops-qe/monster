@@ -77,7 +77,7 @@ def horizon(name="precise-default", config=None, log=None, log_level="INFO"):
     webbrowser.open_new_tab(url)
 
 
-def load(name="precise-default", config=None, log=None, log_level="INFO"):
+def show(name="precise-default", config=None, log=None, log_level="INFO"):
     _set_log(log, log_level)
     # load deployment and source openrc
     deployment = _load(name, config)
@@ -100,5 +100,5 @@ def _set_log(log, log_level):
 
 if __name__ == "__main__":
     parser = argh.ArghParser()
-    parser.add_commands([build, destroy, openrc, horizon, load])
+    parser.add_commands([build, destroy, openrc, horizon, show])
     parser.dispatch()
