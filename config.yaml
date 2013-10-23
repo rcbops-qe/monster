@@ -1,7 +1,3 @@
-secrets:
-  cloudfiles:
-    user: <USER>
-    password: <PASSWORD>
 chef:
   server:
     install_script: https://raw.github.com/rcbops/jenkins-build/master/qa/bash/jenkins/install-chef-server.sh
