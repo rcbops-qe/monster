@@ -1,7 +1,10 @@
 """
 A Deployment Features
 """
+import json
 import time
+import requests
+
 from monster import util
 from Feature import Feature
 
@@ -339,6 +342,29 @@ class Glance(Deployment):
     def update_environment(self):
         self.deployment.environment.add_override_attr(
             self.__class__.__name__.lower(), self.environment)
+        if self.rpcs_feature == 'cf':
+            self._add_credentials()
+
+    def _add_credentials(self):
+        cf_secrets = self.deployment.config['secrets']['cloudfiles']
+        user = cf_secrets['user']
+        password = cf_secrets['password']
+
+        # acquire tenant_id
+        data = ('{{"auth": {{"passwordCredentials": {{"username": "{0}", '
+                '"password": "{1}"}}}}}}'.format(user, password))
+        head = {"content-type": "application/json"}
+        auth_address = self.environment['api']['swift_store_auth_address']
+        url = "{0}/tokens".format(auth_address)
+        response = requests.post(url, data=data, headers=head, verify=False)
+        services = json.loads(response._content)['access']['serviceCatalog']
+        cloudfiles = next(s for s in services if s['type'] == "object-store")
+        tenant_id = cloudfiles['endpoints'][0]['tenantId']
+
+        # set api credentials in environment
+        api = self.environment['api']
+        api['swift_store_user'] = "{0}:{1}".format(tenant_id, user)
+        api['swift_store_key'] = password
 
 
 class Keystone(Deployment):
@@ -567,7 +593,8 @@ class HighAvailability(RPCS):
     """
 
     def __init__(self, deployment, rpcs_feature):
-        super(HighAvailability, self).__init__(deployment, rpcs_feature, 'ha')
+        super(HighAvailability, self).__init__(deployment, rpcs_feature,
+                                               'vips')
         self.environment = \
             self.config['environments'][self.name][deployment.os_name]
 

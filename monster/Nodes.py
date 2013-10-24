@@ -3,6 +3,7 @@ Provides classes of nodes (server entities)
 """
 
 import types
+import traceback
 from monster import util
 from time import sleep
 from chef import Node as CNode
@@ -159,7 +160,7 @@ class ChefRazorNode(Node):
             rnode = CNode(self.name, api=self.environment.remote_api)
             rnode[item] = value
             rnode.save()
-    
+
     def save_to_node(self):
         """
         Save deployment restore attributes to chef environment
@@ -204,7 +205,10 @@ class ChefRazorNode(Node):
         else:
             # Remove active model if the node is dirty
             active_model = cnode['razor_metadata']['razor_active_model_uuid']
-            self.run_cmd("reboot 0")
+            try:
+                self.run_cmd("reboot 0")
+            except:
+                util.logger.error("Node unreachable:{0}".format(str(self)))
             self.razor.remove_active_model(active_model)
             CClient(self.name).delete()
             cnode.delete()
@@ -240,5 +244,10 @@ class ChefRazorNode(Node):
         status = archive.get('status', "provisioning")
         crnode = cls(ipaddress, user, password, os, product, environment,
                      deployment, name, provisioner, branch, status=status)
-        crnode.add_features(archive.get('features', []))
+        try:
+            crnode.add_features(archive.get('features', []))
+        except:
+            util.logger.error(traceback.print_exc())
+            crnode.destroy()
+            raise Exception("Node feature add fail{0}".format(str(crnode)))
         return crnode

@@ -6,7 +6,6 @@ Command Line interface for Building Openstack clusters
 
 import sys
 import argh
-import logging
 import traceback
 import webbrowser
 from monster import util
@@ -30,7 +29,13 @@ def build(name="precise-default", branch="grizzly", template_path=None,
 
     if dry:
         # build environment
-        deployment.update_environment()
+        try:
+            deployment.update_environment()
+        except Exception:
+            util.logger.error(traceback.print_exc())
+            deployment.destroy()
+            sys.exit(1)
+
     else:
         # build deployment
         try:
@@ -72,7 +77,7 @@ def horizon(name="precise-default", config=None, log=None, log_level="INFO"):
     webbrowser.open_new_tab(url)
 
 
-def load(name="precise-default", config=None, log=None, log_level="INFO"):
+def show(name="precise-default", config=None, log=None, log_level="INFO"):
     _set_log(log, log_level)
     # load deployment and source openrc
     deployment = _load(name, config)
@@ -95,5 +100,5 @@ def _set_log(log, log_level):
 
 if __name__ == "__main__":
     parser = argh.ArghParser()
-    parser.add_commands([build, destroy, openrc, horizon, load])
+    parser.add_commands([build, destroy, openrc, horizon, show])
     parser.dispatch()

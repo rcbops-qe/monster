@@ -5,8 +5,7 @@ precise-default:
   features:
     monitoring: default
     mysql: default
-    glance: default
-    cinder: local
+    glance: cf
     nova: default
     horizon: default
     keystone: default
@@ -14,7 +13,7 @@ precise-default:
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller, cinder]
+    - [controller]
     - [compute]
 
 centos-default:
@@ -24,7 +23,7 @@ centos-default:
   features:
     monitoring: default
     mysql: default
-    glance: default
+    glance: cf
     cinder: local
     nova: default
     horizon: default
@@ -40,23 +39,14 @@ precise-ha:
   product: compute
   name: ha
   os: precise
-  os-features:
-    glance:
-      - cf
-    cinder:
-      - local
-    nova:
-      - default
-    horizon:
-      - default
-    keystone:
-      - default
-    osops:
-      - default
-    osopsnetworks:
-      - default
-  rpcs-features:
-    ha: default
+  features:
+    glance: cf
+    nova: default
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    highavailability: default
   nodes:
     - [chefserver]
     - [controller]
@@ -67,23 +57,15 @@ centos-ha:
   product: compute
   name: ha
   os: centos
-  os-features:
-    glance:
-      - cf
-    cinder:
-      - local
-    nova:
-      - default
-    horizon:
-      - default
-    keystone:
-      - default
-    osops:
-      - default
-    osopsnetworks:
-      - default
-  rpcs-features:
-    - ha
+  features:
+    glance: cf
+    cinder: local
+    nova: default
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    highavailability: default
   nodes:
     - [chefserver]
     - [controller]
