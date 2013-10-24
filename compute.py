@@ -15,7 +15,7 @@ from monster.Deployments import ChefRazorDeployment
 
 def build(name="precise-default", branch="grizzly", template_path=None,
           config=None, destroy=False, dry=False, log=None,
-          log_level="INFO"):
+          log_level="INFO", location="razor"):
     """
     Builds an OpenStack Cluster
     """
