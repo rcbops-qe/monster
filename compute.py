@@ -25,8 +25,6 @@ def build(name="precise-default", branch="grizzly", template_path=None,
     config = Config(config)
     deployment = ChefRazorDeployment.fromfile(name, branch, config,
                                               template_path)
-    util.logger.info(deployment)
-
     if dry:
         # build environment
         try:
@@ -37,6 +35,7 @@ def build(name="precise-default", branch="grizzly", template_path=None,
             sys.exit(1)
 
     else:
+        util.logger.info(deployment)
         # build deployment
         try:
             deployment.build()
