@@ -106,9 +106,8 @@ class ChefDeployment(Deployment):
                                            os_name, branch, config, chef)
         razor = razor_api(config['razor']['ip'])
         for features in template['nodes']:
-            node = deployment.node_config(features, os_name, product, chef,
-                                          razor, branch)
-            deployment.nodes.append(node)
+            deployment.node_config(features, os_name, product, chef,
+                                   razor, branch)
         return deployment
 
     @classmethod
@@ -153,7 +152,6 @@ class ChefDeployment(Deployment):
         node = ChefRazorNode.from_chef_node(cnode, os_name, product, chef,
                                             self, razor, branch)
         self.nodes.append(node)
-        self.save_to_environment()
         node.add_features(features)
 
     @classmethod
@@ -165,7 +163,6 @@ class ChefDeployment(Deployment):
         deployment = cls(name, os_name, branch, config, chef,
                          razor)
         deployment.add_features(features)
-        deployment.save_to_environment()
         return deployment
 
     def add_features(self, features):
@@ -205,6 +202,12 @@ class ChefDeployment(Deployment):
         # Nullify remote api so attributes are not sent remotely
         self.environment.remote_api = None
         super(ChefDeployment, self).destroy()
+        # Destroy rogue nodes
+        nodes = self.node_search("chef_environment:{0}".format(self.name),
+                                 tries=1)
+        for n in nodes:
+            ChefRazorNode.from_chef_node(n, provisioner=self.razor).destroy()
+        # Destroy Chef environment
         self.environment.destroy()
         self.status = "Destroyed"
 
