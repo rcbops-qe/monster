@@ -231,8 +231,8 @@ class ChefRazorNode(Node):
         self.save_to_node()
 
     @classmethod
-    def from_chef_node(cls, node, os, product, environment, deployment,
-                       provisioner, branch):
+    def from_chef_node(cls, node, os=None, product=None, environment=None,
+                       deployment=None, provisioner=None, branch=None):
         """
         Restores node from chef node
         """
