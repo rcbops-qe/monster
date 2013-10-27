@@ -1,9 +1,10 @@
 """
 A nodes features
 """
-from monster import util
-from Feature import Feature, remove_chef
 from chef import ChefAPI
+
+from Feature import Feature, remove_chef
+from monster import util
 
 
 class Node(Feature):
