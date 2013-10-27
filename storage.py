@@ -24,10 +24,7 @@ def build(name="precise-swift", branch="grizzly", template_path=None,
 
     # provisioning deployment
     config = Config(config)
-    deployment = ChefRazorDeployment.fromfile(name,
-                                              branch,
-                                              config,
-                                              template_path)
+    deployment = ChefDeployment.fromfile(name, branch, config, template_path)
     util.logger.info(deployment)
 
     if dry:
@@ -74,6 +71,7 @@ def openrc(name="precise-swift", config=None, log=None, log_level="INFO"):
     deployment = _load(name, config)
     deployment.openrc()
 
+
 def load(name="precise-swift", config=None, log=None, log_level="INFO"):
     """ Loads a preconfigured OpenStack Storage cluster
     """
@@ -83,11 +81,13 @@ def load(name="precise-swift", config=None, log=None, log_level="INFO"):
     deployment = _load(name, config)
     util.logger.info(str(deployment))
 
+
 def _load(name="precise-swift", config=None):
     # load deployment and source openrc
     config = Config(config)
-    deployment = ChefRazorDeployment.from_chef_environment(name, config)
+    deployment = ChefDeployment.from_chef_environment(name, config)
     return deployment
+
 
 def _set_log(log, log_level):
     # set log level and file
