@@ -2,14 +2,14 @@
 
 """ Command Line interface for Building Openstack Swift clusters
 """
-
 import sys
-import argh
-import logging
 import traceback
+
+import argh
+
 from monster import util
-from monster.Config import Config
-from monster.Deployments import ChefRazorDeployment
+from monster.config import Config
+from monster.deployments.chef_deployment import ChefDeployment
 
 
 def build(name="precise-swift", branch="grizzly", template_path=None,
