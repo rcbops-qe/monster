@@ -16,7 +16,7 @@ from monster.deployments.chef_deployment import ChefDeployment
 
 def build(name="precise-default", branch="grizzly", template_path=None,
           config=None, destroy=False, dry=False, log=None,
-          log_level="INFO", location="razor"):
+          log_level="INFO", provisioner="razor"):
     """
     Builds an OpenStack Cluster
     """
@@ -24,8 +24,7 @@ def build(name="precise-default", branch="grizzly", template_path=None,
 
     # provisiong deployment
     config = Config(config)
-    deployment = ChefRazorDeployment.fromfile(name, branch, config,
-                                              template_path)
+    deployment = ChefDeployment.fromfile(name, branch, config, template_path)
     if dry:
         # build environment
         try:
@@ -50,7 +49,8 @@ def build(name="precise-default", branch="grizzly", template_path=None,
         deployment.destroy()
 
 
-def destroy(name="precise-default", config=None, log=None, log_level="INFO"):
+def destroy(name="precise-default", config=None, log=None, log_level="INFO",
+            provisioner="razor"):
     _set_log(log, log_level)
     deployment = _load(name, config)
     util.logger.info(deployment)
@@ -84,10 +84,12 @@ def show(name="precise-default", config=None, log=None, log_level="INFO"):
     util.logger.info(str(deployment))
 
 
-def _load(name="precise-default", config=None):
+def _load(name="precise-default", config=None, provisioner="razor"):
     # load deployment and source openrc
     config = Config(config)
-    deployment = ChefRazorDeployment.from_chef_environment(name, config)
+    module_name, class_name = config["provisioners"][provisioner]
+    provisioner = getattr(getattr(provisioners, module_name), class_name)
+    deployment = ChefDeployment.from_chef_environment(name, config)
     return deployment
 
 
