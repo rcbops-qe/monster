@@ -14,8 +14,9 @@ def set_log_level(level):
     logger.setLevel(log_level)
 
 
-def log_to_file(file):
-    fh = logging.FileHandler(file)
-    fh.setFormatter(console_handler.formatter)
-    fh.setLevel(logging.DEBUG)
-    logger.addHandler(fh)
+def log_to_file(path):
+    log_file = logging.FileHandler(path)
+    log_file.setFormatter(console_handler.formatter)
+    log_file.setLevel(logging.DEBUG)
+    logger.addHandler(log_file)
+
