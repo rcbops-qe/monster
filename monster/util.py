@@ -3,8 +3,8 @@ import logging
 # Log to console
 logger = logging.getLogger("rcbops.qa")
 console_handler = logging.StreamHandler()
-format = '%(asctime)s %(name)s %(levelname)s: %(message)s'
-formatter = logging.Formatter(format)
+log_format = '%(asctime)s %(name)s %(levelname)s: %(message)s'
+formatter = logging.Formatter(log_format)
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
 
