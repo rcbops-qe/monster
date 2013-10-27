@@ -3,14 +3,15 @@
 """
 Command Line interface for Building Openstack clusters
 """
-
 import sys
-import argh
 import traceback
 import webbrowser
-from monster import util
-from monster.Config import Config
-from monster.Deployments import ChefRazorDeployment
+
+import argh
+
+from monster import util, provisioners
+from monster.config import Config
+from monster.deployments.chef_deployment import ChefDeployment
 
 
 def build(name="precise-default", branch="grizzly", template_path=None,
