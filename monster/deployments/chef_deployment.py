@@ -4,7 +4,6 @@ from time import sleep
 from chef import autoconfigure, Search, Environment, Node
 
 from monster import util
-from monster.config import Config
 from monster.Environments import Chef
 from monster.features import deployment_features
 from monster.deployments.deployment import Deployment
@@ -16,10 +15,10 @@ class ChefDeployment(Deployment):
     Opscode's Chef as configuration management
     """
 
-    def __init__(self, name, os_name, branch, config, environment,
+    def __init__(self, name, os_name, branch, environment,
                  status="provisioning"):
         super(ChefDeployment, self).__init__(name, os_name, branch,
-                                             config, status=status)
+                                             status=status)
         self.environment = environment
         self.has_controller = False
 
@@ -61,7 +60,7 @@ class ChefDeployment(Deployment):
         self.save_to_environment()
 
     @classmethod
-    def fromfile(cls, name, branch, config, provisioner, path=None):
+    def fromfile(cls, name, branch, provisioner, path=None):
         """
         Returns a new deployment given a deployment template at path
         """
@@ -74,9 +73,9 @@ class ChefDeployment(Deployment):
         if Environment(name, api=local_api).exists:
             # Use previous dry build if exists
             util.logger.info("Using previous deployment:{0}".format(name))
-            return cls.from_chef_environment(name, config, path)
+            return cls.from_chef_environment(name, path)
 
-        template = Config(path)[name]
+        template = util.config[name]
 
         chef = Chef(name, local_api, description=name)
 
@@ -85,20 +84,18 @@ class ChefDeployment(Deployment):
         name = template['name']
 
         deployment = cls.deployment_config(template['features'], name, os_name,
-                                           branch, config, chef, provisioner)
+                                           branch, chef, provisioner)
         for features in template['nodes']:
             deployment.node_config(features, os_name, product, chef,
                                    provisioner, branch)
         return deployment
 
     @classmethod
-    def from_chef_environment(cls, environment, config=None, path=None,
+    def from_chef_environment(cls, environment, path=None,
                               provisioner=None):
         """
         Rebuilds a Deployment given a chef environment
         """
-        if not config:
-            config = Config()
         if not path:
             path = os.path.join(os.path.dirname(__file__),
                                 os.pardir, os.pardir,
@@ -116,11 +113,10 @@ class ChefDeployment(Deployment):
         branch = deployment_args.get('branch', None)
         status = deployment_args.get('status', None)
         deployment = cls.deployment_config(features, name, os_name, branch,
-                                           config, environment, provisioner,
-                                           status)
+                                           environment, provisioner, status)
 
         nodes = deployment_args.get('nodes', [])
-        template = Config(path)[env.name]
+        template = util.config[env.name]
         product = template['product']
         for node in (Node(n) for n in nodes):
             ChefNode.from_chef_node(node, deployment_args['os_name'], product,
@@ -134,19 +130,20 @@ class ChefDeployment(Deployment):
         """
         Builds a new node given a dictionary of features
         """
-        cnode = self.provisoner.available_node(os_name, self)
+
+        cnode = provisioner.available_node(os_name, self)
         node = ChefNode.from_chef_node(cnode, os_name, product, chef,
                                        self, provisioner, branch)
         self.nodes.append(node)
         node.add_features(features)
 
     @classmethod
-    def deployment_config(cls, features, name, os_name, branch, config,
-                          environment, provisioner, status="provisioning"):
+    def deployment_config(cls, features, name, os_name, branch, environment,
+                          provisioner, status="provisioning"):
         """
         Returns deployment given dictionaries of features
         """
-        deployment = cls(name, os_name, branch, config, environment,
+        deployment = cls(name, os_name, branch, environment,
                          provisioner)
         deployment.add_features(features)
         return deployment
