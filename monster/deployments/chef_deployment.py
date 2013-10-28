@@ -4,6 +4,7 @@ from time import sleep
 from chef import autoconfigure, Search, Environment, Node
 
 from monster import util
+from monster.config import Config
 from monster.Environments import Chef
 from monster.features import deployment_features
 from monster.deployments.deployment import Deployment
@@ -75,7 +76,7 @@ class ChefDeployment(Deployment):
             util.logger.info("Using previous deployment:{0}".format(name))
             return cls.from_chef_environment(name, path)
 
-        template = util.config[name]
+        template = Config(path)[name]
 
         chef = Chef(name, local_api, description=name)
 
@@ -116,7 +117,7 @@ class ChefDeployment(Deployment):
                                            environment, provisioner, status)
 
         nodes = deployment_args.get('nodes', [])
-        template = util.config[env.name]
+        template = Config(path)[env.name]
         product = template['product']
         for node in (Node(n) for n in nodes):
             ChefNode.from_chef_node(node, deployment_args['os_name'], product,
