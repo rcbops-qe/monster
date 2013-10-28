@@ -100,9 +100,3 @@ class Deployment(object):
         return (node for node in
                 self.nodes if feature in
                 (str(f).lower() for f in node.features))
-
-    def test(self):
-        """
-        Run tests on deployment
-        """
-        pass
