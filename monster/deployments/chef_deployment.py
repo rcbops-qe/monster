@@ -101,7 +101,7 @@ class ChefDeployment(Deployment):
             config = Config()
         if not path:
             path = os.path.join(os.path.dirname(__file__),
-                                os.pardir,
+                                os.pardir, os.pardir,
                                 'deployment_templates/default.yaml')
         local_api = autoconfigure()
         env = Environment(environment, api=local_api)
