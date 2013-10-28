@@ -89,7 +89,6 @@ def _load(name="precise-default", config=None, provisioner="razor"):
     # load deployment and source openrc
     config = Config(config)
     class_name = config["provisioners"][provisioner]
-    print util.module_classes(chef_razor_provisioner)
     class_def = util.module_classes(chef_razor_provisioner)[class_name]
     razor_ip = config['razor']['ip']
     provisioner = class_def(razor_ip)
