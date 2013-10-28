@@ -21,7 +21,7 @@ class Node(object):
         self.product = product
         self.environment = environment
         self.deployment = deployment
-        self.provisoner = provisioner
+        self.provisioner = provisioner
         self.features = []
         self._cleanups = []
         self.status = status or "provisioning"
@@ -108,6 +108,6 @@ class Node(object):
 
     def destroy(self):
         self.status = "Destroying"
-        self.provisoner.destroy_node(self)
+        self.provisioner.destroy_node(self)
         util.logger.info("Destroying node:{0}".format(self.name))
         self.status = "Destroyed"
