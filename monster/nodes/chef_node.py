@@ -42,11 +42,7 @@ class ChefNode(Node):
                                                              self.name))
         lnode = CNode(self.name, api=self.environment.local_api)
         lnode[item] = value
-        lnode.save()
-        if self.environment.remote_api:
-            rnode = CNode(self.name, api=self.environment.remote_api)
-            rnode[item] = value
-            rnode.save()
+        self.save(lnode)
 
     def save_to_node(self):
         """
