@@ -10,7 +10,7 @@ from monster.razor_api import razor_api
 class ChefRazorProvisioner(Provisioner):
     def __init__(self, ip=None):
         self.ipaddress = ip or util.config['razor']['ip']
-        self.api = razor_api(ip)
+        self.api = razor_api(self.ipaddress)
 
     def available_node(self, image, deployment):
         """
