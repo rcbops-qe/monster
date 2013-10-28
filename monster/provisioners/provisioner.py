@@ -59,6 +59,7 @@ class ChefRazorProvisioner(Provisioner):
             cnode.delete()
             sleep(15)
 
+    @classmethod
     def node_search(cls, query, environment=None, tries=10):
         """
         Performs a node search query on the chef server
