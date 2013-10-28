@@ -119,9 +119,11 @@ class ChefDeployment(Deployment):
         template = Config(path)[env.name]
         product = template['product']
         for node in (Node(n) for n in nodes):
-            ChefNode.from_chef_node(node, deployment_args['os_name'], product,
-                                    environment, deployment, provisioner,
-                                    deployment_args['branch'])
+            cnode = ChefNode.from_chef_node(node, deployment_args['os_name'],
+                                            product, environment, deployment,
+                                            provisioner,
+                                            deployment_args['branch'])
+            deployment.nodes.append(cnode)
         return deployment
 
     # NOTE: This probably should be in node instead and use from_chef_node
@@ -130,7 +132,6 @@ class ChefDeployment(Deployment):
         """
         Builds a new node given a dictionary of features
         """
-        print features, os_name, product, environment, provisioner, branch
         cnode = provisioner.available_node(os_name, self)
         node = ChefNode.from_chef_node(cnode, os_name, product, environment,
                                        self, provisioner, branch)
@@ -175,7 +176,7 @@ class ChefDeployment(Deployment):
                                                  format(self.name),
                                                  tries=1)
         for n in nodes:
-            ChefNode.from_chef_node(n).destroy()
+            ChefNode.from_chef_node(n, environment=self.environment).destroy()
         # Destroy Chef environment
         self.environment.destroy()
         self.status = "Destroyed"
