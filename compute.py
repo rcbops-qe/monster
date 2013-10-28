@@ -9,7 +9,8 @@ import webbrowser
 
 import argh
 
-from monster import util, provisioners
+from monster import util
+from monster.provisioners import ChefRazorProvisioner
 from monster.config import Config
 from monster.deployments.chef_deployment import ChefDeployment
 
@@ -52,7 +53,7 @@ def build(name="precise-default", branch="grizzly", template_path=None,
 def destroy(name="precise-default", config=None, log=None, log_level="INFO",
             provisioner="razor"):
     _set_log(log, log_level)
-    deployment = _load(name, config)
+    deployment = _load(name, config, provisioner)
     util.logger.info(deployment)
     deployment.destroy()
 
@@ -87,10 +88,12 @@ def show(name="precise-default", config=None, log=None, log_level="INFO"):
 def _load(name="precise-default", config=None, provisioner="razor"):
     # load deployment and source openrc
     config = Config(config)
-    module_name, class_name = config["provisioners"][provisioner]
-    provisioner = getattr(getattr(provisioners, module_name), class_name)
-    deployment = ChefDeployment.from_chef_environment(name, config)
-    return deployment
+    class_name = config["provisioners"][provisioner]
+    class_def = util.module_classes(ChefRazorProvisioner)[class_name]
+    razor_ip = config['razor']['ip']
+    provisioner = class_def(razor_ip)
+    return ChefDeployment.from_chef_environment(name, config,
+                                                provisioner=provisioner)
 
 
 def _set_log(log, log_level):
