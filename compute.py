@@ -13,7 +13,7 @@ from monster.config import Config
 from monster.deployments.chef_deployment import ChefDeployment
 
 
-def build(name="precise-default", branch="grizzly", template_path=None,
+def build(name="precise-default", branch="master", template_path=None,
           config=None, destroy=False, dry=False, log=None,
           log_level="INFO", provisioner="razor"):
     """
