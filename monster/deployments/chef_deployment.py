@@ -76,7 +76,7 @@ class ChefDeployment(Deployment):
             util.logger.info("Using previous deployment:{0}".format(name))
             return cls.from_chef_environment(name, path)
 
-        template = util.config[name]
+        template = Config(path)[name]
 
         chef = Chef(name, local_api, description=name)
 
