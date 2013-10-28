@@ -4,11 +4,9 @@
 Command Line interface for Building Openstack clusters
 """
 import sys
+import argh
 import traceback
 import webbrowser
-
-import argh
-
 from monster import util
 from monster.provisioners import provisioner as provisioners
 from monster.config import Config

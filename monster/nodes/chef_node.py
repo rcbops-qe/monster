@@ -1,6 +1,5 @@
 import traceback
 from chef import Node as CNode
-
 from monster import util
 from monster.nodes.node import Node
 from monster.features import node_features

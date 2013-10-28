@@ -1,7 +1,5 @@
 from time import sleep
-
 from chef import Node, Client, Search, autoconfigure
-
 from monster import util
 from monster.razor_api import razor_api
 

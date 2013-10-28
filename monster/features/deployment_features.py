@@ -3,9 +3,7 @@ A Deployment Features
 """
 import json
 import time
-
 import requests
-
 from monster.features.feature import Feature
 from monster import util
 

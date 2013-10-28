@@ -1,7 +1,5 @@
 import os
-
 from chef import autoconfigure, Environment, Node
-
 from monster import util
 from monster.config import Config
 from monster.Environments import Chef
