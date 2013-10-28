@@ -1,6 +1,5 @@
 import traceback
 from chef import Node as CNode
-from inspect import getmembers, isclass
 
 from monster import util
 from monster.nodes.node import Node
@@ -83,8 +82,7 @@ class ChefNode(Node):
         """
         util.logger.debug("node:{0} feature add:{1}".format(self.name,
                                                             features))
-        classes = {k.lower(): v for (k, v) in
-                   getmembers(node_features, isclass)}
+        classes = util.module_classes(node_features)
         for feature in features:
             feature_class = classes[feature](self)
             self.features.append(feature_class)
