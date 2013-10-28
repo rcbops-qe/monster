@@ -331,7 +331,7 @@ class Celiometer(Node):
     """
 
     def __init__(self, node):
-        super(Celiometer, self).__init__()
+        super(Celiometer, self).__init__(node)
         self.role = None
 
     def __repr__(self):
