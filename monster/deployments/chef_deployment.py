@@ -1,14 +1,13 @@
 import os
-from time import sleep
 
-from chef import autoconfigure, Search, Environment, Node
+from chef import autoconfigure, Environment, Node
 
 from monster import util
 from monster.config import Config
 from monster.Environments import Chef
 from monster.features import deployment_features
 from monster.deployments.deployment import Deployment
-from monster.nodes.chef_node import ChefNode
+from monster.node.chef_node import ChefNode
 
 
 class ChefDeployment(Deployment):
@@ -162,21 +161,6 @@ class ChefDeployment(Deployment):
                 feature, rpcs_feature))
             self.features.append(classes[feature](self, rpcs_feature))
 
-    @classmethod
-    def node_search(cls, query, environment=None, tries=10):
-        """
-        Performs a node search query on the chef server
-        """
-        api = autoconfigure()
-        if environment:
-            api = environment.local_api
-        search = None
-        while not search and tries > 0:
-            search = Search("node", api=api).query(query)
-            sleep(10)
-            tries = tries - 1
-        return (n.object for n in search)
-
     def destroy(self):
         """
         Destroys Chef Deployment
@@ -186,8 +170,9 @@ class ChefDeployment(Deployment):
         self.environment.remote_api = None
         super(ChefDeployment, self).destroy()
         # Destroy rogue nodes
-        nodes = self.node_search("chef_environment:{0}".format(self.name),
-                                 tries=1)
+        nodes = self.provisioner.node_search("chef_environment:{0}".
+                                             format(self.name),
+                                             tries=1)
         for n in nodes:
             ChefNode.from_chef_node(n, provisioner=self.provisioner).destroy()
         # Destroy Chef environment
