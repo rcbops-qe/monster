@@ -307,6 +307,10 @@ class Swift(Deployment):
         print "## Done setting up swift rings ##"
 
     def _fix_environment(self):
+        """ This is needed to make the environment for swift line up to the
+        requirements from rpcs
+        """
+        
         env = self.deployment.environment
         master_key = self.config['swift']['master_env_key']
         util.logger.info(
