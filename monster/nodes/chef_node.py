@@ -12,7 +12,7 @@ class ChefNode(Node):
     Provides chef related server fuctions
     """
     def __init__(self, ip, user, password, os, product, environment,
-                 deployment, name, provisioner, branch, status="provisioning"):
+                 deployment, name, provisioner, branch, status=None):
         super(ChefNode, self).__init__(ip, user, password, os, product,
                                        environment, deployment, provisioner,
                                        status)
@@ -55,7 +55,7 @@ class ChefNode(Node):
         features = [str(f).lower() for f in self.features]
         node = {'features': features,
                 'status': self.status,
-                'provisioner': self.provisoner.__class__.__name__.lower()}
+                'provisioner': self.provisioner.__class__.__name__.lower()}
         self['archive'] = node
 
     def apply_feature(self):
@@ -67,15 +67,20 @@ class ChefNode(Node):
             self.run_cmd("chef-client")
         super(ChefNode, self).apply_feature()
 
+    def save(self, chef_node):
+        chef_node.save(self.environment.local_api)
+        if self.environment.remote_api:
+            chef_node.save(self.environment.remote_api)
+
     def add_run_list_item(self, items):
         """
         Adds list of items to run_list
         """
         util.logger.debug("run_list:{0}add:{1}".format(self.run_list, items))
         self.run_list.extend(items)
-        cnode = CNode(self.name)
+        cnode = CNode(self.name, api=self.environment.local_api)
         cnode.run_list = self.run_list
-        cnode.save()
+        self.save(cnode)
 
     def add_features(self, features):
         """
@@ -104,10 +109,9 @@ class ChefNode(Node):
         archive = node.get('archive', {})
         status = archive.get('status', "provisioning")
         if not provisioner:
-            provisioner_name = archive.get('provisioner',
-                                           'chefrazorprovisioner')
-            provisioner_def = util.module_classes(provisioners)
-            provisioner = provisioner_def[provisioner_name]
+            provisioner_name = archive.get('provisioner', None)
+            classes = util.module_classes(provisioners)
+            provisioner = classes[provisioner_name]()
         crnode = cls(ipaddress, user, password, os, product, environment,
                      deployment, name, provisioner, branch, status=status)
         try:
