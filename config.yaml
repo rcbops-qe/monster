@@ -206,13 +206,13 @@ rcbops:
         git:
             url: https://github.com/rcbops/chef-cookbooks.git
             branches:
+                master:
                 havana:
                     tags:
                         - v4.2.0
                 grizzly:
                     tags:
                         - v4.1.3
-                        - v4.1.3rc
                         - v4.1.2
                         - v4.1.1
                         - v4.1.0
@@ -236,10 +236,10 @@ rcbops:
             run_list: ['role[cinder-all]']
         celiometer:
             controller:
-                run_list: ['role[celiometer-setup',
-                           'role[celiometer-api',
-                           'role[celiometer-central-agent',
-                           'role[celiometer-collector']
+                run_list: ['role[celiometer-setup]',
+                           'role[celiometer-api]',
+                           'role[celiometer-central-agent]',
+                           'role[celiometer-collector]']
             compute:
                 run_list: ['role[celiometer-compute]']
     storage:
