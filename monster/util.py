@@ -1,4 +1,5 @@
 import logging
+from inspect import getmembers, isclass
 
 # Log to console
 logger = logging.getLogger("rcbops.qa")
@@ -20,3 +21,7 @@ def log_to_file(path):
     log_file.setLevel(logging.DEBUG)
     logger.addHandler(log_file)
 
+
+def module_classes(module):
+    return {k.lower(): v for (k, v) in
+            getmembers(module, isclass)}
