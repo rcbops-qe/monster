@@ -1,9 +1,10 @@
 """
 A nodes features
 """
-from monster import util
-from Feature import Feature, remove_chef
 from chef import ChefAPI
+
+from monster.features.feature import Feature, remove_chef
+from monster import util
 
 
 class Node(Feature):
@@ -11,7 +12,6 @@ class Node(Feature):
     """
 
     def __init__(self, node):
-        super(Node, self).__init__(node.deployment.config)
         self.node = node
 
     def __repr__(self):
@@ -42,7 +42,7 @@ class Node(Feature):
             role = self.__class__.__name__.lower()
 
         # Set the run list based on the deployment config for the role
-        run_list = self.config['rcbops'][self.node.product][role]['run_list']
+        run_list = util.config['rcbops'][self.node.product][role]['run_list']
 
         # Add the run list to the node
         self.node.add_run_list_item(run_list)
@@ -187,7 +187,7 @@ class Cinder(Node):
 
         # Update our environment
         env = self.node.environment
-        vol_group = self.config['cinder']['vg_name']
+        vol_group = util.config['cinder']['vg_name']
         cinder = {
             "storage": {
                 "lvm": {

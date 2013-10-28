@@ -3,10 +3,11 @@ A Deployment Features
 """
 import json
 import time
+
 import requests
 
+from monster.features.feature import Feature
 from monster import util
-from Feature import Feature
 
 
 class Deployment(Feature):
@@ -14,7 +15,6 @@ class Deployment(Feature):
     """
 
     def __init__(self, deployment, rpcs_feature):
-        super(Deployment, self).__init__(deployment.config)
         self.rpcs_feature = rpcs_feature
         self.deployment = deployment
 

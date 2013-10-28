@@ -3,30 +3,32 @@
 """
 Command Line interface for Building Openstack clusters
 """
-
 import sys
-import argh
 import traceback
 import webbrowser
+
+import argh
+
 from monster import util
-from monster.Config import Config
-from monster.Deployments import ChefRazorDeployment
+from monster.provisioners import chef_razor_provisioner
+from monster.config import Config
+from monster.deployments.chef_deployment import ChefDeployment
 
 
 def build(name="precise-default", branch="grizzly", template_path=None,
           config=None, destroy=False, dry=False, log=None,
-          log_level="INFO"):
+          log_level="INFO", provisioner="razor"):
     """
     Builds an OpenStack Cluster
     """
     _set_log(log, log_level)
 
     # provisiong deployment
-    config = Config(config)
-    deployment = ChefRazorDeployment.fromfile(name, branch, config,
-                                              template_path)
-    util.logger.info(deployment)
-
+    util.config = Config(config)
+    class_name = util.config["provisioners"][provisioner]
+    provisioner = util.module_classes(chef_razor_provisioner)[class_name]()
+    deployment = ChefDeployment.fromfile(name, branch, provisioner,
+                                         template_path)
     if dry:
         # build environment
         try:
@@ -37,6 +39,7 @@ def build(name="precise-default", branch="grizzly", template_path=None,
             sys.exit(1)
 
     else:
+        util.logger.info(deployment)
         # build deployment
         try:
             deployment.build()
@@ -50,9 +53,10 @@ def build(name="precise-default", branch="grizzly", template_path=None,
         deployment.destroy()
 
 
-def destroy(name="precise-default", config=None, log=None, log_level="INFO"):
+def destroy(name="precise-default", config=None, log=None, log_level="INFO",
+            provisioner="razor"):
     _set_log(log, log_level)
-    deployment = _load(name, config)
+    deployment = _load(name, config, provisioner)
     util.logger.info(deployment)
     deployment.destroy()
 
@@ -84,11 +88,12 @@ def show(name="precise-default", config=None, log=None, log_level="INFO"):
     util.logger.info(str(deployment))
 
 
-def _load(name="precise-default", config=None):
+def _load(name="precise-default", config=None, provisioner="razor"):
     # load deployment and source openrc
-    config = Config(config)
-    deployment = ChefRazorDeployment.from_chef_environment(name, config)
-    return deployment
+    util.config = Config(config)
+    class_name = util.config["provisioners"][provisioner]
+    provisioner = util.module_classes(chef_razor_provisioner)[class_name]()
+    return ChefDeployment.from_chef_environment(name, provisioner=provisioner)
 
 
 def _set_log(log, log_level):

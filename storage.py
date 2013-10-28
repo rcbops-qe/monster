@@ -2,14 +2,14 @@
 
 """ Command Line interface for Building Openstack Swift clusters
 """
-
 import sys
-import argh
-import logging
 import traceback
+
+import argh
+
 from monster import util
-from monster.Config import Config
-from monster.Deployments import ChefRazorDeployment
+from monster.config import Config
+from monster.deployments.chef_deployment import ChefDeployment
 
 
 def build(name="precise-swift", branch="grizzly", template_path=None,
@@ -24,10 +24,7 @@ def build(name="precise-swift", branch="grizzly", template_path=None,
 
     # provisioning deployment
     config = Config(config)
-    deployment = ChefRazorDeployment.fromfile(name,
-                                              branch,
-                                              config,
-                                              template_path)
+    deployment = ChefDeployment.fromfile(name, branch, config, template_path)
     util.logger.info(deployment)
 
     if dry:
@@ -74,6 +71,7 @@ def openrc(name="precise-swift", config=None, log=None, log_level="INFO"):
     deployment = _load(name, config)
     deployment.openrc()
 
+
 def load(name="precise-swift", config=None, log=None, log_level="INFO"):
     """ Loads a preconfigured OpenStack Storage cluster
     """
@@ -83,11 +81,13 @@ def load(name="precise-swift", config=None, log=None, log_level="INFO"):
     deployment = _load(name, config)
     util.logger.info(str(deployment))
 
+
 def _load(name="precise-swift", config=None):
     # load deployment and source openrc
     config = Config(config)
-    deployment = ChefRazorDeployment.from_chef_environment(name, config)
+    deployment = ChefDeployment.from_chef_environment(name, config)
     return deployment
+
 
 def _set_log(log, log_level):
     # set log level and file
