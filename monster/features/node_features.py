@@ -326,12 +326,12 @@ class OpenLDAP(Node):
         self.node.run_cmd(ldapadd)
 
 
-class Celiometer(Node):
-    """ Represents a Celiometer Node
+class Ceilometer(Node):
+    """ Represents a Ceilometer Node
     """
 
     def __init__(self, node):
-        super(Celiometer, self).__init__(node)
+        super(Ceilometer, self).__init__(node)
         self.role = None
 
     def __repr__(self):
@@ -349,7 +349,7 @@ class Celiometer(Node):
         self._set_run_list()
 
     def _set_run_list(self):
-        """ Celiometer run list set
+        """ Ceilometer run list set
         """
 
         role = self.__class__.__name__.lower()
