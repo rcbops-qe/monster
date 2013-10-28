@@ -302,5 +302,5 @@ cinder:
     vg_name: vg_storage
 
 provisioners:
-  razor: ChefRazorProvisioner
-  openstack: OpenstackProvisioner
+  razor: chefrazorprovisioner
+  openstack: openstackprovisioner
