@@ -234,6 +234,14 @@ rcbops:
             run_list: ['role[ha-controller2]']
         cinder:
             run_list: ['role[cinder-all]']
+        celiometer:
+            controller:
+                run_list: ['role[celiometer-setup',
+                           'role[celiometer-api',
+                           'role[celiometer-central-agent',
+                           'role[celiometer-collector']
+            compute:
+                run_list: ['role[celiometer-compute]']
     storage:
         git:
             url: https://github.com/rcbops-cookbooks/swift-private-cloud.git

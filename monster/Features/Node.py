@@ -325,3 +325,38 @@ class OpenLDAP(Node):
     def _configure_ldap(self):
         ldapadd = 'ldapadd -x -D "cn=admin,dc=rcb,dc=me" -wsecrete -f /root/base.ldif'
         self.node.run_cmd(ldapadd)
+
+class Celiometer(Node):
+    """ Represents a Celiometer Node
+    """
+
+    def __init__(self, node):
+        super(Celiometer, self).__init__()
+        self.role = None
+
+    def __repr__(self):
+        """ Print current instance
+        """
+        outl = 'class: ' + self.__class__.__name__
+        return outl
+
+    def pre_configure(self):
+        if 'controller' in self.node.features:
+            self.role = 'controller'
+        else:
+            self.role = 'compute'
+
+        self._set_run_list()
+
+    def _set_run_list(self):
+        """ Celiometer run list set
+        """
+
+        role = self.__class__.__name__.lower()
+
+        # Set the run list based on the deployment config for the role
+        run_list = self.config['rcbops'][self.node.product]\
+                              [role][self.role]['run_list']
+
+        # Add the run list to the node
+        self.node.add_run_list_item(run_list)
