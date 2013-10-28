@@ -24,8 +24,11 @@ def build(name="precise-default", branch="grizzly", template_path=None,
     _set_log(log, log_level)
 
     # provisiong deployment
-    config = Config(config)
-    deployment = ChefDeployment.fromfile(name, branch, config, template_path)
+    util.config = Config(config)
+    class_name = util.config["provisioners"][provisioner]
+    provisioner = util.module_classes(chef_razor_provisioner)[class_name]()
+    deployment = ChefDeployment.fromfile(name, branch, provisioner,
+                                         template_path)
     if dry:
         # build environment
         try:
@@ -87,13 +90,10 @@ def show(name="precise-default", config=None, log=None, log_level="INFO"):
 
 def _load(name="precise-default", config=None, provisioner="razor"):
     # load deployment and source openrc
-    config = Config(config)
-    class_name = config["provisioners"][provisioner]
-    class_def = util.module_classes(chef_razor_provisioner)[class_name]
-    razor_ip = config['razor']['ip']
-    provisioner = class_def(razor_ip)
-    return ChefDeployment.from_chef_environment(name, config,
-                                                provisioner=provisioner)
+    util.config = Config(config)
+    class_name = util.config["provisioners"][provisioner]
+    provisioner = util.module_classes(chef_razor_provisioner)[class_name]()
+    return ChefDeployment.from_chef_environment(name, provisioner=provisioner)
 
 
 def _set_log(log, log_level):
