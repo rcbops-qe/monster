@@ -1,10 +1,13 @@
 import os
+import gevent
+
 from chef import autoconfigure, Environment, Node
+
 from monster import util
-from monster.config import Config
 from monster.Environments import Chef
-from monster.features import deployment_features
+from monster.config import Config
 from monster.deployments.deployment import Deployment
+from monster.features import deployment_features
 from monster.nodes.chef_node import ChefNode
 from monster.provisioners.provisioner import ChefRazorProvisioner
 
@@ -210,3 +213,9 @@ class ChefDeployment(Deployment):
         if "vips" in self.environment.override_attributes:
             ip = self.environment.override_attributes['vips']['nova-api']
         return ip
+
+    def test(self):
+        # add tempest to run_list and run chef_client twice
+        events = [gevent.spawn(node.add_tempest()) for node in
+                  self.search_role("controller")]
+        gevent.joinall(events)
