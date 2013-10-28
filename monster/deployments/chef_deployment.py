@@ -1,5 +1,4 @@
 import os
-from inspect import getmembers, isclass
 from time import sleep
 
 from chef import autoconfigure, Search, Environment, Node
@@ -159,8 +158,7 @@ class ChefDeployment(Deployment):
         ex: {"monitoring": "default", "glance": "cf", ...}
         """
         # stringify and lowercase classes in deployment features
-        classes = {k.lower(): v for (k, v) in
-                   getmembers(deployment_features, isclass)}
+        classes = util.module_classes(deployment_features)
         for feature, rpcs_feature in features.items():
             util.logger.debug("feature: {0}, rpcs_feature: {1}".format(
                 feature, rpcs_feature))
