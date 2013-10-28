@@ -3,7 +3,7 @@ A nodes features
 """
 from chef import ChefAPI
 
-from Feature import Feature, remove_chef
+from monster.features.feature import Feature, remove_chef
 from monster import util
 
 

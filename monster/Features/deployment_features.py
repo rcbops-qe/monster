@@ -6,7 +6,7 @@ import time
 
 import requests
 
-from Feature import Feature
+from monster.features.feature import Feature
 from monster import util
 
 
