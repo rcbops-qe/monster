@@ -300,3 +300,7 @@ swift:
 
 cinder:
     vg_name: vg_storage
+
+provisioners:
+  razor: ChefRazorProvisioner
+  openstack: OpenstackProvisioner
