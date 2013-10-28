@@ -105,7 +105,8 @@ class ChefNode(Node):
         archive = node.get('archive', {})
         status = archive.get('status', "provisioning")
         if not provisioner:
-            provisioner_name = archive.get('provisioner', None)
+            provisioner_name = archive.get('provisioner',
+                                           "chefrazorprovisioner")
             classes = util.module_classes(provisioners)
             provisioner = classes[provisioner_name]()
         crnode = cls(ipaddress, user, password, os, product, environment,
