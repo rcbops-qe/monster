@@ -3,12 +3,14 @@ from time import sleep
 from chef import Node, Client
 
 from monster import util
+from monster.config import Config
 from monster.provisioners.provisioner import Provisioner
 from monster.razor_api import razor_api
 
 
 class ChefRazorProvisioner(Provisioner):
-    def __init__(self, ip):
+    def __init__(self, ip=None):
+        self.ipaddress = ip or Config()['razor']['ip']
         self.api = razor_api(ip)
 
     def available_node(self, image, deployment):
