@@ -10,11 +10,10 @@ class Deployment(object):
     """Base for OpenStack deployments
     """
 
-    def __init__(self, name, os_name, branch, config, status="provisioning"):
+    def __init__(self, name, os_name, branch, status="provisioning"):
         self.name = name
         self.os_name = os_name
         self.branch = branch
-        self.config = config
         self.features = []
         self.nodes = []
         self.status = status
