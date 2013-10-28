@@ -62,7 +62,7 @@ class Neutron(Deployment):
     def __init__(self, deployment, rpcs_feature):
         super(Neutron, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments'][self.__class__.__name__.lower()][
+            util.config['environments'][self.__class__.__name__.lower()][
                 rpcs_feature]
 
     def __repr__(self):
@@ -115,7 +115,7 @@ class Swift(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Swift, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments']\
+            util.config['environments']\
                        [self.__class__.__name__.lower()][rpcs_feature]
 
     def __repr__(self):
@@ -131,7 +131,7 @@ class Swift(Deployment):
         self._fix_environment()
 
     def post_configure(self):
-        build_rings = bool(self.config['swift']['auto_build_rings'])
+        build_rings = bool(util.config['swift']['auto_build_rings'])
         self._build_rings(build_rings)
 
     def _build_rings(self, auto=False):
@@ -155,8 +155,8 @@ class Swift(Deployment):
         #####################################################################
 
         # Build Swift Rings
-        disk = self.config['swift']['disk']
-        label = self.config['swift']['disk_label']
+        disk = util.config['swift']['disk']
+        label = util.config['swift']['disk_label']
         for storage_node in storage_nodes:
             commands = ["/usr/local/bin/swift-partition.sh {0}".format(disk),
                         "/usr/local/bin/swift-format.sh {0}".format(label),
@@ -184,11 +184,11 @@ class Swift(Deployment):
         ## Setup partitions on storage nodes, (must run as swiftops user) ##
         ####################################################################
 
-        num_rings = self.config['swift']['num_rings']
-        part_power = self.config['swift']['part_power']
-        replicas = self.config['swift']['replicas']
-        min_part_hours = self.config['swift']['min_part_hours']
-        disk_weight = self.config['swift']['disk_weight']
+        num_rings = util.config['swift']['num_rings']
+        part_power = util.config['swift']['part_power']
+        replicas = util.config['swift']['replicas']
+        min_part_hours = util.config['swift']['min_part_hours']
+        disk_weight = util.config['swift']['disk_weight']
 
         commands = ["su swiftops",
                     "mkdir -p ~/swift/rings",
@@ -209,7 +209,7 @@ class Swift(Deployment):
                                          min_part_hours)]
 
         # Determine how many storage nodes wehave and add them
-        builders = self.config['swift']['builders']
+        builders = util.config['swift']['builders']
 
         for builder in builders:
             name = builder
@@ -308,11 +308,11 @@ class Swift(Deployment):
 
     def _fix_environment(self):
         """ This is needed to make the environment for swift line up to the
-        requirements from rpcs
+        requirements from rpcs.
         """
         
         env = self.deployment.environment
-        master_key = self.config['swift']['master_env_key']
+        master_key = util.config['swift']['master_env_key']
         util.logger.info(
             "Matching environment: {0} to RPCS swift requirements".format(
                 env.name))
@@ -334,7 +334,7 @@ class Glance(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Glance, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments'][self.__class__.__name__.lower()][
+            util.config['environments'][self.__class__.__name__.lower()][
                 rpcs_feature]
 
     def __repr__(self):
@@ -350,7 +350,7 @@ class Glance(Deployment):
             self._add_credentials()
 
     def _add_credentials(self):
-        cf_secrets = self.deployment.config['secrets']['cloudfiles']
+        cf_secrets = util.config['secrets']['cloudfiles']
         user = cf_secrets['user']
         password = cf_secrets['password']
 
@@ -378,7 +378,7 @@ class Keystone(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Keystone, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments'][self.__class__.__name__.lower()][
+            util.config['environments'][self.__class__.__name__.lower()][
                 rpcs_feature]
 
     def __repr__(self):
@@ -399,7 +399,7 @@ class Nova(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Nova, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments'][self.__class__.__name__.lower()][
+            util.config['environments'][self.__class__.__name__.lower()][
                 rpcs_feature]
 
     def __repr__(self):
@@ -430,7 +430,7 @@ class Horizon(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Horizon, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments'][self.__class__.__name__.lower()][
+            util.config['environments'][self.__class__.__name__.lower()][
                 rpcs_feature]
 
     def __repr__(self):
@@ -451,7 +451,7 @@ class Cinder(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Cinder, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments'][self.__class__.__name__.lower()][
+            util.config['environments'][self.__class__.__name__.lower()][
                 rpcs_feature]
 
     def __repr__(self):
@@ -495,7 +495,7 @@ class Monitoring(RPCS):
         super(Monitoring, self).__init__(deployment, rpcs_feature,
                                          self.__class__.__name__.lower())
         self.environment = \
-            self.config['environments'][self.name][rpcs_feature]
+            util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -516,7 +516,7 @@ class MySql(RPCS):
         super(MySql, self).__init__(deployment, rpcs_feature,
                                     self.__class__.__name__.lower())
         self.environment = \
-            self.config['environments'][self.name][rpcs_feature]
+            util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -537,7 +537,7 @@ class OsOps(RPCS):
         super(OsOps, self).__init__(deployment, rpcs_feature,
                                     self.__class__.__name__.lower())
         self.environment = \
-            self.config['environments'][self.name][rpcs_feature]
+            util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -558,7 +558,7 @@ class DeveloperMode(RPCS):
         super(DeveloperMode, self).__init__(deployment, rpcs_feature,
                                             'developer_mode')
         self.environment = \
-            self.config['environments'][self.name][rpcs_feature]
+            util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -579,7 +579,7 @@ class OsOpsNetworks(RPCS):
         super(OsOpsNetworks, self).__init__(deployment, rpcs_feature,
                                             'osops_networks')
         self.environment = \
-            self.config['environments'][self.name][rpcs_feature]
+            util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -600,7 +600,7 @@ class HighAvailability(RPCS):
         super(HighAvailability, self).__init__(deployment, rpcs_feature,
                                                'vips')
         self.environment = \
-            self.config['environments'][self.name][deployment.os_name]
+            util.config['environments'][self.name][deployment.os_name]
 
     def __repr__(self):
         """ Print out current instance
@@ -621,7 +621,7 @@ class OpenLDAP(RPCS):
         super(OpenLDAP, self).__init__(deployment, rpcs_feature,
                                        self.__class__.__name__.lower())
         self.environment = \
-            self.config['environments'][self.name]
+            util.config['environments'][self.name]
 
     def __repr__(self):
         """ Print out current instance
@@ -634,7 +634,7 @@ class OpenLDAP(RPCS):
             self.name, self.environment)
 
         ldap_server = self.deployment.search_role('openldap')
-        password = self.deployment.config['ldap']['pass']
+        password = util.config['ldap']['pass']
         ip = ldap_server.ipaddress
         env = self.deployment.environment
 
