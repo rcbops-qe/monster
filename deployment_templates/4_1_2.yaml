@@ -1,0 +1,17 @@
+precise-default:
+  product: compute
+  name: default
+  os: precise
+  features:
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+  nodes:
+    - [chefserver]
+    - [controller]
+    - [compute]

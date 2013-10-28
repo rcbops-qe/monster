@@ -207,6 +207,8 @@ rcbops:
             url: https://github.com/rcbops/chef-cookbooks.git
             branches:
                 master:
+                    tags:
+                        - v4.2.0
                 havana:
                     tags:
                         - v4.2.0

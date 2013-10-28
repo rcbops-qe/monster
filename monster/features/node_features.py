@@ -17,8 +17,7 @@ class Node(Feature):
     def __repr__(self):
         """ Print out current instance
         """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
+        super(Node, self).__repr__()
 
     def pre_configure(self):
         pass
@@ -59,8 +58,7 @@ class Controller(Node):
     def __repr__(self):
         """ Print out current instance
         """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
+        super(Controller, self).__repr__()
 
     def pre_configure(self):
         if self.node.deployment.has_controller:
@@ -92,8 +90,7 @@ class Compute(Node):
     def __repr__(self):
         """ Print out current instance
         """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
+        super(Compute, self).__repr__()
 
     def pre_configure(self):
         self.set_run_list()
@@ -109,8 +106,7 @@ class Proxy(Node):
     def __repr__(self):
         """ Print out current instance
         """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
+        super(Proxy, self).__repr__()
 
     def pre_configure(self):
         self.set_run_list()
@@ -126,8 +122,7 @@ class Storage(Node):
     def __repr__(self):
         """ Print out current instance
         """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
+        super(Storage, self).__repr__()
 
     def pre_configure(self):
         self.set_run_list()
@@ -143,8 +138,7 @@ class Remote(Node):
     def __repr__(self):
         """ Print out current instance
         """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
+        super(Remote, self).__repr__()
 
     def apply_feature(self):
         remove_chef(self.node)
@@ -174,8 +168,7 @@ class Cinder(Node):
     def __repr__(self):
         """ Print out current instance
         """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
+        super(Cinder, self).__repr__()
 
     def pre_configure(self):
         self.prepare_cinder()
@@ -215,8 +208,7 @@ class ChefServer(Node):
     def __repr__(self):
         """ Print out current instance
         """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
+        super(ChefServer, self).__repr__()
 
     def pre_configure(self):
         remove_chef(self.node)
@@ -313,8 +305,7 @@ class OpenLDAP(Node):
     def __repr__(self):
         """ Print out current instance
         """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
+        super(OpenLDAP, self).__repr__()
 
     def pre_configure(self):
         self.set_run_list()
@@ -326,6 +317,7 @@ class OpenLDAP(Node):
         ldapadd = 'ldapadd -x -D "cn=admin,dc=rcb,dc=me" -wsecrete -f /root/base.ldif'
         self.node.run_cmd(ldapadd)
 
+
 class Celiometer(Node):
     """ Represents a Celiometer Node
     """
@@ -335,10 +327,9 @@ class Celiometer(Node):
         self.role = None
 
     def __repr__(self):
-        """ Print current instance
+        """ Print out current instance
         """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
+        super(Celiometer, self).__repr__()
 
     def pre_configure(self):
         if 'controller' in self.node.features:

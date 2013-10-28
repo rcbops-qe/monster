@@ -13,8 +13,8 @@ precise-default:
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller]
-    - [compute]
+    - [controller, celiometer]
+    - [compute, celiometer]
 
 centos-default:
   product: compute
@@ -32,8 +32,8 @@ centos-default:
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller, cinder]
-    - [compute]
+    - [controller, celiometer]
+    - [compute, celiometer]
 
 precise-ha:
   product: compute

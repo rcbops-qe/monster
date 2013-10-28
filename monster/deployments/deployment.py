@@ -90,7 +90,7 @@ class Deployment(object):
         self.build_nodes()
         util.logger.debug("Deployment step: post-configure")
         self.post_configure()
-        self.status = "done"
+        self.status = "post-build"
 
     def search_role(self, feature):
         """

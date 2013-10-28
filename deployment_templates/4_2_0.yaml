@@ -1,0 +1,49 @@
+precise-default:
+  product: compute
+  name: default
+  os: precise
+  features:
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+  nodes:
+    - [chefserver]
+    - [controller, celiometer]
+    - [compute, celiometer]
+
+precise-swift:
+  product: storage
+  name: swift
+  os: precise
+  features:
+    keystone: swift
+    swift: rpcs
+  nodes:
+    - [chefserver]
+    - [controller]
+    - [proxy]
+    - [proxy]
+    - [storage]
+    - [storage]
+    - [storage]
+
+centos-swift:
+  product: storage
+  name: swift
+  os: centos
+  features:
+    keystone: swift
+    swift: rpcs
+  nodes:
+    - [chefserver]
+    - [controller]
+    - [proxy]
+    - [proxy]
+    - [storage]
+    - [storage]
+    - [storage]
