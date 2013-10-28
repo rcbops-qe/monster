@@ -8,6 +8,7 @@ log_format = '%(asctime)s %(name)s %(levelname)s: %(message)s'
 formatter = logging.Formatter(log_format)
 console_handler.setFormatter(formatter)
 logger.addHandler(console_handler)
+config = None
 
 
 def set_log_level(level):
