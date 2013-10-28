@@ -7,7 +7,8 @@ from monster.config import Config
 from monster.Environments import Chef
 from monster.features import deployment_features
 from monster.deployments.deployment import Deployment
-from monster.node.chef_node import ChefNode
+from monster.nodes.chef_node import ChefNode
+from monster.provisioners.provisioner import ChefRazorProvisioner
 
 
 class ChefDeployment(Deployment):
@@ -170,9 +171,9 @@ class ChefDeployment(Deployment):
         self.environment.remote_api = None
         super(ChefDeployment, self).destroy()
         # Destroy rogue nodes
-        nodes = self.provisioner.node_search("chef_environment:{0}".
-                                             format(self.name),
-                                             tries=1)
+        nodes = ChefRazorProvisioner.node_search("chef_environment:{0}".
+                                                 format(self.name),
+                                                 tries=1)
         for n in nodes:
             ChefNode.from_chef_node(n, provisioner=self.provisioner).destroy()
         # Destroy Chef environment
