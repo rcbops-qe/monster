@@ -111,3 +111,18 @@ class Node(object):
         self.provisioner.destroy_node(self)
         util.logger.info("Destroying node:{0}".format(self.name))
         self.status = "Destroyed"
+
+    def add_tempest(self):
+        self.add_run_list_item("tempest")
+        # run twice to propagate image id
+        self.run_cmd("chef-client")
+        self.run_cmd("chef-client")
+
+    def test_from(self):
+        tempest_dir = "/opt/tempest/"
+        command = ("{0}tools/with_venv.sh nosetests {4} -w "
+                   "{0}tempest/tests {1} {2} {3}".format(tempest_dir,
+                                                         xunit_flag,
+                                                         tag_arg,
+                                                         paths,
+                                                         exclude))
