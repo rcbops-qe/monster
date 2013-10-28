@@ -204,7 +204,7 @@ class ChefServer(Node):
 
     def __init__(self, node):
         super(ChefServer, self).__init__(node)
-        self.iscript = self.config['chef']['server']['install_script']
+        self.iscript = util.config['chef']['server']['install_script']
         self.iscript_name = self.iscript.split('/')[-1]
         self.install_commands = ['curl {0} >> {1}'.format(self.iscript,
                                                           self.iscript_name),
@@ -236,10 +236,10 @@ class ChefServer(Node):
         """ Installs cookbooks
         """
 
-        cookbook_url = self.config['rcbops'][self.node.product]['git']['url']
+        cookbook_url = util.config['rcbops'][self.node.product]['git']['url']
         cookbook_branch = self.node.branch
         cookbook_name = cookbook_url.split("/")[-1].split(".")[0]
-        install_dir = self.config['chef']['server']['install_dir']
+        install_dir = util.config['chef']['server']['install_dir']
 
         commands = ["mkdir -p {0}".format(install_dir),
                     "cd {0}".format(install_dir),
@@ -355,7 +355,7 @@ class Celiometer(Node):
         role = self.__class__.__name__.lower()
 
         # Set the run list based on the deployment config for the role
-        run_list = self.config['rcbops'][self.node.product]\
+        run_list = util.config['rcbops'][self.node.product]\
                               [role][self.role]['run_list']
 
         # Add the run list to the node

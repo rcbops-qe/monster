@@ -3,7 +3,7 @@ from chef import Node as CNode
 from monster import util
 from monster.nodes.node import Node
 from monster.features import node_features
-from monster.provisioners import chef_razor_provisioner
+from monster.provisioners import provisioner as provisioners
 
 
 class ChefNode(Node):
@@ -55,7 +55,7 @@ class ChefNode(Node):
         features = [str(f).lower() for f in self.features]
         node = {'features': features,
                 'status': self.status,
-                'provisioner': self.provisoner}
+                'provisioner': self.provisoner.__class__.__name__.lower()}
         self['archive'] = node
 
     def apply_feature(self):
@@ -106,7 +106,7 @@ class ChefNode(Node):
         if not provisioner:
             provisioner_name = archive.get('provisioner',
                                            'chefrazorprovisioner')
-            provisioner_def = util.module_classes(chef_razor_provisioner)
+            provisioner_def = util.module_classes(provisioners)
             provisioner = provisioner_def[provisioner_name]
         crnode = cls(ipaddress, user, password, os, product, environment,
                      deployment, name, provisioner, branch, status=status)

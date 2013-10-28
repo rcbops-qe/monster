@@ -31,7 +31,7 @@ class ChefRazorProvisioner(Provisioner):
                 node['in_use'] = "provisioned"
                 node.save()
                 return node
-        self.destroy()
+        node.destroy()
         raise Exception("No more nodes!!")
 
     def destroy_node(self, node):
@@ -39,7 +39,7 @@ class ChefRazorProvisioner(Provisioner):
         Destroys a node provisioned by razor
         """
         cnode = Node(node.name)
-        if self['in_use'] == "provisioned":
+        if node['in_use'] == "provisioned":
             # Return to pool if the node is clean
             cnode['in_use'] = 0
             cnode['archive'] = {}
@@ -53,7 +53,7 @@ class ChefRazorProvisioner(Provisioner):
             except:
                 util.logger.error("Node unreachable:{0}".format(str(node)))
             self.api.remove_active_model(active_model)
-            Client(self.name).delete()
+            Client(node.name).delete()
             cnode.delete()
             sleep(15)
 

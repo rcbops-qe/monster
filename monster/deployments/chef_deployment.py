@@ -14,10 +14,11 @@ class ChefDeployment(Deployment):
     Opscode's Chef as configuration management
     """
 
-    def __init__(self, name, os_name, branch, environment,
-                 status="provisioning"):
+    def __init__(self, name, os_name, branch, environment, provisioner,
+                 status=None):
+        status = status or "provisioning"
         super(ChefDeployment, self).__init__(name, os_name, branch,
-                                             status=status)
+                                             provisioner, status)
         self.environment = environment
         self.has_controller = False
 
@@ -76,16 +77,16 @@ class ChefDeployment(Deployment):
 
         template = Config(path)[name]
 
-        chef = Chef(name, local_api, description=name)
+        environment = Chef(name, local_api, description=name)
 
         os_name = template['os']
         product = template['product']
         name = template['name']
 
         deployment = cls.deployment_config(template['features'], name, os_name,
-                                           branch, chef, provisioner)
+                                           branch, environment, provisioner)
         for features in template['nodes']:
-            deployment.node_config(features, os_name, product, chef,
+            deployment.node_config(features, os_name, product, environment,
                                    provisioner, branch)
         return deployment
 
@@ -124,26 +125,27 @@ class ChefDeployment(Deployment):
         return deployment
 
     # NOTE: This probably should be in node instead and use from_chef_node
-    def node_config(self, features, os_name, product, chef, provisioner,
+    def node_config(self, features, os_name, product, environment, provisioner,
                     branch):
         """
         Builds a new node given a dictionary of features
         """
-
+        print features, os_name, product, environment, provisioner, branch
         cnode = provisioner.available_node(os_name, self)
-        node = ChefNode.from_chef_node(cnode, os_name, product, chef,
+        node = ChefNode.from_chef_node(cnode, os_name, product, environment,
                                        self, provisioner, branch)
         self.nodes.append(node)
         node.add_features(features)
 
     @classmethod
     def deployment_config(cls, features, name, os_name, branch, environment,
-                          provisioner, status="provisioning"):
+                          provisioner, status=None):
         """
         Returns deployment given dictionaries of features
         """
+        status = status or "provisioning"
         deployment = cls(name, os_name, branch, environment,
-                         provisioner)
+                         provisioner, status)
         deployment.add_features(features)
         return deployment
 
@@ -173,7 +175,7 @@ class ChefDeployment(Deployment):
                                                  format(self.name),
                                                  tries=1)
         for n in nodes:
-            ChefNode.from_chef_node(n, provisioner=self.provisioner).destroy()
+            ChefNode.from_chef_node(n).destroy()
         # Destroy Chef environment
         self.environment.destroy()
         self.status = "Destroyed"

@@ -13,7 +13,7 @@ class Node(object):
     Provides server related functions
     """
     def __init__(self, ip, user, password, os, product, environment,
-                 deployment, provisioner, status="provisioning"):
+                 deployment, provisioner, status=None):
         self.ipaddress = ip
         self.user = user
         self.password = password
@@ -24,7 +24,7 @@ class Node(object):
         self.provisoner = provisioner
         self.features = []
         self._cleanups = []
-        self.status = status
+        self.status = status or "provisioning"
 
     def __repr__(self):
         """ Print out current instance
