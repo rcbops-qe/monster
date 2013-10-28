@@ -7,9 +7,6 @@ class Feature(object):
     """ Represents a OpenStack Feature
     """
 
-    def __init__(self, config=None):
-        self.config = config
-
     def __repr__(self):
         """ Print out current instance
         """
