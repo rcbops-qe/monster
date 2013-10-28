@@ -10,7 +10,7 @@ import webbrowser
 import argh
 
 from monster import util
-from monster.provisioners import ChefRazorProvisioner
+from monster.provisioners import chef_razor_provisioner
 from monster.config import Config
 from monster.deployments.chef_deployment import ChefDeployment
 
@@ -89,7 +89,8 @@ def _load(name="precise-default", config=None, provisioner="razor"):
     # load deployment and source openrc
     config = Config(config)
     class_name = config["provisioners"][provisioner]
-    class_def = util.module_classes(ChefRazorProvisioner)[class_name]
+    print util.module_classes(chef_razor_provisioner)
+    class_def = util.module_classes(chef_razor_provisioner)[class_name]
     razor_ip = config['razor']['ip']
     provisioner = class_def(razor_ip)
     return ChefDeployment.from_chef_environment(name, config,
