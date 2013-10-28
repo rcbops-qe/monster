@@ -15,7 +15,6 @@ class Deployment(Feature):
     """
 
     def __init__(self, deployment, rpcs_feature):
-        super(Deployment, self).__init__(deployment.config)
         self.rpcs_feature = rpcs_feature
         self.deployment = deployment
 
