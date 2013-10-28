@@ -1,6 +1,6 @@
 from time import sleep
 
-from chef import Node, Client
+from chef import Node, Client, Search, autoconfigure
 
 from monster import util
 from monster.razor_api import razor_api
@@ -58,3 +58,17 @@ class ChefRazorProvisioner(Provisioner):
             Client(self.name).delete()
             cnode.delete()
             sleep(15)
+
+    def node_search(cls, query, environment=None, tries=10):
+        """
+        Performs a node search query on the chef server
+        """
+        api = autoconfigure()
+        if environment:
+            api = environment.local_api
+        search = None
+        while not search and tries > 0:
+            search = Search("node", api=api).query(query)
+            sleep(10)
+            tries = tries - 1
+        return (n.object for n in search)
