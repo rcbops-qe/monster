@@ -16,6 +16,24 @@ precise-default:
     - [controller, celiometer]
     - [compute, celiometer]
 
+centos-default:
+  product: compute
+  name: default
+  os: centos
+  features:
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+  nodes:
+    - [chefserver]
+    - [controller, celiometer]
+    - [compute, celiometer]
+
 precise-swift:
   product: storage
   name: swift

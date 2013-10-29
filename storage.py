@@ -12,7 +12,7 @@ from monster.provisioners import provisioner as provisioners
 from monster.config import Config
 from monster.deployments.chef_deployment import ChefDeployment
 
-def build(name="precise-swift", branch="grizzly", template_path=None,
+def build(name="precise-swift", branch="havana", template_path=None,
           config=None, destroy=False, dry=False, log=None,
           log_level="INFO", provisioner="razor"):
 
