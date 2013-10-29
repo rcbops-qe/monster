@@ -1,5 +1,5 @@
 import traceback
-import itertools
+from itertools import chain
 
 from chef import Node as CNode
 
@@ -137,14 +137,41 @@ class ChefNode(Node):
         install_cmd = "python {0}/tools/install_venv.py".format(tempest_dir)
         self.run_cmd(install_cmd)
 
-    def test_from(self, xunit=False, tags=None, exclude=None):
+    def test_from(self, xunit=False, tags=None, exclude=None, paths=None):
+        """
+        Runs tests from node
+        @param xunit: Produce xunit report
+        @type xunit: Boolean
+        @param tags: Tags to pass the nosetests
+        @type tags: list
+        @param exclude: Expressions to exclude
+        @param exclude: list
+        @param paths: Paths to load tests from (compute, compute/servers...)
+        @param paths: list
+        """
         if "recipe[tempest]" not in self.get_run_list():
             util.logger.error("Tesmpest not set up on node")
             pass
-        tempest_dir = "/opt/tempest/"
+        tempest_dir = util.config['tests']['tempest']['dir']
+
+        xunit_file = "{0}.xml".format(self.name)
+        xunit_flag = ''
+        if xunit:
+            xunit_flag = '--with-xunit --xunit-file=%s' % xunit_file
+
+        tag_arg = "-a " + " -a ".join(tags) if tags else ""
+
+        test_map = util.config['tests']['tempest']['test_map']
+        paths = paths or set(chain(test_map.get(feature, None)
+                                   for feature in
+                                   self.deployment.feature_names()))
         command = ("{0}tools/with_venv.sh nosetests {4} -w "
                    "{0}tempest/tests {1} {2} {3}".format(tempest_dir,
                                                          xunit_flag,
                                                          tag_arg,
                                                          paths,
                                                          exclude))
+        self.run_cmd(command)
+        if xunit:
+            self.scp_from(xunit_file, local_path=".")
+            util.xunit_merge()
