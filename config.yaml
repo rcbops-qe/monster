@@ -260,31 +260,19 @@ rcbops:
         storage:
             run_list: ['role[spc-starter-storage]']
 tests:
-  default:
-    - compute
-    - identity
-  ha:
-    - compute
-    - identity
-  glance-cf:
-    - compute/images
+  glance:
     - image
-  glance-local:
     - compute/images
-    - image
-  keystone-ldap:
-    - compute/admin
-    - compute/security_groups
-    - compute/test_authorization.py
-    - identity
-  keystone-mysql:
+  nova:
+    - compute
+  keystone:
     - compute/admin
     - compute/security_groups
     - compute/test_authorization.py
     - identity
   neutron:
-    - network
-  cinder-local:
+    -
+  cinder:
     - compute/volumes
     - volume
   swift:
