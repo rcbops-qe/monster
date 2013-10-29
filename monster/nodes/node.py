@@ -107,7 +107,6 @@ class Node(object):
         self.status = "done"
 
     def destroy(self):
-        self.status = "Destroying"
         self.provisioner.destroy_node(self)
         util.logger.info("Destroying node:{0}".format(self.name))
         self.status = "Destroyed"
@@ -117,15 +116,6 @@ class Node(object):
         # run twice to propagate image id
         self.run_cmd("chef-client")
         self.run_cmd("chef-client")
-
-    def test_from(self):
-        tempest_dir = "/opt/tempest/"
-        command = ("{0}tools/with_venv.sh nosetests {4} -w "
-                   "{0}tempest/tests {1} {2} {3}".format(tempest_dir,
-                                                         xunit_flag,
-                                                         tag_arg,
-                                                         paths,
-                                                         exclude))
 
     def feature_in(self, feature):
         if feature in (feature.__class__.__name__.lower()
