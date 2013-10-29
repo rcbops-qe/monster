@@ -373,7 +373,7 @@ class Ceilometer(Node):
         self.node.add_run_list_item(run_list)
 
 
-def Berkshelf(Node):
+class Berkshelf(Node):
     """ Represents a node with berks installed
     """
 
