@@ -154,12 +154,12 @@ class Remote(Node):
         """
 
         # Gather the info for the chef server
-        chef_server_node = self.node.deployment.search_role('chef_server')
+        chef_server = next(self.node.deployment.search_role('chefserver'))
 
         command = 'knife bootstrap {0} -s root -p {1}'.format(
-            chef_server_node.ipaddress, self.node.password)
+            chef_server.ipaddress, self.node.password)
 
-        chef_server_node.run_cmd(command)
+        chef_server.run_cmd(command)
 
 
 class Cinder(Node):
