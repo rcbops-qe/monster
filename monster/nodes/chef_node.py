@@ -69,6 +69,9 @@ class ChefNode(Node):
         if self.environment.remote_api:
             chef_node.save(self.environment.remote_api)
 
+    def get_run_list(self):
+        return CNode(self.name, self.environment.local_api).run_list
+
     def add_run_list_item(self, items):
         """
         Adds list of items to run_list
@@ -119,3 +122,15 @@ class ChefNode(Node):
             crnode.destroy()
             raise Exception("Node feature add fail{0}".format(str(crnode)))
         return crnode
+
+    def test_from(self, xunit=False, tags=None, exclude=None):
+        if "recipe[tempest]" not in self.get_run_list():
+            util.logger.error("Tesmpest not set up on node")
+            pass
+        tempest_dir = "/opt/tempest/"
+        command = ("{0}tools/with_venv.sh nosetests {4} -w "
+                   "{0}tempest/tests {1} {2} {3}".format(tempest_dir,
+                                                         xunit_flag,
+                                                         tag_arg,
+                                                         paths,
+                                                         exclude))
