@@ -123,6 +123,17 @@ class ChefNode(Node):
             raise Exception("Node feature add fail{0}".format(str(crnode)))
         return crnode
 
+    def add_tempest(self):
+        if 'recipe[tempest]' not in self.get_run_list():
+            self.add_run_list_item("recipe[tempest]")
+            # run twice to propagate image id
+            self.run_cmd("chef-client; chef-client")
+
+        # install python requirements
+        tempest_dir = util.config['tests']['tempest']['dir']
+        install_cmd = "python {0}/tools/install_venv.py".format(tempest_dir)
+        self.run_cmd(install_cmd)
+
     def test_from(self, xunit=False, tags=None, exclude=None):
         if "recipe[tempest]" not in self.get_run_list():
             util.logger.error("Tesmpest not set up on node")
