@@ -126,3 +126,9 @@ class Node(object):
                                                          tag_arg,
                                                          paths,
                                                          exclude))
+
+    def feature_in(self, feature):
+        if feature in (feature.__class__.__name__.lower()
+                       for feature in self.features):
+            return True
+        return False
