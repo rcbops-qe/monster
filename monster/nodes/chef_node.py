@@ -63,7 +63,8 @@ class ChefNode(Node):
             self.run_cmd("chef-client")
         super(ChefNode, self).apply_feature()
 
-    def save(self, chef_node):
+    def save(self, chef_node=None):
+        chef_node = chef_node or CNode(self.name, self.environment.local_api)
         chef_node.save(self.environment.local_api)
         if self.environment.remote_api:
             chef_node.save(self.environment.remote_api)
