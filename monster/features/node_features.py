@@ -145,7 +145,7 @@ class Remote(Node):
         outl = 'class: ' + self.__class__.__name__
         return outl
 
-    def apply_feature(self):
+    def pre_configure(self):
         remove_chef(self.node)
         self._bootstrap_chef()
 
@@ -224,6 +224,7 @@ class ChefServer(Node):
         self._install()
         self._install_cookbooks()
         self._set_up_remote()
+        self._remote_other_nodes()
 
     def _install(self):
         """ Installs chef server on the given node
@@ -300,6 +301,12 @@ class ChefServer(Node):
 
         command = 'cat ~/.chef/admin.pem'
         return self.node.run_cmd(command)['return']
+
+    def _remote_other_nodes(self):
+        for node in self.node.deployment.nodes:
+            if not node.feature_in("chefserver"):
+                remote_feature = Remote(node)
+                node.features.insert(0, remote_feature)
 
 
 class OpenLDAP(Node):
