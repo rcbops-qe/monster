@@ -208,9 +208,9 @@ class ChefServer(Node):
         super(ChefServer, self).__init__(node)
         self.iscript = util.config['chef']['server']['install_script']
         self.iscript_name = self.iscript.split('/')[-1]
-        self.install_commands = ['curl {0} >> {1}'.format(self.iscript,
-                                                          self.iscript_name),
-                                 'chmod u+x ~/{0}'.format(self.iscript_name),
+        self.script_download = 'curl {0} >> {1}'.format(self.iscript,
+                                                        self.iscript_name)
+        self.install_commands = ['chmod u+x ~/{0}'.format(self.iscript_name),
                                  './{0}'.format(self.iscript_name)]
 
     def __repr__(self):
@@ -233,6 +233,7 @@ class ChefServer(Node):
         """ Installs chef server on the given node
         """
 
+        self.node.run_cmd(self.script_download, attempts=5)
         command = "; ".join(self.install_commands)
         self.node.run_cmd(command)
 
@@ -408,14 +409,7 @@ class Berkshelf(Node):
 
         # Install RVM
         # We commonly see issues with rvms servers, so loop
-        count = 0
-        rvm_ret = self.node.run_cmd(rvm_install)
-        while not rvm_ret['success'] and count < 25:
-            rvm_ret = self.node.run_cmd(rvm_install)
-            count += 1
-
-        if not rvm_ret['success']:
-            raise Exception("Failed to download RVM, RVM is so bad!!")
+        self.node.run_cmd(rvm_install, attempts=10)
 
         # Install Ruby Gems
         install_ruby_gems(self.node, gems)

@@ -43,15 +43,26 @@ class Node(object):
                     outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
         return "\n".join([outl, features])
 
-    def run_cmd(self, remote_cmd, user=None, password=None):
+    def run_cmd(self, remote_cmd, user=None, password=None, attempts=None):
         """
         Runs a command on the node
         """
         user = user or self.user
         password = password or self.password
         util.logger.info("Running: {0} on {1}".format(remote_cmd, self.name))
-        return ssh_cmd(self.ipaddress, remote_cmd=remote_cmd, user=user,
-                       password=password)
+        count = attempts or 1
+        ret = ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
+                      user=user, password=password)
+        while not ret['success'] and count:
+            ret = ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
+                          user=user, password=password)
+            count -= 1
+
+        if not ret['success'] and attempts:
+            raise Exception("Failed to run {0} after {1} attempts".format(
+                remote_cmd, attempts))
+
+        return ret
 
     def scp_to(self, local_path, user=None, password=None, remote_path=""):
         """
