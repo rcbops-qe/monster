@@ -341,7 +341,7 @@ class Ceilometer(Node):
         return outl
 
     def pre_configure(self):
-        if 'controller' in self.node.features:
+        if self.node.feature_in('controller'):
             self.role = 'controller'
         else:
             self.role = 'compute'
