@@ -308,7 +308,7 @@ class Swift(Deployment):
         """ This is needed to make the environment for swift line up to the
         requirements from rpcs.
         """
-        
+
         env = self.deployment.environment
         master_key = util.config['swift']['master_env_key']
         util.logger.info(
@@ -359,7 +359,11 @@ class Glance(Deployment):
         auth_address = self.environment['api']['swift_store_auth_address']
         url = "{0}/tokens".format(auth_address)
         response = requests.post(url, data=data, headers=head, verify=False)
-        services = json.loads(response._content)['access']['serviceCatalog']
+        try:
+            services = json.loads(response._content)['access'][
+                'serviceCatalog']
+        except KeyError:
+            raise Exception("Unable to authenticate with Endpoint")
         cloudfiles = next(s for s in services if s['type'] == "object-store")
         tenant_id = cloudfiles['endpoints'][0]['tenantId']
 
