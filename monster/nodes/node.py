@@ -122,12 +122,6 @@ class Node(object):
         util.logger.info("Destroying node:{0}".format(self.name))
         self.status = "Destroyed"
 
-    def add_tempest(self):
-        self.add_run_list_item("tempest")
-        # run twice to propagate image id
-        self.run_cmd("chef-client")
-        self.run_cmd("chef-client")
-
     def feature_in(self, feature):
         if feature in (feature.__class__.__name__.lower()
                        for feature in self.features):
