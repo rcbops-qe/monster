@@ -75,6 +75,7 @@ environments:
            swift_internal_url: ""
            auth_password: "secrete"
            admin_password: "secrete"
+           ops_password: "secrete"
     monitoring:
         default:
             metric_provider: collectd
@@ -253,7 +254,7 @@ rcbops:
                         - v4.2.0
         chef_server:
             run_list: []
-        controller:
+        controller1:
             run_list: ['role[spc-starter-controller]']
         proxy:
             run_list: ['role[spc-starter-proxy]']

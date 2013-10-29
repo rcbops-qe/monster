@@ -14,6 +14,7 @@ class Provisioner(object):
 
 
 class ChefRazorProvisioner(Provisioner):
+    
     def __init__(self, ip=None):
         self.ipaddress = ip or util.config['razor']['ip']
         self.api = razor_api(self.ipaddress)
