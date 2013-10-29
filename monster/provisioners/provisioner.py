@@ -28,7 +28,7 @@ class ChefRazorProvisioner(Provisioner):
             iface_in_run_list = "recipe[network-interfaces]" in node.run_list
             if (is_default and iface_in_run_list):
                 node.chef_environment = deployment.environment.name
-                node['in_use'] = "provisioned"
+                node['in_use'] = "provisioning"
                 node.save()
                 return node
         node.destroy()
@@ -39,7 +39,7 @@ class ChefRazorProvisioner(Provisioner):
         Destroys a node provisioned by razor
         """
         cnode = Node(node.name)
-        if node['in_use'] == "provisioned":
+        if node['in_use'] == "provisioning":
             # Return to pool if the node is clean
             cnode['in_use'] = 0
             cnode['archive'] = {}
