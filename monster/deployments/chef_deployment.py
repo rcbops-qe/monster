@@ -114,7 +114,7 @@ class ChefDeployment(Deployment):
         features = deployment_args.get('features', {})
         os_name = deployment_args.get('os_name', None)
         branch = deployment_args.get('branch', None)
-        status = deployment_args.get('status', None)
+        status = deployment_args.get('status', "provisioning")
         deployment = cls.deployment_config(features, name, os_name, branch,
                                            environment, provisioner, status)
 
