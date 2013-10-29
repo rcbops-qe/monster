@@ -160,6 +160,7 @@ class Remote(Node):
             self.node.ipaddress, self.node.password)
 
         chef_server.run_cmd(command)
+        self.node.save()
 
 
 class Cinder(Node):
@@ -225,6 +226,7 @@ class ChefServer(Node):
         self._install_cookbooks()
         self._set_up_remote()
         self._remote_other_nodes()
+        self.node.environment.save()
 
     def _install(self):
         """ Installs chef server on the given node
