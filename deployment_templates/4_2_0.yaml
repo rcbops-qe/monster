@@ -42,7 +42,7 @@ precise-swift:
     keystone: swift
     swift: rpcs
   nodes:
-    - [chefserver]
+    - [chefserver, berkshelf]
     - [controller]
     - [proxy]
     - [proxy]
@@ -58,7 +58,7 @@ centos-swift:
     keystone: swift
     swift: rpcs
   nodes:
-    - [chefserver]
+    - [chefserver, berkshelf]
     - [controller]
     - [proxy]
     - [proxy]
