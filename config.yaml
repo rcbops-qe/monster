@@ -261,23 +261,26 @@ rcbops:
         storage:
             run_list: ['role[spc-starter-storage]']
 tests:
-  glance:
-    - image
-    - compute/images
-  nova:
-    - compute
-  keystone:
-    - compute/admin
-    - compute/security_groups
-    - compute/test_authorization.py
-    - identity
-  neutron:
-    -
-  cinder:
-    - compute/volumes
-    - volume
-  swift:
-    - object_storage
+  tempest:
+    dir: "/opt/tempest"
+    test_map:
+      glance:
+        - image
+        - compute/images
+      nova:
+        - compute
+      keystone:
+        - compute/admin
+        - compute/security_groups
+        - compute/test_authorization.py
+        - identity
+      neutron:
+        -
+      cinder:
+        - compute/volumes
+        - volume
+      swift:
+        - object_storage
 
 swift:
     master_env_key: swift-private-cloud
