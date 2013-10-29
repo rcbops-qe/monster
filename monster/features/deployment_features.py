@@ -125,12 +125,46 @@ class Swift(Deployment):
     def update_environment(self):
         self.deployment.environment.add_override_attr(
             self.__class__.__name__.lower(), self.environment)
-
+        self._set_keystone_urls()
         self._fix_environment()
 
     def post_configure(self):
         build_rings = bool(util.config['swift']['auto_build_rings'])
         self._build_rings(build_rings)
+
+    def _set_keystone_urls(self):
+        """ Gets the controllers ip and sets the url for the env
+        accordingly
+        """
+        controller_ip = next(self.deployment.search_role('controller')).ipaddress
+        env = self.deployment.environment
+        print env
+        keystone_url = "http://{0}:8080/v1/AUTH_%(tenant_id)s".format(controller_ip)
+        for item in env.override_attributes['keystone']:
+            if 'url' in item:
+                env.override_attributes['keystone'][item] = keystone_url
+
+        env.save()
+
+    def _fix_environment(self):
+        """ This is needed to make the environment for swift line up to the
+        requirements from rpcs.
+        """
+
+        env = self.deployment.environment
+        master_key = util.config['swift']['master_env_key']
+        util.logger.info(
+            "Matching environment: {0} to RPCS swift requirements".format(
+                env.name))
+        keystone = env.override_attributes['keystone']
+        swift = env.override_attributes['swift'][master_key]
+        swift['keystone'] = keystone
+
+        env.del_override_attr('keystone')
+        env.del_override_attr('swift')
+        env.add_override_attr(master_key, swift)
+
+        env.save()
 
     def _build_rings(self, auto=False):
         """ This will either build the rings or
@@ -303,26 +337,6 @@ class Swift(Deployment):
 
         print "#" * 30
         print "## Done setting up swift rings ##"
-
-    def _fix_environment(self):
-        """ This is needed to make the environment for swift line up to the
-        requirements from rpcs.
-        """
-
-        env = self.deployment.environment
-        master_key = util.config['swift']['master_env_key']
-        util.logger.info(
-            "Matching environment: {0} to RPCS swift requirements".format(
-                env.name))
-        keystone = env.override_attributes['keystone']
-        swift = env.override_attributes['swift'][master_key]
-        swift['keystone'] = keystone
-
-        env.del_override_attr('keystone')
-        env.del_override_attr('swift')
-        env.add_override_attr(master_key, swift)
-
-        env.save()
 
 
 class Glance(Deployment):
