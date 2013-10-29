@@ -2,7 +2,8 @@
 A nodes features
 """
 from chef import ChefAPI
-from monster.features.feature import Feature, remove_chef
+from monster.features.feature import Feature, remove_chef,\
+                                     install_packages, install_ruby_gems
 from monster import util
 
 
@@ -309,6 +310,7 @@ class ChefServer(Node):
             if not node.feature_in("chefserver"):
                 remote_feature = Remote(node)
                 node.features.insert(0, remote_feature)
+                node.save_to_node()
 
 
 class OpenLDAP(Node):
@@ -369,3 +371,69 @@ class Ceilometer(Node):
 
         # Add the run list to the node
         self.node.add_run_list_item(run_list)
+
+
+def Berkshelf(Node):
+    """ Represents a node with berks installed
+    """
+
+    def __init__(self, node):
+        super(Berkshelf, self).__init__(node)
+
+    def __repr__(self):
+        """ Print current instance
+        """
+        outl = 'class: ' + self.__class__.__name__
+        return outl
+
+    def pre_configure(self):
+        self._install_berkshelf()
+
+    def apply_feature(self):
+        self._write_berks_config()
+        self._run_berks()
+
+    def _install_berkshelf(self):
+        """ Installs Berkshelf and correct rvms/gems
+        """
+
+        # Install needed server packages for berkshelf
+        packages = ['libxml2-dev', 'libxslt-dev', 'libz-dev']
+        rvm_install = ("curl -L https://get.rvm.io | bash -s -- stable "
+                      "--ruby=1.9.3 --autolibs=enable --auto-dotfiles")
+        gems = ['berkshelf', 'chef']
+
+        # Install OS packages
+        install_packages(self.node, packages)
+
+        # Install RVM
+        self.node.run_cmd(rvm_install)
+
+        # Install Ruby Gems
+        install_ruby_gems(self.node, gems)
+
+    def _write_berks_config(self):
+        """ Will write the berks config file
+        
+            TODO: I need to make this more robust and 
+            allow you to correctly write the config the way you want.
+            For now the ghetto way is how we will do it (jwagner)
+        """
+
+        command = ('mkdir -p .berkshelf; cd .berkshelf; '
+                   'echo "{\\"ssl\\":{\\"verify\\":false}}" > config.json')
+
+        self.node.run_cmd(command)
+
+    def _run_berks(self):
+        """ This will run berksheld to apply the feature
+        """
+
+        # Run berkshelf on server
+        commands = ['cd /opt/rcbops/swift-private-cloud',
+                    'source /usr/local/rvm/scripts/rvm',
+                    'berks install',
+                    'berks upload']
+        command = "; ".join(commands)
+
+        self.node.run_cmd(command)
