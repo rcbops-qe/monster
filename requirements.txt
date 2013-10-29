@@ -4,3 +4,4 @@ requests
 paramiko
 pychef
 pyyaml
+gevent
