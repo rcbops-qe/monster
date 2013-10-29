@@ -39,7 +39,8 @@ class ChefRazorProvisioner(Provisioner):
         Destroys a node provisioned by razor
         """
         cnode = Node(node.name)
-        if node['in_use'] == "provisioning":
+        in_use = node['in_use']
+        if in_use == "provisioning" or in_use == 0:
             # Return to pool if the node is clean
             cnode['in_use'] = 0
             cnode['archive'] = {}
