@@ -138,7 +138,6 @@ class Swift(Deployment):
         """
         controller_ip = next(self.deployment.search_role('controller')).ipaddress
         env = self.deployment.environment
-        print env
         keystone_url = "http://{0}:8080/v1/AUTH_%(tenant_id)s".format(controller_ip)
         for item in env.override_attributes['keystone']:
             if 'url' in item:
