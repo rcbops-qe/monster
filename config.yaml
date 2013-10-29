@@ -141,10 +141,10 @@ environments:
         rpcs:
             swift-private-cloud:
                 network:
-                    management: ""
-                    exnet: ""
+                    management: "198.101.133.0/24"
+                    exnet: "198.101.133.0/24"
                 swift_common:
-                   swift_hash_prefix: ""
+                   swift_hash_prefix: "secretesecretestring"
                    swift_hash_suffix: ""
                 dispersion:
                     dis_key: secrete
