@@ -407,7 +407,15 @@ class Berkshelf(Node):
         install_packages(self.node, packages)
 
         # Install RVM
-        self.node.run_cmd(rvm_install)
+        # We commonly see issues with rvms servers, so loop
+        count = 0
+        rvm_ret = self.node.run_cmd(rvm_install)
+        while not rvm_ret['success'] and count < 25:
+            rvm_ret = self.node.run_cmd(rvm_install)
+            count += 1
+
+        if not rvm_ret['success']:
+            raise Exception("Failed to download RVM, RVM is so bad!!")
 
         # Install Ruby Gems
         install_ruby_gems(self.node, gems)
