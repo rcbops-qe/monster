@@ -15,13 +15,14 @@ class ChefNode(Node):
     Provides chef related server fuctions
     """
     def __init__(self, ip, user, password, os, product, environment,
-                 deployment, name, provisioner, branch, status=None):
+                 deployment, name, provisioner, branch, status=None,
+                 run_list=None):
         super(ChefNode, self).__init__(ip, user, password, os, product,
                                        environment, deployment, provisioner,
                                        status)
         self.name = name
         self.branch = branch
-        self.run_list = []
+        self.run_list = run_list or []
         self.features = []
 
     def __str__(self):
