@@ -15,7 +15,7 @@ from monster.deployments.chef_deployment import ChefDeployment
 
 def build(name="precise-default", branch="master", template_path=None,
           config=None, destroy=False, dry=False, log=None,
-          log_level="INFO", provisioner="razor"):
+          log_level="INFO", provisioner="razor", test=False):
     """
     Builds an OpenStack Cluster
     """
@@ -47,6 +47,9 @@ def build(name="precise-default", branch="master", template_path=None,
             sys.exit(1)
 
     util.logger.info(deployment)
+    if test:
+        deployment.test()
+
     if destroy:
         deployment.destroy()
 
