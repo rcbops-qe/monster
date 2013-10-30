@@ -79,7 +79,7 @@ class Controller(Node):
         if self.number == 2:
             controllers = self.node.deployment.search_role('controller')
             controller1 = next(controllers)
-            controller1.run_cmd('chef-client')
+            controller1.run_chef_client()
 
 
 class Compute(Node):

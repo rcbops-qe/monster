@@ -72,7 +72,7 @@ class ChefNode(Node):
         """
         self.status = "apply-feature"
         if not self.feature_in("chefserver"):
-            self.run_cmd("chef-client")
+            self.run_chef_client()
         super(ChefNode, self).apply_feature()
 
     def save(self, chef_node=None):
@@ -80,6 +80,12 @@ class ChefNode(Node):
         chef_node.save(self.environment.local_api)
         if self.environment.remote_api:
             chef_node.save(self.environment.remote_api)
+
+    def save_locally(self, chef_node=None):
+        if self.environment.remote_api:
+            chef_node = chef_node or CNode(self.name,
+                                           self.environment.remote_api)
+            chef_node.save(self.environment.local_api)
 
     def get_run_list(self):
         return CNode(self.name, self.environment.local_api).run_list
@@ -141,7 +147,7 @@ class ChefNode(Node):
         if 'recipe[tempest]' not in self.get_run_list():
             self.add_run_list_item(["recipe[tempest]"])
             # run twice to propagate image id
-            self.run_cmd("chef-client; chef-client")
+            self.run_chef_client(times=2)
 
         # install python requirements
         tempest_dir = util.config['tests']['tempest']['dir']
@@ -189,3 +195,8 @@ class ChefNode(Node):
         if xunit:
             self.scp_from(xunit_file, local_path=".")
             util.xunit_merge()
+
+    def run_chef_client(self, times=1):
+        for _ in xrange(times):
+            self.run_cmd("chef-client")
+            self.save_locally

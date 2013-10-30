@@ -179,7 +179,7 @@ class Swift(Deployment):
         ################## Run chef on the controller node ##################
         #####################################################################
 
-        controller.run_cmd('chef-client')
+        controller.run_chef_client()
 
         #####################################################################
         ####### Run through the storage nodes and set up the disks ##########
