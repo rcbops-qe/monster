@@ -240,6 +240,8 @@ rcbops:
             run_list: ['role[cinder-all]']
         network:
             run_list: ['role[single-network-node]']
+        tempest:
+            run_list: ['recipe[tempest]']
         monitor:
             controller:
                 run_list: ['role[ceilometer-setup]',

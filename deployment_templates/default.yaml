@@ -11,6 +11,7 @@ precise-default:
     keystone: default
     osops: default
     osopsnetworks: default
+    tempest: default
   nodes:
     - [chefserver]
     - [controller, ceilometer]
@@ -51,8 +52,8 @@ precise-neutron:
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller, network, ceilometer]
-    - [compute, network, ceilometer]
+    - [controller, network, monitor]
+    - [compute, network, monitor]
 
 precise-swift:
   product: storage

@@ -48,7 +48,7 @@ def build(name="precise-default", branch="master", template_path=None,
 
     util.logger.info(deployment)
     if test:
-        deployment.test()
+        pass
 
     if destroy:
         deployment.destroy()
