@@ -1,6 +1,5 @@
 *.py[cod]
 clean.py
-secret.yaml
 
 # C extensions
 *.so
