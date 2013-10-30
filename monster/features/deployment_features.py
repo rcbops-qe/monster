@@ -171,7 +171,7 @@ class Swift(Deployment):
         """
 
         # Gather all the nodes
-        controller = self.deployment.search_role('controller')
+        controller = next(self.deployment.search_role('controller'))
         proxy_nodes = self.deployment.search_role('proxy')
         storage_nodes = self.deployment.search_role('storage')
 
@@ -198,7 +198,7 @@ class Swift(Deployment):
             if auto:
                 print "#" * 30
                 print "## Configuring Disks on Storage Node @ {0} ##".format(
-                    storage_node['ip'])
+                    storage_node.ipaddress)
                 print "#" * 30
                 command = "; ".join(commands)
                 storage_node.run_cmd(command)
@@ -206,8 +206,9 @@ class Swift(Deployment):
                 print "#" * 30
                 print "##### Info to setup drives for Swift #####"
                 print "#" * 30
-                print "## Log into root@{0} and run the "\
-                      "following commands: ##".format(storage_node.ipaddress)
+                print ("## Log into root@{0} and run "
+                       "the following commands: ##".format(
+                            storage_node.ipaddress))
                 for command in commands:
                     print command
 
@@ -239,7 +240,7 @@ class Swift(Deployment):
                                          replicas,
                                          min_part_hours)]
 
-        # Determine how many storage nodes wehave and add them
+        # Determine how many storage nodes we have and add them
         builders = util.config['swift']['builders']
 
         for builder in builders:
@@ -284,9 +285,9 @@ class Swift(Deployment):
         else:
             print "#" * 30
             print "## Info to manually set up swift rings: ##"
-            print "## Log into root@{0} "\
-                  "and run the following commands: ##".format(
-                      controller.ipaddress)
+            print ("## Log into root@{0} "
+                   "and run the following commands: ##".format(
+                      controller.ipaddress))
             for command in commands:
                 print command
 
@@ -302,9 +303,9 @@ class Swift(Deployment):
             print "## Pulling Swift ring on Management Node ##"
             controller.run_cmd(command)
         else:
-            print "## On node root@{0} "\
-                  "and run the following command: ##".format(
-                      controller.ipaddress)
+            print ("## On node root@{0} "
+                  "run the following command: ##".format(
+                      controller.ipaddress))
             print command
 
         print "#" * 30
@@ -316,22 +317,23 @@ class Swift(Deployment):
                            proxy_node.ipaddress))
                 proxy_node.run_cmd(command)
             else:
-                print "## On node root@{0} "\
+                print ("## On node root@{0} "
                       "and run the following command: ##".format(
-                          proxy_node.ipaddress)
+                          proxy_node.ipaddress))
                 print command
 
         print "#" * 30
         print "## PULL RING ONTO STORAGE NODES ##"
         for storage_node in storage_nodes:
             if auto:
-                print "## Pulling swift ring down storage node: {0} ##".format(
-                    storage_node.ipaddress)
+                print ("## Pulling swift ring down "
+                      "on storage node: {0} ##".format(
+                            storage_node.ipaddress))
                 storage_node.run_cmd(command)
             else:
-                print "## On node root@{0} "\
-                      "and run the following command: ##".format(
-                          storage_node.ipaddress)
+                print ("## On node root@{0} "
+                      "run the following command: ##".format(
+                          storage_node.ipaddress))
                 print command
 
         print "#" * 30
