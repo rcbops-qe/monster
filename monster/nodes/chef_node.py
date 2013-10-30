@@ -152,6 +152,7 @@ class ChefNode(Node):
         if "recipe[tempest]" not in self.get_run_list():
             util.logger.error("Tesmpest not set up on node")
             pass
+
         tempest_dir = util.config['tests']['tempest']['dir']
 
         xunit_file = "{0}.xml".format(self.name)
