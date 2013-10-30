@@ -223,10 +223,6 @@ class Swift(Deployment):
         disk_weight = util.config['swift']['disk_weight']
 
         commands = ["su swiftops",
-                    "mkdir -p ~/swift/rings",
-                    "cd ~/swift/rings",
-                    "git init .",
-                    "echo \"backups\" > .gitignore",
                     "swift-ring-builder object.builder create "
                     "{0} {1} {2}".format(part_power,
                                          replicas,
@@ -267,12 +263,7 @@ class Swift(Deployment):
         cmd_list = ["swift-ring-builder object.builder rebalance",
                     "swift-ring-builder container.builder rebalance",
                     "swift-ring-builder account.builder rebalance",
-                    "git remote add origin /srv/git/rings",
-                    "git add .",
-                    "git config user.email \"swiftops@swiftops.com\"",
-                    "git config user.name \"swiftops\"",
-                    "git commit -m \"initial checkin\"",
-                    "git push origin master"]
+                    "chown -R swift: ."]
         commands.extend(cmd_list)
 
         if auto:
@@ -295,18 +286,7 @@ class Swift(Deployment):
         ################## Time to distribute the ring to all the boxes ######################
         ######################################################################################
 
-        command = "/usr/local/bin/pull-rings.sh"
-
-        print "#" * 30
-        print "## PULL RING ONTO MANAGEMENT NODE ##"
-        if auto:
-            print "## Pulling Swift ring on Management Node ##"
-            controller.run_cmd(command)
-        else:
-            print ("## On node root@{0} "
-                  "run the following command: ##".format(
-                      controller.ipaddress))
-            print command
+        command = "/usr/bin/swift-ring-minion-server -f -o"
 
         print "#" * 30
         print "## PULL RING ONTO PROXY NODES ##"
@@ -318,7 +298,7 @@ class Swift(Deployment):
                 proxy_node.run_cmd(command)
             else:
                 print ("## On node root@{0} "
-                      "and run the following command: ##".format(
+                      "run the following command: ##".format(
                           proxy_node.ipaddress))
                 print command
 
@@ -335,6 +315,19 @@ class Swift(Deployment):
                       "run the following command: ##".format(
                           storage_node.ipaddress))
                 print command
+
+
+        #####################################################################
+        ############### Finalize by running chef on controler ###############
+        #####################################################################
+
+        print "#" * 30
+        if auto:
+            controller.run_chef_client()
+        else:
+            print ("On node root@{0} "
+                   "run the following command: chef-client ##".format(
+                        controller.ipaddress))
 
         print "#" * 30
         print "### Done setting up swift rings ###"

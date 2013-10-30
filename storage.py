@@ -12,9 +12,9 @@ from monster.provisioners import provisioner as provisioners
 from monster.config import Config
 from monster.deployments.chef_deployment import ChefDeployment
 
-def build(name="precise-swift", branch="master", template_path=None,
-          config=None, destroy=False, dry=False, log=None,
-          log_level="INFO", provisioner="razor"):
+def build(name="precise-swift", branch="master", provisioner="razor", 
+          template_path=None, config=None, destroy=False,
+          dry=False, log=None, log_level="INFO"):
 
     """ Builds an OpenStack Swift storage cluster
     """
