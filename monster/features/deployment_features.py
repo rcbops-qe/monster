@@ -84,6 +84,12 @@ class Neutron(Deployment):
         if self.deployment.os_name in ['centos', 'rhel']:
             self._reboot_cluster()
 
+        # Grab the config to auto build or not
+        auto_build = util.config[
+            self.__class__.__name__.lower()]['auto_build_subnets']
+        self._build_subnets(auto_build)
+
+
     def _fix_nova_environment(self):
         # When enabling neutron, have to update the env var correctly
         env = self.deployment.environment
@@ -118,6 +124,62 @@ class Neutron(Deployment):
                 error = ("## -- Failed to reboot deployment"
                          "after {0} minutes -- ##".format(total_sleep_time))
                 raise Exception(error)
+
+    def _build_subnets(self, auto=False):
+        """ Will print out or build the subnets
+        """
+
+        network_bridge_dev = util.config[self.__class__.__name__.lower()]\
+            [self.deployment.os_name]['network_bridge_dev']
+        controllers = self.deployment.search_role('controller')
+        computes = self.deployment.search_role('compute')
+
+        commands = ['ip a f {0}'.format(network_bridge_dev),
+                    'ovs-vsctl add-port br-{0} {0}'.format(
+                        network_bridge_dev)]
+        command = "; ".join(commands)
+
+        if auto:
+            util.logging.info("Building OVS Bridge and Ports on network nodes")
+            for controller in controllers:
+                controller.run_cmd(command)
+            for compute in computes:
+                compute.run_cmd(command)
+        else:
+            util.logging.info("To build the OVS network bridge, :"
+                              "log into your controllers and computes "
+                              "and run the following command: ")
+            util.logging.info(command)
+
+        commands = ["source openrc admin",
+                    "quantum net-create flattest".format(network_bridge_dev),
+                    ("quantum subnet-create --name testnet "
+                    "--no-gateway flattest 172.0.0.0/8")]
+        command = "; ".join(commands)
+
+        if auto:
+            util.logging.info("Adding Neutron Network")
+            for controller in controllers:
+                if self.deployment.feature_in('ha'):
+                    util.logging.info(
+                        "Attempting to setup network on {0}".format(
+                            controller.name))
+                    network_run = controller.run_cmd(command)
+                    if network_run['success']:
+                        util.logging.info("Network setup succedded")
+                        break
+                    else:
+                        util.logging.info(
+                            "Failed to setup network on {0}".format(
+                                controller.name))
+            if not network_run['success']:
+                util.logging.info("Failed to setup network")
+        else:
+            util.logging.info("To setup Neutron Network, "
+                              "Log into your active controller and run: ")
+            util.logging.info(command)
+
+        util.logging.info("### End of Networking Block ###")
 
 
 class Swift(Deployment):

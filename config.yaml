@@ -311,3 +311,10 @@ cinder:
 provisioners:
   razor: chefrazorprovisioner
   openstack: openstackprovisioner
+
+neutron:
+    auto_build_subnets: False
+    centos:
+        network_bridge_device: em2
+    precise:
+        network_bridge_device: eth1
