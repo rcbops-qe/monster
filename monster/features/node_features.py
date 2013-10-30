@@ -109,6 +109,17 @@ class Storage(Node):
         self.set_run_list()
 
 
+class Network(Node):
+    """ Sets the node to be a Network
+    """
+
+    def __init__(self, node):
+        super(Network, self).__init__(node)
+
+    def preconfigure(self):
+        self.set_run_list()
+
+
 class Remote(Node):
     """ Represents the deployment having a remote chef server
     """
@@ -291,12 +302,12 @@ class OpenLDAP(Node):
         self.node.run_cmd(ldapadd)
 
 
-class Ceilometer(Node):
-    """ Represents a Ceilometer Node
+class Monitor(Node):
+    """ Represents a Monitor Node
     """
 
     def __init__(self, node):
-        super(Ceilometer, self).__init__(node)
+        super(Monitor, self).__init__(node)
         self.role = None
 
     def pre_configure(self):
@@ -308,7 +319,7 @@ class Ceilometer(Node):
         self._set_run_list()
 
     def _set_run_list(self):
-        """ Ceilometer run list set
+        """ Monitor run list set
         """
 
         role = self.__class__.__name__.lower()

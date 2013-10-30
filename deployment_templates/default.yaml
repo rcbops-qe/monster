@@ -35,139 +35,24 @@ centos-default:
     - [controller, ceilometer]
     - [compute, ceilometer]
 
-precise-ha:
-  product: compute
-  name: ha
-  os: precise
-  features:
-    glance: cf
-    nova: default
-    horizon: default
-    keystone: default
-    osops: default
-    osopsnetworks: default
-    highavailability: default
-  nodes:
-    - [chefserver]
-    - [controller]
-    - [controller]
-    - [compute]
-
-centos-ha:
-  product: compute
-  name: ha
-  os: centos
-  features:
-    glance: cf
-    cinder: local
-    nova: default
-    horizon: default
-    keystone: default
-    osops: default
-    osopsnetworks: default
-    highavailability: default
-  nodes:
-    - [chefserver]
-    - [controller]
-    - [controller]
-    - [compute]
-
-precise-openldap:
-  product: compute
-  name: openldap
-  os: precise
-  os-features:
-    glance:
-      - cf
-    cinder:
-      - local
-    nova:
-      - default
-    horizon:
-      - default
-    keystone:
-      - openldap
-    osops:
-      - default
-    osopsnetworks:
-      - default
-  rpcs-features:
-    - openldap
-  nodes:
-    - [openldap]
-    - [chefserver]
-    - [controller]
-    - [compute]
-
-centos-openldap:
-  product: compute
-  name: openldap
-  os: centos
-  os-features:
-    glance:
-      - cf
-    cinder:
-      - local
-    nova:
-      - default
-    horizon:
-      - default
-    keystone:
-      - openldap
-    osops:
-      - default
-    osopsnetworks:
-      - default
-  rpcs-features:
-    - openldap
-  nodes:
-    - [openldap]
-    - [chefserver]
-    - [controller]
-    - [compute]
-
 precise-neutron:
   product: compute
   name: neutron
   os: precise
-  os-features:
-    glance:
-      - cf
-    cinder:
-      - local
-    nova:
-      - default
-    neutron:
-      - defaultl
-    horizon:
-      - default
-    keystone:
-      - default
-    osops:
-      - default
-    osopsnetworks:
-      - default
   features:
-    - neutron
-    - ha
+    monitoring: default
+    mysql: default
+    glance: default
+    nova: default
+    neutron: neutron
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller, neutron]
-    - [controller, neutron]
-    - [compute]
-
-centos-neutron:
-  product: compute
-  name: neutron
-  os: centos
-  features:
-    - neutron
-    - ha
-  nodes:
-    - [chefserver]
-    - [controller, neutron]
-    - [controller, neutron]
-    - [compute]
+    - [controller, network, ceilometer]
+    - [compute, network, ceilometer]
 
 precise-swift:
   product: storage
@@ -193,7 +78,7 @@ centos-swift:
     keystone: swift
     swift: rpcs
   nodes:
-    - [chefserver]
+    - [chefserver, berkshelf]
     - [controller]
     - [proxy]
     - [proxy]

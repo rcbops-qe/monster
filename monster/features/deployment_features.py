@@ -63,8 +63,9 @@ class Neutron(Deployment):
     def __init__(self, deployment, rpcs_feature):
         super(Neutron, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            util.config['environments'][self.__class__.__name__.lower()][
-                rpcs_feature]
+            util.config['environments']\
+                       [self.__class__.__name__.lower()][rpcs_feature]
+        self.provider = rpcs_feature
 
     def __repr__(self):
         """ Print out current instance
@@ -75,12 +76,22 @@ class Neutron(Deployment):
     def update_environment(self):
         self.deployment.environment.add_override_attr(
             self.__class__.__name__.lower(), self.environment)
+        self._fix_nova_environment()
 
     def post_configure(self):
         """ Runs cluster post configure commands
         """
         if self.deployment.os_name in ['centos', 'rhel']:
             self._reboot_cluster()
+
+    def _fix_nova_environment(self):
+        # When enabling neutron, have to update the env var correctly
+        env = self.deployment.environment
+        neutron_network = {'provider': self.provider}
+        if 'networks' in env.override_attributes['nova']:
+            del env.override_attributes['nova']['networks']
+        env.override_attributes['nova']['network'] = neutron_network
+        env.save()
 
     def _reboot_cluster(self):
 

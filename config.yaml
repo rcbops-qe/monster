@@ -128,11 +128,12 @@ environments:
                 - cirros
                 - precise
     neutron:
-        default:
-            nova:
-                network:
-                    provider: quantum
-                    apply_patches: True
+        quantum:
+            ovs:
+                network_type: gre
+        neutron:
+            ovs:
+                network_type: gre
     cinder:
         local:
             storage:
@@ -237,7 +238,9 @@ rcbops:
             run_list: ['role[ha-controller2]']
         cinder:
             run_list: ['role[cinder-all]']
-        ceilometer:
+        network:
+            run_list: ['role[single-network-node]']
+        monitor:
             controller:
                 run_list: ['role[ceilometer-setup]',
                            'role[ceilometer-api]',
