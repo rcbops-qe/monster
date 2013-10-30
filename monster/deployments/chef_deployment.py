@@ -107,7 +107,7 @@ class ChefDeployment(Deployment):
         env = Environment(environment, api=local_api)
         override = env.override_attributes
         default = env.default_attributes
-        chef_auth = env.override_attribute.get('remote_chef', None)
+        chef_auth = override.get('remote_chef', None)
         if chef_auth:
             remote_api = ChefServer._remote_chef_api(**chef_auth)
         environment = Chef(env.name, local_api, description=env.name,
@@ -115,7 +115,7 @@ class ChefDeployment(Deployment):
                            remote_api=remote_api)
 
         name = env.name
-        deployment_args = env.override_attributes.get('deployment', {})
+        deployment_args = override.get('deployment', {})
         features = deployment_args.get('features', {})
         os_name = deployment_args.get('os_name', None)
         branch = deployment_args.get('branch', None)
