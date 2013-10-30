@@ -723,16 +723,16 @@ class OpenLDAP(RPCS):
 class Tempest(RPCS):
     def __init__(self, deployment, rpcs_feature):
         name = self.__class__.__name__.lower()
-        super(OpenLDAP, self).__init__(deployment, rpcs_feature, name)
+        super(Tempest, self).__init__(deployment, rpcs_feature, name)
 
     def pre_configure(self):
-        controller = next(self.search_role("controller"))
+        controller = next(self.deployment.search_role("controller"))
         tempest_feature = NodeTempest(controller)
         controller.features.append(tempest_feature)
 
     def post_configure(self):
         exclude = ['volume', 'resize', 'floating']
-        controller = next(self.search_role("controller"))
+        controller = next(self.deployment.search_role("controller"))
         self.test_from(controller, xunit=True, exclude=exclude)
 
     def test_from(self, node, xunit=False, tags=None, exclude=None,

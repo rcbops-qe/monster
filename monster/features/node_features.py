@@ -401,4 +401,4 @@ class Tempest(Node):
         # install python requirements for tempest
         tempest_dir = util.config['tests']['tempest']['dir']
         install_cmd = "python {0}/tools/install_venv.py".format(tempest_dir)
-        self.run_cmd(install_cmd)
+        self.node.run_cmd(install_cmd)

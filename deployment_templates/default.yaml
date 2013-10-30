@@ -14,8 +14,8 @@ precise-default:
     tempest: default
   nodes:
     - [chefserver]
-    - [controller, ceilometer]
-    - [compute, ceilometer]
+    - [controller, monitor]
+    - [compute, monitor]
 
 centos-default:
   product: compute
@@ -33,8 +33,8 @@ centos-default:
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller, ceilometer]
-    - [compute, ceilometer]
+    - [controller, monitor]
+    - [compute, monitor]
 
 precise-neutron:
   product: compute

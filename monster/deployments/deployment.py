@@ -100,3 +100,9 @@ class Deployment(object):
         return (node for node in
                 self.nodes if feature in
                 (str(f).lower() for f in node.features))
+
+    def feature_in(self, feature):
+        if feature in (feature.__class__.__name__.lower()
+                       for feature in self.features):
+            return True
+        return False
