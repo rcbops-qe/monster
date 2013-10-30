@@ -14,7 +14,6 @@ class Provisioner(object):
 
 
 class ChefRazorProvisioner(Provisioner):
-    
     def __init__(self, ip=None):
         self.ipaddress = ip or util.config['razor']['ip']
         self.api = razor_api(self.ipaddress)
@@ -39,7 +38,7 @@ class ChefRazorProvisioner(Provisioner):
         """
         Destroys a node provisioned by razor
         """
-        cnode = Node(node.name)
+        cnode = Node(node.name, node.environment.local_api)
         in_use = node['in_use']
         if in_use == "provisioning" or in_use == 0:
             # Return to pool if the node is clean

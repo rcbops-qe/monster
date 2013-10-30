@@ -15,13 +15,14 @@ class ChefNode(Node):
     Provides chef related server fuctions
     """
     def __init__(self, ip, user, password, os, product, environment,
-                 deployment, name, provisioner, branch, status=None):
+                 deployment, name, provisioner, branch, status=None,
+                 run_list=None):
         super(ChefNode, self).__init__(ip, user, password, os, product,
                                        environment, deployment, provisioner,
                                        status)
         self.name = name
         self.branch = branch
-        self.run_list = []
+        self.run_list = run_list or []
         self.features = []
 
     def __str__(self):
@@ -62,7 +63,7 @@ class ChefNode(Node):
         Runs chef client before apply features on node
         """
         self.status = "apply-feature"
-        if self.run_list:
+        if not self.feature_in("chefserver"):
             self.run_cmd("chef-client")
         super(ChefNode, self).apply_feature()
 
@@ -116,8 +117,10 @@ class ChefNode(Node):
                                            "chefrazorprovisioner")
             classes = util.module_classes(provisioners)
             provisioner = classes[provisioner_name]()
+        run_list = node.run_list
         crnode = cls(ipaddress, user, password, os, product, environment,
-                     deployment, name, provisioner, branch, status=status)
+                     deployment, name, provisioner, branch, status=status,
+                     run_list=run_list)
         try:
             crnode.add_features(archive.get('features', []))
         except:
@@ -128,7 +131,7 @@ class ChefNode(Node):
 
     def add_tempest(self):
         if 'recipe[tempest]' not in self.get_run_list():
-            self.add_run_list_item("recipe[tempest]")
+            self.add_run_list_item(["recipe[tempest]"])
             # run twice to propagate image id
             self.run_cmd("chef-client; chef-client")
 

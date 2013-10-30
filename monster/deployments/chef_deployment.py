@@ -1,5 +1,4 @@
 import os
-import gevent
 
 from chef import autoconfigure, Environment, Node
 
@@ -216,9 +215,7 @@ class ChefDeployment(Deployment):
 
     def test(self):
         # add tempest to run_list and run chef_client twice
-        events = [gevent.spawn(node.add_tempest()) for node in
-                  self.search_role("controller")]
-        gevent.joinall(events)
         controller = next(self.search_role("controller"))
+        controller.add_tempest()
         exclude = ['volume', 'resize', 'floating']
         controller.test_from(xunit=True, exclude=exclude)
