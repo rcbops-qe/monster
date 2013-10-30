@@ -196,21 +196,18 @@ class Swift(Deployment):
                         "/dev/{0} /srv/node/{0}".format(label),
                         "chown -R swift:swift /srv/node"]
             if auto:
-                print "#" * 30
-                print "## Configuring Disks on Storage Node @ {0} ##".format(
-                    storage_node.ipaddress)
-                print "#" * 30
+                util.logging.info(
+                    "## Configuring Disks on Storage Node @ {0} ##".format(
+                        storage_node.ipaddress))
                 command = "; ".join(commands)
                 storage_node.run_cmd(command)
             else:
-                print "#" * 30
-                print "##### Info to setup drives for Swift #####"
-                print "#" * 30
-                print ("## Log into root@{0} and run "
-                       "the following commands: ##".format(
-                            storage_node.ipaddress))
+                util.logging.info("## Info to setup drives for Swift ##")
+                util.logging.info(
+                    "## Log into root@{0} and run the following commands: "
+                    "##".format(storage_node.ipaddress))
                 for command in commands:
-                    print command
+                    util.logging.info(command)
 
         ####################################################################
         ## Setup partitions on storage nodes, (must run as swiftops user) ##
@@ -267,70 +264,60 @@ class Swift(Deployment):
         commands.extend(cmd_list)
 
         if auto:
-            print "#" * 30
-            print "## Setting up swift rings for deployment ##"
-            print "#" * 30
-
+            util.logging.info(
+                "## Setting up swift rings for deployment ##")
             command = "; ".join(commands)
             controller.run_cmd(command)
         else:
-            print "#" * 30
-            print "## Info to manually set up swift rings: ##"
-            print ("## Log into root@{0} "
-                   "and run the following commands: ##".format(
-                      controller.ipaddress))
+            util.logging.info("## Info to manually set up swift rings: ##")
+            util.logging.info(
+                "## Log into root@{0} and run the following commands: "
+                "##".format(controller.ipaddress))
             for command in commands:
-                print command
+                util.logging.info(command)
 
         ######################################################################################
         ################## Time to distribute the ring to all the boxes ######################
         ######################################################################################
 
         command = "/usr/bin/swift-ring-minion-server -f -o"
-
-        print "#" * 30
-        print "## PULL RING ONTO PROXY NODES ##"
         for proxy_node in proxy_nodes:
             if auto:
-                print ("## Pulling swift ring down on "
-                       "proxy node @ {0}: ##".format(
-                           proxy_node.ipaddress))
+                util.logging.info(
+                    "## Pulling swift ring down on proxy node @ {0}: "
+                    "##".format(proxy_node.ipaddress))
                 proxy_node.run_cmd(command)
             else:
-                print ("## On node root@{0} "
-                      "run the following command: ##".format(
-                          proxy_node.ipaddress))
-                print command
+                util.logging.info(
+                    "## On node root@{0} run the following command: "
+                    "##".format(proxy_node.ipaddress))
+                util.logging.info(command)
 
-        print "#" * 30
-        print "## PULL RING ONTO STORAGE NODES ##"
         for storage_node in storage_nodes:
             if auto:
-                print ("## Pulling swift ring down "
-                      "on storage node: {0} ##".format(
-                            storage_node.ipaddress))
+                util.logging.info(
+                    "## Pulling swift ring down on storage node: {0} "
+                    "##".format(storage_node.ipaddress))
                 storage_node.run_cmd(command)
             else:
-                print ("## On node root@{0} "
-                      "run the following command: ##".format(
-                          storage_node.ipaddress))
-                print command
+                util.logging.info(
+                    "## On node root@{0} run the following command: "
+                    "##".format(storage_node.ipaddress))
+                util.logging.info(command)
 
 
         #####################################################################
         ############### Finalize by running chef on controler ###############
         #####################################################################
 
-        print "#" * 30
         if auto:
             controller.run_chef_client()
         else:
-            print ("On node root@{0} "
-                   "run the following command: chef-client ##".format(
-                        controller.ipaddress))
+            util.logging.info(
+                "On node root@{0} run the following command: chef-client "
+                "##".format(controller.ipaddress))
 
-        print "#" * 30
-        print "### Done setting up swift rings ###"
+        util.logging.info("## Done setting up swift rings ##")
 
 
 class Glance(Deployment):
