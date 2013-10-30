@@ -75,9 +75,15 @@ class ChefRazorProvisioner(Provisioner):
         return (n.object for n in search)
 
 
-class CloudServer(Provisioner):
-    def available_node(self, image, deployment):
-        raise NotImplementedError
+class ChefCloudServer(Provisioner):
+    def provision(self, template, deployment):
+        user = util.config['secrets']['openstack']['user']
+        api_key = util.config['secrets']['openstack']['api_key']
+        compute = connection(user, api_key)
+        pass
+
+    def node_config(self, image, deployment):
+        build_instance()
 
     def destroy_node(self, node):
         raise NotImplementedError
@@ -97,7 +103,7 @@ class CloudServer(Provisioner):
         print "Building:{0}:{1}".format(server, password)
         server = self.wait_for_state(client.servers.get, server, "status",
                                      ["ACTIVE", "ERROR"])
-        print server
+        return server
 
     def wait_for_state(self, fun, obj, attr, desired, interval=10,
                        attempts=None):
@@ -109,3 +115,13 @@ class CloudServer(Provisioner):
             obj = fun(obj.id)
             attempt = attempt + 1
         return obj
+
+    def connection(user, api_key):
+        novaclient.auth_plugin.discover_auth_systems()
+        auth_plugin = novaclient.auth_plugin.load_plugin("rackspace")
+        compute = Client('1.1', user, api_key, user,
+                         auth_url='https://identity.api.rackspacecloud.com/v2.0/',
+                         region_name='dfw', service_type='compute', os_cache=False,
+                         no_cache=True, auth_plugin=auth_plugin,
+                         auth_system="rackspace", insecure=True)
+        return compute
