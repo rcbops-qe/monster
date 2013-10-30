@@ -48,6 +48,14 @@ class ChefNode(Node):
         lnode[item] = value
         self.save(lnode)
 
+    def build(self):
+        # clear run_list
+        self.run_list = []
+        node = CNode(self.name, self.environment.local_api)
+        node.run_list = []
+        node.save()
+        super(ChefNode, self).build()
+
     def save_to_node(self):
         """
         Save deployment restore attributes to chef environment

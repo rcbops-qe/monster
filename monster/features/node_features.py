@@ -293,7 +293,8 @@ class ChefServer(Node):
         remote_api = self._remote_chef_api(remote_chef)
         self.node.environment.remote_api = remote_api
 
-    def _remote_chef_api(self, chef_api_dict):
+    @classmethod
+    def _remote_chef_api(cls, chef_api_dict):
         """ Builds a remote chef API object
         """
 
@@ -416,8 +417,8 @@ class Berkshelf(Node):
 
     def _write_berks_config(self):
         """ Will write the berks config file
-        
-            TODO: I need to make this more robust and 
+
+            TODO: I need to make this more robust and
             allow you to correctly write the config the way you want.
             For now the ghetto way is how we will do it (jwagner)
         """
