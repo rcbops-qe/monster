@@ -237,6 +237,8 @@ rcbops:
             run_list: ['role[ha-controller2]']
         cinder:
             run_list: ['role[cinder-all]']
+        tempest:
+            run_list: ['recipe[tempest]']
         ceilometer:
             controller:
                 run_list: ['role[ceilometer-setup]',
