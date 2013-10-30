@@ -7,6 +7,7 @@ from monster.Environments import Chef
 from monster.config import Config
 from monster.deployments.deployment import Deployment
 from monster.features import deployment_features
+from monster.features.node_features import ChefServer
 from monster.nodes.chef_node import ChefNode
 from monster.provisioners.provisioner import ChefRazorProvisioner
 
@@ -106,10 +107,15 @@ class ChefDeployment(Deployment):
         env = Environment(environment, api=local_api)
         override = env.override_attributes
         default = env.default_attributes
+        chef_auth = env.override_attribute.get('remote_chef', None)
+        if chef_auth:
+            remote_api = ChefServer._remote_chef_api(**chef_auth)
         environment = Chef(env.name, local_api, description=env.name,
-                           default=default, override=override)
-        deployment_args = env.override_attributes.get('deployment', {})
+                           default=default, override=override,
+                           remote_api=remote_api)
+
         name = env.name
+        deployment_args = env.override_attributes.get('deployment', {})
         features = deployment_args.get('features', {})
         os_name = deployment_args.get('os_name', None)
         branch = deployment_args.get('branch', None)
