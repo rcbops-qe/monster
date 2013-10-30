@@ -184,11 +184,14 @@ class ChefDeployment(Deployment):
         self.environment.remote_api = None
         super(ChefDeployment, self).destroy()
         # Destroy rogue nodes
-        nodes = ChefRazorProvisioner.node_search("chef_environment:{0}".
-                                                 format(self.name),
-                                                 tries=1)
-        for n in nodes:
-            ChefNode.from_chef_node(n, environment=self.environment).destroy()
+        if not self.nodes:
+            nodes = ChefRazorProvisioner.node_search("chef_environment:{0}".
+                                                     format(self.name),
+                                                     tries=1)
+            for n in nodes:
+                ChefNode.from_chef_node(n, environment=self.environment).\
+                    destroy()
+
         # Destroy Chef environment
         self.environment.destroy()
         self.status = "Destroyed"
