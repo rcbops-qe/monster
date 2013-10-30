@@ -109,7 +109,7 @@ class ChefDeployment(Deployment):
         default = env.default_attributes
         chef_auth = override.get('remote_chef', None)
         if chef_auth:
-            remote_api = ChefServer._remote_chef_api(**chef_auth)
+            remote_api = ChefServer._remote_chef_api(chef_auth)
         environment = Chef(env.name, local_api, description=env.name,
                            default=default, override=override,
                            remote_api=remote_api)
