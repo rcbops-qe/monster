@@ -159,18 +159,20 @@ class ChefNode(Node):
         if xunit:
             xunit_flag = '--with-xunit --xunit-file=%s' % xunit_file
 
-        tag_arg = "-a " + " -a ".join(tags) if tags else ""
+        tag_flag = "-a " + " -a ".join(tags) if tags else ""
+
+        exclude_flag = "-e " + " -e ".join(exclude) if exclude else ''
 
         test_map = util.config['tests']['tempest']['test_map']
         paths = paths or set(chain(test_map.get(feature, None)
                                    for feature in
                                    self.deployment.feature_names()))
-        command = ("{0}tools/with_venv.sh nosetests {4} -w "
-                   "{0}tempest/tests {1} {2} {3}".format(tempest_dir,
-                                                         xunit_flag,
-                                                         tag_arg,
-                                                         paths,
-                                                         exclude))
+        command = ("{0}tools/with_venv.sh nosetests -w "
+                   "{0}tempest/api {1} {2} {3} {4}".format(tempest_dir,
+                                                           xunit_flag,
+                                                           tag_flag,
+                                                           paths,
+                                                           exclude_flag))
         self.run_cmd(command)
         if xunit:
             self.scp_from(xunit_file, local_path=".")
