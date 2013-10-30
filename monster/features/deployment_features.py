@@ -337,7 +337,7 @@ class Swift(Deployment):
                 print command
 
         print "#" * 30
-        print "## Done setting up swift rings ##"
+        print "### Done setting up swift rings ###"
 
 
 class Glance(Deployment):
