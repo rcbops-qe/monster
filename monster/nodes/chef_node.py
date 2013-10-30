@@ -117,8 +117,10 @@ class ChefNode(Node):
                                            "chefrazorprovisioner")
             classes = util.module_classes(provisioners)
             provisioner = classes[provisioner_name]()
+        run_list = node.run_list
         crnode = cls(ipaddress, user, password, os, product, environment,
-                     deployment, name, provisioner, branch, status=status)
+                     deployment, name, provisioner, branch, status=status,
+                     run_list=run_list)
         try:
             crnode.add_features(archive.get('features', []))
         except:
