@@ -1,5 +1,4 @@
 import traceback
-from itertools import chain
 
 from chef import Node as CNode
 
@@ -142,59 +141,6 @@ class ChefNode(Node):
             crnode.destroy()
             raise Exception("Node feature add fail{0}".format(str(crnode)))
         return crnode
-
-    def add_tempest(self):
-        if 'recipe[tempest]' not in self.get_run_list():
-            self.add_run_list_item(["recipe[tempest]"])
-            # run twice to propagate image id
-            self.run_chef_client(times=2)
-
-        # install python requirements
-        tempest_dir = util.config['tests']['tempest']['dir']
-        install_cmd = "python {0}/tools/install_venv.py".format(tempest_dir)
-        self.run_cmd(install_cmd)
-
-    def test_from(self, xunit=False, tags=None, exclude=None, paths=None):
-        """
-        Runs tests from node
-        @param xunit: Produce xunit report
-        @type xunit: Boolean
-        @param tags: Tags to pass the nosetests
-        @type tags: list
-        @param exclude: Expressions to exclude
-        @param exclude: list
-        @param paths: Paths to load tests from (compute, compute/servers...)
-        @param paths: list
-        """
-        if "recipe[tempest]" not in self.get_run_list():
-            util.logger.error("Tesmpest not set up on node")
-            pass
-
-        tempest_dir = util.config['tests']['tempest']['dir']
-
-        xunit_file = "{0}.xml".format(self.name)
-        xunit_flag = ''
-        if xunit:
-            xunit_flag = '--with-xunit --xunit-file=%s' % xunit_file
-
-        tag_flag = "-a " + " -a ".join(tags) if tags else ""
-
-        exclude_flag = "-e " + " -e ".join(exclude) if exclude else ''
-
-        test_map = util.config['tests']['tempest']['test_map']
-        paths = paths or set(chain(test_map.get(feature, None)
-                                   for feature in
-                                   self.deployment.feature_names()))
-        command = ("{0}tools/with_venv.sh nosetests -w "
-                   "{0}tempest/api {1} {2} {3} {4}".format(tempest_dir,
-                                                           xunit_flag,
-                                                           tag_flag,
-                                                           paths,
-                                                           exclude_flag))
-        self.run_cmd(command)
-        if xunit:
-            self.scp_from(xunit_file, local_path=".")
-            util.xunit_merge()
 
     def run_chef_client(self, times=1):
         for _ in xrange(times):

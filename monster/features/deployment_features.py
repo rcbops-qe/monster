@@ -4,7 +4,10 @@ A Deployment Features
 import json
 import time
 import requests
+from itertools import chain
+
 from monster.features.feature import Feature
+from monster.features.node_features import Tempest as NodeTempest
 from monster import util
 
 
@@ -642,3 +645,59 @@ class OpenLDAP(RPCS):
 
         # Save the Environment
         self.node.deployment.environment.save()
+
+
+class Tempest(RPCS):
+    def __init__(self, deployment, rpcs_feature):
+        name = self.__class__.__name__.lower()
+        super(OpenLDAP, self).__init__(deployment, rpcs_feature, name)
+
+    def pre_configure(self):
+        controller = next(self.search_role("controller"))
+        tempest_feature = NodeTempest(controller)
+        controller.features.append(tempest_feature)
+
+    def post_configure(self):
+        exclude = ['volume', 'resize', 'floating']
+        controller = next(self.search_role("controller"))
+        self.test_from(controller, xunit=True, exclude=exclude)
+
+    def test_from(self, node, xunit=False, tags=None, exclude=None,
+                  paths=None):
+        """
+        Runs tests from node
+        @param xunit: Produce xunit report
+        @type xunit: Boolean
+        @param tags: Tags to pass the nosetests
+        @type tags: list
+        @param exclude: Expressions to exclude
+        @param exclude: list
+        @param paths: Paths to load tests from (compute, compute/servers...)
+        @param paths: list
+        """
+
+        tempest_dir = util.config['tests']['tempest']['dir']
+
+        xunit_file = "{0}.xml".format(node.name)
+        xunit_flag = ''
+        if xunit:
+            xunit_flag = '--with-xunit --xunit-file=%s' % xunit_file
+
+        tag_flag = "-a " + " -a ".join(tags) if tags else ""
+
+        exclude_flag = "-e " + " -e ".join(exclude) if exclude else ''
+
+        test_map = util.config['tests']['tempest']['test_map']
+        paths = paths or set(chain(test_map.get(feature, None)
+                                   for feature in
+                                   self.deployment.feature_names()))
+        command = ("{0}tools/with_venv.sh nosetests -w "
+                   "{0}tempest/api {1} {2} {3} {4}".format(tempest_dir,
+                                                           xunit_flag,
+                                                           tag_flag,
+                                                           paths,
+                                                           exclude_flag))
+        node.run_cmd(command)
+        if xunit:
+            node.scp_from(xunit_file, local_path=".")
+            util.xunit_merge()

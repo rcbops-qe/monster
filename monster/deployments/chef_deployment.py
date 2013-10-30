@@ -219,10 +219,3 @@ class ChefDeployment(Deployment):
         if "vips" in self.environment.override_attributes:
             ip = self.environment.override_attributes['vips']['nova-api']
         return ip
-
-    def test(self):
-        # add tempest to run_list and run chef_client twice
-        controller = next(self.search_role("controller"))
-        controller.add_tempest()
-        exclude = ['volume', 'resize', 'floating']
-        controller.test_from(xunit=True, exclude=exclude)

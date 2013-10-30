@@ -3,7 +3,7 @@ A nodes features
 """
 from chef import ChefAPI
 from monster.features.feature import Feature, remove_chef,\
-                                     install_packages, install_ruby_gems
+    install_packages, install_ruby_gems
 from monster import util
 
 
@@ -56,12 +56,6 @@ class Controller(Node):
         super(Controller, self).__init__(node)
         self.number = None
 
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
-
     def pre_configure(self):
         if self.node.deployment.has_controller:
             self.number = 2
@@ -89,12 +83,6 @@ class Compute(Node):
     def __init__(self, node):
         super(Compute, self).__init__(node)
 
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
-
     def pre_configure(self):
         self.set_run_list()
 
@@ -105,12 +93,6 @@ class Proxy(Node):
 
     def __init__(self, node):
         super(Proxy, self).__init__(node)
-
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
 
     def pre_configure(self):
         self.set_run_list()
@@ -123,12 +105,6 @@ class Storage(Node):
     def __init__(self, node):
         super(Storage, self).__init__(node)
 
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
-
     def pre_configure(self):
         self.set_run_list()
 
@@ -139,12 +115,6 @@ class Remote(Node):
 
     def __init__(self, node):
         super(Remote, self).__init__(node)
-
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
 
     def pre_configure(self):
         remove_chef(self.node)
@@ -171,12 +141,6 @@ class Cinder(Node):
 
     def __init__(self, node):
         super(Cinder, self).__init__(node)
-
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
 
     def pre_configure(self):
         self.prepare_cinder()
@@ -212,12 +176,6 @@ class ChefServer(Node):
                                                         self.iscript_name)
         self.install_commands = ['chmod u+x ~/{0}'.format(self.iscript_name),
                                  './{0}'.format(self.iscript_name)]
-
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
 
     def pre_configure(self):
         remove_chef(self.node)
@@ -322,12 +280,6 @@ class OpenLDAP(Node):
     def __init__(self, node):
         super(OpenLDAP, self).__init__()
 
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
-
     def pre_configure(self):
         self.set_run_list()
 
@@ -346,12 +298,6 @@ class Ceilometer(Node):
     def __init__(self, node):
         super(Ceilometer, self).__init__(node)
         self.role = None
-
-    def __repr__(self):
-        """ Print current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
 
     def pre_configure(self):
         if self.node.feature_in('controller'):
@@ -381,12 +327,6 @@ class Berkshelf(Node):
 
     def __init__(self, node):
         super(Berkshelf, self).__init__(node)
-
-    def __repr__(self):
-        """ Print current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
 
     def pre_configure(self):
         self._install_berkshelf()
@@ -440,3 +380,14 @@ class Berkshelf(Node):
         command = "; ".join(commands)
 
         self.node.run_cmd(command)
+
+
+class Tempest(Node):
+    def pre_configure(self):
+        self.set_run_list()
+
+    def apply_feature(self):
+        # install python requirements for tempest
+        tempest_dir = util.config['tests']['tempest']['dir']
+        install_cmd = "python {0}/tools/install_venv.py".format(tempest_dir)
+        self.run_cmd(install_cmd)

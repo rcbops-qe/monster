@@ -1,3 +1,4 @@
+import gevent
 from time import sleep
 from chef import Node, Client, Search, autoconfigure
 from monster import util
@@ -72,3 +73,39 @@ class ChefRazorProvisioner(Provisioner):
             sleep(10)
             tries = tries - 1
         return (n.object for n in search)
+
+
+class CloudServer(Provisioner):
+    def available_node(self, image, deployment):
+        raise NotImplementedError
+
+    def destroy_node(self, node):
+        raise NotImplementedError
+
+    def build_instance(self, client, name="server", image_name="precise",
+                       flavor_name="1GB"):
+        flavor = next(flavor.id for flavor in client.flavors.list()
+                      if flavor_name in flavor.name)
+        if image_name == "precise":
+            image_name = "Ubuntu 12.04"
+        else:
+            raise Exception("Image not supported:{0}".format(image_name))
+        image = next(image.id for image in client.images.list()
+                     if image_name in image.name)
+        server = client.servers.create(name, image, flavor)
+        password = server.adminPass
+        print "Building:{0}:{1}".format(server, password)
+        server = self.wait_for_state(client.servers.get, server, "status",
+                                     ["ACTIVE", "ERROR"])
+        print server
+
+    def wait_for_state(self, fun, obj, attr, desired, interval=10,
+                       attempts=None):
+        attempt = 0
+        in_attempt = lambda x: not attempt or x > attempts
+        while getattr(obj, attr) not in desired and in_attempt(attempt):
+            print "Wating:{0} {1}:{2}".format(obj, attr, getattr(obj, attr))
+            gevent.sleep(interval)
+            obj = fun(obj.id)
+            attempt = attempt + 1
+        return obj
