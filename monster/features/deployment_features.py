@@ -661,7 +661,7 @@ class OpenLDAP(RPCS):
 class Tempest(RPCS):
     def __init__(self, deployment, rpcs_feature):
         name = self.__class__.__name__.lower()
-        super(OpenLDAP, self).__init__(deployment, rpcs_feature, name)
+        super(Tempest, self).__init__(deployment, rpcs_feature, name)
 
     def pre_configure(self):
         controller = next(self.search_role("controller"))
