@@ -131,7 +131,7 @@ class ChefNode(Node):
 
     def add_tempest(self):
         if 'recipe[tempest]' not in self.get_run_list():
-            self.add_run_list_item("recipe[tempest]")
+            self.add_run_list_item(["recipe[tempest]"])
             # run twice to propagate image id
             self.run_cmd("chef-client; chef-client")
 
