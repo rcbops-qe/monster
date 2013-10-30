@@ -63,7 +63,7 @@ class ChefNode(Node):
         Runs chef client before apply features on node
         """
         self.status = "apply-feature"
-        if self.run_list:
+        if not self.feature_in("chefserver"):
             self.run_cmd("chef-client")
         super(ChefNode, self).apply_feature()
 
