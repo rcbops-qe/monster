@@ -1,5 +1,4 @@
 import os
-import gevent
 
 from chef import autoconfigure, Environment, Node
 
