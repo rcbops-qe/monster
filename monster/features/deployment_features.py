@@ -248,8 +248,8 @@ class Swift(Deployment):
 
         # Gather all the nodes
         controller = next(self.deployment.search_role('controller'))
-        proxy_nodes = self.deployment.search_role('proxy')
-        storage_nodes = self.deployment.search_role('storage')
+        proxy_nodes = list(self.deployment.search_role('proxy'))
+        storage_nodes = list(self.deployment.search_role('storage'))
 
         #####################################################################
         ################## Run chef on the controller node ##################
@@ -315,6 +315,7 @@ class Swift(Deployment):
         for builder in builders:
             name = builder
             port = builders[builder]['port']
+
             for index, node in enumerate(storage_nodes):
 
                 # if the current index of the node is % num_rings = 0,
