@@ -768,14 +768,12 @@ class Tempest(RPCS):
             features = self.deployment.feature_names()
             paths = set(chain(*ifilter(None, (test_map.get(feature, None)
                                               for feature in features))))
-        path_args = " ".join(paths)
-        command = ("{0}/tools/with_venv.sh nosetests -w "
-                   "{0}/tempest/api {1} {2} {3} {4}".format(tempest_dir,
-                                                            xunit_flag,
-                                                            tag_flag,
-                                                            path_args,
-                                                            exclude_flag))
-        node.run_cmd(command)
-        if xunit:
-            node.scp_from(xunit_file, local_path=".")
-            util.xunit_merge()
+            path_args = " ".join(paths)
+            command = ("{0}/tools/with_venv.sh nosetests -w "
+                       "{0}/tempest/api "
+                       "{1} {2} {3} {4}".format(tempest_dir, xunit_flag, tag_flag,
+                                                path_args, exclude_flag))
+            node.run_cmd(command)
+            if xunit:
+                node.scp_from(xunit_file, local_path=".")
+                util.xunit_merge()
