@@ -63,8 +63,8 @@ class Neutron(Deployment):
     def __init__(self, deployment, rpcs_feature):
         super(Neutron, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            util.config['environments']\
-                       [self.__class__.__name__.lower()][rpcs_feature]
+                           util.config['environments']\
+                           [self.__class__.__name__.lower()][rpcs_feature]
         self.provider = rpcs_feature
 
     def __repr__(self):
@@ -96,8 +96,8 @@ class Neutron(Deployment):
         neutron_network = {'provider': self.provider}
         if 'networks' in env.override_attributes['nova']:
             del env.override_attributes['nova']['networks']
-        env.override_attributes['nova']['network'] = neutron_network
-        env.save()
+            env.override_attributes['nova']['network'] = neutron_network
+            env.save()
 
     def _reboot_cluster(self):
 
@@ -130,7 +130,7 @@ class Neutron(Deployment):
         """
 
         network_bridge_dev = util.config[self.__class__.__name__.lower()]\
-            [self.deployment.os_name]['network_bridge_dev']
+                             [self.deployment.os_name]['network_bridge_dev']
         controllers = self.deployment.search_role('controller')
         computes = self.deployment.search_role('compute')
 
@@ -143,18 +143,18 @@ class Neutron(Deployment):
             util.logger.info("Building OVS Bridge and Ports on network nodes")
             for controller in controllers:
                 controller.run_cmd(command)
-            for compute in computes:
-                compute.run_cmd(command)
-        else:
-            util.logger.info("To build the OVS network bridge, :"
-                              "log into your controllers and computes "
-                              "and run the following command: ")
-            util.logger.info(command)
+                for compute in computes:
+                    compute.run_cmd(command)
+                else:
+                    util.logger.info("To build the OVS network bridge, :"
+                                     "log into your controllers and computes "
+                                     "and run the following command: ")
+                    util.logger.info(command)
 
         commands = ["source openrc admin",
                     "quantum net-create flattest".format(network_bridge_dev),
                     ("quantum subnet-create --name testnet "
-                    "--no-gateway flattest 172.0.0.0/8")]
+                     "--no-gateway flattest 172.0.0.0/8")]
         command = "; ".join(commands)
 
         if auto:
@@ -172,12 +172,12 @@ class Neutron(Deployment):
                         util.logger.info(
                             "Failed to setup network on {0}".format(
                                 controller.name))
-            if not network_run['success']:
-                util.logger.info("Failed to setup network")
-        else:
-            util.logger.info("To setup Neutron Network, "
-                              "Log into your active controller and run: ")
-            util.logger.info(command)
+                        if not network_run['success']:
+                            util.logger.info("Failed to setup network")
+                        else:
+                            util.logger.info("To setup Neutron Network, "
+                                             "Log into your active controller and run: ")
+                            util.logger.info(command)
 
         util.logger.info("### End of Networking Block ###")
 
@@ -189,8 +189,8 @@ class Swift(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Swift, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            util.config['environments']\
-                       [self.__class__.__name__.lower()][rpcs_feature]
+                           util.config['environments']\
+                           [self.__class__.__name__.lower()][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -403,8 +403,8 @@ class Glance(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Glance, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            util.config['environments'][self.__class__.__name__.lower()][
-                rpcs_feature]
+                           util.config['environments'][self.__class__.__name__.lower()][
+                               rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -435,8 +435,8 @@ class Glance(Deployment):
                 'serviceCatalog']
         except KeyError:
             raise Exception("Unable to authenticate with Endpoint")
-        cloudfiles = next(s for s in services if s['type'] == "object-store")
-        tenant_id = cloudfiles['endpoints'][0]['tenantId']
+            cloudfiles = next(s for s in services if s['type'] == "object-store")
+            tenant_id = cloudfiles['endpoints'][0]['tenantId']
 
         # set api credentials in environment
         api = self.environment['api']
@@ -451,8 +451,8 @@ class Keystone(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Keystone, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            util.config['environments'][self.__class__.__name__.lower()][
-                rpcs_feature]
+                           util.config['environments'][self.__class__.__name__.lower()][
+                               rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -472,8 +472,8 @@ class Nova(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Nova, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            util.config['environments'][self.__class__.__name__.lower()][
-                rpcs_feature]
+                           util.config['environments'][self.__class__.__name__.lower()][
+                               rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -491,7 +491,7 @@ class Nova(Deployment):
 
             util.logger.info("Setting bridge_dev to {0}".format(bridge_dev))
             env.override_attributes['nova']['networks']\
-                                   ['public']['bridge_dev'] = bridge_dev
+                ['public']['bridge_dev'] = bridge_dev
 
             self.deployment.environment.save()
 
@@ -503,8 +503,8 @@ class Horizon(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Horizon, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            util.config['environments'][self.__class__.__name__.lower()][
-                rpcs_feature]
+                           util.config['environments'][self.__class__.__name__.lower()][
+                               rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -524,8 +524,8 @@ class Cinder(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Cinder, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            util.config['environments'][self.__class__.__name__.lower()][
-                rpcs_feature]
+                           util.config['environments'][self.__class__.__name__.lower()][
+                               rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -568,7 +568,7 @@ class Monitoring(RPCS):
         super(Monitoring, self).__init__(deployment, rpcs_feature,
                                          self.__class__.__name__.lower())
         self.environment = \
-            util.config['environments'][self.name][rpcs_feature]
+                           util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -589,7 +589,7 @@ class MySql(RPCS):
         super(MySql, self).__init__(deployment, rpcs_feature,
                                     self.__class__.__name__.lower())
         self.environment = \
-            util.config['environments'][self.name][rpcs_feature]
+                           util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -610,7 +610,7 @@ class OsOps(RPCS):
         super(OsOps, self).__init__(deployment, rpcs_feature,
                                     self.__class__.__name__.lower())
         self.environment = \
-            util.config['environments'][self.name][rpcs_feature]
+                           util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -631,7 +631,7 @@ class DeveloperMode(RPCS):
         super(DeveloperMode, self).__init__(deployment, rpcs_feature,
                                             'developer_mode')
         self.environment = \
-            util.config['environments'][self.name][rpcs_feature]
+                           util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -652,7 +652,7 @@ class OsOpsNetworks(RPCS):
         super(OsOpsNetworks, self).__init__(deployment, rpcs_feature,
                                             'osops_networks')
         self.environment = \
-            util.config['environments'][self.name][rpcs_feature]
+                           util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -673,7 +673,7 @@ class HighAvailability(RPCS):
         super(HighAvailability, self).__init__(deployment, rpcs_feature,
                                                'vips')
         self.environment = \
-            util.config['environments'][self.name][deployment.os_name]
+                           util.config['environments'][self.name][deployment.os_name]
 
     def __repr__(self):
         """ Print out current instance
@@ -694,7 +694,7 @@ class OpenLDAP(RPCS):
         super(OpenLDAP, self).__init__(deployment, rpcs_feature,
                                        self.__class__.__name__.lower())
         self.environment = \
-            util.config['environments'][self.name]
+                           util.config['environments'][self.name]
 
     def __repr__(self):
         """ Print out current instance
@@ -713,7 +713,7 @@ class OpenLDAP(RPCS):
 
         # Override the attrs
         env.override_attributes['keystone']['ldap']['url'] = \
-            "ldap://{0}".format(ip)
+                                                             "ldap://{0}".format(ip)
         env.override_attributes['keystone']['ldap']['password'] = password
 
         # Save the Environment
@@ -771,8 +771,9 @@ class Tempest(RPCS):
             path_args = " ".join(paths)
             command = ("{0}/tools/with_venv.sh nosetests -w "
                        "{0}/tempest/api "
-                       "{1} {2} {3} {4}".format(tempest_dir, xunit_flag, tag_flag,
-                                                path_args, exclude_flag))
+                       "{1} {2} {3} {4}".format(tempest_dir, xunit_flag,
+                                                tag_flag, path_args,
+                                                exclude_flag))
             node.run_cmd(command)
             if xunit:
                 node.scp_from(xunit_file, local_path=".")
