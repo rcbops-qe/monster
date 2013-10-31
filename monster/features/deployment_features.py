@@ -751,7 +751,7 @@ class Tempest(RPCS):
 
         tempest_dir = util.config['tests']['tempest']['dir']
         checkout = "cd {0}; git checkout stable/havana".format(tempest_dir)
-        node.run(checkout)
+        node.run_cmd(checkout)
 
         xunit_file = "{0}.xml".format(node.name)
         xunit_flag = ''
