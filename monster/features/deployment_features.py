@@ -4,7 +4,7 @@ A Deployment Features
 import json
 import time
 import requests
-from itertools import chain
+from itertools import chain, ifilter
 
 from monster.features.feature import Feature
 from monster.features.node_features import Tempest as NodeTempest
