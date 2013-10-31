@@ -1,6 +1,11 @@
 import gevent
 from time import sleep
+
 from chef import Node, Client, Search, autoconfigure
+
+import novaclient.auth_plugin
+from novaclient.client import Client as NovaClient
+
 from monster import util
 from monster.razor_api import razor_api
 
@@ -77,9 +82,7 @@ class ChefRazorProvisioner(Provisioner):
 
 class ChefCloudServer(Provisioner):
     def provision(self, template, deployment):
-        user = util.config['secrets']['openstack']['user']
-        api_key = util.config['secrets']['openstack']['api_key']
-        compute = connection(user, api_key)
+        compute = self.connection(user, api_key)
         pass
 
     def node_config(self, image, deployment):
