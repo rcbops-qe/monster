@@ -25,7 +25,7 @@ class ChefNode(Node):
         self.features = []
 
     def __str__(self):
-        features = ", ".join((str(f) for f in self.features))
+        features = ", ".join(self.feature_names)
         node = ("Node - name:{0}, os:{1}, branch:{2}, ip:{3}, status:{4}\n\t\t"
                 "Features: {5}").format(self.name, self.os_name, self.branch,
                                         self.ipaddress, self.status, features)
