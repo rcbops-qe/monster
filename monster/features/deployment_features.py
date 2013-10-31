@@ -435,8 +435,8 @@ class Glance(Deployment):
                 'serviceCatalog']
         except KeyError:
             raise Exception("Unable to authenticate with Endpoint")
-            cloudfiles = next(s for s in services if s['type'] == "object-store")
-            tenant_id = cloudfiles['endpoints'][0]['tenantId']
+        cloudfiles = next(s for s in services if s['type'] == "object-store")
+        tenant_id = cloudfiles['endpoints'][0]['tenantId']
 
         # set api credentials in environment
         api = self.environment['api']
