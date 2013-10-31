@@ -108,4 +108,5 @@ class Deployment(object):
         return False
 
     def feature_names(self):
-        [feature.__class__.__name__.lower() for feature in self.features]
+        return [feature.__class__.__name__.lower() for feature in
+                self.features]
