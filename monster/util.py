@@ -32,7 +32,7 @@ def module_classes(module):
             getmembers(module, isclass)}
 
 
-def xunit_merge(self, path="."):
+def xunit_merge(path="."):
     print "Merging xunit files"
     files = glob(path + "/*.xml")
     tree = None
