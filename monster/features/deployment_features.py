@@ -140,16 +140,16 @@ class Neutron(Deployment):
         command = "; ".join(commands)
 
         if auto:
-            util.logging.info("Building OVS Bridge and Ports on network nodes")
+            util.logger.info("Building OVS Bridge and Ports on network nodes")
             for controller in controllers:
                 controller.run_cmd(command)
             for compute in computes:
                 compute.run_cmd(command)
         else:
-            util.logging.info("To build the OVS network bridge, :"
+            util.logger.info("To build the OVS network bridge, :"
                               "log into your controllers and computes "
                               "and run the following command: ")
-            util.logging.info(command)
+            util.logger.info(command)
 
         commands = ["source openrc admin",
                     "quantum net-create flattest".format(network_bridge_dev),
@@ -158,28 +158,28 @@ class Neutron(Deployment):
         command = "; ".join(commands)
 
         if auto:
-            util.logging.info("Adding Neutron Network")
+            util.logger.info("Adding Neutron Network")
             for controller in controllers:
                 if self.deployment.feature_in('ha'):
-                    util.logging.info(
+                    util.logger.info(
                         "Attempting to setup network on {0}".format(
                             controller.name))
                     network_run = controller.run_cmd(command)
                     if network_run['success']:
-                        util.logging.info("Network setup succedded")
+                        util.logger.info("Network setup succedded")
                         break
                     else:
-                        util.logging.info(
+                        util.logger.info(
                             "Failed to setup network on {0}".format(
                                 controller.name))
             if not network_run['success']:
-                util.logging.info("Failed to setup network")
+                util.logger.info("Failed to setup network")
         else:
-            util.logging.info("To setup Neutron Network, "
+            util.logger.info("To setup Neutron Network, "
                               "Log into your active controller and run: ")
-            util.logging.info(command)
+            util.logger.info(command)
 
-        util.logging.info("### End of Networking Block ###")
+        util.logger.info("### End of Networking Block ###")
 
 
 class Swift(Deployment):
@@ -272,18 +272,18 @@ class Swift(Deployment):
                         "/dev/{0} /srv/node/{0}".format(label),
                         "chown -R swift:swift /srv/node"]
             if auto:
-                util.logging.info(
+                util.logger.info(
                     "## Configuring Disks on Storage Node @ {0} ##".format(
                         storage_node.ipaddress))
                 command = "; ".join(commands)
                 storage_node.run_cmd(command)
             else:
-                util.logging.info("## Info to setup drives for Swift ##")
-                util.logging.info(
+                util.logger.info("## Info to setup drives for Swift ##")
+                util.logger.info(
                     "## Log into root@{0} and run the following commands: "
                     "##".format(storage_node.ipaddress))
                 for command in commands:
-                    util.logging.info(command)
+                    util.logger.info(command)
 
         ####################################################################
         ## Setup partitions on storage nodes, (must run as swiftops user) ##
@@ -340,17 +340,17 @@ class Swift(Deployment):
         commands.extend(cmd_list)
 
         if auto:
-            util.logging.info(
+            util.logger.info(
                 "## Setting up swift rings for deployment ##")
             command = "; ".join(commands)
             controller.run_cmd(command)
         else:
-            util.logging.info("## Info to manually set up swift rings: ##")
-            util.logging.info(
+            util.logger.info("## Info to manually set up swift rings: ##")
+            util.logger.info(
                 "## Log into root@{0} and run the following commands: "
                 "##".format(controller.ipaddress))
             for command in commands:
-                util.logging.info(command)
+                util.logger.info(command)
 
         ######################################################################################
         ################## Time to distribute the ring to all the boxes ######################
@@ -359,27 +359,27 @@ class Swift(Deployment):
         command = "/usr/bin/swift-ring-minion-server -f -o"
         for proxy_node in proxy_nodes:
             if auto:
-                util.logging.info(
+                util.logger.info(
                     "## Pulling swift ring down on proxy node @ {0}: "
                     "##".format(proxy_node.ipaddress))
                 proxy_node.run_cmd(command)
             else:
-                util.logging.info(
+                util.logger.info(
                     "## On node root@{0} run the following command: "
                     "##".format(proxy_node.ipaddress))
-                util.logging.info(command)
+                util.logger.info(command)
 
         for storage_node in storage_nodes:
             if auto:
-                util.logging.info(
+                util.logger.info(
                     "## Pulling swift ring down on storage node: {0} "
                     "##".format(storage_node.ipaddress))
                 storage_node.run_cmd(command)
             else:
-                util.logging.info(
+                util.logger.info(
                     "## On node root@{0} run the following command: "
                     "##".format(storage_node.ipaddress))
-                util.logging.info(command)
+                util.logger.info(command)
 
 
         #####################################################################
@@ -389,11 +389,11 @@ class Swift(Deployment):
         if auto:
             controller.run_chef_client()
         else:
-            util.logging.info(
+            util.logger.info(
                 "On node root@{0} run the following command: chef-client "
                 "##".format(controller.ipaddress))
 
-        util.logging.info("## Done setting up swift rings ##")
+        util.logger.info("## Done setting up swift rings ##")
 
 
 class Glance(Deployment):
