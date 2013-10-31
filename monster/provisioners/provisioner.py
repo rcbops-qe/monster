@@ -108,7 +108,7 @@ class ChefCloudServer(Provisioner):
     def wait_for_state(self, fun, obj, attr, desired, interval=10,
                        attempts=None):
         attempt = 0
-        in_attempt = lambda x: not attempt or x > attempts
+        in_attempt = lambda x: not attempts or x > attempts
         while getattr(obj, attr) not in desired and in_attempt(attempt):
             print "Wating:{0} {1}:{2}".format(obj, attr, getattr(obj, attr))
             gevent.sleep(interval)
