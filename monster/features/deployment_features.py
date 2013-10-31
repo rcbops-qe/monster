@@ -244,6 +244,8 @@ class Swift(Deployment):
     def _build_rings(self, auto=False):
         """ This will either build the rings or
             print how to build the rings.
+            @param auto Whether or not to auto build the rings
+            @type auto Boolean
         """
 
         # Gather all the nodes
