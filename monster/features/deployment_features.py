@@ -761,15 +761,18 @@ class Tempest(RPCS):
         exclude_flag = "-e " + " -e ".join(exclude) if exclude else ''
 
         test_map = util.config['tests']['tempest']['test_map']
-        paths = paths or set(chain(test_map.get(feature, None)
-                                   for feature in
-                                   self.deployment.feature_names()))
-        command = ("{0}tools/with_venv.sh nosetests -w "
-                   "{0}tempest/api {1} {2} {3} {4}".format(tempest_dir,
-                                                           xunit_flag,
-                                                           tag_flag,
-                                                           paths,
-                                                           exclude_flag))
+        paths = paths
+        if not paths:
+            features = self.deployment.feature_names()
+            paths = set(chain(*ifilter(None, (test_map.get(feature, None)
+                                              for feature in features))))
+        path_args = " ".join(paths)
+        command = ("{0}/tools/with_venv.sh nosetests -w "
+                   "{0}/tempest/api {1} {2} {3} {4}".format(tempest_dir,
+                                                            xunit_flag,
+                                                            tag_flag,
+                                                            path_args,
+                                                            exclude_flag))
         node.run_cmd(command)
         if xunit:
             node.scp_from(xunit_file, local_path=".")
