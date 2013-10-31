@@ -130,7 +130,7 @@ class ChefDeployment(Deployment):
         nodes = deployment_args.get('nodes', [])
         template = Config(path)[env.name]
         product = template['product']
-        for node in (Node(n) for n in nodes):
+        for node in (Node(n, environment.local_api) for n in nodes):
             cnode = ChefNode.from_chef_node(node, deployment_args['os_name'],
                                             product, environment, deployment,
                                             provisioner,

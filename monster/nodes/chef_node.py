@@ -145,4 +145,4 @@ class ChefNode(Node):
     def run_chef_client(self, times=1):
         for _ in xrange(times):
             self.run_cmd("chef-client")
-            self.save_locally
+            self.save_locally()
