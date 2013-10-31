@@ -33,7 +33,8 @@ def build(name="precise-default", branch="master", template_path=None,
             deployment.update_environment()
         except Exception:
             util.logger.error(traceback.print_exc())
-            deployment.destroy()
+            if destroy:
+                deployment.destroy()
             sys.exit(1)
 
     else:
@@ -43,7 +44,8 @@ def build(name="precise-default", branch="master", template_path=None,
             deployment.build()
         except Exception:
             util.logger.error(traceback.print_exc())
-            deployment.destroy()
+            if destroy:
+                deployment.destroy()
             sys.exit(1)
 
     util.logger.info(deployment)
