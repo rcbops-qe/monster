@@ -27,13 +27,13 @@ class ChefDeployment(Deployment):
 
     def __str__(self):
         nodes = "\n\t".join(str(node) for node in self.nodes)
-        features = ", ".join((str(f) for f in self.features))
+        features = ", ".join(self.feature_names())
         deployment = ("Deployment - name:{0}, os:{1}, branch:{2}, status:{3}\n"
                       "{4}\nFeatures{5}: \n"
                       "Nodes: \n\t{6}".format(self.name, self.os_name,
-                                             self.branch, self.status,
-                                             self.environment, features,
-                                             nodes))
+                                              self.branch, self.status,
+                                              self.environment, features,
+                                              nodes))
         return deployment
 
     def save_to_environment(self):
@@ -184,11 +184,14 @@ class ChefDeployment(Deployment):
         self.environment.remote_api = None
         super(ChefDeployment, self).destroy()
         # Destroy rogue nodes
-        nodes = ChefRazorProvisioner.node_search("chef_environment:{0}".
-                                                 format(self.name),
-                                                 tries=1)
-        for n in nodes:
-            ChefNode.from_chef_node(n, environment=self.environment).destroy()
+        if not self.nodes:
+            nodes = ChefRazorProvisioner.node_search("chef_environment:{0}".
+                                                     format(self.name),
+                                                     tries=1)
+            for n in nodes:
+                ChefNode.from_chef_node(n, environment=self.environment).\
+                    destroy()
+
         # Destroy Chef environment
         self.environment.destroy()
         self.status = "Destroyed"
