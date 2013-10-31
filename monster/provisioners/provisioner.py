@@ -82,11 +82,11 @@ class ChefRazorProvisioner(Provisioner):
 
 class ChefCloudServer(Provisioner):
     def provision(self, template, deployment):
-        compute = self.connection(user, api_key)
-        pass
+        compute = self.connection()
+
 
     def node_config(self, image, deployment):
-        build_instance()
+        gevent.spawn(build_instance, client, name=name, image_name=image_name, flavor_name=flavor_name)
 
     def destroy_node(self, node):
         raise NotImplementedError
@@ -103,10 +103,10 @@ class ChefCloudServer(Provisioner):
                      if image_name in image.name)
         server = client.servers.create(name, image, flavor)
         password = server.adminPass
-        print "Building:{0}:{1}".format(server, password)
+        util.logger.info("Building:{0}".format(name))
         server = self.wait_for_state(client.servers.get, server, "status",
                                      ["ACTIVE", "ERROR"])
-        return server
+        return (server, password)
 
     def wait_for_state(self, fun, obj, attr, desired, interval=10,
                        attempts=None):
@@ -119,7 +119,7 @@ class ChefCloudServer(Provisioner):
             attempt = attempt + 1
         return obj
 
-    def connection():
+    def connection(self):
         creds = util.config['secrets']['openstack']
         plugin = creds['plugin']
         if plugin:
