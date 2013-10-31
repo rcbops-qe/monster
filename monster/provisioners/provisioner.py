@@ -116,12 +116,19 @@ class ChefCloudServer(Provisioner):
             attempt = attempt + 1
         return obj
 
-    def connection(user, api_key):
-        novaclient.auth_plugin.discover_auth_systems()
-        auth_plugin = novaclient.auth_plugin.load_plugin("rackspace")
-        compute = Client('1.1', user, api_key, user,
-                         auth_url='https://identity.api.rackspacecloud.com/v2.0/',
-                         region_name='dfw', service_type='compute', os_cache=False,
-                         no_cache=True, auth_plugin=auth_plugin,
-                         auth_system="rackspace", insecure=True)
+    def connection():
+        creds = util.config['secrets']['openstack']
+        plugin = creds['plugin']
+        if plugin:
+            novaclient.auth_plugin.discover_auth_systems()
+            auth_plugin = novaclient.auth_plugin.load_plugin("rackspace")
+        user = creds['user']
+        api_key = creds['api_key']
+        auth_url = creds['auth_url']
+        region = creds['region']
+        compute = NovaClient('1.1', user, api_key, user, auth_url=auth_url,
+                             region_name=region, service_type='compute',
+                             os_cache=False, no_cache=True,
+                             auth_plugin=auth_plugin, auth_system=plugin,
+                             insecure=True)
         return compute
