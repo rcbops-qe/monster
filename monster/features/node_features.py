@@ -82,9 +82,6 @@ class Compute(Node):
     """ Represents a RPCS compute
     """
 
-    def __init__(self, node):
-        super(Compute, self).__init__(node)
-
     def pre_configure(self):
         self.set_run_list()
 
@@ -92,9 +89,6 @@ class Compute(Node):
 class Proxy(Node):
     """ Represents a RPCS proxy node
     """
-
-    def __init__(self, node):
-        super(Proxy, self).__init__(node)
 
     def pre_configure(self):
         self.set_run_list()
@@ -104,9 +98,6 @@ class Storage(Node):
     """ Represents a RPCS proxy node
     """
 
-    def __init__(self, node):
-        super(Storage, self).__init__(node)
-
     def pre_configure(self):
         self.set_run_list()
 
@@ -115,9 +106,6 @@ class Network(Node):
     """ Sets the node to be a Network
     """
 
-    def __init__(self, node):
-        super(Network, self).__init__(node)
-
     def preconfigure(self):
         self.set_run_list()
 
@@ -125,9 +113,6 @@ class Network(Node):
 class Remote(Node):
     """ Represents the deployment having a remote chef server
     """
-
-    def __init__(self, node):
-        super(Remote, self).__init__(node)
 
     def pre_configure(self):
         remove_chef(self.node)
@@ -151,9 +136,6 @@ class Cinder(Node):
     """
     Enables cinder with local lvm backend
     """
-
-    def __init__(self, node):
-        super(Cinder, self).__init__(node)
 
     def pre_configure(self):
         self.prepare_cinder()
@@ -290,9 +272,6 @@ class OpenLDAP(Node):
     """ Represents a LDAP server
     """
 
-    def __init__(self, node):
-        super(OpenLDAP, self).__init__()
-
     def pre_configure(self):
         self.set_run_list()
 
@@ -338,9 +317,6 @@ class Metrics(Node):
 class Berkshelf(Node):
     """ Represents a node with berks installed
     """
-
-    def __init__(self, node):
-        super(Berkshelf, self).__init__(node)
 
     def pre_configure(self):
         self._install_berkshelf()
@@ -405,3 +381,13 @@ class Tempest(Node):
         tempest_dir = util.config['tests']['tempest']['dir']
         install_cmd = "python {0}/tools/install_venv.py".format(tempest_dir)
         self.node.run_cmd(install_cmd)
+
+
+class Orchestration(Node):
+    def pre_configure(self):
+        self.set_run_list()
+
+
+class NetworkManger(Node):
+    def preconfigure(self):
+        self.set_run_list()

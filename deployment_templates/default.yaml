@@ -14,7 +14,7 @@ precise-default:
     tempest: default
   nodes:
     - [chefserver]
-    - [controller]
+    - [controller, orchestration]
     - [compute]
 
 centos-default:
@@ -54,6 +54,28 @@ precise-neutron:
     - [chefserver]
     - [controller, network]
     - [compute, network]
+
+precise-ha:
+  product: compute
+  name: ha
+  os: precise
+  features:
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    neutron: neutron
+    tempest: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, networkmanager, orchestration]
+    - [controller, networkmanager]
+    - [compute]
 
 precise-swift:
   product: storage

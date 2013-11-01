@@ -242,6 +242,10 @@ rcbops:
             run_list: ['role[single-network-node]']
         tempest:
             run_list: ['recipe[tempest]']
+        orchestration:
+          run_list: ['role[heat-all]']
+        networkmanager:
+          run_list: ['role[quantum-network-manager]']
         metrics:
             controller:
                 run_list: ['role[ceilometer-setup]',
