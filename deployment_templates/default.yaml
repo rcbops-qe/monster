@@ -14,7 +14,7 @@ precise-default:
     tempest: default
   nodes:
     - [chefserver]
-    - [controller, monitor]
+    - [controller, monitor, orchestration]
     - [compute, monitor]
 
 centos-default:
