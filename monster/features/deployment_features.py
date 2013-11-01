@@ -398,8 +398,18 @@ class Swift(Deployment):
         #####################################################################
 
         if auto:
+            for proxy_node in proxy_nodes:
+                proxy_node.run_chef_client()
+            for storage_node in storage_nodes:
+                storage_node.run_chef_client()
             controller.run_chef_client()
         else:
+            for proxy_node in proxy_nodes:
+                util.logger.info("On node root@{0}, run the following command: "
+                                 "chef client".format(proxy_node.ipaddress))
+            for storage_node in storage_nodes:
+                util.logger.info("On node root@{0}, run the following command: "
+                                 "chef client".format(storage_node.ipaddress))
             util.logger.info(
                 "On node root@{0} run the following command: chef-client "
                 "##".format(controller.ipaddress))
