@@ -107,6 +107,7 @@ class Network(Node):
     """
 
     def pre_configure(self):
+        print "stuff"
         self.set_run_list()
 
 

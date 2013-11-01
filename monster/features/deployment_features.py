@@ -142,33 +142,33 @@ class Neutron(Deployment):
             util.logger.info(command)
 
         commands = ["source openrc admin",
-                    "quantum net-create flattest".format(network_bridge_device),
-                    ("quantum subnet-create --name testnet "
-                     "--no-gateway flattest 172.0.0.0/8")]
+                    "{0} net-create flattest".format(
+                        self.rpcs_feature, network_bridge_device),
+                    ("{0} subnet-create --name testnet "
+                     "--no-gateway flattest 172.0.0.0/8".format(
+                        self.rpcs_feature)
+                    )]
         command = "; ".join(commands)
 
         if auto:
             util.logger.info("Adding Neutron Network")
             for controller in controllers:
-                if self.deployment.feature_in('ha'):
+                util.logger.info(
+                    "Attempting to setup network on {0}".format(
+                        controller.name))
+                
+                network_run = controller.run_cmd(command)
+                if network_run['success']:
+                    util.logger.info("Network setup succedded")
+                    break
+                else:
                     util.logger.info(
-                        "Attempting to setup network on {0}".format(
+                        "Failed to setup network on {0}".format(
                             controller.name))
-                    network_run = controller.run_cmd(command)
-                    if network_run['success']:
-                        util.logger.info("Network setup succedded")
-                        break
-                    else:
-                        util.logger.info(
-                            "Failed to setup network on {0}".format(
-                                controller.name))
-                        if not network_run['success']:
-                            util.logger.info("Failed to setup network")
-                        else:
-                            util.logger.info("To setup Neutron Network, "
-                                             "Log into your active controller"
-                                             " and run: ")
-                            util.logger.info(command)
+
+            if not network_run['success']:
+                util.logger.info("## Failed to setup networks, "
+                                 "please check logs ##")
         else:
             util.logger.info("### To Add Neutron Network log onto the active "
                              "controller and run the following commands: ###")
