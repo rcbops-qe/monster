@@ -64,14 +64,14 @@ class Neutron(Deployment):
             self.__class__.__name__.lower(), self.environment)
         self._fix_nova_environment()
 
-    def post_configure(self):
+    def post_configure(self, auto=False):
         """ Runs cluster post configure commands
         """
         if self.deployment.os_name in ['centos', 'rhel']:
             self._reboot_cluster()
 
         # Grab the config to auto build or not
-        auto_build = \
+        auto_build = auto or \
             util.config[self.__class__.__name__.lower()]['auto_build_subnets']
         self._build_subnets(auto_build)
 
@@ -115,31 +115,34 @@ class Neutron(Deployment):
         """ Will print out or build the subnets
         """
 
-        network_bridge_dev = \
+        util.logger.info("### Beginning of Networking Block ###")
+
+        network_bridge_device = \
             util.config[self.__class__.__name__.lower()]\
-                       [self.deployment.os_name]['network_bridge_dev']
+                       [self.deployment.os_name]['network_bridge_device']
         controllers = self.deployment.search_role('controller')
         computes = self.deployment.search_role('compute')
 
-        commands = ['ip a f {0}'.format(network_bridge_dev),
+        commands = ['ip a f {0}'.format(network_bridge_device),
                     'ovs-vsctl add-port br-{0} {0}'.format(
-                        network_bridge_dev)]
+                        network_bridge_device)]
         command = "; ".join(commands)
 
         if auto:
-            util.logger.info("Building OVS Bridge and Ports on network nodes")
+            util.logger.info("### Building OVS Bridge and "
+                             "Ports on network nodes ###")
             for controller in controllers:
                 controller.run_cmd(command)
                 for compute in computes:
                     compute.run_cmd(command)
-                else:
-                    util.logger.info("To build the OVS network bridge, :"
-                                     "log into your controllers and computes"
-                                     " and run the following command: ")
-                    util.logger.info(command)
+        else:
+            util.logger.info("### To build the OVS network bridge "
+                             "log onto your controllers and computes"
+                             " and run the following command: ###")
+            util.logger.info(command)
 
         commands = ["source openrc admin",
-                    "quantum net-create flattest".format(network_bridge_dev),
+                    "quantum net-create flattest".format(network_bridge_device),
                     ("quantum subnet-create --name testnet "
                      "--no-gateway flattest 172.0.0.0/8")]
         command = "; ".join(commands)
@@ -166,6 +169,11 @@ class Neutron(Deployment):
                                              "Log into your active controller"
                                              " and run: ")
                             util.logger.info(command)
+        else:
+            util.logger.info("### To Add Neutron Network log onto the active "
+                             "controller and run the following commands: ###")
+            for command in commands:
+                util.logger.info(command)
 
         util.logger.info("### End of Networking Block ###")
 
@@ -192,8 +200,8 @@ class Swift(Deployment):
         self._set_keystone_urls()
         self._fix_environment()
 
-    def post_configure(self):
-        build_rings = bool(util.config['swift']['auto_build_rings'])
+    def post_configure(self, auto=False):
+        build_rings = auto or bool(util.config['swift']['auto_build_rings'])
         self._build_rings(build_rings)
 
     def _set_keystone_urls(self):
