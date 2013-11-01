@@ -61,7 +61,8 @@ def install_packages(node, packages):
 
 def install_ruby_gem(node, gem):
 
-    command = 'source /usr/local/rvm/scripts/rvm; gem install --no-rdoc --no-ri {0}'.format(gem)
+    command = 'source /usr/local/rvm/scripts/rvm; gem install '
+              '--no-rdoc --no-ri {0}'.format(gem)
 
     return node.run_cmd(command)
 
