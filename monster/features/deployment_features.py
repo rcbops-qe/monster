@@ -210,12 +210,12 @@ class Swift(Deployment):
         """
         controller_ip = next(
             self.deployment.search_role('controller')).ipaddress
-        
+
         env = self.deployment.environment
-        
+
         keystone_url = \
             "http://{0}:8080/v1/AUTH_%(tenant_id)s".format(controller_ip)
-        
+
         for item in env.override_attributes['keystone']:
             if 'url' in item:
                 env.override_attributes['keystone'][item] = keystone_url
@@ -750,6 +750,10 @@ class Tempest(RPCS):
         exclude = ['volume', 'resize', 'floating']
         controller = next(self.deployment.search_role("controller"))
         self.test_from(controller, xunit=True, exclude=exclude)
+
+    def _build_config(self):
+        pass
+
 
     def test_from(self, node, xunit=False, tags=None, exclude=None,
                   paths=None):
