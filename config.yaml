@@ -246,7 +246,7 @@ rcbops:
           run_list: ['role[heat-all]']
         networkmanager:
           run_list: ['role[quantum-network-manager]']
-        monitor:
+        metrics:
             controller:
                 run_list: ['role[ceilometer-setup]',
                            'role[ceilometer-api]',

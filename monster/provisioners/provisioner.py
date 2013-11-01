@@ -86,7 +86,11 @@ class ChefCloudServer(Provisioner):
 
 
     def node_config(self, image, deployment):
-        gevent.spawn(build_instance, client, name=name, image_name=image_name, flavor_name=flavor_name)
+        gevent.spawn(build_instance,
+                     client,
+                     name=name,
+                     image_name=image_name,
+                     flavor_name=flavor_name)
 
     def destroy_node(self, node):
         raise NotImplementedError

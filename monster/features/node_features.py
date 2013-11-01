@@ -2,8 +2,10 @@
 A nodes features
 """
 from chef import ChefAPI
-from monster.features.feature import Feature, remove_chef,\
-    install_packages, install_ruby_gems
+from monster.features.feature import (Feature,
+                                      remove_chef,
+                                      install_packages,
+                                      install_ruby_gems)
 from monster import util
 
 
@@ -277,16 +279,17 @@ class OpenLDAP(Node):
         self._configure_ldap()
 
     def _configure_ldap(self):
-        ldapadd = 'ldapadd -x -D "cn=admin,dc=rcb,dc=me" -wsecrete -f /root/base.ldif'
+        ldapadd = ('ldapadd -x -D "cn=admin,dc=rcb,dc=me" '
+                  '-wsecrete -f /root/base.ldif')
         self.node.run_cmd(ldapadd)
 
 
-class Monitor(Node):
-    """ Represents a Monitor Node
+class Metrics(Node):
+    """ Represents a Metrics Node
     """
 
     def __init__(self, node):
-        super(Monitor, self).__init__(node)
+        super(Metrics, self).__init__(node)
         self.role = None
 
     def pre_configure(self):
@@ -298,7 +301,7 @@ class Monitor(Node):
         self._set_run_list()
 
     def _set_run_list(self):
-        """ Monitor run list set
+        """ Metrics run list set
         """
 
         role = self.__class__.__name__.lower()
