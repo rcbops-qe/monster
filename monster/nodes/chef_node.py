@@ -93,7 +93,7 @@ class ChefNode(Node):
         """
         Adds list of items to run_list
         """
-        util.logger.debug("run_list:{0}add:{1}".format(self.run_list, items))
+        util.logger.debug("run_list:{0} add:{1}".format(self.run_list, items))
         self.run_list.extend(items)
         cnode = CNode(self.name, api=self.environment.local_api)
         cnode.run_list = self.run_list
