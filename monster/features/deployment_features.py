@@ -398,6 +398,7 @@ class Swift(Deployment):
         #####################################################################
 
         if auto:
+            util.logger.info("Finalizing install on all nodes")
             for proxy_node in proxy_nodes:
                 proxy_node.run_chef_client()
             for storage_node in storage_nodes:
