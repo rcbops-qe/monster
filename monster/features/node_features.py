@@ -402,3 +402,8 @@ class Tempest(Node):
         tempest_dir = util.config['tests']['tempest']['dir']
         install_cmd = "python {0}/tools/install_venv.py".format(tempest_dir)
         self.node.run_cmd(install_cmd)
+
+
+class Heat(Node):
+    def pre_configure(self):
+        self.set_run_list()
