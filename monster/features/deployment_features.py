@@ -305,6 +305,7 @@ class Swift(Deployment):
         disk_weight = util.config['swift']['disk_weight']
 
         commands = ["su swiftops",
+                    "cd /etc/swift",
                     "swift-ring-builder object.builder create "
                     "{0} {1} {2}".format(part_power,
                                          replicas,
@@ -345,7 +346,8 @@ class Swift(Deployment):
         # Finish the command list
         cmd_list = ["swift-ring-builder object.builder rebalance",
                     "swift-ring-builder container.builder rebalance",
-                    "swift-ring-builder account.builder rebalance"]
+                    "swift-ring-builder account.builder rebalance",
+                    "sudo chown -R swift: ."]
         commands.extend(cmd_list)
 
         if auto:
