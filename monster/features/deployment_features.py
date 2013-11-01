@@ -42,20 +42,6 @@ class Deployment(Feature):
 #############################################################################
 
 
-class OpenStack(Deployment):
-    """ Represents a Rackspace Private Cloud Software Feature
-    """
-
-    def __init__(self, deployment, rpcs_feature):
-        super(OpenStack, self).__init__(deployment, rpcs_feature)
-
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
-
-
 class Neutron(Deployment):
     """ Represents a neutron network cluster
     """
