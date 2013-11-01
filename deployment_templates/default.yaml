@@ -55,6 +55,28 @@ precise-neutron:
     - [controller, network, monitor]
     - [compute, network, monitor]
 
+precise-ha:
+  product: compute
+  name: ha
+  os: precise
+  features:
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    neutron: neutron
+    tempest: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, networkmanager, monitor, orchestration]
+    - [controller, networkmanager, monitor]
+    - [compute, monitor]
+
 precise-swift:
   product: storage
   name: swift
