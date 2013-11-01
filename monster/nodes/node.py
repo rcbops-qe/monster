@@ -70,7 +70,10 @@ class Node(object):
         """
         user = user or self.user
         password = password or self.password
-        return scp_to(self.ipaddress, local_path, user=user, password=password,
+        return scp_to(self.ipaddress,
+                      local_path,
+                      user=user,
+                      password=password,
                       remote_path=remote_path)
 
     def scp_from(self, remote_path, user=None, password=None, local_path=""):
@@ -79,8 +82,11 @@ class Node(object):
         """
         user = user or self.user
         password = password or self.password
-        return scp_from(self.ipaddress, remote_path, user=user,
-                        password=password, local_path=local_path)
+        return scp_from(self.ipaddress,
+                        remote_path,
+                        user=user,
+                        password=password,
+                        local_path=local_path)
 
     def pre_configure(self):
         """Pre configures node for each feature"""
