@@ -7,7 +7,9 @@ import novaclient.auth_plugin
 from novaclient.client import Client as NovaClient
 
 from monster import util
+from monster.nodes.chef_node import ChefNode
 from monster.razor_api import razor_api
+from monster.server_helper import run_cmd
 
 
 class Provisioner(object):
@@ -82,27 +84,49 @@ class ChefRazorProvisioner(Provisioner):
 
 class ChefCloudServer(Provisioner):
     def provision(self, template, deployment):
-        compute = self.connection()
-
-
-    def node_config(self, image, deployment):
-        gevent.spawn(build_instance,
-                     client,
-                     name=name,
-                     image_name=image_name,
-                     flavor_name=flavor_name)
+        client = self.connection()
+        events = [
+            gevent.spawn(self.chef_instance, client, features, deployment)
+            for features in template['nodes']
+        ]
+        gevent.joinall(events)
+        chef_nodes = [Node(features[0]) for features in template['nodes']]
+        monster_nodes = [ChefNode.from_chef_node(node) for node in chef_nodes]
+        deployment.nodes.extend(monster_nodes)
 
     def destroy_node(self, node):
-        raise NotImplementedError
+        cnode = Node(node.name, node.environment.local_api).destroy()
+        compute = self.connection()
+        compute.get(node['uuid']).delete()
+        cnode.destroy()
+        Client(node.name, node.environment.local_api).destroy()
 
-    def build_instance(self, client, name="server", image_name="precise",
-                       flavor_name="1GB"):
+    def chef_instance(self, client, features, deployment, flavor="1GB"):
+        name = features[0]
+        image = deployment.os_name
+        server, password = self.build_instance(client, name=name,
+                                               image=image, flavor=flavor)
+        command = 'knife bootstrap {0} -u root -P {1} -N'.format(
+            self.server.accessIPv4, password, name)
+        run_cmd(command)
+        node = Node(name, api=deployment.environment.local_api)
+        node['password'] = password
+        node['uuid'] = server.id
+        node.save()
+
+    def build_instance(self, client, name="server", image="precise",
+                       flavor="1GB"):
+        openstack = util.config['openstack']
+        try:
+            flavor_name = openstack['flavors'][flavor]
+        except KeyError:
+            raise Exception("Flavor not supported:{0}".format(flavor))
         flavor = next(flavor.id for flavor in client.flavors.list()
                       if flavor_name in flavor.name)
-        if image_name == "precise":
-            image_name = "Ubuntu 12.04"
-        else:
-            raise Exception("Image not supported:{0}".format(image_name))
+        try:
+            image_name = openstack['iamges'][image]
+        except KeyError:
+            raise Exception("Image not supported:{0}".format(image))
         image = next(image.id for image in client.images.list()
                      if image_name in image.name)
         server = client.servers.create(name, image, flavor)
@@ -123,7 +147,7 @@ class ChefCloudServer(Provisioner):
             attempt = attempt + 1
         return obj
 
-    def connection(self):
+    def connection():
         creds = util.config['secrets']['openstack']
         plugin = creds['plugin']
         if plugin:
