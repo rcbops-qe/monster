@@ -289,7 +289,7 @@ tests:
 
 swift:
     master_env_key: swift-private-cloud
-    auto_build_rings: False
+    auto_build_rings: True
     disk: "sdb"
     disk_label: "sdb1"
     num_rings: 3
