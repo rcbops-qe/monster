@@ -244,6 +244,8 @@ rcbops:
             run_list: ['recipe[tempest]']
         orchestration:
           run_list: ['role[heat-all]']
+        networkmanager:
+          run_list: ['role[quantum-network-manager]']
         monitor:
             controller:
                 run_list: ['role[ceilometer-setup]',
