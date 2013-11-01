@@ -383,3 +383,8 @@ class Tempest(Node):
 class Orchestration(Node):
     def pre_configure(self):
         self.set_run_list()
+
+
+class NetworkManger(Node):
+    def preconfigure(self):
+        self.set_run_list()
