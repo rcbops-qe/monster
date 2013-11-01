@@ -14,8 +14,8 @@ precise-default:
     tempest: default
   nodes:
     - [chefserver]
-    - [controller, metrics]
-    - [compute, metrics]
+    - [controller]
+    - [compute]
 
 centos-default:
   product: compute
@@ -33,8 +33,8 @@ centos-default:
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller, metrics]
-    - [compute, metrics]
+    - [controller]
+    - [compute]
 
 precise-neutron:
   product: compute
@@ -52,8 +52,8 @@ precise-neutron:
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller, network, metrics]
-    - [compute, network, metrics]
+    - [controller, network]
+    - [compute, network]
 
 precise-swift:
   product: storage
