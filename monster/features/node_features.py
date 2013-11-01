@@ -106,7 +106,7 @@ class Network(Node):
     """ Sets the node to be a Network
     """
 
-    def preconfigure(self):
+    def pre_configure(self):
         self.set_run_list()
 
 
