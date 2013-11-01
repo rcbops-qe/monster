@@ -460,8 +460,8 @@ class Keystone(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Keystone, self).__init__(deployment, rpcs_feature)
         self.environment = \
-                           util.config['environments'][self.__class__.__name__.lower()][
-                               rpcs_feature]
+           util.config['environments']\
+                      [self.__class__.__name__.lower()][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -722,7 +722,7 @@ class OpenLDAP(RPCS):
 
         # Override the attrs
         env.override_attributes['keystone']['ldap']['url'] = \
-                                                             "ldap://{0}".format(ip)
+             "ldap://{0}".format(ip)
         env.override_attributes['keystone']['ldap']['password'] = password
 
         # Save the Environment
