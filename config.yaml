@@ -316,6 +316,19 @@ provisioners:
   razor: chefrazorprovisioner
   openstack: openstackprovisioner
 
+openstack:
+  images:
+    precise: Ubuntu 12.04
+    centos: CentOS 6.4
+  flavors:
+    512MB: 512MB Standard Instance
+    1GB: 1GB Standard Instance
+    2GB: 2GB Standard Instance
+    4GB: 4GB Standard Instance
+    8GB: 8GB Standard Instance
+    15GB: 15GB Standard Instance
+    30GB: 30GB Standard Instance
+
 neutron:
     auto_build_subnets: False
     centos:
