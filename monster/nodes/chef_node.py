@@ -1,5 +1,3 @@
-import traceback
-
 from chef import Node as CNode
 
 from monster import util
@@ -107,7 +105,11 @@ class ChefNode(Node):
                                                             features))
         classes = util.module_classes(node_features)
         for feature in features:
-            feature_class = classes[feature](self)
+            try:
+                feature_class = classes[feature](self)
+            except KeyError:
+                raise Exception(
+                    "Node feature add fail{0}:{1}" .format(self, feature))
             self.features.append(feature_class)
 
         # save features for restore
@@ -134,12 +136,7 @@ class ChefNode(Node):
         crnode = cls(ipaddress, user, password, os, product, environment,
                      deployment, name, provisioner, branch, status=status,
                      run_list=run_list)
-        try:
-            crnode.add_features(archive.get('features', []))
-        except:
-            util.logger.error(traceback.print_exc())
-            crnode.destroy()
-            raise Exception("Node feature add fail{0}".format(str(crnode)))
+        crnode.add_features(archive.get('features', []))
         return crnode
 
     def run_chef_client(self, times=1):

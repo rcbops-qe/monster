@@ -131,6 +131,10 @@ class ChefDeployment(Deployment):
         template = Config(path)[env.name]
         product = template['product']
         for node in (Node(n, environment.local_api) for n in nodes):
+            if not node.exists:
+                util.logger.error("Non existant chef node:{0}".
+                                  format(node.name))
+                continue
             cnode = ChefNode.from_chef_node(node, deployment_args['os_name'],
                                             product, environment, deployment,
                                             provisioner,
