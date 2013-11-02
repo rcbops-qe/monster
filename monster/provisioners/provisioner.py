@@ -83,6 +83,9 @@ class ChefRazorProvisioner(Provisioner):
 
 
 class ChefCloudServer(Provisioner):
+    def __init__(self):
+        self.names = {}
+
     def provision(self, template, deployment):
         client = self.connection()
         events = [
@@ -91,7 +94,15 @@ class ChefCloudServer(Provisioner):
         ]
         gevent.joinall(events)
         chef_nodes = [Node(features[0]) for features in template['nodes']]
-        monster_nodes = [ChefNode.from_chef_node(node) for node in chef_nodes]
+        product = template['product']
+        os_name = deployment.os_name
+        environment = deployment.environment
+        provisioner = self
+        branch = deployment.branch
+        monster_nodes = [
+            ChefNode.from_chef_node(node, os_name, product, environment,
+                                    deployment, provisioner, branch)
+            for node in chef_nodes]
         deployment.nodes.extend(monster_nodes)
 
     def destroy_node(self, node):
