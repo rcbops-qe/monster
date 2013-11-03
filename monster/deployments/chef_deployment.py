@@ -1,13 +1,15 @@
 import os
-from time import sleep
 
-from chef import autoconfigure, Search, Environment, Node
+from chef import autoconfigure, Environment, Node
 
 from monster import util
 from monster.Environments import Chef
-from monster.features import deployment_features
+from monster.config import Config
 from monster.deployments.deployment import Deployment
+from monster.features import deployment_features
+from monster.features.node_features import ChefServer
 from monster.nodes.chef_node import ChefNode
+from monster.provisioners.provisioner import ChefRazorProvisioner
 
 
 class ChefDeployment(Deployment):
@@ -15,19 +17,23 @@ class ChefDeployment(Deployment):
     Opscode's Chef as configuration management
     """
 
-    def __init__(self, name, os_name, branch, environment,
-                 status="provisioning"):
+    def __init__(self, name, os_name, branch, environment, provisioner,
+                 status=None):
+        status = status or "provisioning"
         super(ChefDeployment, self).__init__(name, os_name, branch,
-                                             status=status)
+                                             provisioner, status)
         self.environment = environment
         self.has_controller = False
 
     def __str__(self):
         nodes = "\n\t".join(str(node) for node in self.nodes)
+        features = ", ".join(self.feature_names())
         deployment = ("Deployment - name:{0}, os:{1}, branch:{2}, status:{3}\n"
-                      "{4}\nNodes:\n\t{5}".format(self.name, self.os_name,
-                                                  self.branch, self.status,
-                                                  self.environment, nodes))
+                      "{4}\nFeatures{5}: \n"
+                      "Nodes: \n\t{6}".format(self.name, self.os_name,
+                                              self.branch, self.status,
+                                              self.environment, features,
+                                              nodes))
         return deployment
 
     def save_to_environment(self):
@@ -75,18 +81,18 @@ class ChefDeployment(Deployment):
             util.logger.info("Using previous deployment:{0}".format(name))
             return cls.from_chef_environment(name, path)
 
-        template = util.config[name]
+        template = Config(path)[name]
 
-        chef = Chef(name, local_api, description=name)
+        environment = Chef(name, local_api, description=name)
 
         os_name = template['os']
         product = template['product']
         name = template['name']
 
         deployment = cls.deployment_config(template['features'], name, os_name,
-                                           branch, chef, provisioner)
+                                           branch, environment, provisioner)
         for features in template['nodes']:
-            deployment.node_config(features, os_name, product, chef,
+            deployment.node_config(features, os_name, product, environment,
                                    provisioner, branch)
         return deployment
 
@@ -104,47 +110,59 @@ class ChefDeployment(Deployment):
         env = Environment(environment, api=local_api)
         override = env.override_attributes
         default = env.default_attributes
+        chef_auth = override.get('remote_chef', None)
+        remote_api = None
+        if chef_auth:
+            remote_api = ChefServer._remote_chef_api(chef_auth)
         environment = Chef(env.name, local_api, description=env.name,
-                           default=default, override=override)
-        deployment_args = env.override_attributes.get('deployment', {})
+                           default=default, override=override,
+                           remote_api=remote_api)
+
         name = env.name
+        deployment_args = override.get('deployment', {})
         features = deployment_args.get('features', {})
         os_name = deployment_args.get('os_name', None)
         branch = deployment_args.get('branch', None)
-        status = deployment_args.get('status', None)
+        status = deployment_args.get('status', "provisioning")
         deployment = cls.deployment_config(features, name, os_name, branch,
                                            environment, provisioner, status)
 
         nodes = deployment_args.get('nodes', [])
-        template = util.config[env.name]
+        template = Config(path)[env.name]
         product = template['product']
-        for node in (Node(n) for n in nodes):
-            ChefNode.from_chef_node(node, deployment_args['os_name'], product,
-                                    environment, deployment, provisioner,
-                                    deployment_args['branch'])
+        for node in (Node(n, environment.local_api) for n in nodes):
+            if not node.exists:
+                util.logger.error("Non existant chef node:{0}".
+                                  format(node.name))
+                continue
+            cnode = ChefNode.from_chef_node(node, deployment_args['os_name'],
+                                            product, environment, deployment,
+                                            provisioner,
+                                            deployment_args['branch'])
+            deployment.nodes.append(cnode)
         return deployment
 
     # NOTE: This probably should be in node instead and use from_chef_node
-    def node_config(self, features, os_name, product, chef, provisioner,
+    def node_config(self, features, os_name, product, environment, provisioner,
                     branch):
         """
         Builds a new node given a dictionary of features
         """
-
         cnode = provisioner.available_node(os_name, self)
-        node = ChefNode.from_chef_node(cnode, os_name, product, chef,
+        node = ChefNode.from_chef_node(cnode, os_name, product, environment,
                                        self, provisioner, branch)
         self.nodes.append(node)
         node.add_features(features)
 
     @classmethod
     def deployment_config(cls, features, name, os_name, branch, environment,
-                          provisioner, status="provisioning"):
+                          provisioner, status=None):
         """
         Returns deployment given dictionaries of features
         """
+        status = status or "provisioning"
         deployment = cls(name, os_name, branch, environment,
-                         provisioner)
+                         provisioner, status)
         deployment.add_features(features)
         return deployment
 
@@ -161,21 +179,6 @@ class ChefDeployment(Deployment):
                 feature, rpcs_feature))
             self.features.append(classes[feature](self, rpcs_feature))
 
-    @classmethod
-    def node_search(cls, query, environment=None, tries=10):
-        """
-        Performs a node search query on the chef server
-        """
-        api = autoconfigure()
-        if environment:
-            api = environment.local_api
-        search = None
-        while not search and tries > 0:
-            search = Search("node", api=api).query(query)
-            sleep(10)
-            tries = tries - 1
-        return (n.object for n in search)
-
     def destroy(self):
         """
         Destroys Chef Deployment
@@ -185,10 +188,14 @@ class ChefDeployment(Deployment):
         self.environment.remote_api = None
         super(ChefDeployment, self).destroy()
         # Destroy rogue nodes
-        nodes = self.node_search("chef_environment:{0}".format(self.name),
-                                 tries=1)
-        for n in nodes:
-            ChefNode.from_chef_node(n, provisioner=self.provisioner).destroy()
+        if not self.nodes:
+            nodes = ChefRazorProvisioner.node_search("chef_environment:{0}".
+                                                     format(self.name),
+                                                     tries=1)
+            for n in nodes:
+                ChefNode.from_chef_node(n, environment=self.environment).\
+                    destroy()
+
         # Destroy Chef environment
         self.environment.destroy()
         self.status = "Destroyed"

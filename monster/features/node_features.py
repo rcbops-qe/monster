@@ -2,8 +2,10 @@
 A nodes features
 """
 from chef import ChefAPI
-
-from monster.features.feature import Feature, remove_chef
+from monster.features.feature import (Feature,
+                                      remove_chef,
+                                      install_packages,
+                                      install_ruby_gems)
 from monster import util
 
 
@@ -56,12 +58,6 @@ class Controller(Node):
         super(Controller, self).__init__(node)
         self.number = None
 
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
-
     def pre_configure(self):
         if self.node.deployment.has_controller:
             self.number = 2
@@ -79,21 +75,12 @@ class Controller(Node):
         if self.number == 2:
             controllers = self.node.deployment.search_role('controller')
             controller1 = next(controllers)
-            controller1.run_cmd('chef-client')
+            controller1.run_chef_client()
 
 
 class Compute(Node):
     """ Represents a RPCS compute
     """
-
-    def __init__(self, node):
-        super(Compute, self).__init__(node)
-
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
 
     def pre_configure(self):
         self.set_run_list()
@@ -103,15 +90,6 @@ class Proxy(Node):
     """ Represents a RPCS proxy node
     """
 
-    def __init__(self, node):
-        super(Proxy, self).__init__(node)
-
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
-
     def pre_configure(self):
         self.set_run_list()
 
@@ -120,16 +98,16 @@ class Storage(Node):
     """ Represents a RPCS proxy node
     """
 
-    def __init__(self, node):
-        super(Storage, self).__init__(node)
+    def pre_configure(self):
+        self.set_run_list()
 
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
+
+class Network(Node):
+    """ Sets the node to be a Network
+    """
 
     def pre_configure(self):
+        print "stuff"
         self.set_run_list()
 
 
@@ -137,16 +115,7 @@ class Remote(Node):
     """ Represents the deployment having a remote chef server
     """
 
-    def __init__(self, node):
-        super(Remote, self).__init__(node)
-
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
-
-    def apply_feature(self):
+    def pre_configure(self):
         remove_chef(self.node)
         self._bootstrap_chef()
 
@@ -155,27 +124,19 @@ class Remote(Node):
         """
 
         # Gather the info for the chef server
-        chef_server_node = self.node.deployment.search_role('chef_server')
+        chef_server = next(self.node.deployment.search_role('chefserver'))
 
-        command = 'knife bootstrap {0} -s root -p {1}'.format(
-            chef_server_node.ipaddress, self.node.password)
+        command = 'knife bootstrap {0} -u root -P {1}'.format(
+            self.node.ipaddress, self.node.password)
 
-        chef_server_node.run_cmd(command)
+        chef_server.run_cmd(command)
+        self.node.save()
 
 
 class Cinder(Node):
     """
     Enables cinder with local lvm backend
     """
-
-    def __init__(self, node):
-        super(Cinder, self).__init__(node)
-
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
 
     def pre_configure(self):
         self.prepare_cinder()
@@ -205,18 +166,12 @@ class ChefServer(Node):
 
     def __init__(self, node):
         super(ChefServer, self).__init__(node)
-        self.iscript = self.config['chef']['server']['install_script']
+        self.iscript = util.config['chef']['server']['install_script']
         self.iscript_name = self.iscript.split('/')[-1]
-        self.install_commands = ['curl {0} >> {1}'.format(self.iscript,
-                                                          self.iscript_name),
-                                 'chmod u+x ~/{0}'.format(self.iscript_name),
+        self.script_download = 'curl {0} >> {1}'.format(self.iscript,
+                                                        self.iscript_name)
+        self.install_commands = ['chmod u+x ~/{0}'.format(self.iscript_name),
                                  './{0}'.format(self.iscript_name)]
-
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
 
     def pre_configure(self):
         remove_chef(self.node)
@@ -225,11 +180,14 @@ class ChefServer(Node):
         self._install()
         self._install_cookbooks()
         self._set_up_remote()
+        self._remote_other_nodes()
+        self.node.environment.save()
 
     def _install(self):
         """ Installs chef server on the given node
         """
 
+        self.node.run_cmd(self.script_download, attempts=5)
         command = "; ".join(self.install_commands)
         self.node.run_cmd(command)
 
@@ -237,10 +195,10 @@ class ChefServer(Node):
         """ Installs cookbooks
         """
 
-        cookbook_url = self.config['rcbops'][self.node.product]['git']['url']
+        cookbook_url = util.config['rcbops'][self.node.product]['git']['url']
         cookbook_branch = self.node.branch
         cookbook_name = cookbook_url.split("/")[-1].split(".")[0]
-        install_dir = self.config['chef']['server']['install_dir']
+        install_dir = util.config['chef']['server']['install_dir']
 
         commands = ["mkdir -p {0}".format(install_dir),
                     "cd {0}".format(install_dir),
@@ -289,7 +247,8 @@ class ChefServer(Node):
         remote_api = self._remote_chef_api(remote_chef)
         self.node.environment.remote_api = remote_api
 
-    def _remote_chef_api(self, chef_api_dict):
+    @classmethod
+    def _remote_chef_api(cls, chef_api_dict):
         """ Builds a remote chef API object
         """
 
@@ -302,19 +261,17 @@ class ChefServer(Node):
         command = 'cat ~/.chef/admin.pem'
         return self.node.run_cmd(command)['return']
 
+    def _remote_other_nodes(self):
+        for node in self.node.deployment.nodes:
+            if not node.feature_in("chefserver"):
+                remote_feature = Remote(node)
+                node.features.insert(0, remote_feature)
+                node.save_to_node()
+
 
 class OpenLDAP(Node):
     """ Represents a LDAP server
     """
-
-    def __init__(self, node):
-        super(OpenLDAP, self).__init__()
-
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
 
     def pre_configure(self):
         self.set_run_list()
@@ -323,5 +280,115 @@ class OpenLDAP(Node):
         self._configure_ldap()
 
     def _configure_ldap(self):
-        ldapadd = 'ldapadd -x -D "cn=admin,dc=rcb,dc=me" -wsecrete -f /root/base.ldif'
+        ldapadd = ('ldapadd -x -D "cn=admin,dc=rcb,dc=me" '
+                  '-wsecrete -f /root/base.ldif')
         self.node.run_cmd(ldapadd)
+
+
+class Metrics(Node):
+    """ Represents a Metrics Node
+    """
+
+    def __init__(self, node):
+        super(Metrics, self).__init__(node)
+        self.role = None
+
+    def pre_configure(self):
+        if self.node.feature_in('controller'):
+            self.role = 'controller'
+        else:
+            self.role = 'compute'
+
+        self._set_run_list()
+
+    def _set_run_list(self):
+        """ Metrics run list set
+        """
+
+        role = self.__class__.__name__.lower()
+
+        # Set the run list based on the deployment config for the role
+        run_list = util.config['rcbops'][self.node.product]\
+                              [role][self.role]['run_list']
+
+        # Add the run list to the node
+        self.node.add_run_list_item(run_list)
+
+
+class Berkshelf(Node):
+    """ Represents a node with berks installed
+    """
+
+    def pre_configure(self):
+        self._install_berkshelf()
+
+    def apply_feature(self):
+        self._write_berks_config()
+        self._run_berks()
+
+    def _install_berkshelf(self):
+        """ Installs Berkshelf and correct rvms/gems
+        """
+
+        # Install needed server packages for berkshelf
+        packages = ['libxml2-dev', 'libxslt-dev', 'libz-dev']
+        rvm_install = ("curl -L https://get.rvm.io | bash -s -- stable "
+                      "--ruby=1.9.3 --autolibs=enable --auto-dotfiles")
+        gems = ['berkshelf', 'chef']
+
+        # Install OS packages
+        install_packages(self.node, packages)
+
+        # Install RVM
+        # We commonly see issues with rvms servers, so loop
+        self.node.run_cmd(rvm_install, attempts=10)
+
+        # Install Ruby Gems
+        install_ruby_gems(self.node, gems)
+
+    def _write_berks_config(self):
+        """ Will write the berks config file
+
+            TODO: I need to make this more robust and
+            allow you to correctly write the config the way you want.
+            For now the ghetto way is how we will do it (jwagner)
+        """
+
+        command = ('mkdir -p .berkshelf; cd .berkshelf; '
+                   'echo "{\\"ssl\\":{\\"verify\\":false}}" > config.json')
+
+        self.node.run_cmd(command)
+
+    def _run_berks(self):
+        """ This will run berksheld to apply the feature
+        """
+
+        # Run berkshelf on server
+        commands = ['cd /opt/rcbops/swift-private-cloud',
+                    'source /usr/local/rvm/scripts/rvm',
+                    'berks install',
+                    'berks upload']
+        command = "; ".join(commands)
+
+        self.node.run_cmd(command)
+
+
+class Tempest(Node):
+    def pre_configure(self):
+        self.set_run_list()
+
+    def apply_feature(self):
+        # install python requirements for tempest
+        tempest_dir = util.config['tests']['tempest']['dir']
+        install_cmd = "python {0}/tools/install_venv.py".format(tempest_dir)
+        self.node.run_cmd(install_cmd)
+
+
+class Orchestration(Node):
+    def pre_configure(self):
+        self.set_run_list()
+
+
+class NetworkManger(Node):
+    def preconfigure(self):
+        self.set_run_list()

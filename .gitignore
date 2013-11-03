@@ -1,5 +1,7 @@
 *.py[cod]
 clean.py
+secret.yaml
+tools/
 
 # C extensions
 *.so
@@ -37,3 +39,4 @@ nosetests.xml
 
 # Emacs
 *~
+.ropeproject

@@ -5,6 +5,7 @@ OpenStack Environments
 from monster import util
 from chef import Environment as ChefEnvironment
 
+
 class Environment(dict):
 
     def __init__(self, name, description):

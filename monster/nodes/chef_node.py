@@ -1,10 +1,9 @@
-import traceback
 from chef import Node as CNode
 
 from monster import util
 from monster.nodes.node import Node
 from monster.features import node_features
-from monster.provisioners import chef_razor_provisioner
+from monster.provisioners import provisioner as provisioners
 
 
 class ChefNode(Node):
@@ -13,17 +12,18 @@ class ChefNode(Node):
     Provides chef related server fuctions
     """
     def __init__(self, ip, user, password, os, product, environment,
-                 deployment, name, provisioner, branch, status="provisioning"):
+                 deployment, name, provisioner, branch, status=None,
+                 run_list=None):
         super(ChefNode, self).__init__(ip, user, password, os, product,
                                        environment, deployment, provisioner,
                                        status)
         self.name = name
         self.branch = branch
-        self.run_list = []
+        self.run_list = run_list or []
         self.features = []
 
     def __str__(self):
-        features = ", ".join((str(f) for f in self.features))
+        features = ", ".join(self.feature_names())
         node = ("Node - name:{0}, os:{1}, branch:{2}, ip:{3}, status:{4}\n\t\t"
                 "Features: {5}").format(self.name, self.os_name, self.branch,
                                         self.ipaddress, self.status, features)
@@ -43,11 +43,15 @@ class ChefNode(Node):
                                                              self.name))
         lnode = CNode(self.name, api=self.environment.local_api)
         lnode[item] = value
-        lnode.save()
-        if self.environment.remote_api:
-            rnode = CNode(self.name, api=self.environment.remote_api)
-            rnode[item] = value
-            rnode.save()
+        self.save(lnode)
+
+    def build(self):
+        # clear run_list
+        self.run_list = []
+        node = CNode(self.name, self.environment.local_api)
+        node.run_list = []
+        node.save()
+        super(ChefNode, self).build()
 
     def save_to_node(self):
         """
@@ -56,7 +60,7 @@ class ChefNode(Node):
         features = [str(f).lower() for f in self.features]
         node = {'features': features,
                 'status': self.status,
-                'provisioner': self.provisoner}
+                'provisioner': self.provisioner.__class__.__name__.lower()}
         self['archive'] = node
 
     def apply_feature(self):
@@ -64,19 +68,34 @@ class ChefNode(Node):
         Runs chef client before apply features on node
         """
         self.status = "apply-feature"
-        if self.run_list:
-            self.run_cmd("chef-client")
+        if not self.feature_in("chefserver"):
+            self.run_chef_client()
         super(ChefNode, self).apply_feature()
+
+    def save(self, chef_node=None):
+        chef_node = chef_node or CNode(self.name, self.environment.local_api)
+        chef_node.save(self.environment.local_api)
+        if self.environment.remote_api:
+            chef_node.save(self.environment.remote_api)
+
+    def save_locally(self, chef_node=None):
+        if self.environment.remote_api:
+            chef_node = chef_node or CNode(self.name,
+                                           self.environment.remote_api)
+            chef_node.save(self.environment.local_api)
+
+    def get_run_list(self):
+        return CNode(self.name, self.environment.local_api).run_list
 
     def add_run_list_item(self, items):
         """
         Adds list of items to run_list
         """
-        util.logger.debug("run_list:{0}add:{1}".format(self.run_list, items))
+        util.logger.debug("run_list:{0} add:{1}".format(self.run_list, items))
         self.run_list.extend(items)
-        cnode = CNode(self.name)
+        cnode = CNode(self.name, api=self.environment.local_api)
         cnode.run_list = self.run_list
-        cnode.save()
+        self.save(cnode)
 
     def add_features(self, features):
         """
@@ -86,7 +105,11 @@ class ChefNode(Node):
                                                             features))
         classes = util.module_classes(node_features)
         for feature in features:
-            feature_class = classes[feature](self)
+            try:
+                feature_class = classes[feature](self)
+            except KeyError:
+                raise Exception(
+                    "Node feature add fail{0}:{1}" .format(self, feature))
             self.features.append(feature_class)
 
         # save features for restore
@@ -106,15 +129,17 @@ class ChefNode(Node):
         status = archive.get('status', "provisioning")
         if not provisioner:
             provisioner_name = archive.get('provisioner',
-                                           'chefrazorprovisioner')
-            provisioner_def = util.module_classes(chef_razor_provisioner)
-            provisioner = provisioner_def[provisioner_name]
+                                           "chefrazorprovisioner")
+            classes = util.module_classes(provisioners)
+            provisioner = classes[provisioner_name]()
+        run_list = node.run_list
         crnode = cls(ipaddress, user, password, os, product, environment,
-                     deployment, name, provisioner, branch, status=status)
-        try:
-            crnode.add_features(archive.get('features', []))
-        except:
-            util.logger.error(traceback.print_exc())
-            crnode.destroy()
-            raise Exception("Node feature add fail{0}".format(str(crnode)))
+                     deployment, name, provisioner, branch, status=status,
+                     run_list=run_list)
+        crnode.add_features(archive.get('features', []))
         return crnode
+
+    def run_chef_client(self, times=1):
+        for _ in xrange(times):
+            self.run_cmd("chef-client")
+            self.save_locally()

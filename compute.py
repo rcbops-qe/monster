@@ -4,20 +4,18 @@
 Command Line interface for Building Openstack clusters
 """
 import sys
+import argh
 import traceback
 import webbrowser
-
-import argh
-
 from monster import util
-from monster.provisioners import chef_razor_provisioner
+from monster.provisioners import provisioner as provisioners
 from monster.config import Config
 from monster.deployments.chef_deployment import ChefDeployment
 
 
-def build(name="precise-default", branch="grizzly", template_path=None,
+def build(name="precise-default", branch="master", template_path=None,
           config=None, destroy=False, dry=False, log=None,
-          log_level="INFO", provisioner="razor"):
+          log_level="INFO", provisioner="razor", test=False):
     """
     Builds an OpenStack Cluster
     """
@@ -26,8 +24,8 @@ def build(name="precise-default", branch="grizzly", template_path=None,
     # provisiong deployment
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
-    provisioner = util.module_classes(chef_razor_provisioner)[class_name]()
-    deployment = ChefDeployment.fromfile(name, branch, provisioner,
+    cprovisioner = util.module_classes(provisioners)[class_name]()
+    deployment = ChefDeployment.fromfile(name, branch, cprovisioner,
                                          template_path)
     if dry:
         # build environment
@@ -35,7 +33,8 @@ def build(name="precise-default", branch="grizzly", template_path=None,
             deployment.update_environment()
         except Exception:
             util.logger.error(traceback.print_exc())
-            deployment.destroy()
+            if destroy:
+                deployment.destroy()
             sys.exit(1)
 
     else:
@@ -45,10 +44,14 @@ def build(name="precise-default", branch="grizzly", template_path=None,
             deployment.build()
         except Exception:
             util.logger.error(traceback.print_exc())
-            deployment.destroy()
+            if destroy:
+                deployment.destroy()
             sys.exit(1)
 
     util.logger.info(deployment)
+    if test:
+        pass
+
     if destroy:
         deployment.destroy()
 
@@ -92,8 +95,8 @@ def _load(name="precise-default", config=None, provisioner="razor"):
     # load deployment and source openrc
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
-    provisioner = util.module_classes(chef_razor_provisioner)[class_name]()
-    return ChefDeployment.from_chef_environment(name, provisioner=provisioner)
+    cprovisioner = util.module_classes(provisioners)[class_name]()
+    return ChefDeployment.from_chef_environment(name, provisioner=cprovisioner)
 
 
 def _set_log(log, log_level):

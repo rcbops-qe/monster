@@ -10,13 +10,14 @@ class Deployment(object):
     """Base for OpenStack deployments
     """
 
-    def __init__(self, name, os_name, branch, status="provisioning"):
+    def __init__(self, name, os_name, branch, provisioner, status):
         self.name = name
         self.os_name = os_name
         self.branch = branch
         self.features = []
         self.nodes = []
-        self.status = status
+        self.status = status or "provisioning"
+        self.provisioner = provisioner
 
     def __repr__(self):
         """ Print out current instance
@@ -90,7 +91,7 @@ class Deployment(object):
         self.build_nodes()
         util.logger.debug("Deployment step: post-configure")
         self.post_configure()
-        self.status = "done"
+        self.status = "post-build"
 
     def search_role(self, feature):
         """
@@ -100,8 +101,12 @@ class Deployment(object):
                 self.nodes if feature in
                 (str(f).lower() for f in node.features))
 
-    def test(self):
-        """
-        Run tests on deployment
-        """
-        pass
+    def feature_in(self, feature):
+        if feature in (feature.__class__.__name__.lower()
+                       for feature in self.features):
+            return True
+        return False
+
+    def feature_names(self):
+        return [feature.__class__.__name__.lower() for feature in
+                self.features]

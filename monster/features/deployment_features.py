@@ -1,12 +1,13 @@
+""" A Deployment Features
 """
-A Deployment Features
-"""
+
 import json
 import time
-
 import requests
+from itertools import chain, ifilter
 
 from monster.features.feature import Feature
+from monster.features.node_features import Tempest as NodeTempest
 from monster import util
 
 
@@ -41,20 +42,6 @@ class Deployment(Feature):
 #############################################################################
 
 
-class OpenStack(Deployment):
-    """ Represents a Rackspace Private Cloud Software Feature
-    """
-
-    def __init__(self, deployment, rpcs_feature):
-        super(OpenStack, self).__init__(deployment, rpcs_feature)
-
-    def __repr__(self):
-        """ Print out current instance
-        """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
-
-
 class Neutron(Deployment):
     """ Represents a neutron network cluster
     """
@@ -62,8 +49,9 @@ class Neutron(Deployment):
     def __init__(self, deployment, rpcs_feature):
         super(Neutron, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments'][self.__class__.__name__.lower()][
-                rpcs_feature]
+           util.config['environments']\
+                      [self.__class__.__name__.lower()][rpcs_feature]
+        self.provider = rpcs_feature
 
     def __repr__(self):
         """ Print out current instance
@@ -74,12 +62,28 @@ class Neutron(Deployment):
     def update_environment(self):
         self.deployment.environment.add_override_attr(
             self.__class__.__name__.lower(), self.environment)
+        self._fix_nova_environment()
 
-    def post_configure(self):
+    def post_configure(self, auto=False):
         """ Runs cluster post configure commands
         """
         if self.deployment.os_name in ['centos', 'rhel']:
             self._reboot_cluster()
+
+        # Grab the config to auto build or not
+        auto_build = auto or \
+            util.config[self.__class__.__name__.lower()]['auto_build_subnets']
+        self._build_subnets(auto_build)
+
+
+    def _fix_nova_environment(self):
+        # When enabling neutron, have to update the env var correctly
+        env = self.deployment.environment
+        neutron_network = {'provider': self.provider}
+        if 'networks' in env.override_attributes['nova']:
+            del env.override_attributes['nova']['networks']
+            env.override_attributes['nova']['network'] = neutron_network
+            env.save()
 
     def _reboot_cluster(self):
 
@@ -107,6 +111,72 @@ class Neutron(Deployment):
                          "after {0} minutes -- ##".format(total_sleep_time))
                 raise Exception(error)
 
+    def _build_subnets(self, auto=False):
+        """ Will print out or build the subnets
+        """
+
+        util.logger.info("### Beginning of Networking Block ###")
+
+        network_bridge_device = \
+            util.config[self.__class__.__name__.lower()]\
+                       [self.deployment.os_name]['network_bridge_device']
+        controllers = self.deployment.search_role('controller')
+        computes = self.deployment.search_role('compute')
+
+        commands = ['ip a f {0}'.format(network_bridge_device),
+                    'ovs-vsctl add-port br-{0} {0}'.format(
+                        network_bridge_device)]
+        command = "; ".join(commands)
+
+        if auto:
+            util.logger.info("### Building OVS Bridge and "
+                             "Ports on network nodes ###")
+            for controller in controllers:
+                controller.run_cmd(command)
+                for compute in computes:
+                    compute.run_cmd(command)
+        else:
+            util.logger.info("### To build the OVS network bridge "
+                             "log onto your controllers and computes"
+                             " and run the following command: ###")
+            util.logger.info(command)
+
+        commands = ["source openrc admin",
+                    "{0} net-create flattest".format(
+                        self.rpcs_feature, network_bridge_device),
+                    ("{0} subnet-create --name testnet "
+                     "--no-gateway flattest 172.0.0.0/8".format(
+                        self.rpcs_feature)
+                    )]
+        command = "; ".join(commands)
+
+        if auto:
+            util.logger.info("Adding Neutron Network")
+            for controller in controllers:
+                util.logger.info(
+                    "Attempting to setup network on {0}".format(
+                        controller.name))
+                
+                network_run = controller.run_cmd(command)
+                if network_run['success']:
+                    util.logger.info("Network setup succedded")
+                    break
+                else:
+                    util.logger.info(
+                        "Failed to setup network on {0}".format(
+                            controller.name))
+
+            if not network_run['success']:
+                util.logger.info("## Failed to setup networks, "
+                                 "please check logs ##")
+        else:
+            util.logger.info("### To Add Neutron Network log onto the active "
+                             "controller and run the following commands: ###")
+            for command in commands:
+                util.logger.info(command)
+
+        util.logger.info("### End of Networking Block ###")
+
 
 class Swift(Deployment):
     """ Represents a block storage cluster enabled by swift
@@ -115,7 +185,7 @@ class Swift(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Swift, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments']\
+           util.config['environments']\
                        [self.__class__.__name__.lower()][rpcs_feature]
 
     def __repr__(self):
@@ -127,36 +197,76 @@ class Swift(Deployment):
     def update_environment(self):
         self.deployment.environment.add_override_attr(
             self.__class__.__name__.lower(), self.environment)
-
+        self._set_keystone_urls()
         self._fix_environment()
 
-    def post_configure(self):
-        build_rings = bool(self.config['swift']['auto_build_rings'])
+    def post_configure(self, auto=False):
+        build_rings = auto or bool(util.config['swift']['auto_build_rings'])
         self._build_rings(build_rings)
+
+    def _set_keystone_urls(self):
+        """ Gets the controllers ip and sets the url for the env
+        accordingly
+        """
+        controller_ip = next(
+            self.deployment.search_role('controller')).ipaddress
+
+        env = self.deployment.environment
+
+        keystone_url = \
+            "http://{0}:8080/v1/AUTH_%(tenant_id)s".format(controller_ip)
+
+        for item in env.override_attributes['keystone']:
+            if 'url' in item:
+                env.override_attributes['keystone'][item] = keystone_url
+
+        env.save()
+
+    def _fix_environment(self):
+        """ This is needed to make the environment for swift line up to the
+        requirements from rpcs.
+        """
+
+        env = self.deployment.environment
+        master_key = util.config['swift']['master_env_key']
+        keystone = env.override_attributes['keystone']
+        swift = env.override_attributes['swift'][master_key]
+        swift['keystone'] = keystone
+
+        util.logger.info("Matching environment: {0} to RPCS "
+                         "swift requirements".format(env.name))
+
+        env.del_override_attr('keystone')
+        env.del_override_attr('swift')
+        env.add_override_attr(master_key, swift)
+
+        env.save()
 
     def _build_rings(self, auto=False):
         """ This will either build the rings or
             print how to build the rings.
+            @param auto Whether or not to auto build the rings
+            @type auto Boolean
         """
 
         # Gather all the nodes
-        controller = self.deployment.search_role('controller')
-        proxy_nodes = self.deployment.search_role('proxy')
-        storage_nodes = self.deployment.search_role('storage')
+        controller = next(self.deployment.search_role('controller'))
+        proxy_nodes = list(self.deployment.search_role('proxy'))
+        storage_nodes = list(self.deployment.search_role('storage'))
 
         #####################################################################
         ################## Run chef on the controller node ##################
         #####################################################################
 
-        controller.run_cmd('chef-client')
+        controller.run_chef_client()
 
         #####################################################################
         ####### Run through the storage nodes and set up the disks ##########
         #####################################################################
 
         # Build Swift Rings
-        disk = self.config['swift']['disk']
-        label = self.config['swift']['disk_label']
+        disk = util.config['swift']['disk']
+        label = util.config['swift']['disk_label']
         for storage_node in storage_nodes:
             commands = ["/usr/local/bin/swift-partition.sh {0}".format(disk),
                         "/usr/local/bin/swift-format.sh {0}".format(label),
@@ -165,36 +275,30 @@ class Swift(Deployment):
                         "/dev/{0} /srv/node/{0}".format(label),
                         "chown -R swift:swift /srv/node"]
             if auto:
-                print "#" * 30
-                print "## Configuring Disks on Storage Node @ {0} ##".format(
-                    storage_node['ip'])
-                print "#" * 30
+                util.logger.info(
+                    "## Configuring Disks on Storage Node @ {0} ##".format(
+                        storage_node.ipaddress))
                 command = "; ".join(commands)
                 storage_node.run_cmd(command)
             else:
-                print "#" * 30
-                print "##### Info to setup drives for Swift #####"
-                print "#" * 30
-                print "## Log into root@{0} and run the "\
-                      "following commands: ##".format(storage_node.ipaddress)
+                util.logger.info("## Info to setup drives for Swift ##")
+                util.logger.info(
+                    "## Log into root@{0} and run the following commands: "
+                    "##".format(storage_node.ipaddress))
                 for command in commands:
-                    print command
+                    util.logger.info(command)
 
         ####################################################################
         ## Setup partitions on storage nodes, (must run as swiftops user) ##
         ####################################################################
 
-        num_rings = self.config['swift']['num_rings']
-        part_power = self.config['swift']['part_power']
-        replicas = self.config['swift']['replicas']
-        min_part_hours = self.config['swift']['min_part_hours']
-        disk_weight = self.config['swift']['disk_weight']
+        num_rings = util.config['swift']['num_rings']
+        part_power = util.config['swift']['part_power']
+        replicas = util.config['swift']['replicas']
+        min_part_hours = util.config['swift']['min_part_hours']
+        disk_weight = util.config['swift']['disk_weight']
 
         commands = ["su swiftops",
-                    "mkdir -p ~/swift/rings",
-                    "cd ~/swift/rings",
-                    "git init .",
-                    "echo \"backups\" > .gitignore",
                     "swift-ring-builder object.builder create "
                     "{0} {1} {2}".format(part_power,
                                          replicas,
@@ -208,12 +312,13 @@ class Swift(Deployment):
                                          replicas,
                                          min_part_hours)]
 
-        # Determine how many storage nodes wehave and add them
-        builders = self.config['swift']['builders']
+        # Determine how many storage nodes we have and add them
+        builders = util.config['swift']['builders']
 
         for builder in builders:
             name = builder
             port = builders[builder]['port']
+
             for index, node in enumerate(storage_nodes):
 
                 # if the current index of the node is % num_rings = 0,
@@ -235,92 +340,76 @@ class Swift(Deployment):
         cmd_list = ["swift-ring-builder object.builder rebalance",
                     "swift-ring-builder container.builder rebalance",
                     "swift-ring-builder account.builder rebalance",
-                    "git remote add origin /srv/git/rings",
-                    "git add .",
-                    "git config user.email \"swiftops@swiftops.com\"",
-                    "git config user.name \"swiftops\"",
-                    "git commit -m \"initial checkin\"",
-                    "git push origin master"]
+                    "sudo cp *.gz /etc/swift",
+                    "sudo chown -R swift: /etc/swift"]
         commands.extend(cmd_list)
 
         if auto:
-            print "#" * 30
-            print "## Setting up swift rings for deployment ##"
-            print "#" * 30
-
+            util.logger.info(
+                "## Setting up swift rings for deployment ##")
             command = "; ".join(commands)
             controller.run_cmd(command)
         else:
-            print "#" * 30
-            print "## Info to manually set up swift rings: ##"
-            print "## Log into root@{0} "\
-                  "and run the following commands: ##".format(
-                      controller.ipaddress)
+            util.logger.info("## Info to manually set up swift rings: ##")
+            util.logger.info(
+                "## Log into root@{0} and run the following commands: "
+                "##".format(controller.ipaddress))
             for command in commands:
-                print command
+                util.logger.info(command)
 
-        ######################################################################################
-        ################## Time to distribute the ring to all the boxes ######################
-        ######################################################################################
+        #####################################################################
+        ############# Time to distribute the ring to all the boxes ##########
+        #####################################################################
 
-        command = "/usr/local/bin/pull-rings.sh"
-
-        print "#" * 30
-        print "## PULL RING ONTO MANAGEMENT NODE ##"
-        if auto:
-            print "## Pulling Swift ring on Management Node ##"
-            controller.run_cmd(command)
-        else:
-            print "## On node root@{0} "\
-                  "and run the following command: ##".format(
-                      controller.ipaddress)
-            print command
-
-        print "#" * 30
-        print "## PULL RING ONTO PROXY NODES ##"
+        command = "/usr/bin/swift-ring-minion-server -f -o"
         for proxy_node in proxy_nodes:
             if auto:
-                print ("## Pulling swift ring down on "
-                       "proxy node @ {0}: ##".format(
-                           proxy_node.ipaddress))
+                util.logger.info(
+                    "## Pulling swift ring down on proxy node @ {0}: "
+                    "##".format(proxy_node.ipaddress))
                 proxy_node.run_cmd(command)
             else:
-                print "## On node root@{0} "\
-                      "and run the following command: ##".format(
-                          proxy_node.ipaddress)
-                print command
+                util.logger.info(
+                    "## On node root@{0} run the following command: "
+                    "##".format(proxy_node.ipaddress))
+                util.logger.info(command)
 
-        print "#" * 30
-        print "## PULL RING ONTO STORAGE NODES ##"
         for storage_node in storage_nodes:
             if auto:
-                print "## Pulling swift ring down storage node: {0} ##".format(
-                    storage_node.ipaddress)
+                util.logger.info(
+                    "## Pulling swift ring down on storage node: {0} "
+                    "##".format(storage_node.ipaddress))
                 storage_node.run_cmd(command)
             else:
-                print "## On node root@{0} "\
-                      "and run the following command: ##".format(
-                          storage_node.ipaddress)
-                print command
+                util.logger.info(
+                    "## On node root@{0} run the following command: "
+                    "##".format(storage_node.ipaddress))
+                util.logger.info(command)
 
-        print "#" * 30
-        print "## Done setting up swift rings ##"
 
-    def _fix_environment(self):
-        env = self.deployment.environment
-        master_key = self.config['swift']['master_env_key']
-        util.logger.info(
-            "Matching environment: {0} to RPCS swift requirements".format(
-                env.name))
-        keystone = env.override_attributes['keystone']
-        swift = env.override_attributes['swift'][master_key]
-        swift['keystone'] = keystone
+        #####################################################################
+        ############### Finalize by running chef on controler ###############
+        #####################################################################
 
-        env.del_override_attr('keystone')
-        env.del_override_attr('swift')
-        env.add_override_attr(master_key, swift)
+        if auto:
+            util.logger.info("Finalizing install on all nodes")
+            for proxy_node in proxy_nodes:
+                proxy_node.run_chef_client()
+            for storage_node in storage_nodes:
+                storage_node.run_chef_client()
+            controller.run_chef_client()
+        else:
+            for proxy_node in proxy_nodes:
+                util.logger.info("On node root@{0}, run the following command: "
+                                 "chef client".format(proxy_node.ipaddress))
+            for storage_node in storage_nodes:
+                util.logger.info("On node root@{0}, run the following command: "
+                                 "chef client".format(storage_node.ipaddress))
+            util.logger.info(
+                "On node root@{0} run the following command: chef-client "
+                "##".format(controller.ipaddress))
 
-        env.save()
+        util.logger.info("## Done setting up swift rings ##")
 
 
 class Glance(Deployment):
@@ -330,8 +419,8 @@ class Glance(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Glance, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments'][self.__class__.__name__.lower()][
-                rpcs_feature]
+            util.config['environments']\
+                       [self.__class__.__name__.lower()][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -346,7 +435,7 @@ class Glance(Deployment):
             self._add_credentials()
 
     def _add_credentials(self):
-        cf_secrets = self.deployment.config['secrets']['cloudfiles']
+        cf_secrets = util.config['secrets']['cloudfiles']
         user = cf_secrets['user']
         password = cf_secrets['password']
 
@@ -357,7 +446,11 @@ class Glance(Deployment):
         auth_address = self.environment['api']['swift_store_auth_address']
         url = "{0}/tokens".format(auth_address)
         response = requests.post(url, data=data, headers=head, verify=False)
-        services = json.loads(response._content)['access']['serviceCatalog']
+        try:
+            services = json.loads(response._content)['access'][
+                'serviceCatalog']
+        except KeyError:
+            raise Exception("Unable to authenticate with Endpoint")
         cloudfiles = next(s for s in services if s['type'] == "object-store")
         tenant_id = cloudfiles['endpoints'][0]['tenantId']
 
@@ -374,8 +467,8 @@ class Keystone(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Keystone, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments'][self.__class__.__name__.lower()][
-                rpcs_feature]
+           util.config['environments']\
+                      [self.__class__.__name__.lower()][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -395,8 +488,8 @@ class Nova(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Nova, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments'][self.__class__.__name__.lower()][
-                rpcs_feature]
+            util.config['environments']\
+                       [self.__class__.__name__.lower()][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -414,7 +507,7 @@ class Nova(Deployment):
 
             util.logger.info("Setting bridge_dev to {0}".format(bridge_dev))
             env.override_attributes['nova']['networks']\
-                                   ['public']['bridge_dev'] = bridge_dev
+                ['public']['bridge_dev'] = bridge_dev
 
             self.deployment.environment.save()
 
@@ -426,8 +519,8 @@ class Horizon(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Horizon, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments'][self.__class__.__name__.lower()][
-                rpcs_feature]
+            util.config['environments']\
+                       [self.__class__.__name__.lower()][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -447,8 +540,8 @@ class Cinder(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Cinder, self).__init__(deployment, rpcs_feature)
         self.environment = \
-            self.config['environments'][self.__class__.__name__.lower()][
-                rpcs_feature]
+           util.config['environments']\
+                      [self.__class__.__name__.lower()][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -491,7 +584,7 @@ class Monitoring(RPCS):
         super(Monitoring, self).__init__(deployment, rpcs_feature,
                                          self.__class__.__name__.lower())
         self.environment = \
-            self.config['environments'][self.name][rpcs_feature]
+           util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -512,7 +605,7 @@ class MySql(RPCS):
         super(MySql, self).__init__(deployment, rpcs_feature,
                                     self.__class__.__name__.lower())
         self.environment = \
-            self.config['environments'][self.name][rpcs_feature]
+           util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -533,7 +626,7 @@ class OsOps(RPCS):
         super(OsOps, self).__init__(deployment, rpcs_feature,
                                     self.__class__.__name__.lower())
         self.environment = \
-            self.config['environments'][self.name][rpcs_feature]
+           util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -554,7 +647,7 @@ class DeveloperMode(RPCS):
         super(DeveloperMode, self).__init__(deployment, rpcs_feature,
                                             'developer_mode')
         self.environment = \
-            self.config['environments'][self.name][rpcs_feature]
+           util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -575,7 +668,7 @@ class OsOpsNetworks(RPCS):
         super(OsOpsNetworks, self).__init__(deployment, rpcs_feature,
                                             'osops_networks')
         self.environment = \
-            self.config['environments'][self.name][rpcs_feature]
+           util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -596,7 +689,7 @@ class HighAvailability(RPCS):
         super(HighAvailability, self).__init__(deployment, rpcs_feature,
                                                'vips')
         self.environment = \
-            self.config['environments'][self.name][deployment.os_name]
+           util.config['environments'][self.name][deployment.os_name]
 
     def __repr__(self):
         """ Print out current instance
@@ -617,7 +710,7 @@ class OpenLDAP(RPCS):
         super(OpenLDAP, self).__init__(deployment, rpcs_feature,
                                        self.__class__.__name__.lower())
         self.environment = \
-            self.config['environments'][self.name]
+           util.config['environments'][self.name]
 
     def __repr__(self):
         """ Print out current instance
@@ -630,14 +723,78 @@ class OpenLDAP(RPCS):
             self.name, self.environment)
 
         ldap_server = self.deployment.search_role('openldap')
-        password = self.deployment.config['ldap']['pass']
+        password = util.config['ldap']['pass']
         ip = ldap_server.ipaddress
         env = self.deployment.environment
 
         # Override the attrs
         env.override_attributes['keystone']['ldap']['url'] = \
-            "ldap://{0}".format(ip)
+             "ldap://{0}".format(ip)
         env.override_attributes['keystone']['ldap']['password'] = password
 
         # Save the Environment
         self.node.deployment.environment.save()
+
+
+class Tempest(RPCS):
+    def __init__(self, deployment, rpcs_feature):
+        name = self.__class__.__name__.lower()
+        super(Tempest, self).__init__(deployment, rpcs_feature, name)
+
+    def pre_configure(self):
+        controller = next(self.deployment.search_role("controller"))
+        tempest_feature = NodeTempest(controller)
+        controller.features.append(tempest_feature)
+
+    def post_configure(self):
+        exclude = ['volume', 'resize', 'floating']
+        controller = next(self.deployment.search_role("controller"))
+        self.test_from(controller, xunit=True, exclude=exclude)
+
+    def _build_config(self):
+        pass
+
+
+    def test_from(self, node, xunit=False, tags=None, exclude=None,
+                  paths=None):
+        """
+        Runs tests from node
+        @param xunit: Produce xunit report
+        @type xunit: Boolean
+        @param tags: Tags to pass the nosetests
+        @type tags: list
+        @param exclude: Expressions to exclude
+        @param exclude: list
+        @param paths: Paths to load tests from (compute, compute/servers...)
+        @param paths: list
+        """
+
+        tempest_dir = util.config['tests']['tempest']['dir']
+        checkout = "cd {0}; git checkout stable/havana".format(tempest_dir)
+        node.run_cmd(checkout)
+
+        xunit_file = "{0}.xml".format(node.name)
+        xunit_flag = ''
+        if xunit:
+            xunit_flag = '--with-xunit --xunit-file=%s' % xunit_file
+
+        tag_flag = "-a " + " -a ".join(tags) if tags else ""
+
+        exclude_flag = "-e " + " -e ".join(exclude) if exclude else ''
+
+        test_map = util.config['tests']['tempest']['test_map']
+        paths = paths
+        if not paths:
+            features = self.deployment.feature_names()
+            paths = set(chain(*ifilter(None, (test_map.get(feature, None)
+                                              for feature in features))))
+            path_args = " ".join(paths)
+            command = ("{0}/tools/with_venv.sh nosetests -w "
+                       "{0}/tempest/api "
+                       "{1} {2} {3} {4}".format(tempest_dir, xunit_flag,
+                                                tag_flag, path_args,
+                                                exclude_flag))
+            node.run_cmd(command)
+            if xunit:
+                node.scp_from(xunit_file, local_path=".")
+                util.xunit_merge()

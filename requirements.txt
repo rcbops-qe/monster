@@ -4,3 +4,5 @@ requests
 paramiko
 pychef
 pyyaml
+gevent
+rackspace-novaclient

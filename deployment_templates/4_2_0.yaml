@@ -11,11 +11,10 @@ precise-default:
     keystone: default
     osops: default
     osopsnetworks: default
-    tempest: default
   nodes:
     - [chefserver]
-    - [controller, orchestration]
-    - [compute]
+    - [controller, celiometer]
+    - [compute, celiometer]
 
 centos-default:
   product: compute
@@ -25,7 +24,6 @@ centos-default:
     monitoring: default
     mysql: default
     glance: cf
-    cinder: local
     nova: default
     horizon: default
     keystone: default
@@ -33,49 +31,8 @@ centos-default:
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller]
-    - [compute]
-
-precise-neutron:
-  product: compute
-  name: neutron
-  os: precise
-  features:
-    monitoring: default
-    mysql: default
-    glance: default
-    nova: default
-    neutron: neutron
-    horizon: default
-    keystone: default
-    osops: default
-    osopsnetworks: default
-  nodes:
-    - [chefserver]
-    - [controller, network]
-    - [compute, network]
-
-precise-ha:
-  product: compute
-  name: ha
-  os: precise
-  features:
-    monitoring: default
-    mysql: default
-    glance: cf
-    nova: default
-    horizon: default
-    keystone: default
-    osops: default
-    osopsnetworks: default
-    neutron: neutron
-    tempest: default
-    highavailability: default
-  nodes:
-    - [chefserver]
-    - [controller, networkmanager, orchestration]
-    - [controller, networkmanager]
-    - [compute]
+    - [controller, celiometer]
+    - [compute, celiometer]
 
 precise-swift:
   product: storage

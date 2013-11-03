@@ -8,29 +8,36 @@ import traceback
 import argh
 
 from monster import util
+from monster.provisioners import provisioner as provisioners
 from monster.config import Config
 from monster.deployments.chef_deployment import ChefDeployment
 
-
-def build(name="precise-swift", branch="grizzly", template_path=None,
-          config=None, destroy=False, dry=False, log=None,
-          log_level="INFO"):
+def build(name="precise-swift", branch="master", provisioner="razor", 
+          template_path=None, config=None, destroy=False,
+          dry=False, log=None, log_level="INFO"):
 
     """ Builds an OpenStack Swift storage cluster
     """
 
-    # Set the log level
     _set_log(log, log_level)
 
-    # provisioning deployment
-    config = Config(config)
-    deployment = ChefDeployment.fromfile(name, branch, config, template_path)
-    util.logger.info(deployment)
-
+    # provisiong deployment
+    util.config = Config(config)
+    class_name = util.config["provisioners"][provisioner]
+    cprovisioner = util.module_classes(provisioners)[class_name]()
+    deployment = ChefDeployment.fromfile(name, branch, cprovisioner,
+                                         template_path)
     if dry:
         # build environment
-        deployment.update_environment()
+        try:
+            deployment.update_environment()
+        except Exception:
+            util.logger.error(traceback.print_exc())
+            deployment.destroy()
+            sys.exit(1)
+
     else:
+        util.logger.info(deployment)
         # build deployment
         try:
             deployment.build()
@@ -82,12 +89,12 @@ def load(name="precise-swift", config=None, log=None, log_level="INFO"):
     util.logger.info(str(deployment))
 
 
-def _load(name="precise-swift", config=None):
+def _load(name="precise-swift", config=None, provisioner="razor"):
     # load deployment and source openrc
-    config = Config(config)
-    deployment = ChefDeployment.from_chef_environment(name, config)
-    return deployment
-
+    util.config = Config(config)
+    class_name = util.config["provisioners"][provisioner]
+    cprovisioner = util.module_classes(provisioners)[class_name]()
+    return ChefDeployment.from_chef_environment(name, provisioner=cprovisioner)
 
 def _set_log(log, log_level):
     # set log level and file

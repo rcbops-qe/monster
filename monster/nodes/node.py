@@ -13,7 +13,7 @@ class Node(object):
     Provides server related functions
     """
     def __init__(self, ip, user, password, os, product, environment,
-                 deployment, provisioner, status="provisioning"):
+                 deployment, provisioner, status=None):
         self.ipaddress = ip
         self.user = user
         self.password = password
@@ -21,10 +21,10 @@ class Node(object):
         self.product = product
         self.environment = environment
         self.deployment = deployment
-        self.provisoner = provisioner
+        self.provisioner = provisioner
         self.features = []
         self._cleanups = []
-        self.status = status
+        self.status = status or "provisioning"
 
     def __repr__(self):
         """ Print out current instance
@@ -43,15 +43,26 @@ class Node(object):
                     outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
         return "\n".join([outl, features])
 
-    def run_cmd(self, remote_cmd, user=None, password=None):
+    def run_cmd(self, remote_cmd, user=None, password=None, attempts=None):
         """
         Runs a command on the node
         """
         user = user or self.user
         password = password or self.password
         util.logger.info("Running: {0} on {1}".format(remote_cmd, self.name))
-        return ssh_cmd(self.ipaddress, remote_cmd=remote_cmd, user=user,
-                       password=password)
+        count = attempts or 1
+        ret = ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
+                      user=user, password=password)
+        while not ret['success'] and count:
+            ret = ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
+                          user=user, password=password)
+            count -= 1
+
+        if not ret['success'] and attempts:
+            raise Exception("Failed to run {0} after {1} attempts".format(
+                remote_cmd, attempts))
+
+        return ret
 
     def scp_to(self, local_path, user=None, password=None, remote_path=""):
         """
@@ -59,7 +70,10 @@ class Node(object):
         """
         user = user or self.user
         password = password or self.password
-        return scp_to(self.ipaddress, local_path, user=user, password=password,
+        return scp_to(self.ipaddress,
+                      local_path,
+                      user=user,
+                      password=password,
                       remote_path=remote_path)
 
     def scp_from(self, remote_path, user=None, password=None, local_path=""):
@@ -68,8 +82,11 @@ class Node(object):
         """
         user = user or self.user
         password = password or self.password
-        return scp_from(self.ipaddress, remote_path, user=user,
-                        password=password, local_path=local_path)
+        return scp_from(self.ipaddress,
+                        remote_path,
+                        user=user,
+                        password=password,
+                        local_path=local_path)
 
     def pre_configure(self):
         """Pre configures node for each feature"""
@@ -107,7 +124,16 @@ class Node(object):
         self.status = "done"
 
     def destroy(self):
-        self.status = "Destroying"
-        self.provisoner.destroy_node(self)
+        self.provisioner.destroy_node(self)
         util.logger.info("Destroying node:{0}".format(self.name))
         self.status = "Destroyed"
+
+    def feature_in(self, feature):
+        if feature in (feature.__class__.__name__.lower()
+                       for feature in self.features):
+            return True
+        return False
+
+    def feature_names(self):
+        return [feature.__class__.__name__.lower() for feature in
+                self.features]
