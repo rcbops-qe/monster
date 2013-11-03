@@ -132,7 +132,7 @@ class ChefOpenstackProvisioner(Provisioner):
         run_list = ",".join(util.config['openstack']['run_list'])
         run_list_arg = ""
         if run_list:
-            "-r {0}".format(run_list)
+            run_list_arg = "-r {0}".format(run_list)
         command = 'knife bootstrap {0} -u root -P {1} -N {2} {3}'.format(
             server.accessIPv4, password, name, run_list_arg)
         with self.lock:
