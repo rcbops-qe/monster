@@ -93,7 +93,7 @@ class ChefDeployment(Deployment):
                                            branch, environment, provisioner)
         chef_nodes = provisioner.provision(template, deployment)
         for node in chef_nodes:
-            deployment.nodes.extend(
+            deployment.nodes.append(
                 ChefNode.from_chef_node(node, os_name, product, environment,
                                         deployment, provisioner, branch)
             )
