@@ -33,6 +33,7 @@ class ChefNode(Node):
         """
         Node has access to chef attributes
         """
+        util.logger.debug("getting {0} on {2}".format(item, self.name))
         return CNode(self.name, api=self.environment.local_api)[item]
 
     def __setitem__(self, item, value):
