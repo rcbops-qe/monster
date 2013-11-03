@@ -317,6 +317,8 @@ provisioners:
   openstack: chefopenstackprovisioner
 
 openstack:
+  run_list:
+    - recipe[rcbops-qa]
   images:
     precise: Ubuntu 12.04
     centos: CentOS 6.4
