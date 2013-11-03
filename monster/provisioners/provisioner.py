@@ -119,11 +119,11 @@ class ChefOpenstackProvisioner(Provisioner):
         return chef_nodes
 
     def destroy_node(self, node):
-        cnode = Node(node.name, node.environment.local_api).destroy()
+        cnode = Node(node.name, node.environment.local_api)
         compute = self.connection()
         compute.get(node['uuid']).delete()
-        cnode.destroy()
-        Client(node.name, node.environment.local_api).destroy()
+        cnode.delete()
+        Client(node.name, node.environment.local_api).delete()
 
     def chef_instance(self, client, features, deployment, name, flavor="1GB"):
         image = deployment.os_name
