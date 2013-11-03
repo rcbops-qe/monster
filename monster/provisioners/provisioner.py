@@ -121,7 +121,7 @@ class ChefOpenstackProvisioner(Provisioner):
     def destroy_node(self, node):
         cnode = Node(node.name, node.environment.local_api)
         compute = self.connection()
-        compute.get(node['uuid']).delete()
+        compute.servers.get(node['uuid']).delete()
         cnode.delete()
         Client(node.name, node.environment.local_api).delete()
 
