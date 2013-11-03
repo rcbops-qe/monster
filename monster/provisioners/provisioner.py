@@ -137,6 +137,7 @@ class ChefOpenstackProvisioner(Provisioner):
         node['ipaddress'] = server.accessIPv4
         node['password'] = password
         node['uuid'] = server.id
+        node['current_user'] = "root"
         node.save()
         return node
 
