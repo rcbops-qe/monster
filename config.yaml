@@ -314,7 +314,7 @@ cinder:
 
 provisioners:
   razor: chefrazorprovisioner
-  openstack: openstackprovisioner
+  openstack: chefopenstackprovisioner
 
 openstack:
   images:

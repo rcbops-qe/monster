@@ -91,9 +91,18 @@ class ChefDeployment(Deployment):
 
         deployment = cls.deployment_config(template['features'], name, os_name,
                                            branch, environment, provisioner)
-        for features in template['nodes']:
-            deployment.node_config(features, os_name, product, environment,
-                                   provisioner, branch)
+        chef_nodes = provisioner.provision(template, deployment)
+        for node in chef_nodes:
+            deployment.nodes.extend(
+                ChefNode.from_chef_node(node, os_name, product, environment,
+                                        deployment, provisioner, branch)
+            )
+        for node, features in zip(deployment.nodes, template['nodes']):
+            node.add_features(features)
+
+        # for features in template['nodes']:
+        #     deployment.node_config(features, os_name, product, environment,
+        #                            provisioner, branch)
         return deployment
 
     @classmethod

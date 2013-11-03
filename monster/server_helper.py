@@ -11,6 +11,7 @@ def run_cmd(command):
     @param cmd
     @return A map based on pass / fail run info
     """
+    util.logger.info("Running: {0}".format(command))
     try:
         ret = check_call(command, shell=True)
         return {'success': True, 'return': ret, 'exception': None}

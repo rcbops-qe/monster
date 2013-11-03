@@ -1,5 +1,7 @@
-import gevent
 from time import sleep
+from gevent import spawn, joinall
+from gevent import sleep as gsleep
+from gevent.coros import BoundedSemaphore
 
 from chef import Node, Client, Search, autoconfigure
 
@@ -7,7 +9,6 @@ import novaclient.auth_plugin
 from novaclient.client import Client as NovaClient
 
 from monster import util
-from monster.nodes.chef_node import ChefNode
 from monster.razor_api import razor_api
 from monster.server_helper import run_cmd
 
@@ -82,28 +83,40 @@ class ChefRazorProvisioner(Provisioner):
         return (n.object for n in search)
 
 
-class ChefCloudServer(Provisioner):
+class ChefOpenstackProvisioner(Provisioner):
     def __init__(self):
-        self.names = {}
+        self.names = []
+        self.name_index = {}
+        self.lock = BoundedSemaphore(1)
+
+    def name(self, name, deployment, number=None):
+        if name in self.name_index:
+            # Name already exists, use index to name
+            num = self.name_index[name] + 1
+            self.name_index[name] = num
+            return "{0}-{1}{2}".format(deployment, name, number=num)
+
+        # Name doesn't exist initalize index use name
+        self.name_index[name] = 1
+        return "{0}-{1}".format(deployment.name, name)
 
     def provision(self, template, deployment):
+        util.logger.info("Provisioning in the cloud!")
+        # acquire connection
         client = self.connection()
-        events = [
-            gevent.spawn(self.chef_instance, client, features, deployment)
-            for features in template['nodes']
-        ]
-        gevent.joinall(events)
-        chef_nodes = [Node(features[0]) for features in template['nodes']]
-        product = template['product']
-        os_name = deployment.os_name
-        environment = deployment.environment
-        provisioner = self
-        branch = deployment.branch
-        monster_nodes = [
-            ChefNode.from_chef_node(node, os_name, product, environment,
-                                    deployment, provisioner, branch)
-            for node in chef_nodes]
-        deployment.nodes.extend(monster_nodes)
+
+        # create instances concurrently
+        events = []
+        for features in template['nodes']:
+            name = self.name(features[0], deployment)
+            self.names.append(name)
+            events.append(spawn(self.chef_instance, client, features,
+                                deployment, name))
+        joinall(events)
+
+        # acquire chef nodes
+        chef_nodes = [event.value for event in events]
+        return chef_nodes
 
     def destroy_node(self, node):
         cnode = Node(node.name, node.environment.local_api).destroy()
@@ -112,18 +125,20 @@ class ChefCloudServer(Provisioner):
         cnode.destroy()
         Client(node.name, node.environment.local_api).destroy()
 
-    def chef_instance(self, client, features, deployment, flavor="1GB"):
-        name = features[0]
+    def chef_instance(self, client, features, deployment, name, flavor="1GB"):
         image = deployment.os_name
         server, password = self.build_instance(client, name=name,
                                                image=image, flavor=flavor)
-        command = 'knife bootstrap {0} -u root -P {1} -N'.format(
-            self.server.accessIPv4, password, name)
-        run_cmd(command)
+        command = 'knife bootstrap {0} -u root -P {1} -N {2}'.format(
+            server.accessIPv4, password, name)
+        with self.lock:
+            run_cmd(command)
         node = Node(name, api=deployment.environment.local_api)
+        node['ipaddress'] = server.accessIPv4
         node['password'] = password
         node['uuid'] = server.id
         node.save()
+        return node
 
     def build_instance(self, client, name="server", image="precise",
                        flavor="1GB"):
@@ -135,7 +150,7 @@ class ChefCloudServer(Provisioner):
         flavor = next(flavor.id for flavor in client.flavors.list()
                       if flavor_name in flavor.name)
         try:
-            image_name = openstack['iamges'][image]
+            image_name = openstack['images'][image]
         except KeyError:
             raise Exception("Image not supported:{0}".format(image))
         image = next(image.id for image in client.images.list()
@@ -147,23 +162,24 @@ class ChefCloudServer(Provisioner):
                                      ["ACTIVE", "ERROR"])
         return (server, password)
 
-    def wait_for_state(self, fun, obj, attr, desired, interval=10,
+    def wait_for_state(self, fun, obj, attr, desired, interval=15,
                        attempts=None):
         attempt = 0
         in_attempt = lambda x: not attempts or x > attempts
         while getattr(obj, attr) not in desired and in_attempt(attempt):
-            print "Wating:{0} {1}:{2}".format(obj, attr, getattr(obj, attr))
-            gevent.sleep(interval)
+            util.logger.info("Wating:{0} {1}:{2}".format(obj, attr,
+                                                         getattr(obj, attr)))
+            gsleep(interval)
             obj = fun(obj.id)
             attempt = attempt + 1
         return obj
 
-    def connection():
+    def connection(self):
         creds = util.config['secrets']['openstack']
         plugin = creds['plugin']
         if plugin:
             novaclient.auth_plugin.discover_auth_systems()
-            auth_plugin = novaclient.auth_plugin.load_plugin("rackspace")
+            auth_plugin = novaclient.auth_plugin.load_plugin(plugin)
         user = creds['user']
         api_key = creds['api_key']
         auth_url = creds['auth_url']
