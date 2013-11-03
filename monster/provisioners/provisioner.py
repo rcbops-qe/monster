@@ -134,6 +134,8 @@ class ChefOpenstackProvisioner(Provisioner):
         with self.lock:
             run_cmd(command)
         node = Node(name, api=deployment.environment.local_api)
+        node.chef_environment = deployment.environment.name
+        node['in_use'] = "provisioning"
         node['ipaddress'] = server.accessIPv4
         node['password'] = password
         node['uuid'] = server.id
