@@ -37,6 +37,12 @@ class ChefRazorProvisioner(Provisioner):
         self.ipaddress = ip or util.config['razor']['ip']
         self.api = razor_api(self.ipaddress)
 
+    def provision(self, template, deployment):
+        util.logger.info("Provisioning with Razor!")
+        image = deployment.os_name
+        return [self.available_node(image, deployment)
+                for _ in template['nodes']]
+
     def available_node(self, image, deployment):
         """
         Provides a free node from
