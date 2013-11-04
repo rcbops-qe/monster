@@ -106,10 +106,14 @@ environments:
         default:
             default: false
     osops_networks:
-        default:
-            management: 198.101.133.0/24
-            nova: 198.101.133.0/24
-            public: 198.101.133.0/24
+      razor:
+        management: 198.101.133.0/24
+        nova: 198.101.133.0/24
+        public: 198.101.133.0/24
+      openstack:
+        management: 166.78.148.0/24
+        nova: 166.78.148.0/24
+        public: 166.78.148.0/24
     glance:
         default:
             image_upload: true
