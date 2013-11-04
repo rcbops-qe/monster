@@ -389,6 +389,6 @@ class Orchestration(Node):
         self.set_run_list()
 
 
-class NetworkManger(Node):
+class NetworkManager(Node):
     def preconfigure(self):
         self.set_run_list()
