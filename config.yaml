@@ -166,7 +166,7 @@ environments:
             keystone-admin-api: 198.101.133.156
             keystone-internal-api: 198.101.133.156
             keystone-service-api: 198.101.133.156
-            neutron-api: 192.168.0.241
+            neutron-api: 198.101.133.156
             nova-api: 198.101.133.156
             nova-ec2-public: 198.101.133.156
             nova-novnc-proxy: 198.101.133.156
@@ -212,7 +212,7 @@ environments:
 rcbops:
     compute:
         git:
-            url: https://github.com/rcbops/chef-cookbooks.git
+            url: https://github.com/Apsu/chef-cookbooks.git
             branches:
                 master:
                     tags:
