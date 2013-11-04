@@ -48,9 +48,7 @@ class Neutron(Deployment):
 
     def __init__(self, deployment, rpcs_feature):
         super(Neutron, self).__init__(deployment, rpcs_feature)
-        self.environment = \
-           util.config['environments']\
-                      [self.__class__.__name__.lower()][rpcs_feature]
+        self.environment = util.config['environments'][str(self)][rpcs_feature]
         self.provider = rpcs_feature
 
     def __repr__(self):
@@ -61,7 +59,7 @@ class Neutron(Deployment):
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
-            self.__class__.__name__.lower(), self.environment)
+            str(self), self.environment)
         self._fix_nova_environment()
 
     def post_configure(self, auto=False):
@@ -72,9 +70,8 @@ class Neutron(Deployment):
 
         # Grab the config to auto build or not
         auto_build = auto or \
-            util.config[self.__class__.__name__.lower()]['auto_build_subnets']
+            util.config[str(self)]['auto_build_subnets']
         self._build_subnets(auto_build)
-
 
     def _fix_nova_environment(self):
         # When enabling neutron, have to update the env var correctly
@@ -117,9 +114,8 @@ class Neutron(Deployment):
 
         util.logger.info("### Beginning of Networking Block ###")
 
-        network_bridge_device = \
-            util.config[self.__class__.__name__.lower()]\
-                       [self.deployment.os_name]['network_bridge_device']
+        network_bridge_device = util.config[str(self)][
+            self.deployment.os_name]['network_bridge_device']
         controllers = self.deployment.search_role('controller')
         computes = self.deployment.search_role('compute')
 
@@ -146,7 +142,7 @@ class Neutron(Deployment):
                         self.rpcs_feature, network_bridge_device),
                     ("{0} subnet-create --name testnet "
                      "--no-gateway flattest 172.0.0.0/8".format(
-                        self.rpcs_feature)
+                         self.rpcs_feature)
                     )]
         command = "; ".join(commands)
 
@@ -184,9 +180,7 @@ class Swift(Deployment):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Swift, self).__init__(deployment, rpcs_feature)
-        self.environment = \
-           util.config['environments']\
-                       [self.__class__.__name__.lower()][rpcs_feature]
+        self.environment = util.config['environments'][str(self)][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -196,7 +190,7 @@ class Swift(Deployment):
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
-            self.__class__.__name__.lower(), self.environment)
+            str(self), self.environment)
         self._set_keystone_urls()
         self._fix_environment()
 
@@ -386,7 +380,6 @@ class Swift(Deployment):
                     "##".format(storage_node.ipaddress))
                 util.logger.info(command)
 
-
         #####################################################################
         ############### Finalize by running chef on controler ###############
         #####################################################################
@@ -418,9 +411,7 @@ class Glance(Deployment):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Glance, self).__init__(deployment, rpcs_feature)
-        self.environment = \
-            util.config['environments']\
-                       [self.__class__.__name__.lower()][rpcs_feature]
+        self.environment = util.config['environments'][str(self)][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -430,7 +421,7 @@ class Glance(Deployment):
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
-            self.__class__.__name__.lower(), self.environment)
+            str(self), self.environment)
         if self.rpcs_feature == 'cf':
             self._add_credentials()
 
@@ -466,9 +457,7 @@ class Keystone(Deployment):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Keystone, self).__init__(deployment, rpcs_feature)
-        self.environment = \
-           util.config['environments']\
-                      [self.__class__.__name__.lower()][rpcs_feature]
+        self.environment = util.config['environments'][str(self)][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -478,7 +467,7 @@ class Keystone(Deployment):
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
-            self.__class__.__name__.lower(), self.environment)
+            str(self), self.environment)
 
 
 class Nova(Deployment):
@@ -487,9 +476,7 @@ class Nova(Deployment):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Nova, self).__init__(deployment, rpcs_feature)
-        self.environment = \
-            util.config['environments']\
-                       [self.__class__.__name__.lower()][rpcs_feature]
+        self.environment = util.config['environments'][str(self)][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -499,7 +486,7 @@ class Nova(Deployment):
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
-            self.__class__.__name__.lower(), self.environment)
+            str(self), self.environment)
         bridge_dev = None
         if self.deployment.provisioner.short_name() == 'openstack':
             bridge_dev = 'eth0'
@@ -509,8 +496,8 @@ class Nova(Deployment):
             env = self.deployment.environment
 
             util.logger.info("Setting bridge_dev to {0}".format(bridge_dev))
-            env.override_attributes['nova']['networks']\
-                ['public']['bridge_dev'] = bridge_dev
+            env.override_attributes['nova']['networks']['public'][
+                'bridge_dev'] = bridge_dev
 
             self.deployment.environment.save()
 
@@ -521,9 +508,7 @@ class Horizon(Deployment):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Horizon, self).__init__(deployment, rpcs_feature)
-        self.environment = \
-            util.config['environments']\
-                       [self.__class__.__name__.lower()][rpcs_feature]
+        self.environment = util.config['environments'][str(self)][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -533,7 +518,7 @@ class Horizon(Deployment):
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
-            self.__class__.__name__.lower(), self.environment)
+            str(self), self.environment)
 
 
 class Cinder(Deployment):
@@ -542,9 +527,7 @@ class Cinder(Deployment):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Cinder, self).__init__(deployment, rpcs_feature)
-        self.environment = \
-           util.config['environments']\
-                      [self.__class__.__name__.lower()][rpcs_feature]
+        self.environment = util.config['environments'][str(self)][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -554,7 +537,7 @@ class Cinder(Deployment):
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
-            self.__class__.__name__.lower(), self.environment)
+            str(self), self.environment)
 
 #############################################################################
 ############### Rackspace Private Cloud Software Features ###################
@@ -585,9 +568,8 @@ class Monitoring(RPCS):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Monitoring, self).__init__(deployment, rpcs_feature,
-                                         self.__class__.__name__.lower())
-        self.environment = \
-           util.config['environments'][self.name][rpcs_feature]
+                                         str(self))
+        self.environment = util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -597,7 +579,7 @@ class Monitoring(RPCS):
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
-            self.__class__.__name__.lower(), self.environment)
+            str(self), self.environment)
 
 
 class MySql(RPCS):
@@ -606,9 +588,8 @@ class MySql(RPCS):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(MySql, self).__init__(deployment, rpcs_feature,
-                                    self.__class__.__name__.lower())
-        self.environment = \
-           util.config['environments'][self.name][rpcs_feature]
+                                    str(self))
+        self.environment = util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -627,9 +608,8 @@ class OsOps(RPCS):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(OsOps, self).__init__(deployment, rpcs_feature,
-                                    self.__class__.__name__.lower())
-        self.environment = \
-           util.config['environments'][self.name][rpcs_feature]
+                                    str(self))
+        self.environment = util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -649,8 +629,7 @@ class DeveloperMode(RPCS):
     def __init__(self, deployment, rpcs_feature='default'):
         super(DeveloperMode, self).__init__(deployment, rpcs_feature,
                                             'developer_mode')
-        self.environment = \
-           util.config['environments'][self.name][rpcs_feature]
+        self.environment = util.config['environments'][self.name][rpcs_feature]
 
     def __repr__(self):
         """ Print out current instance
@@ -691,8 +670,8 @@ class HighAvailability(RPCS):
     def __init__(self, deployment, rpcs_feature):
         super(HighAvailability, self).__init__(deployment, rpcs_feature,
                                                'vips')
-        self.environment = \
-           util.config['environments'][self.name][deployment.os_name]
+        self.environment = util.config['environments'][self.name][
+            deployment.os_name]
 
     def __repr__(self):
         """ Print out current instance
@@ -711,9 +690,8 @@ class OpenLDAP(RPCS):
 
     def __init__(self, deployment, rpcs_feature):
         super(OpenLDAP, self).__init__(deployment, rpcs_feature,
-                                       self.__class__.__name__.lower())
-        self.environment = \
-           util.config['environments'][self.name]
+                                       str(self))
+        self.environment = util.config['environments'][self.name]
 
     def __repr__(self):
         """ Print out current instance
@@ -732,7 +710,7 @@ class OpenLDAP(RPCS):
 
         # Override the attrs
         env.override_attributes['keystone']['ldap']['url'] = \
-             "ldap://{0}".format(ip)
+            "ldap://{0}".format(ip)
         env.override_attributes['keystone']['ldap']['password'] = password
 
         # Save the Environment
@@ -741,7 +719,7 @@ class OpenLDAP(RPCS):
 
 class Tempest(RPCS):
     def __init__(self, deployment, rpcs_feature):
-        name = self.__class__.__name__.lower()
+        name = str(self)
         super(Tempest, self).__init__(deployment, rpcs_feature, name)
 
     def pre_configure(self):
