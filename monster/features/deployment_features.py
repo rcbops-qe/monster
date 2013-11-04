@@ -754,7 +754,6 @@ class Tempest(RPCS):
     def _build_config(self):
         pass
 
-
     def test_from(self, node, xunit=False, tags=None, exclude=None,
                   paths=None):
         """
