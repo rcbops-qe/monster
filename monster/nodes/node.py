@@ -92,8 +92,7 @@ class Node(object):
         """Pre configures node for each feature"""
         self.status = "pre-configure"
         for feature in self.features:
-            log = "Node feature: pre-configure: {0}"\
-                .format(str(feature))
+            log = "Node feature: pre-configure: {0}".format(str(feature))
             util.logger.debug(log)
             feature.pre_configure()
 
@@ -101,8 +100,7 @@ class Node(object):
         self.status = "apply-feature"
         """Applies each feature"""
         for feature in self.features:
-            log = "Node feature: update environment: {0}"\
-                .format(str(feature))
+            log = "Node feature: apply: {0}".format(str(feature))
             util.logger.debug(log)
             feature.apply_feature()
 
@@ -110,8 +108,7 @@ class Node(object):
         """Post configures node for each feature"""
         self.status = "post-configure"
         for feature in self.features:
-            log = "Node feature: post-configure: {0}"\
-                .format(str(feature))
+            log = "Node feature: post-configure: {0}".format(str(feature))
             util.logger.debug(log)
             feature.post_configure()
 
