@@ -156,7 +156,7 @@ class Neutron(Deployment):
                 util.logger.info(
                     "Attempting to setup network on {0}".format(
                         controller.name))
-                
+
                 network_run = controller.run_cmd(command)
                 if network_run['success']:
                     util.logger.info("Network setup succedded")
@@ -667,8 +667,8 @@ class OsOpsNetworks(RPCS):
     def __init__(self, deployment, rpcs_feature='default'):
         super(OsOpsNetworks, self).__init__(deployment, rpcs_feature,
                                             'osops_networks')
-        self.environment = \
-           util.config['environments'][self.name][rpcs_feature]
+        self.environment = util.config['environments'][self.name][
+            self.deployment.provisioner.short_name()]
 
     def __repr__(self):
         """ Print out current instance
