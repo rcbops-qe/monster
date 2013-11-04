@@ -74,12 +74,21 @@ class ChefNode(Node):
         super(ChefNode, self).apply_feature()
 
     def save(self, chef_node=None):
+        """
+        Saves a chef node to local and remote chef server
+        """
+        util.logger.debug("Saving chef_node:{0}".format(self.name))
         chef_node = chef_node or CNode(self.name, self.environment.local_api)
         chef_node.save(self.environment.local_api)
         if self.environment.remote_api:
+            # syncs to remote chef server if available
             chef_node.save(self.environment.remote_api)
 
     def save_locally(self, chef_node=None):
+        """
+        Syncs the remote chef nodes attribute to the local chef server
+        """
+        util.logger.debug("Syncing chef node from remote:{0}".format(self.name))
         if self.environment.remote_api:
             chef_node = chef_node or CNode(self.name,
                                            self.environment.remote_api)
@@ -106,11 +115,7 @@ class ChefNode(Node):
                                                             features))
         classes = util.module_classes(node_features)
         for feature in features:
-            try:
-                feature_class = classes[feature](self)
-            except KeyError:
-                raise Exception(
-                    "Node feature add fail{0}:{1}" .format(self, feature))
+            feature_class = classes[feature](self)
             self.features.append(feature_class)
 
         # save features for restore
