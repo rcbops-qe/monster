@@ -15,6 +15,16 @@ from monster.server_helper import run_cmd
 
 class Provisioner(object):
 
+    def __str__(self):
+        self.__class__.__name__.lower()
+
+    def short_name(self):
+        """
+        Converts to short hand name
+        """
+        provisioners = util.config['provisioners']
+        {value: key for key, value in provisioners.items()}[str(self)]
+
     def available_node(self, image, deployment):
         raise NotImplementedError
 
