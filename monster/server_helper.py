@@ -40,7 +40,7 @@ def ssh_cmd(ip, remote_cmd, user='root', password=None):
     for line in stdout:
         if util.logger < 10:
             sys.stdout.write(line)
-        util.logger.debug(line.strip())
+        util.logger.info(line.strip())
         output.write(line)
     for line in stderr:
         util.logger.error(line.strip())
