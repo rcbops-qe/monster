@@ -500,9 +500,12 @@ class Nova(Deployment):
     def update_environment(self):
         self.deployment.environment.add_override_attr(
             self.__class__.__name__.lower(), self.environment)
-
-        if self.deployment.os_name in ['centos', 'rhel']:
+        bridge_dev = None
+        if self.deployment.provisioner.short_name() == 'openstack':
+            bridge_dev = 'eth0'
+        elif self.deployment.os_name in ['centos', 'rhel']:
             bridge_dev = 'em1'
+        if bridge_dev:
             env = self.deployment.environment
 
             util.logger.info("Setting bridge_dev to {0}".format(bridge_dev))
