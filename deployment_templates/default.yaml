@@ -68,13 +68,11 @@ precise-ha:
     keystone: default
     osops: default
     osopsnetworks: default
-    neutron: neutron
-    tempest: default
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, networkmanager, orchestration]
-    - [controller, networkmanager]
+    - [controller, orchestration]
+    - [controller]
     - [compute]
 
 precise-swift:
