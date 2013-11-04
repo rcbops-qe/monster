@@ -14,7 +14,7 @@ class Feature(object):
         return outl
 
     def __str__(self):
-        return self.__class__.__name__
+        return self.__class__.__name__.lower()
 
     def update_environment(self):
         pass
