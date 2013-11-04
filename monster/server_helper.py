@@ -38,12 +38,12 @@ def ssh_cmd(ip, remote_cmd, user='root', password=None):
     stdin, stdout, stderr = ssh.exec_command(remote_cmd)
     stdin.close()
     for line in stdout:
-        sys.stdout.write(line)
-        util.logger.debug(line)
+        if util.logger < 10:
+            sys.stdout.write(line)
+        util.logger.debug(line.strip())
         output.write(line)
     for line in stderr:
-        sys.stderr.write(line)
-        util.logger.error(line)
+        util.logger.error(line.strip())
         error.write(line)
     exit_status = stdout.channel.recv_exit_status()
     ret = {'success': True if exit_status == 0 else False,
