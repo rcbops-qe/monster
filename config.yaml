@@ -166,7 +166,6 @@ environments:
             keystone-admin-api: 198.101.133.156
             keystone-internal-api: 198.101.133.156
             keystone-service-api: 198.101.133.156
-            neutron-api: 198.101.133.156
             nova-api: 198.101.133.156
             nova-ec2-public: 198.101.133.156
             nova-novnc-proxy: 198.101.133.156
