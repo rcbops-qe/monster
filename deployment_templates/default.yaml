@@ -33,7 +33,7 @@ centos-default:
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller]
+    - [controller, orchestration]
     - [compute]
 
 precise-neutron:
@@ -55,10 +55,49 @@ precise-neutron:
     - [controller, network]
     - [compute, network]
 
+centos-neutron:
+  product: compute
+  name: neutron
+  os: centos
+  features:
+    monitoring: default
+    mysql: default
+    glance: default
+    nova: default
+    neutron: neutron
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+  nodes:
+    - [chefserver]
+    - [controller, network]
+    - [compute, network]
+
 precise-ha:
   product: compute
   name: ha
   os: precise
+  features:
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, orchestration]
+    - [controller]
+    - [compute]
+
+centos-ha:
+  product: compute
+  name: ha
+  os: centos
   features:
     monitoring: default
     mysql: default
