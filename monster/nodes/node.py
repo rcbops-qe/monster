@@ -121,8 +121,12 @@ class Node(object):
         self.status = "done"
 
     def destroy(self):
-        self.provisioner.destroy_node(self)
         util.logger.info("Destroying node:{0}".format(self.name))
+        for feature in self.features:
+            log = "Node feature: destroy: {0}".format(str(feature))
+            util.logger.debug(log)
+            feature.destroy()
+        self.provisioner.destroy_node(self)
         self.status = "Destroyed"
 
     def feature_in(self, feature):
