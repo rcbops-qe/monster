@@ -142,8 +142,7 @@ class Neutron(Deployment):
                         self.rpcs_feature, network_bridge_device),
                     ("{0} subnet-create --name testnet "
                      "--no-gateway flattest 172.0.0.0/8".format(
-                         self.rpcs_feature)
-                    )]
+                         self.rpcs_feature))]
         command = "; ".join(commands)
 
         if auto:
