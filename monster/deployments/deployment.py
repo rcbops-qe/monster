@@ -93,6 +93,27 @@ class Deployment(object):
         self.post_configure()
         self.status = "post-build"
 
+    def artifact(self):
+        """ Artifacts openstack and its dependant services for a deployment
+        """
+
+        self.log_path = "/var/log"
+        self.etc_path = "/etc/"
+        self.misc_path = "misc/"
+
+        if self.deployment.os_name == 'precise':
+            self.list_packages_cmd = ["dpkg -l"]
+        else:
+            self.list_packages_cmd = ["rpm -qa"]
+
+        # Run each features archive
+        for feature in self.features:
+            feature.archive()
+
+        # Run each nodes archive
+        for node in self.nodes:
+            node.archive()
+
     def search_role(self, feature):
         """
         Returns nodes the have the desired role

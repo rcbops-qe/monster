@@ -32,6 +32,9 @@ class Node(Feature):
     def post_configure(self):
         pass
 
+    def artifact(self):
+        pass
+
     def set_run_list(self):
         """ Sets the nodes run list based on the Feature
         """
@@ -49,6 +52,25 @@ class Node(Feature):
 
         # Add the run list to the node
         self.node.add_run_list_item(run_list)
+
+    def build_archive(self):
+        self.log_path = '/tmp/archive/var/log'
+        self.etc_path = '/tmp/archive/etc'
+        self.misc_path = '/tmp/archive/misc'
+
+        build_archive_cmd = "; ".join("mkdir -p {0}".format(path)
+                                      for path in (self.log_path,
+                                                   self.etc_path,
+                                                   self.misc_path))
+
+        self.node.run_cmd(build_archive_cmd)
+
+    def save_node_running_services(self):
+        """ Saves the nodes running services
+        """
+        store_running_services = "{0} > {1}/running-services.out".format(
+            self.deployment.list_packages_cmd, self.misc_path)
+        self.run_cmd(store_running_services)
 
 
 class Controller(Node):
@@ -78,6 +100,43 @@ class Controller(Node):
             controller1 = next(controllers)
             controller1.run_chef_client()
 
+    def archive(self):
+        """ Services on a controller to archive
+        """
+
+        self.build_archive()
+        self.save_node_running_services()
+        self._set_node_archive()
+    
+    def _set_node_archive(self):
+
+        """ Sets a dict in the node object of services and their logs
+        """
+
+        self.archive = {"log": ["apache2",
+                                "apt",
+                                "daemon.log",
+                                "dist_upgrades",
+                                "dmesg",
+                                "rsyslog",
+                                "syslog",
+                                "upstart"],
+                        "configs": ["apache2",
+                                    "apt",
+                                    "collectd",
+                                    "dhcp",
+                                    "host.conf",
+                                    "hostname",
+                                    "hosts",
+                                    "init",
+                                    "init.d",
+                                    "network",
+                                    "rabbitmq",
+                                    "rsylog.conf",
+                                    "rsyslog.d",
+                                    "sysctl.conf",
+                                    "sysctl.d",
+                                    "ufw"]}
 
 class Compute(Node):
     """ Represents a RPCS compute
@@ -85,6 +144,18 @@ class Compute(Node):
 
     def pre_configure(self):
         self.set_run_list()
+
+    def archive(self):
+        """ Archives all services on a compute node
+        """
+
+        self.save_node_running_services()
+        self._set_node_services()
+
+    def _set_node_services(self):
+
+        self.services = {"log": ["nova"],
+                         "configs": ["nova"]}
 
 
 class Proxy(Node):
@@ -94,6 +165,9 @@ class Proxy(Node):
     def pre_configure(self):
         self.set_run_list()
 
+    def archive(self):
+        pass
+
 
 class Storage(Node):
     """ Represents a RPCS proxy node
@@ -102,14 +176,19 @@ class Storage(Node):
     def pre_configure(self):
         self.set_run_list()
 
+    def archive(self):
+        pass
+
 
 class Network(Node):
     """ Sets the node to be a Network
     """
 
     def pre_configure(self):
-        print "stuff"
         self.set_run_list()
+
+    def archive(self):
+        pass
 
 
 class Remote(Node):
@@ -119,6 +198,9 @@ class Remote(Node):
     def pre_configure(self):
         remove_chef(self.node)
         self._bootstrap_chef()
+
+    def archive(self):
+        pass
 
     def _bootstrap_chef(self):
         """ Bootstraps the node to a chef server
@@ -146,6 +228,9 @@ class Cinder(Node):
     def pre_configure(self):
         self.prepare_cinder()
         self.set_run_list()
+
+    def archive(self):
+        pass
 
     def prepare_cinder(self):
         """ Prepares the node for use with cinder
@@ -188,9 +273,14 @@ class ChefServer(Node):
         self._remote_other_nodes()
         self.node.environment.save()
 
+<<<<<<< Updated upstream
     def destroy(self):
         # Stop updating remote environment
         self.node.environment.remote_api = None
+=======
+    def archive(self):
+        pass
+>>>>>>> Stashed changes
 
     def _install(self):
         """ Installs chef server on the given node
@@ -288,6 +378,9 @@ class OpenLDAP(Node):
     def post_configure(self):
         self._configure_ldap()
 
+    def archive(self):
+        pass
+
     def _configure_ldap(self):
         ldapadd = ('ldapadd -x -D "cn=admin,dc=rcb,dc=me" '
                    '-wsecrete -f /root/base.ldif')
@@ -309,6 +402,9 @@ class Metrics(Node):
             self.role = 'compute'
 
         self._set_run_list()
+
+    def archive(self):
+        pass
 
     def _set_run_list(self):
         """ Metrics run list set
@@ -334,6 +430,9 @@ class Berkshelf(Node):
     def apply_feature(self):
         self._write_berks_config()
         self._run_berks()
+
+    def archive(self):
+        pass
 
     def _install_berkshelf(self):
         """ Installs Berkshelf and correct rvms/gems
@@ -383,6 +482,7 @@ class Berkshelf(Node):
 
 
 class Tempest(Node):
+    
     def pre_configure(self):
         self.set_run_list()
 
@@ -392,12 +492,23 @@ class Tempest(Node):
         install_cmd = "python {0}/tools/install_venv.py".format(tempest_dir)
         self.node.run_cmd(install_cmd)
 
+    def archive(self):
+        pass
+
 
 class Orchestration(Node):
+    
     def pre_configure(self):
         self.set_run_list()
 
+    def archive(self):
+        pass
+
 
 class NetworkManager(Node):
+    
     def preconfigure(self):
         self.set_run_list()
+
+    def archive(self):
+        pass

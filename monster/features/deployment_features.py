@@ -37,6 +37,9 @@ class Deployment(Feature):
     def post_configure(self):
         pass
 
+    def archive(self):
+        pass
+
 #############################################################################
 ############################ OpenStack Features #############################
 #############################################################################
@@ -72,6 +75,13 @@ class Neutron(Deployment):
         auto_build = auto or \
             util.config[str(self)]['auto_build_subnets']
         self._build_subnets(auto_build)
+
+    def archive(self):
+        """ Archives the configs and logs for the configured services
+        """
+
+        self.services = {"log": [self.rpcs_feature],
+                         "configs": [self.rpcs_feature]}
 
     def _fix_nova_environment(self):
         # When enabling neutron, have to update the env var correctly
@@ -196,6 +206,9 @@ class Swift(Deployment):
     def post_configure(self, auto=False):
         build_rings = auto or bool(util.config['swift']['auto_build_rings'])
         self._build_rings(build_rings)
+
+    def archive(self):
+        pass
 
     def _set_keystone_urls(self):
         """ Gets the controllers ip and sets the url for the env
@@ -424,6 +437,9 @@ class Glance(Deployment):
         if self.rpcs_feature == 'cf':
             self._add_credentials()
 
+    def archive(self):
+        pass
+
     def _add_credentials(self):
         cf_secrets = util.config['secrets']['cloudfiles']
         user = cf_secrets['user']
@@ -468,6 +484,9 @@ class Keystone(Deployment):
         self.deployment.environment.add_override_attr(
             str(self), self.environment)
 
+    def archive(self):
+        pass
+
 
 class Nova(Deployment):
     """ Represents the monitoring feature
@@ -500,6 +519,9 @@ class Nova(Deployment):
 
             self.deployment.environment.save()
 
+    def archive(self):
+        pass
+
 
 class Horizon(Deployment):
     """ Represents the monitoring feature
@@ -519,6 +541,9 @@ class Horizon(Deployment):
         self.deployment.environment.add_override_attr(
             str(self), self.environment)
 
+    def archive(self):
+        pass
+
 
 class Cinder(Deployment):
     """ Represents the Cinder feature
@@ -537,6 +562,9 @@ class Cinder(Deployment):
     def update_environment(self):
         self.deployment.environment.add_override_attr(
             str(self), self.environment)
+
+    def archive(self):
+        pass
 
 #############################################################################
 ############### Rackspace Private Cloud Software Features ###################
@@ -560,6 +588,9 @@ class RPCS(Deployment):
     def update_environment(self):
         pass
 
+    def archive(self):
+        pass
+
 
 class Monitoring(RPCS):
     """ Represents the monitoring feature
@@ -579,6 +610,9 @@ class Monitoring(RPCS):
     def update_environment(self):
         self.deployment.environment.add_override_attr(
             str(self), self.environment)
+
+    def archive(self):
+        pass
 
 
 class MySql(RPCS):
@@ -600,6 +634,9 @@ class MySql(RPCS):
         self.deployment.environment.add_override_attr(
             self.name, self.environment)
 
+    def archive(self):
+        pass
+
 
 class OsOps(RPCS):
     """ Represents the monitoring feature
@@ -620,6 +657,9 @@ class OsOps(RPCS):
         self.deployment.environment.add_override_attr(
             self.name, self.environment)
 
+    def archive(self):
+        pass
+
 
 class DeveloperMode(RPCS):
     """ Represents the monitoring feature
@@ -639,6 +679,9 @@ class DeveloperMode(RPCS):
     def update_environment(self):
         self.deployment.environment.add_override_attr(
             self.name, self.environment)
+
+    def archive(self):
+        pass
 
 
 class OsOpsNetworks(RPCS):
@@ -661,6 +704,9 @@ class OsOpsNetworks(RPCS):
         self.deployment.environment.add_override_attr(
             self.name, self.environment)
 
+    def archive(self):
+        pass
+
 
 class HighAvailability(RPCS):
     """ Represents a highly available cluster
@@ -681,6 +727,10 @@ class HighAvailability(RPCS):
     def update_environment(self):
         self.deployment.environment.add_override_attr(self.name,
                                                       self.environment)
+
+    def archive(self):
+        """ Archives the configs and logs for the configured services
+        """
 
 
 class OpenLDAP(RPCS):
@@ -714,6 +764,9 @@ class OpenLDAP(RPCS):
 
         # Save the Environment
         self.node.deployment.environment.save()
+
+    def archive(self):
+        pass
 
 
 class Tempest(RPCS):
@@ -777,3 +830,6 @@ class Tempest(RPCS):
             if xunit:
                 node.scp_from(xunit_file, local_path=".")
                 util.xunit_merge()
+
+    def archive(self):
+        pass

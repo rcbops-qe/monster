@@ -31,6 +31,9 @@ class Feature(object):
     def destroy(self):
         pass
 
+    def archive(self):
+        pass
+
 
 def remove_chef(node):
     """ Removes chef from the given node

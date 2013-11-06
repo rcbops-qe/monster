@@ -69,6 +69,11 @@ def test(name="precise-default", config=None, log=None, log_level="INFO"):
     deployment = _load(name, config)
     deployment.test()
 
+def artifact(name="precise-default", config=None, log=None, log_level="INFO"):
+    _set_log(log, log_level)
+    deployment = _load(name, config)
+    deployment.artifact()
+
 
 def openrc(name="precise-default", config=None, log=None, log_level="INFO"):
     _set_log(log, log_level)
