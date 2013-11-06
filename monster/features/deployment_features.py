@@ -720,41 +720,21 @@ class OpenLDAP(RPCS):
         self.node.deployment.environment.save()
 
 
-class TempestConfig():
-    identity = None
-    user1_user = None
-    user1_password = None
-    user1_tenant = None
-    user2_user = None
-    user2_password = None
-    user2_tenant = None
-    admin_user = None
-    admin_password = None
-    admin_tenant = None
-    image_id1 = None
-    image_id2 = None
-    public_network_id = None
-    public_router_id = None
-    storage_protocol = None
-    vendor_name = None
-    glance_ip = None
-    aws_access = None
-    aws_secret = None
-    horizon = None
-    cinder_enabled = None
-    neutron_enabled = None
-    glance_enabled = None
-    swift_enabled = None
-    heat_enabled = None
-
-
 class Tempest(RPCS):
 
     def __init__(self, deployment, rpcs_feature):
         name = str(self)
         super(Tempest, self).__init__(deployment, rpcs_feature, name)
         self.path = "/tmp/%s.conf" % self.deployment.name
-        self.tempest_config = TempestConfig()
+        self.tempest_config = dict(
+            identity="", user1_user="", user1_password="", user1_tenant="",
+            user2_user="", user2_password="", user2_tenant="", admin_user="",
+            admin_password="", admin_tenant="", image_id1="", image_id2="",
+            public_network_id="", public_router_id="", storage_protocol="",
+            vendor_name="", glance_ip="", aws_access="", aws_secret="",
+            horizon="", cinder_enabled="", neutron_enabled="",
+            glance_enabled="", swift_enabled="", heat_enabled="", nova_ip=""
+        )
 
     def tempest_configure(self):
         tempest = self.tempest_config
@@ -764,60 +744,65 @@ class Tempest(RPCS):
         if "highavilability" in self.deployment.feature_names():
             #use vips
             vips = override['vips']
-            tempest.identity = vips['keystone-service-api']
-            tempest.glance_ip = vips['glance-api']
-            tempest.horizon = vips['horizon-dash']
+            tempest['identity'] = vips['keystone-service-api']
+            tempest['glance_ip'] = vips['glance-api']
+            tempest['horizon'] = vips['horizon-dash']
+            tempest['nova_ip'] = vips['nova-api']
         else:
             # use controller1
-            tempest.identity = controller.ipaddress
-            tempest.glance_ip = controller.ipaddress
-            tempest.horizon = controller.ipaddress
+            tempest['identity'] = controller.ipaddress
+            tempest['glance_ip'] = controller.ipaddress
+            tempest['horizon'] = controller.ipaddress
+            tempest['nova_ip'] = controller.ipaddress
 
         ec2_creds = controller['credentials']['EC2']['admin']
-        tempest.aws_access = ec2_creds['access']
-        tempest.aws_secret = ec2_creds['secret']
+        tempest['aws_access'] = ec2_creds['access']
+        tempest['aws_secret'] = ec2_creds['secret']
 
         keystone = override['keystone']
         users = keystone['users']
         non_admin_users = (user for user in users.keys()
                            if "admin" not in users[user]['roles'].keys())
         user1 = next(non_admin_users)
-        tempest.user1_user = user1
-        tempest.user1_password = users[user1]['password']
-        tempest.user1_tenant = users[user1]['roles']['Member'][0]
-        user2 = next(non_admin_users)
-        tempest.user2_user = user2
-        tempest.user2_password = users[user2]['password']
-        tempest.user2_tenant = users[user2]['roles']['Member'][0]
+        tempest['user1_user'] = user1
+        tempest['user1_password'] = users[user1]['password']
+        tempest['user1_tenant'] = users[user1]['roles']['Member'][0]
+        user2 = next(non_admin_users, None)
+        if user2:
+            tempest['user2_user'] = user2
+            tempest['user2_password'] = users[user2]['password']
+            tempest['user2_tenant'] = users[user2]['roles']['Member'][0]
         admin_user = keystone['admin_user']
-        tempest.admin_user = admin_user
-        tempest.admin_password = users[admin_user][
+        tempest['admin_user'] = admin_user
+        tempest['admin_password'] = users[admin_user][
             'password']
-        tempest.admin_tenant = users[admin_user][
+        tempest['admin_tenant'] = users[admin_user][
             'roles']['admin'][0]
-
-        url = "http://{0}/:5000/v2.0".format(tempest.glance_ip)
-        compute = client.Client(tempest.admin_user,
-                                tempest.admin_user,
-                                tempest.admin_user,
+        url = "http://{0}:5000/v2.0".format(tempest['glance_ip'])
+        compute = client.Client(tempest['admin_user'],
+                                tempest['admin_password'],
+                                tempest['admin_tenant'],
                                 url,
                                 service_type="compute")
         image_ids = (i.id for i in compute.images.list())
-        tempest.image_id1 = next(image_ids)
-        tempest.image_id2 = next(image_ids) or tempest.image_id1
+        tempest['image_id1'] = next(image_ids)
+        tempest['image_id2'] = next(image_ids) or tempest['image_id1']
 
-        tempest.public_network_id = None
-        tempest.public_router_id = None
-
-        tempest.storage_protocol = override['cinder']['storage']['provider']
-        tempest.vendor_name = "Open Source"
+        # tempest.public_network_id = None
+        # tempest.public_router_id = None
 
         featured = lambda x: self.deployment.feature_in(x)
-        tempest.cinder_enabled = True if featured('cinder') else False
-        tempest.neutron_enabled = True if featured('neutron') else False
-        tempest.glance_enabled = True if featured('glance') else False
-        tempest.swift_enabled = True if featured('swift') else False
-        tempest.heat_enabled = True if featured('orchestration') else False
+        tempest['cinder_enabled'] = False
+        if featured('cinder'):
+            tempest['cinder_enabled'] = True
+            tempest['storage_protocol'] = override['cinder']['storage'][
+                'provider']
+            tempest['vendor_name'] = "Open Source"
+
+        tempest['neutron_enabled'] = True if featured('neutron') else False
+        tempest['glance_enabled'] = True if featured('glance') else False
+        tempest['swift_enabled'] = True if featured('swift') else False
+        tempest['heat_enabled'] = True if featured('orchestration') else False
 
     def pre_configure(self):
         controller = next(self.deployment.search_role("controller"))
@@ -835,14 +820,14 @@ class Tempest(RPCS):
         self.test_from(controller, xunit=True, exclude=exclude)
 
     def build_config(self):
-        self.tempest_configure(self)
-        template_path = os.path.join(__file__, os.pardir,
-                                     os.pardir, os.pardir,
-                                     "files/tempest.config")
+        self.tempest_configure()
+        template_path = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), os.pardir, os.pardir,
+            "files/tempest.conf")
 
         with open(template_path) as f:
             template = Template(f.read()).substitute(
-                self.tempest_config.__dict__)
+                self.tempest_config)
 
         with open(self.path, 'w') as w:
             util.logger.info("Writing tempest config:{0}".
