@@ -341,5 +341,7 @@ neutron:
     auto_build_subnets: False
     centos:
         network_bridge_device: em2
+        vip: 198.101.133.159
     precise:
         network_bridge_device: eth1
+        vip: 198.101.133.156
