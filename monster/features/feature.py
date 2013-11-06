@@ -28,6 +28,9 @@ class Feature(object):
     def post_configure(self):
         pass
 
+    def destroy(self):
+        pass
+
 
 def remove_chef(node):
     """ Removes chef from the given node
@@ -44,6 +47,7 @@ def remove_chef(node):
 
     return node.run_cmd(command)
 
+
 def install_package(node, package):
 
     # Need to make this more machine agnostic (jwagner)
@@ -54,15 +58,17 @@ def install_package(node, package):
 
     return node.run_cmd(command)
 
+
 def install_packages(node, packages):
 
     for package in packages:
         install_package(node, package)
 
+
 def install_ruby_gem(node, gem):
 
     command = ('source /usr/local/rvm/scripts/rvm; gem install '
-              '--no-rdoc --no-ri {0}'.format(gem))
+               '--no-rdoc --no-ri {0}'.format(gem))
 
     return node.run_cmd(command)
 

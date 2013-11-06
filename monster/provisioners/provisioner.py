@@ -136,10 +136,13 @@ class ChefOpenstackProvisioner(Provisioner):
 
     def destroy_node(self, node):
         cnode = Node(node.name, node.environment.local_api)
-        compute = self.connection()
-        compute.servers.get(node['uuid']).delete()
-        cnode.delete()
-        Client(node.name, node.environment.local_api).delete()
+        if cnode.exists:
+            compute = self.connection()
+            compute.servers.get(node['uuid']).delete()
+            cnode.delete()
+        client = Client(node.name, node.environment.local_api)
+        if client.exists:
+            client.delete()
 
     def chef_instance(self, client, features, deployment, name, flavor="1GB"):
         image = deployment.os_name

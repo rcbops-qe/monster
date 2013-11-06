@@ -188,6 +188,10 @@ class ChefServer(Node):
         self._remote_other_nodes()
         self.node.environment.save()
 
+    def destroy(self):
+        # Stop updating remote environment
+        self.node.environment.remote_api = None
+
     def _install(self):
         """ Installs chef server on the given node
         """
@@ -286,7 +290,7 @@ class OpenLDAP(Node):
 
     def _configure_ldap(self):
         ldapadd = ('ldapadd -x -D "cn=admin,dc=rcb,dc=me" '
-                  '-wsecrete -f /root/base.ldif')
+                   '-wsecrete -f /root/base.ldif')
         self.node.run_cmd(ldapadd)
 
 
@@ -338,7 +342,7 @@ class Berkshelf(Node):
         # Install needed server packages for berkshelf
         packages = ['libxml2-dev', 'libxslt-dev', 'libz-dev']
         rvm_install = ("curl -L https://get.rvm.io | bash -s -- stable "
-                      "--ruby=1.9.3 --autolibs=enable --auto-dotfiles")
+                       "--ruby=1.9.3 --autolibs=enable --auto-dotfiles")
         gems = ['berkshelf', 'chef']
 
         # Install OS packages
