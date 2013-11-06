@@ -150,11 +150,11 @@ class Compute(Node):
         """
 
         self.save_node_running_services()
-        self._set_node_services()
+        self._set_node_archive()
 
-    def _set_node_services(self):
+    def _set_node_archive(self):
 
-        self.services = {"log": ["nova"],
+        self.archive = {"log": ["nova"],
                          "configs": ["nova"]}
 
 
@@ -166,7 +166,8 @@ class Proxy(Node):
         self.set_run_list()
 
     def archive(self):
-        pass
+        self.archive = {"log": [""],
+                        "configs": [""]}
 
 
 class Storage(Node):
@@ -177,7 +178,8 @@ class Storage(Node):
         self.set_run_list()
 
     def archive(self):
-        pass
+        self.archive = {"log": [""],
+                        "configs": [""]}
 
 
 class Network(Node):
@@ -188,7 +190,8 @@ class Network(Node):
         self.set_run_list()
 
     def archive(self):
-        pass
+        self.archive = {"log": [""],
+                        "configs": [""]}
 
 
 class Remote(Node):
@@ -200,7 +203,8 @@ class Remote(Node):
         self._bootstrap_chef()
 
     def archive(self):
-        pass
+        self.archive = {"log": [""],
+                        "configs": [""]}
 
     def _bootstrap_chef(self):
         """ Bootstraps the node to a chef server
@@ -230,7 +234,8 @@ class Cinder(Node):
         self.set_run_list()
 
     def archive(self):
-        pass
+        self.archive = {"log": [""],
+                        "configs": [""]}
 
     def prepare_cinder(self):
         """ Prepares the node for use with cinder
@@ -278,8 +283,8 @@ class ChefServer(Node):
         self.node.environment.remote_api = None
 
     def archive(self):
-        pass
-
+        self.archive = {"log": [""],
+                        "configs": [""]}
 
     def _install(self):
         """ Installs chef server on the given node
@@ -378,7 +383,8 @@ class OpenLDAP(Node):
         self._configure_ldap()
 
     def archive(self):
-        pass
+        self.archive = {"log": [""],
+                        "configs": [""]}
 
     def _configure_ldap(self):
         ldapadd = ('ldapadd -x -D "cn=admin,dc=rcb,dc=me" '
@@ -403,7 +409,8 @@ class Metrics(Node):
         self._set_run_list()
 
     def archive(self):
-        pass
+        self.archive = {"log": [""],
+                        "configs": [""]}
 
     def _set_run_list(self):
         """ Metrics run list set
@@ -431,7 +438,8 @@ class Berkshelf(Node):
         self._run_berks()
 
     def archive(self):
-        pass
+        self.archive = {"log": [""],
+                        "configs": [""]}
 
     def _install_berkshelf(self):
         """ Installs Berkshelf and correct rvms/gems
@@ -492,7 +500,8 @@ class Tempest(Node):
         self.node.run_cmd(install_cmd)
 
     def archive(self):
-        pass
+        self.archive = {"log": [""],
+                        "configs": [""]}
 
 
 class Orchestration(Node):
@@ -501,7 +510,8 @@ class Orchestration(Node):
         self.set_run_list()
 
     def archive(self):
-        pass
+        self.archive = {"log": [""],
+                        "configs": [""]}
 
 
 class NetworkManager(Node):
@@ -510,4 +520,5 @@ class NetworkManager(Node):
         self.set_run_list()
 
     def archive(self):
-        pass
+        self.archive = {"log": [""],
+                        "configs": [""]}
