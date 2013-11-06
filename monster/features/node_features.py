@@ -273,14 +273,13 @@ class ChefServer(Node):
         self._remote_other_nodes()
         self.node.environment.save()
 
-<<<<<<< Updated upstream
     def destroy(self):
         # Stop updating remote environment
         self.node.environment.remote_api = None
-=======
+
     def archive(self):
         pass
->>>>>>> Stashed changes
+
 
     def _install(self):
         """ Installs chef server on the given node
