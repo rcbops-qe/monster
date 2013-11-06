@@ -90,9 +90,9 @@ precise-ha:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, orchestration]
-    - [controller]
-    - [compute]
+    - [controller, network, orchestration]
+    - [controller, network]
+    - [compute, network]
 
 centos-ha:
   product: compute
@@ -110,9 +110,9 @@ centos-ha:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, orchestration]
-    - [controller]
-    - [compute]
+    - [controller, network, orchestration]
+    - [controller, network]
+    - [compute, network]
 
 precise-swift:
   product: storage
