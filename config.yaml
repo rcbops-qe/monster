@@ -171,6 +171,7 @@ environments:
             nova-novnc-proxy: 198.101.133.156
             nova-xvpvnc-proxy: 198.101.133.156
             swift-proxy: 198.101.133.156
+            neutron-api: 198.101.133.156
             config:
                 198.101.133.154:
                     vrid: 10
@@ -197,6 +198,7 @@ environments:
             nova-novnc-proxy: 198.101.133.159
             nova-xvpvnc-proxy: 198.101.133.159
             swift-proxy: 198.101.133.159
+            neutron-api: 198.101.133.159
             config:
                 198.101.133.157:
                     vrid: 14
