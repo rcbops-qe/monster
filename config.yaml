@@ -18,6 +18,12 @@ environments:
                           - demo
                     default_tenant: demo
                     password: secrete
+                demo2:
+                    roles:
+                        Member:
+                          - demo2
+                    default_tenant: demo2
+                    password: secrete
                 admin:
                     roles:
                         admin:
