@@ -720,6 +720,19 @@ class OpenLDAP(RPCS):
         self.node.deployment.environment.save()
 
 
+class Openssh(RPCS):
+    """ Configures ssh
+    """
+
+    def __init__(self, deployment, rpcs_feature):
+        super(Openssh, self).__init__(deployment, rpcs_feature, str(self))
+        self.environment = util.config['environments'][self.name]
+
+    def update_environment(self):
+        self.deployment.environment.add_override_attr(
+            self.name, self.environment)
+
+
 class Tempest(RPCS):
 
     def __init__(self, deployment, rpcs_feature):
