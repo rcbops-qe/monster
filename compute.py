@@ -11,6 +11,7 @@ from monster import util
 from monster.provisioners import provisioner as provisioners
 from monster.config import Config
 from monster.deployments.chef_deployment import ChefDeployment
+from monster.features.deployment_features import Tempest
 
 
 def build(name="precise-default", branch="master", template_path=None,
@@ -38,6 +39,10 @@ def build(name="precise-default", branch="master", template_path=None,
             sys.exit(1)
 
     else:
+        if test:
+            tempest = Tempest(deployment, None)
+            deployment.feature.append(tempest)
+
         util.logger.info(deployment)
         # build deployment
         try:
@@ -49,8 +54,6 @@ def build(name="precise-default", branch="master", template_path=None,
             sys.exit(1)
 
     util.logger.info(deployment)
-    if test:
-        pass
 
     if destroy:
         deployment.destroy()
@@ -67,7 +70,12 @@ def destroy(name="precise-default", config=None, log=None, log_level="INFO",
 def test(name="precise-default", config=None, log=None, log_level="INFO"):
     _set_log(log, log_level)
     deployment = _load(name, config)
-    deployment.test()
+    tempest = Tempest(deployment, None)
+    tempest.pre_configure()
+    next(deployment.search_role("controller")).run_chef_client()
+    tempest.apply_feature()
+    tempest.post_configure()
+
 
 def artifact(name="precise-default", config=None, log=None, log_level="INFO"):
     _set_log(log, log_level)
