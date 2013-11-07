@@ -1,10 +1,13 @@
 """ A Deployment Features
 """
 
+import os
 import json
 import time
 import requests
+from string import Template
 from itertools import chain, ifilter
+from novaclient.v1_1 import client
 
 from monster.features.feature import Feature
 from monster.features.node_features import Tempest as NodeTempest
@@ -718,9 +721,88 @@ class OpenLDAP(RPCS):
 
 
 class Tempest(RPCS):
+
     def __init__(self, deployment, rpcs_feature):
         name = str(self)
         super(Tempest, self).__init__(deployment, rpcs_feature, name)
+        self.path = "/tmp/%s.conf" % self.deployment.name
+        self.tempest_config = dict(
+            identity="", user1_user="", user1_password="", user1_tenant="",
+            user2_user="", user2_password="", user2_tenant="", admin_user="",
+            admin_password="", admin_tenant="", image_id1="", image_id2="",
+            public_network_id="", public_router_id="", storage_protocol="",
+            vendor_name="", glance_ip="", aws_access="", aws_secret="",
+            horizon="", cinder_enabled="", neutron_enabled="",
+            glance_enabled="", swift_enabled="", heat_enabled="", nova_ip=""
+        )
+
+    def tempest_configure(self):
+        tempest = self.tempest_config
+        override = self.deployment.environment.override_attributes
+        controller = next(self.deployment.search_role("controller"))
+
+        if "highavilability" in self.deployment.feature_names():
+            #use vips
+            vips = override['vips']
+            tempest['identity'] = vips['keystone-service-api']
+            tempest['glance_ip'] = vips['glance-api']
+            tempest['horizon'] = vips['horizon-dash']
+            tempest['nova_ip'] = vips['nova-api']
+        else:
+            # use controller1
+            tempest['identity'] = controller.ipaddress
+            tempest['glance_ip'] = controller.ipaddress
+            tempest['horizon'] = controller.ipaddress
+            tempest['nova_ip'] = controller.ipaddress
+
+        ec2_creds = controller['credentials']['EC2']['admin']
+        tempest['aws_access'] = ec2_creds['access']
+        tempest['aws_secret'] = ec2_creds['secret']
+
+        keystone = override['keystone']
+        users = keystone['users']
+        non_admin_users = (user for user in users.keys()
+                           if "admin" not in users[user]['roles'].keys())
+        user1 = next(non_admin_users)
+        tempest['user1_user'] = user1
+        tempest['user1_password'] = users[user1]['password']
+        tempest['user1_tenant'] = users[user1]['roles']['Member'][0]
+        user2 = next(non_admin_users, None)
+        if user2:
+            tempest['user2_user'] = user2
+            tempest['user2_password'] = users[user2]['password']
+            tempest['user2_tenant'] = users[user2]['roles']['Member'][0]
+        admin_user = keystone['admin_user']
+        tempest['admin_user'] = admin_user
+        tempest['admin_password'] = users[admin_user][
+            'password']
+        tempest['admin_tenant'] = users[admin_user][
+            'roles']['admin'][0]
+        url = "http://{0}:5000/v2.0".format(tempest['glance_ip'])
+        compute = client.Client(tempest['admin_user'],
+                                tempest['admin_password'],
+                                tempest['admin_tenant'],
+                                url,
+                                service_type="compute")
+        image_ids = (i.id for i in compute.images.list())
+        tempest['image_id1'] = next(image_ids)
+        tempest['image_id2'] = next(image_ids) or tempest['image_id1']
+
+        # tempest.public_network_id = None
+        # tempest.public_router_id = None
+
+        featured = lambda x: self.deployment.feature_in(x)
+        tempest['cinder_enabled'] = False
+        if featured('cinder'):
+            tempest['cinder_enabled'] = True
+            tempest['storage_protocol'] = override['cinder']['storage'][
+                'provider']
+            tempest['vendor_name'] = "Open Source"
+
+        tempest['neutron_enabled'] = True if featured('neutron') else False
+        tempest['glance_enabled'] = True if featured('glance') else False
+        tempest['swift_enabled'] = True if featured('swift') else False
+        tempest['heat_enabled'] = True if featured('orchestration') else False
 
     def pre_configure(self):
         controller = next(self.deployment.search_role("controller"))
@@ -728,15 +810,33 @@ class Tempest(RPCS):
         controller.features.append(tempest_feature)
 
     def post_configure(self):
-        exclude = ['volume', 'resize', 'floating']
         controller = next(self.deployment.search_role("controller"))
+        self.build_config()
+        tempest_dir = util.config['tests']['tempest']['dir']
+        rem_config_path = "{0}/etc/tempest.conf".format(tempest_dir)
+        controller.scp_to(self.path, remote_path=rem_config_path)
+
+        exclude = ['volume', 'resize', 'floating']
         self.test_from(controller, xunit=True, exclude=exclude)
 
-    def _build_config(self):
-        pass
+    def build_config(self):
+        self.tempest_configure()
+        template_path = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), os.pardir, os.pardir,
+            "files/tempest.conf")
+
+        with open(template_path) as f:
+            template = Template(f.read()).substitute(
+                self.tempest_config)
+
+        with open(self.path, 'w') as w:
+            util.logger.info("Writing tempest config:{0}".
+                             format(self.path))
+            util.logger.debug(self.tempest_config)
+            w.write(template)
 
     def test_from(self, node, xunit=False, tags=None, exclude=None,
-                  paths=None):
+                  paths=None, config_path=None):
         """
         Runs tests from node
         @param xunit: Produce xunit report
@@ -763,18 +863,20 @@ class Tempest(RPCS):
         exclude_flag = "-e " + " -e ".join(exclude) if exclude else ''
 
         test_map = util.config['tests']['tempest']['test_map']
-        paths = paths
         if not paths:
             features = self.deployment.feature_names()
             paths = set(chain(*ifilter(None, (test_map.get(feature, None)
                                               for feature in features))))
-            path_args = " ".join(paths)
-            command = ("{0}/tools/with_venv.sh nosetests -w "
-                       "{0}/tempest/api "
-                       "{1} {2} {3} {4}".format(tempest_dir, xunit_flag,
-                                                tag_flag, path_args,
-                                                exclude_flag))
-            node.run_cmd(command)
-            if xunit:
-                node.scp_from(xunit_file, local_path=".")
-                util.xunit_merge()
+        path_args = " ".join(paths)
+        config_arg = ""
+        if config_path:
+            config_arg = "-c {0}".format(config_path)
+        command = ("{0}/tools/with_venv.sh nosetests -w "
+                   "{0}/tempest/api {5} "
+                   "{1} {2} {3} {4}".format(tempest_dir, xunit_flag,
+                                            tag_flag, path_args,
+                                            exclude_flag, config_arg))
+        node.run_cmd(command)
+        if xunit:
+            node.scp_from(xunit_file, local_path=".")
+            util.xunit_merge()
