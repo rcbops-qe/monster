@@ -2,7 +2,6 @@
 A nodes features
 """
 from chef import ChefAPI
-from chef import Node as CNode
 from monster.features.feature import (Feature,
                                       remove_chef,
                                       install_packages,
