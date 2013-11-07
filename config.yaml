@@ -6,6 +6,9 @@ chef:
 razor:
   ip: 198.101.133.3
 environments:
+    openssh:
+      server:
+        subsystem: "sftp internal-sftp"
     package_component:
         default: grizzly
     keystone:
