@@ -41,7 +41,7 @@ def build(name="precise-default", branch="master", template_path=None,
     else:
         if test:
             tempest = Tempest(deployment, None)
-            deployment.feature.append(tempest)
+            deployment.features.append(tempest)
 
         util.logger.info(deployment)
         # build deployment
