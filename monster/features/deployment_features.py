@@ -871,11 +871,14 @@ class Tempest(RPCS):
         config_arg = ""
         if config_path:
             config_arg = "-c {0}".format(config_path)
-        command = ("{0}/tools/with_venv.sh nosetests -w "
-                   "{0}/tempest/api {5} "
-                   "{1} {2} {3} {4}".format(tempest_dir, xunit_flag,
-                                            tag_flag, path_args,
-                                            exclude_flag, config_arg))
+        command = (
+            "source {0}/.venv/bin/active; "
+            "python -u nosetests -w "
+            "{0}/tempest/api {5} "
+            "{1} {2} {3} {4}".format(tempest_dir, xunit_flag,
+                                     tag_flag, path_args,
+                                     exclude_flag, config_arg)
+        )
         node.run_cmd(command)
         if xunit:
             node.scp_from(xunit_file, local_path=".")
