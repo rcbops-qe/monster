@@ -3,6 +3,7 @@ precise-default:
   name: default
   os: precise
   features:
+    openssh: default
     monitoring: default
     mysql: default
     glance: cf
@@ -22,6 +23,7 @@ centos-default:
   name: default
   os: centos
   features:
+    openssh: default
     monitoring: default
     mysql: default
     glance: cf
@@ -41,6 +43,7 @@ precise-neutron:
   name: neutron
   os: precise
   features:
+    openssh: default
     monitoring: default
     mysql: default
     glance: default
@@ -60,6 +63,7 @@ centos-neutron:
   name: neutron
   os: centos
   features:
+    openssh: default
     monitoring: default
     mysql: default
     glance: default
@@ -79,6 +83,7 @@ precise-ha:
   name: ha
   os: precise
   features:
+    openssh: default
     monitoring: default
     mysql: default
     glance: cf
@@ -100,6 +105,7 @@ centos-ha:
   name: ha
   os: centos
   features:
+    openssh: default
     monitoring: default
     mysql: default
     glance: cf
@@ -121,6 +127,7 @@ precise-swift:
   name: swift
   os: precise
   features:
+    openssh: default
     keystone: swift
     swift: rpcs
   nodes:
@@ -137,6 +144,7 @@ centos-swift:
   name: swift
   os: centos
   features:
+    openssh: default
     keystone: swift
     swift: rpcs
   nodes:
