@@ -56,7 +56,7 @@ class ChefRazorProvisioner(Provisioner):
                 node['in_use'] = "provisioning"
                 node.save()
                 return node
-        node.destroy()
+        deployment.destroy()
         raise Exception("No more nodes!!")
 
     def destroy_node(self, node):
