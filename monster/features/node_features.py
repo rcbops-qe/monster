@@ -2,6 +2,7 @@
 A nodes features
 """
 from chef import ChefAPI
+from chef import Node as CNode
 from monster.features.feature import (Feature,
                                       remove_chef,
                                       install_packages,
@@ -106,7 +107,7 @@ class Controller(Node):
         self.build_archive()
         self.save_node_running_services()
         self._set_node_archive()
-    
+
     def _set_node_archive(self):
 
         """ Sets a dict in the node object of services and their logs
@@ -484,11 +485,14 @@ class Berkshelf(Node):
 
 
 class Tempest(Node):
-    
+
     def pre_configure(self):
         self.set_run_list()
 
     def apply_feature(self):
+        # remove tempest cookbook. subsequent runs will fail
+        self.node.remove_run_list_item('recipe[tempest]')
+
         # install python requirements for tempest
         tempest_dir = util.config['tests']['tempest']['dir']
         install_cmd = "python {0}/tools/install_venv.py".format(tempest_dir)
@@ -500,7 +504,7 @@ class Tempest(Node):
 
 
 class Orchestration(Node):
-    
+
     def pre_configure(self):
         self.set_run_list()
 
@@ -510,7 +514,7 @@ class Orchestration(Node):
 
 
 class NetworkManager(Node):
-    
+
     def preconfigure(self):
         self.set_run_list()
 
