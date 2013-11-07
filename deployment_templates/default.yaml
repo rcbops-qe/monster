@@ -100,6 +100,27 @@ precise-ha:
     - [controller, network]
     - [compute, network]
 
+precise-ha-nova-net:
+  product: compute
+  name: ha
+  os: precise
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, orchestration]
+    - [controller]
+    - [compute]
+
 centos-ha:
   product: compute
   name: ha
