@@ -882,8 +882,9 @@ class Tempest(RPCS):
         test_map = util.config['tests']['tempest']['test_map']
         if not paths:
             features = self.deployment.feature_names()
-            paths = set(chain(*ifilter(None, (test_map.get(feature, None)
-                                              for feature in features))))
+            paths = ifilter(None, set(
+                chain(*ifilter(None, (
+                    test_map.get(feature, None) for feature in features)))))
         path_args = " ".join(paths)
         config_arg = ""
         if config_path:
