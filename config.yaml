@@ -75,6 +75,7 @@ environments:
                 - admin
                 - service
                 - demo
+                - demo2
         swift:
            swift_admin_url: ""
            swift_public_url: ""

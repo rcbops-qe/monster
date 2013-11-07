@@ -107,6 +107,17 @@ class ChefNode(Node):
         cnode.run_list = self.run_list
         self.save(cnode)
 
+    def remove_run_list_item(self, item):
+        """
+        Adds list of items to run_list
+        """
+        util.logger.debug("run_list:{0} remove:{1}".format(self.run_list,
+                                                           item))
+        self.run_list.pop(item)
+        cnode = CNode(self.name, api=self.environment.local_api)
+        cnode.run_list = self.run_list
+        self.save(cnode)
+
     def add_features(self, features):
         """
         Adds a list of feature classes

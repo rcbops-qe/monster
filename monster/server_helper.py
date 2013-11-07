@@ -1,6 +1,6 @@
 import sys
 from cStringIO import StringIO
-from paramiko import SSHClient, AutoAddPolicy
+from paramiko import SSHClient, AutoAddPolicy, SFTPClient, Transport
 from subprocess import check_call, CalledProcessError
 
 from monster import util
@@ -55,27 +55,14 @@ def ssh_cmd(ip, remote_cmd, user='root', password=None):
 
 def scp_to(ip, local_path, user='root', password=None, remote_path=""):
     """
-    @param to_copy
-    @return A map based on pass / fail run info
+    Send a file to a server
     """
-    command = ("sshpass -p %s scp "
-               "-o Self.UserKnownHostsFile=/dev/null "
-               "-o StrictHostKeyChecking=no "
-               "-o LogLevel=quiet "
-               "%s %s@%s:%s") % (password,
-                                 local_path,
-                                 user, ip,
-                                 remote_path)
-    try:
-        ret = check_call(command, shell=True)
-        return {'success': True,
-                'return': ret,
-                'exception': None}
-    except CalledProcessError, cpe:
-        return {'success': False,
-                'return': None,
-                'exception': cpe,
-                'command': command}
+
+    ssh = SSHClient()
+    ssh.set_missing_host_key_policy(AutoAddPolicy())
+    ssh.connect(ip, username=user, password=password)
+    sftp = ssh.open_sftp()
+    sftp.put(remote_path, local_path)
 
 
 def scp_from(ip, remote_path, user=None, password=None, local_path=""):
