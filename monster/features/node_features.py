@@ -301,7 +301,7 @@ class ChefServer(Node):
         commands = ["mkdir -p {0}".format(install_dir),
                     "cd {0}".format(install_dir),
                     "git clone {0}".format(cookbook_url),
-                    "cd {0}/chef-cookbooks".format(install_dir),
+                    "cd {0}/{1}".format(install_dir, cookbook_name),
                     "git checkout {0}".format(cookbook_branch)]
 
         if 'cookbooks' in cookbook_name:
@@ -312,10 +312,6 @@ class ChefServer(Node):
             commands.append('knife cookbook upload --all --cookbook-path '
                             '{0}/{1}/cookbooks'.format(install_dir,
                                                        cookbook_name))
-        else:
-            commands.append('knife cookbook upload --all'
-                            ' --cookbook-path {0}/{1}'.format(install_dir,
-                                                              cookbook_name))
 
         commands.append('knife role from file {0}/{1}/roles/*.rb'.format(
             install_dir, cookbook_name))
