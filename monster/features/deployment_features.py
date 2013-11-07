@@ -812,10 +812,14 @@ class Tempest(RPCS):
     def post_configure(self):
         controller = next(self.deployment.search_role("controller"))
         self.build_config()
+
+        # Send config
         tempest_dir = util.config['tests']['tempest']['dir']
         rem_config_path = "{0}/etc/tempest.conf".format(tempest_dir)
+        controller.run_cmd("rm {0}".format(rem_config_path))
         controller.scp_to(self.path, remote_path=rem_config_path)
 
+        # run tests
         exclude = ['volume', 'resize', 'floating']
         self.test_from(controller, xunit=True, exclude=exclude)
 
@@ -832,7 +836,7 @@ class Tempest(RPCS):
         with open(self.path, 'w') as w:
             util.logger.info("Writing tempest config:{0}".
                              format(self.path))
-            util.logger.debug(self.tempest_config)
+            util.logger.debug(template)
             w.write(template)
 
     def test_from(self, node, xunit=False, tags=None, exclude=None,
@@ -871,13 +875,14 @@ class Tempest(RPCS):
         config_arg = ""
         if config_path:
             config_arg = "-c {0}".format(config_path)
+        venv_bin = ".venv/bin"
         command = (
-            "source {0}/.venv/bin/active; "
-            "python -u nosetests -w "
+            "source {0}/{6}/activate; "
+            "python -u {0}/{6}/nosetests -w "
             "{0}/tempest/api {5} "
             "{1} {2} {3} {4}".format(tempest_dir, xunit_flag,
                                      tag_flag, path_args,
-                                     exclude_flag, config_arg)
+                                     exclude_flag, config_arg, venv_bin)
         )
         node.run_cmd(command)
         if xunit:
