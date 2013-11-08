@@ -113,7 +113,7 @@ class ChefNode(Node):
         """
         util.logger.debug("run_list:{0} remove:{1}".format(self.run_list,
                                                            item))
-        self.run_list.pop(item)
+        self.run_list.pop(self.run_list.index(item))
         cnode = CNode(self.name, api=self.environment.local_api)
         cnode.run_list = self.run_list
         self.save(cnode)

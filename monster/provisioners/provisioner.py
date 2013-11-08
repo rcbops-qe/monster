@@ -144,7 +144,7 @@ class ChefOpenstackProvisioner(Provisioner):
         if client.exists:
             client.delete()
 
-    def chef_instance(self, client, features, deployment, name, flavor="1GB"):
+    def chef_instance(self, client, features, deployment, name, flavor="2GB"):
         image = deployment.os_name
         server, password = self.build_instance(client, name=name,
                                                image=image, flavor=flavor)
@@ -166,7 +166,7 @@ class ChefOpenstackProvisioner(Provisioner):
         return node
 
     def build_instance(self, client, name="server", image="precise",
-                       flavor="1GB"):
+                       flavor="2GB"):
         openstack = util.config['openstack']
         try:
             flavor_name = openstack['flavors'][flavor]

@@ -121,9 +121,9 @@ environments:
         nova: 198.101.133.0/24
         public: 198.101.133.0/24
       openstack:
-        management: 166.78.148.0/24
-        nova: 166.78.148.0/24
-        public: 166.78.148.0/24
+        management: 10.183.0.0/16
+        nova: 10.183.0.0/16
+        public: 10.183.0.0/16
     glance:
         default:
             image_upload: true
