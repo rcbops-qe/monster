@@ -71,6 +71,7 @@ class Neutron(Deployment):
         if self.deployment.os_name in ['centos', 'rhel']:
             # This is no longer needed. i think
             #self._reboot_cluster()
+            pass
 
         # Grab the config to auto build or not
         auto_build = auto or \
