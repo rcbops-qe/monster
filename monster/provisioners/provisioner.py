@@ -166,7 +166,7 @@ class ChefOpenstackProvisioner(Provisioner):
         return node
 
     def build_instance(self, client, name="server", image="precise",
-                       flavor="1GB"):
+                       flavor="2GB"):
         openstack = util.config['openstack']
         try:
             flavor_name = openstack['flavors'][flavor]
