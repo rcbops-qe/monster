@@ -756,7 +756,7 @@ class Tempest(RPCS):
         override = self.deployment.environment.override_attributes
         controller = next(self.deployment.search_role("controller"))
 
-        if "highavilability" in self.deployment.feature_names():
+        if "highavailability" in self.deployment.feature_names():
             #use vips
             vips = override['vips']
             tempest['identity'] = vips['keystone-service-api']
