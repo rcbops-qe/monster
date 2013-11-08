@@ -143,10 +143,10 @@ class Neutron(Deployment):
             util.logger.info(command)
 
         commands = ["source openrc admin",
-                    "{0} net-create flattest".format(
+                    "{0} net-create nettest".format(
                         self.rpcs_feature, network_bridge_device),
                     ("{0} subnet-create --name testnet "
-                     "--no-gateway flattest 172.0.0.0/8".format(
+                     "--no-gateway nettest 172.0.0.0/8".format(
                          self.rpcs_feature))]
         command = "; ".join(commands)
 
