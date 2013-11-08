@@ -491,7 +491,7 @@ class Nova(Deployment):
             str(self), self.environment)
         bridge_dev = None
         if self.deployment.provisioner.short_name() == 'openstack':
-            bridge_dev = 'eth0'
+            bridge_dev = 'eth1'
         elif self.deployment.os_name in ['centos', 'rhel']:
             bridge_dev = 'em1'
         if bridge_dev:
