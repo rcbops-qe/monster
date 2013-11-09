@@ -96,9 +96,31 @@ precise-ha:
     highavailability: default
   nodes:
     - [chefserver]
+    - [controller, orchestration]
+    - [controller]
+    - [compute]
+
+precise-ha-l3:
+  product: compute
+  name: ha
+  os: precise
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    neutron: neutron
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
     - [controller, network, orchestration]
     - [controller, network]
-    - [compute, network]
+    - [compute]
 
 precise-ha-nova-net:
   product: compute
