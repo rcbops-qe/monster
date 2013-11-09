@@ -97,7 +97,7 @@ environments:
             allow_remote_root: true
     nova:
         default:
-            apply_patches: true
+            apply_patches: false
             networks:
                 public:
                     bridge: br0
