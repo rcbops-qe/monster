@@ -139,7 +139,7 @@ environments:
                 swift_store_auth_version: "2"
                 swift_store_auth_address: https://identity.api.rackspacecloud.com/v2.0
                 swift_store_region: DFW
-            image_upload: true
+            image_upload: false
             images:
                 - cirros
                 - precise
