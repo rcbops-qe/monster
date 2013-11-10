@@ -1,6 +1,7 @@
 """
 A nodes features
 """
+from time import sleep
 from chef import ChefAPI
 from monster.features.feature import (Feature,
                                       remove_chef,
@@ -272,6 +273,8 @@ class ChefServer(Node):
         self._set_up_remote()
         self._remote_other_nodes()
         self.node.environment.save()
+        util.logger.info("Sleeping for solr")
+        sleep(120)
 
     def destroy(self):
         # Stop updating remote environment
