@@ -161,8 +161,8 @@ centos-ha:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, orchestration]
-    - [controller]
+    - [controller, network, orchestration]
+    - [controller, network]
     - [compute]
 
 precise-swift:
