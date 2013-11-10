@@ -77,7 +77,10 @@ class ChefRazorProvisioner(Provisioner):
             try:
                 node.run_cmd("reboot 0")
             except:
-                util.logger.error("Node unreachable:{0}".format(str(node)))
+                util.logger.error("Node unreachable. "
+                                  "Manual restart required:{0}".
+                                  format(str(node)))
+                return
             self.api.remove_active_model(active_model)
             Client(node.name).delete()
             cnode.delete()
