@@ -75,7 +75,7 @@ class ChefRazorProvisioner(Provisioner):
             # Remove active model if the node is dirty
             active_model = cnode['razor_metadata']['razor_active_model_uuid']
             try:
-                node.run_cmd("reboot 0")
+                node.run_cmd("shutdown -r now")
             except:
                 util.logger.error("Node unreachable. "
                                   "Manual restart required:{0}".
