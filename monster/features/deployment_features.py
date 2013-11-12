@@ -206,17 +206,17 @@ class Swift(Deployment):
         """ Gets the controllers ip and sets the url for the env
         accordingly
         """
-        controller_ip = next(
-            self.deployment.search_role('controller')).ipaddress
+        proxy_ip = next(
+            self.deployment.search_role('proxy')).ipaddress
 
         env = self.deployment.environment
 
-        keystone_url = \
-            "http://{0}:8080/v1/AUTH_%(tenant_id)s".format(controller_ip)
+        proxy_url = \
+            "http://{0}:8080/v1/AUTH_%(tenant_id)s".format(proxy_ip)
 
         for item in env.override_attributes['keystone']:
             if 'url' in item:
-                env.override_attributes['keystone'][item] = keystone_url
+                env.override_attributes['keystone'][item] = proxy_url
 
         env.save()
 
