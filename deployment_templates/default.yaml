@@ -122,6 +122,28 @@ precise-ha-l3:
     - [controller, network]
     - [compute]
 
+centos-ha-l3:
+  product: compute
+  name: ha
+  os: centos
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    neutron: neutron
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, network, orchestration]
+    - [controller, network]
+    - [compute]
+
 precise-ha-nova-net:
   product: compute
   name: ha
