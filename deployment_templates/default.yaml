@@ -164,6 +164,7 @@ precise-ha-nova-net:
     - [controller, orchestration]
     - [controller]
     - [compute]
+    - [compute]
 
 centos-ha:
   product: compute
