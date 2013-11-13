@@ -75,18 +75,18 @@ class ChefRazorProvisioner(Provisioner):
             # Remove active model if the node is dirty
             active_model = cnode['razor_metadata']['razor_active_model_uuid']
             try:
-                kill = 'for i in `ps -U rabbitmq | awk '{print $1}' `; do kill -9 $i; done'
+                # rabbit can cause the node to not actually reboot
+                kill = """for i in `ps -U rabbitmq | awk '{print $1}' `; do kill -9 $i; done"""
                 node.run_cmd(kill)
                 node.run_cmd("shutdown -r now")
+                self.api.remove_active_model(active_model)
+                Client(node.name).delete()
+                cnode.delete()
+                sleep(15)
             except:
                 util.logger.error("Node unreachable. "
                                   "Manual restart required:{0}".
                                   format(str(node)))
-                return
-            self.api.remove_active_model(active_model)
-            Client(node.name).delete()
-            cnode.delete()
-            sleep(15)
 
     @classmethod
     def node_search(cls, query, environment=None, tries=10):
