@@ -77,7 +77,8 @@ class ChefRazorProvisioner(Provisioner):
             try:
                 if node.feature_in('controller'):
                     # rabbit can cause the node to not actually reboot
-                    kill = """for i in `ps -U rabbitmq | awk '{print $1}' `; do kill -9 $i; done"""
+                    kill = ("for i in `ps -U rabbitmq | "
+                            "awk '{print $1}' `; do kill -9 $i; done")
                     node.run_cmd(kill)
                 node.run_cmd("shutdown -r now")
                 self.api.remove_active_model(active_model)
