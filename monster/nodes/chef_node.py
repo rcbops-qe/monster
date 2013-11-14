@@ -158,5 +158,7 @@ class ChefNode(Node):
 
     def run_chef_client(self, times=1):
         for _ in xrange(times):
-            self.run_cmd("chef-client")
+            chef_run = self.run_cmd("chef-client")
             self.save_locally()
+            if chef_run.exit_status is not 0:
+                raise Exception("Chef client failure")
