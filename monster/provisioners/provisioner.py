@@ -109,6 +109,16 @@ class ChefOpenstackProvisioner(Provisioner):
         self.name_index = {}
 
     def name(self, name, deployment, number=None):
+        """
+        Helper for naming nodes
+        :param name: name for node
+        :type name: String
+        :param deployment: deployment object
+        :type deployment: Deployment
+        :param number: number to append to name
+        :type number: int
+        :rtype: string
+        """
         if name in self.name_index:
             # Name already exists, use index to name
             num = self.name_index[name] + 1
@@ -117,9 +127,17 @@ class ChefOpenstackProvisioner(Provisioner):
 
         # Name doesn't exist initalize index use name
         self.name_index[name] = 1
-        return "{0}-{1}".format(deployment.name, name)
+        return "{0}-{1}".format(deployment, name)
 
     def provision(self, template, deployment):
+        """
+        Provisions a ChefNode using OpenStack
+        :param template: template for cluster
+        :type template: dict
+        :param deployment: ChefDeployment to provision for
+        :type deployment: ChefDeployment
+
+        """
         util.logger.info("Provisioning in the cloud!")
         # acquire connection
         client = self.connection()
@@ -129,8 +147,7 @@ class ChefOpenstackProvisioner(Provisioner):
         for features in template['nodes']:
             name = self.name(features[0], deployment)
             self.names.append(name)
-            events.append(spawn(self.chef_instance, client, features,
-                                deployment, name))
+            events.append(spawn(self.chef_instance, client, deployment, name))
         joinall(events)
 
         # acquire chef nodes
@@ -138,6 +155,11 @@ class ChefOpenstackProvisioner(Provisioner):
         return chef_nodes
 
     def destroy_node(self, node):
+        """
+        Destroys chef node from openstack
+        :param node: node to destroy
+        :type node: ChefNode
+        """
         cnode = Node(node.name, node.environment.local_api)
         if cnode.exists:
             compute = self.connection()
@@ -147,7 +169,19 @@ class ChefOpenstackProvisioner(Provisioner):
         if client.exists:
             client.delete()
 
-    def chef_instance(self, client, features, deployment, name, flavor="2GB"):
+    def chef_instance(self, client, deployment, name, flavor="2GB"):
+        """
+        Builds an instance with desired specs and inits it with chef
+        :param client: compute client object
+        :type client: novaclient.client.Client
+        :param deployment: deployement to add to
+        :type deployment: ChefDeployment
+        :param name: name for instance
+        :type name: string
+        :param flavor: desired flavor for node
+        :type flavor: string
+        :rtype: ChefNode
+        """
         image = deployment.os_name
         server, password = self.build_instance(client, name=name,
                                                image=image, flavor=flavor)
@@ -170,6 +204,18 @@ class ChefOpenstackProvisioner(Provisioner):
 
     def build_instance(self, client, name="server", image="precise",
                        flavor="2GB"):
+        """
+        Builds an instance with desired specs
+        :param client: compute client object
+        :type client: novaclient.client.Client
+        :param name: name of server
+        :type name: string
+        :param image: desired image for server
+        :type image: string
+        :param flavor: desired flavor for server
+        :type flavor: string
+        :rtype: Server
+        """
         openstack = util.config['openstack']
         try:
             flavor_name = openstack['flavors'][flavor]
@@ -192,6 +238,22 @@ class ChefOpenstackProvisioner(Provisioner):
 
     def wait_for_state(self, fun, obj, attr, desired, interval=15,
                        attempts=None):
+        """
+        Waits for a desired state of an object using gevented sleep
+        :param fun: function to update object
+        :type fun: function
+        :param obj: object which to check state
+        :type obj: obj
+        :param attr: attribute of object of which state resides
+        :type attr: str
+        :param desired: desired state of attribute
+        :type desired: string
+        :param interval: interval to check state in secs
+        :param interval: int
+        :param attempts: number of attempts to acheive state
+        :type attempts: int
+        :rtype: obj
+        """
         attempt = 0
         in_attempt = lambda x: not attempts or x > attempts
         while getattr(obj, attr) not in desired and in_attempt(attempt):
@@ -203,6 +265,10 @@ class ChefOpenstackProvisioner(Provisioner):
         return obj
 
     def connection(self):
+        """
+        Returns an openstack client
+        :rtype: novaclient.client.Client
+        """
         creds = util.config['secrets']['openstack']
         plugin = creds['plugin']
         if plugin:
