@@ -1,11 +1,8 @@
 from time import sleep
-from gevent import spawn, joinall
-from gevent import sleep as gsleep
-from gevent.coros import BoundedSemaphore
-
-from chef import Node, Client, Search, autoconfigure
 
 import novaclient.auth_plugin
+from chef import Node, Client, Search, autoconfigure
+from gevent import spawn, joinall, sleep as gsleep
 from novaclient.client import Client as NovaClient
 
 from monster import util
@@ -110,7 +107,6 @@ class ChefOpenstackProvisioner(Provisioner):
     def __init__(self):
         self.names = []
         self.name_index = {}
-        self.lock = BoundedSemaphore(1)
 
     def name(self, name, deployment, number=None):
         if name in self.name_index:
