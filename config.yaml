@@ -124,7 +124,7 @@ environments:
       openstack:
         management: 10.0.0.0/8
         nova: 10.0.0.0/8
-        public: 10.0.0.0/8
+        public: 166.0.0/8
     glance:
         default:
             image_upload: true
