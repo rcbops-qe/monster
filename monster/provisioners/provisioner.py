@@ -217,24 +217,47 @@ class ChefOpenstackProvisioner(Provisioner):
         :rtype: Server
         """
         openstack = util.config['openstack']
+
+        # get image
         try:
             flavor_name = openstack['flavors'][flavor]
         except KeyError:
             raise Exception("Flavor not supported:{0}".format(flavor))
-        flavor = next(flavor.id for flavor in client.flavors.list()
-                      if flavor_name in flavor.name)
+        self._client_search(client.flavors.list, name, flavor_name,
+                            attempts=10)
+
+        # get flavor
         try:
             image_name = openstack['images'][image]
         except KeyError:
             raise Exception("Image not supported:{0}".format(image))
-        image = next(image.id for image in client.images.list()
-                     if image_name in image.name)
+        self._client_search(client.images.list, image, image_name, attempts=10)
+
+        # build instance
         server = client.servers.create(name, image, flavor)
         password = server.adminPass
         util.logger.info("Building:{0}".format(name))
         server = self.wait_for_state(client.servers.get, server, "status",
                                      ["ACTIVE", "ERROR"])
         return (server, password)
+
+    def _client_search(self, collection_fun, attr, desired, attempts=None,
+                       interval=1):
+        obj_collection = None
+        attempt = 0
+        in_attempt = lambda x: not attempts or attempts > x
+        while in_attempt(attempt):
+            try:
+                obj_collection = collection_fun()
+                break
+            except:
+                util.logger.error("Wait: Request error:{0}".format(desired))
+                continue
+        for obj in obj_collection:
+            if getattr(obj, attr) is desired:
+                return obj
+        util.logger.error("Client search fail:{0} not found".format(desired))
+        raise Exception("Client search fail")
 
     def wait_for_state(self, fun, obj, attr, desired, interval=15,
                        attempts=None):
@@ -255,7 +278,7 @@ class ChefOpenstackProvisioner(Provisioner):
         :rtype: obj
         """
         attempt = 0
-        in_attempt = lambda x: not attempts or x > attempts
+        in_attempt = lambda x: not attempts or attempts > x
         while getattr(obj, attr) not in desired and in_attempt(attempt):
             util.logger.info("Wating:{0} {1}:{2}".format(obj, attr,
                                                          getattr(obj, attr)))
