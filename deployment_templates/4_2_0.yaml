@@ -3,6 +3,7 @@ precise-default:
   name: default
   os: precise
   features:
+    openssh: default
     monitoring: default
     mysql: default
     glance: cf
@@ -11,16 +12,144 @@ precise-default:
     keystone: default
     osops: default
     osopsnetworks: default
+    tempest: default
   nodes:
     - [chefserver]
-    - [controller, celiometer]
-    - [compute, celiometer]
+    - [controller, orchestration]
+    - [compute]
 
 centos-default:
   product: compute
   name: default
   os: centos
   features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: cf
+    cinder: local
+    nova: default
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+  nodes:
+    - [chefserver]
+    - [controller, orchestration]
+    - [compute]
+
+precise-neutron:
+  product: compute
+  name: neutron
+  os: precise
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    nova: default
+    neutron: neutron
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+  nodes:
+    - [chefserver]
+    - [controller, network]
+    - [compute, network]
+
+centos-neutron:
+  product: compute
+  name: neutron
+  os: centos
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    nova: default
+    neutron: neutron
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+  nodes:
+    - [chefserver]
+    - [controller, network]
+    - [compute, network]
+
+precise-ha:
+  product: compute
+  name: ha
+  os: precise
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    neutron: neutron
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, orchestration]
+    - [controller]
+    - [compute]
+
+precise-ha-l3:
+  product: compute
+  name: ha
+  os: precise
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    neutron: neutron
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, network, orchestration]
+    - [controller, network]
+    - [compute]
+
+centos-ha-l3:
+  product: compute
+  name: ha
+  os: centos
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    neutron: neutron
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, network, orchestration]
+    - [controller, network]
+    - [compute]
+
+precise-ha-nova-net:
+  product: compute
+  name: ha
+  os: precise
+  features:
+    openssh: default
     monitoring: default
     mysql: default
     glance: cf
@@ -29,16 +158,42 @@ centos-default:
     keystone: default
     osops: default
     osopsnetworks: default
+    highavailability: default
   nodes:
     - [chefserver]
-    - [controller, celiometer]
-    - [compute, celiometer]
+    - [controller, orchestration]
+    - [controller]
+    - [compute]
+    - [compute]
+
+centos-ha:
+  product: compute
+  name: ha
+  os: centos
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    neutron: neutron
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, network, orchestration]
+    - [controller, network]
+    - [compute]
 
 precise-swift:
   product: storage
   name: swift
   os: precise
   features:
+    openssh: default
     keystone: swift
     swift: rpcs
   nodes:
@@ -55,6 +210,7 @@ centos-swift:
   name: swift
   os: centos
   features:
+    openssh: default
     keystone: swift
     swift: rpcs
   nodes:
