@@ -6,6 +6,14 @@ from subprocess import check_call, CalledProcessError
 from monster import util
 
 
+class Command(object):
+    def __init__(self, command):
+        self.command = command
+        self.successful = False
+        self.output = None
+        self.exception = None
+
+
 def run_cmd(command):
     """
     @param cmd
