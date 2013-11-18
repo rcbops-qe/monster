@@ -1,7 +1,6 @@
 """Gathers application config"""
 
 import os
-from monster import util
 from yaml import load
 
 
