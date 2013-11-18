@@ -1,13 +1,13 @@
 from time import sleep
 
-import novaclient.auth_plugin
 from chef import Node, Client, Search, autoconfigure
 from gevent import spawn, joinall, sleep as gsleep
-from novaclient.client import Client as NovaClient
 
 from monster import util
 from monster.razor_api import razor_api
 from monster.server_helper import run_cmd
+from monster.clients import openstack
+from monster.clients.openstack import Clients
 
 
 class Provisioner(object):
@@ -107,6 +107,7 @@ class ChefOpenstackProvisioner(Provisioner):
     def __init__(self):
         self.names = []
         self.name_index = {}
+        self.creds = openstack.creds
 
     def name(self, name, deployment, number=None):
         """
@@ -140,7 +141,7 @@ class ChefOpenstackProvisioner(Provisioner):
         """
         util.logger.info("Provisioning in the cloud!")
         # acquire connection
-        client = self.connection()
+        client = Clients().get_client(self.client_name)
 
         # create instances concurrently
         events = []
@@ -216,11 +217,11 @@ class ChefOpenstackProvisioner(Provisioner):
         :type flavor: string
         :rtype: Server
         """
-        openstack = util.config['openstack']
+        config = util.config['config']
 
         # get image
         try:
-            flavor_name = openstack['flavors'][flavor]
+            flavor_name = config['flavors'][flavor]
         except KeyError:
             raise Exception("Flavor not supported:{0}".format(flavor))
         self._client_search(client.flavors.list, name, flavor_name,
@@ -228,7 +229,7 @@ class ChefOpenstackProvisioner(Provisioner):
 
         # get flavor
         try:
-            image_name = openstack['images'][image]
+            image_name = config['images'][image]
         except KeyError:
             raise Exception("Image not supported:{0}".format(image))
         self._client_search(client.images.list, image, image_name, attempts=10)
@@ -288,23 +289,9 @@ class ChefOpenstackProvisioner(Provisioner):
             attempt = attempt + 1
         return obj
 
-    def connection(self):
-        """
-        Returns an openstack client
-        :rtype: novaclient.client.Client
-        """
-        creds = util.config['secrets']['openstack']
-        plugin = creds['plugin']
-        if plugin:
-            novaclient.auth_plugin.discover_auth_systems()
-            auth_plugin = novaclient.auth_plugin.load_plugin(plugin)
-        user = creds['user']
-        api_key = creds['api_key']
-        auth_url = creds['auth_url']
-        region = creds['region']
-        compute = NovaClient('1.1', user, api_key, user, auth_url=auth_url,
-                             region_name=region, service_type='compute',
-                             os_cache=False, no_cache=True,
-                             auth_plugin=auth_plugin, auth_system=plugin,
-                             insecure=True)
-        return compute
+
+class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
+    def __init__(self):
+        self.names = []
+        self.name_index = {}
+        self.creds = openstack.rax_creds
