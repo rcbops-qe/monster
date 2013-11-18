@@ -37,17 +37,19 @@ class rax_plugin(object):
 
 
 class rax_creds(object):
-    user = util.config['secrets']['openstack']['user']
-    apikey = util.config['secrets']['openstack']['api_key']
-    region = util.config['secrets']['openstack']['region']
+    config = util.config['secrets']['rackspace']
+    user = config['user']
+    apikey = config['api_key']
+    region = config['region']
     system = 'rackspace'
     plugin = rax_plugin()
 
 
 class creds(object):
-    user = util.config['secrets']['openstack']['user']
-    apikey = util.config['secrets']['openstack']['api_key']
-    region = util.config['secrets']['openstack']['region']
+    config = util.config['secrets']['openstack']
+    user = config['user']
+    apikey = config['api_key']
+    region = config['region']
     system = 'keystone'
 
 
@@ -94,6 +96,6 @@ class Clients(object):
         # Setup our RAX Client
         client_type = getattr(self, client)
         if client_type is None:
-            raise exceptions.NotFound('No Client Type Found')
+            raise Exception('No Client Type Found')
         else:
             return client_type()
