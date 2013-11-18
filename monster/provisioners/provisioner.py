@@ -250,8 +250,9 @@ class ChefOpenstackProvisioner(Provisioner):
             try:
                 obj_collection = collection_fun()
                 break
-            except:
-                util.logger.error("Wait: Request error:{0}".format(desired))
+            except Exception as e:
+                util.logger.error("Wait: Request error:{0}-{1}".
+                                  format(desired, e))
                 continue
         for obj in obj_collection:
             if getattr(obj, attr) is desired:
