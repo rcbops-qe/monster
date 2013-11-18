@@ -288,6 +288,10 @@ class ChefServer(Node):
         self.archive = {"log": [""],
                         "configs": [""]}
 
+    def destroy(self):
+        # Stop updating remote environment
+        self.node.environment.remote_api = None
+
     def _install(self):
         """ Installs chef server on the given node
         """

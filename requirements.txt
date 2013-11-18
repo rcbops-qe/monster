@@ -5,4 +5,5 @@ paramiko
 pychef
 pyyaml
 gevent
+python-cinderclient
 rackspace-novaclient
