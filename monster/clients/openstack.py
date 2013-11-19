@@ -37,25 +37,27 @@ class rax_plugin(object):
 
 
 class rax_creds(object):
-    config = util.config['secrets']['rackspace']
-    user = config['user']
-    apikey = config['api_key']
-    region = config['region']
-    system = 'rackspace'
-    plugin = rax_plugin()
+    def __init__(self):
+        config = util.config['secrets']['rackspace']
+        self.user = config['user']
+        self.apikey = config['api_key']
+        self.region = config['region']
+        self.system = 'rackspace'
+        self.plugin = rax_plugin()
 
 
 class creds(object):
-    config = util.config['secrets']['openstack']
-    user = config['user']
-    apikey = config['api_key']
-    region = config['region']
-    system = 'keystone'
+    def __init__(self):
+        config = util.config['secrets']['openstack']
+        self.user = config['user']
+        self.apikey = config['api_key']
+        self.region = config['region']
+        self.system = 'keystone'
 
 
 class Clients(object):
-    def __init__(self):
-        self.creds = rax_creds()
+    def __init__(self, creds):
+        self.creds = creds
         insecure = False
         cacert = None
         self.creds_dict = dict(
