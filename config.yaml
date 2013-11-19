@@ -121,7 +121,7 @@ environments:
         management: 198.101.133.0/24
         nova: 198.101.133.0/24
         public: 198.101.133.0/24
-      openstack:
+      rackspace:
         management: 10.0.0.0/8
         nova: 10.0.0.0/8
         public: 166.0.0/8
@@ -335,11 +335,11 @@ provisioners:
   openstack: chefopenstackprovisioner
   rackspace: chefrackspaceprovisioner
 
-openstack:
+rackspace:
   run_list:
     - recipe[rcbops-qa]
   images:
-    precise: Ubuntu 12.04
+    precise: Ubuntu 12.04 LTS (Precise Pangolin)
     centos: CentOS 6.4
   flavors:
     512MB: 512MB Standard Instance
