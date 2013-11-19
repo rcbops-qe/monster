@@ -107,7 +107,8 @@ class ChefOpenstackProvisioner(Provisioner):
     def __init__(self):
         self.names = []
         self.name_index = {}
-        self.creds = openstack.creds
+        self.creds = openstack.creds()
+        self.client = Clients(self.creds).get_client("novaclient")
 
     def name(self, name, deployment, number=None):
         """
@@ -124,11 +125,11 @@ class ChefOpenstackProvisioner(Provisioner):
             # Name already exists, use index to name
             num = self.name_index[name] + 1
             self.name_index[name] = num
-            return "{0}-{1}{2}".format(deployment, name, number=num)
+            return "{0}-{1}{2}".format(deployment.name, name, number=num)
 
         # Name doesn't exist initalize index use name
         self.name_index[name] = 1
-        return "{0}-{1}".format(deployment, name)
+        return "{0}-{1}".format(deployment.name, name)
 
     def provision(self, template, deployment):
         """
@@ -141,14 +142,13 @@ class ChefOpenstackProvisioner(Provisioner):
         """
         util.logger.info("Provisioning in the cloud!")
         # acquire connection
-        client = Clients().get_client(self.client_name)
 
         # create instances concurrently
         events = []
         for features in template['nodes']:
             name = self.name(features[0], deployment)
             self.names.append(name)
-            events.append(spawn(self.chef_instance, client, deployment, name))
+            events.append(spawn(self.chef_instance, deployment, name))
         joinall(events)
 
         # acquire chef nodes
@@ -170,7 +170,7 @@ class ChefOpenstackProvisioner(Provisioner):
         if client.exists:
             client.delete()
 
-    def chef_instance(self, client, deployment, name, flavor="2GB"):
+    def chef_instance(self, deployment, name, flavor="2GB"):
         """
         Builds an instance with desired specs and inits it with chef
         :param client: compute client object
@@ -184,8 +184,8 @@ class ChefOpenstackProvisioner(Provisioner):
         :rtype: ChefNode
         """
         image = deployment.os_name
-        server, password = self.build_instance(client, name=name,
-                                               image=image, flavor=flavor)
+        server, password = self.build_instance(name=name, image=image,
+                                               flavor=flavor)
         run_list = ",".join(util.config['openstack']['run_list'])
         run_list_arg = ""
         if run_list:
@@ -203,7 +203,7 @@ class ChefOpenstackProvisioner(Provisioner):
         node.save()
         return node
 
-    def build_instance(self, client, name="server", image="precise",
+    def build_instance(self, name="server", image="precise",
                        flavor="2GB"):
         """
         Builds an instance with desired specs
@@ -217,28 +217,29 @@ class ChefOpenstackProvisioner(Provisioner):
         :type flavor: string
         :rtype: Server
         """
-        config = util.config['config']
+        config = util.config[self.short_name()]
 
         # get image
         try:
             flavor_name = config['flavors'][flavor]
         except KeyError:
             raise Exception("Flavor not supported:{0}".format(flavor))
-        self._client_search(client.flavors.list, name, flavor_name,
-                            attempts=10)
+        flavor_obj = self._client_search(self.client.flavors.list, "name",
+                                         flavor_name, attempts=10)
 
         # get flavor
         try:
             image_name = config['images'][image]
         except KeyError:
             raise Exception("Image not supported:{0}".format(image))
-        self._client_search(client.images.list, image, image_name, attempts=10)
+        image_obj = self._client_search(self.client.images.list, "name",
+                                        image_name, attempts=10)
 
         # build instance
-        server = client.servers.create(name, image, flavor)
+        server = self.client.servers.create(name, image_obj.id, flavor_obj.id)
         password = server.adminPass
         util.logger.info("Building:{0}".format(name))
-        server = self.wait_for_state(client.servers.get, server, "status",
+        server = self.wait_for_state(self.client.servers.get, server, "status",
                                      ["ACTIVE", "ERROR"])
         return (server, password)
 
@@ -255,11 +256,13 @@ class ChefOpenstackProvisioner(Provisioner):
                 util.logger.error("Wait: Request error:{0}-{1}".
                                   format(desired, e))
                 continue
+        get_attr = lambda x: getattr(x, attr)
+        util.logger.debug("Search:{0} for {1} in {2}".format(
+            attr, desired, ",".join(map(get_attr, obj_collection))))
         for obj in obj_collection:
-            if getattr(obj, attr) is desired:
+            if getattr(obj, attr) == desired:
                 return obj
-        util.logger.error("Client search fail:{0} not found".format(desired))
-        raise Exception("Client search fail")
+        raise Exception("Client search fail:{0} not found".format(desired))
 
     def wait_for_state(self, fun, obj, attr, desired, interval=15,
                        attempts=None):
@@ -294,4 +297,5 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
     def __init__(self):
         self.names = []
         self.name_index = {}
-        self.creds = openstack.rax_creds
+        self.creds = openstack.rax_creds()
+        self.client = Clients(self.creds).get_client("novaclient")
