@@ -186,7 +186,7 @@ class ChefOpenstackProvisioner(Provisioner):
         image = deployment.os_name
         server, password = self.build_instance(name=name, image=image,
                                                flavor=flavor)
-        run_list = ",".join(util.config['openstack']['run_list'])
+        run_list = ",".join(util.config[self.short_name()]['run_list'])
         run_list_arg = ""
         if run_list:
             run_list_arg = "-r {0}".format(run_list)
