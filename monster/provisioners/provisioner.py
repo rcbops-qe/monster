@@ -163,8 +163,7 @@ class ChefOpenstackProvisioner(Provisioner):
         """
         cnode = Node(node.name, node.environment.local_api)
         if cnode.exists:
-            compute = self.connection()
-            compute.servers.get(node['uuid']).delete()
+            self.client.servers.get(node['uuid']).delete()
             cnode.delete()
         client = Client(node.name, node.environment.local_api)
         if client.exists:
