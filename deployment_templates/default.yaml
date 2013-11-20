@@ -68,7 +68,7 @@ centos-neutron:
     mysql: default
     glance: default
     nova: default
-    neutron: neutron
+    neutron: quantum
     horizon: default
     keystone: default
     osops: default
@@ -88,7 +88,7 @@ precise-ha:
     mysql: default
     glance: cf
     nova: default
-    neutron: neutron
+    neutron: quantum
     horizon: default
     keystone: default
     osops: default
@@ -110,7 +110,7 @@ centos-ha:
     mysql: default
     glance: cf
     nova: default
-    neutron: neutron
+    neutron: quantum
     horizon: default
     keystone: default
     osops: default
