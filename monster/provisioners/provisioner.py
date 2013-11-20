@@ -11,6 +11,11 @@ from monster.clients.openstack import Clients
 
 
 class Provisioner(object):
+    """
+    Provisioner class template
+
+    Enforce implementation of provsision and destroy_node and naming convention
+    """
 
     def __str__(self):
         return self.__class__.__name__.lower()
@@ -18,23 +23,49 @@ class Provisioner(object):
     def short_name(self):
         """
         Converts to short hand name
+        :rtype: string
         """
         provisioners = util.config['provisioners']
         return {value: key for key, value in provisioners.items()}[str(self)]
 
-    def available_node(self, image, deployment):
+    def provision(self, template, deployment):
+        """
+        Provisions nodes
+        :param template: template for cluster
+        :type template: dict
+        :param deployment: Deployment to provision for
+        :type deployment: Deployment
+        :rtype: list
+        """
         raise NotImplementedError
 
     def destroy_node(self, node):
+        """
+        Destroys node
+        :param node: node to destroy
+        :type node: Node
+        """
         raise NotImplementedError
 
 
 class ChefRazorProvisioner(Provisioner):
+    """
+    Provisions chef nodes in a Razor environment
+    """
+
     def __init__(self, ip=None):
         self.ipaddress = ip or util.config['razor']['ip']
         self.api = razor_api(self.ipaddress)
 
     def provision(self, template, deployment):
+        """
+        Provisions a ChefNode using Razor environment
+        :param template: template for cluster
+        :type template: dict
+        :param deployment: ChefDeployment to provision for
+        :type deployment: ChefDeployment
+        :rtype: list
+        """
         util.logger.info("Provisioning with Razor!")
         image = deployment.os_name
         return [self.available_node(image, deployment)
@@ -42,8 +73,15 @@ class ChefRazorProvisioner(Provisioner):
 
     def available_node(self, image, deployment):
         """
-        Provides a free node from
+        Provides a free node from chef pool
+        :param image: name of os image
+        :type image: string
+        :param deployment: ChefDeployment to add node to
+        :type deployment: ChefDeployment
+        :rtype: ChefNode
         """
+        # TODO: Should probably search on system name node attributes
+        # Avoid specific naming of razor nodes, not portable
         nodes = self.node_search("name:qa-%s-pool*" % image)
         for node in nodes:
             is_default = node.chef_environment == "_default"
@@ -59,6 +97,8 @@ class ChefRazorProvisioner(Provisioner):
     def destroy_node(self, node):
         """
         Destroys a node provisioned by razor
+        :param node: Node to destroy
+        :type node: ChefNode
         """
         cnode = Node(node.name, node.environment.local_api)
         in_use = node['in_use']
@@ -91,6 +131,11 @@ class ChefRazorProvisioner(Provisioner):
     def node_search(cls, query, environment=None, tries=10):
         """
         Performs a node search query on the chef server
+        :param query: search query to request
+        :type query: string
+        :param environment: Environment the query should be
+        :type environment: ChefEnvironment
+        :rtype: Iterator (chef.Node)
         """
         api = autoconfigure()
         if environment:
@@ -104,6 +149,9 @@ class ChefRazorProvisioner(Provisioner):
 
 
 class ChefOpenstackProvisioner(Provisioner):
+    """
+    Provisions chef nodes in openstack vms
+    """
     def __init__(self):
         self.names = []
         self.name_index = {}
@@ -138,7 +186,7 @@ class ChefOpenstackProvisioner(Provisioner):
         :type template: dict
         :param deployment: ChefDeployment to provision for
         :type deployment: ChefDeployment
-
+        :rtype: list
         """
         util.logger.info("Provisioning in the cloud!")
         # acquire connection
@@ -293,6 +341,10 @@ class ChefOpenstackProvisioner(Provisioner):
 
 
 class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
+    """
+    Provisions chef nodes in Rackspace Cloud Servers vms
+    """
+
     def __init__(self):
         self.names = []
         self.name_index = {}
