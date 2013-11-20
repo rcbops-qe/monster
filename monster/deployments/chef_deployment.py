@@ -153,18 +153,6 @@ class ChefDeployment(Deployment):
             deployment.nodes.append(cnode)
         return deployment
 
-    # NOTE: This probably should be in node instead and use from_chef_node
-    def node_config(self, features, os_name, product, environment, provisioner,
-                    branch):
-        """
-        Builds a new node given a dictionary of features
-        """
-        cnode = provisioner.available_node(os_name, self)
-        node = ChefNode.from_chef_node(cnode, os_name, product, environment,
-                                       self, provisioner, branch)
-        self.nodes.append(node)
-        node.add_features(features)
-
     @classmethod
     def deployment_config(cls, features, name, os_name, branch, environment,
                           provisioner, status=None, product=None):
