@@ -133,12 +133,11 @@ class ChefDeployment(Deployment):
         os_name = deployment_args.get('os_name', None)
         branch = deployment_args.get('branch', None)
         status = deployment_args.get('status', "provisioning")
+        status = deployment_args.get('product', None)
         deployment = cls.deployment_config(features, name, os_name, branch,
                                            environment, provisioner, status)
 
         nodes = deployment_args.get('nodes', [])
-        template = Config(path)[env.name]
-        product = template['product']
         for node in (Node(n, environment.local_api) for n in nodes):
             if not node.exists:
                 util.logger.error("Non existant chef node:{0}".
