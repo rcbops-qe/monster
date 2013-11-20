@@ -96,33 +96,11 @@ precise-ha:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller]
-    - [controller]
-    - [compute]
-
-precise-ha-l3:
-  product: compute
-  name: ha
-  os: precise
-  features:
-    openssh: default
-    monitoring: default
-    mysql: default
-    glance: cf
-    nova: default
-    neutron: neutron
-    horizon: default
-    keystone: default
-    osops: default
-    osopsnetworks: default
-    highavailability: default
-  nodes:
-    - [chefserver]
     - [controller, network]
     - [controller, network]
     - [compute]
 
-centos-ha-l3:
+centos-ha:
   product: compute
   name: ha
   os: centos
@@ -164,28 +142,6 @@ precise-ha-nova-net:
     - [controller]
     - [controller]
     - [compute]
-    - [compute]
-
-centos-ha:
-  product: compute
-  name: ha
-  os: centos
-  features:
-    openssh: default
-    monitoring: default
-    mysql: default
-    glance: cf
-    nova: default
-    neutron: neutron
-    horizon: default
-    keystone: default
-    osops: default
-    osopsnetworks: default
-    highavailability: default
-  nodes:
-    - [chefserver]
-    - [controller, network]
-    - [controller, network]
     - [compute]
 
 precise-swift:
