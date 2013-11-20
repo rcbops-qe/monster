@@ -61,8 +61,8 @@ class Neutron(Deployment):
         return outl
 
     def update_environment(self):
-        self.deployment.environment.add_override_attr(
-            str(self), self.environment)
+        self.deployment.environment.add_override_attr(rpcs_feature,
+                                                      self.environment)
         self._fix_nova_environment()
 
     def post_configure(self, auto=False):
@@ -85,7 +85,12 @@ class Neutron(Deployment):
         if 'networks' in env.override_attributes['nova']:
             del env.override_attributes['nova']['networks']
             env.override_attributes['nova']['network'] = neutron_network
-            env.save()
+
+        # update the vip to correct api name and vip value
+        api_name = '{0}-api'.format(self.provider)
+        api_vip = util.config[str(self)][self.node.os_name]['vip']
+        env.override_attributes['vips'][api_name] = api_vip
+        env.save()
 
     def _reboot_cluster(self):
 
