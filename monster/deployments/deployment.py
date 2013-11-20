@@ -10,7 +10,7 @@ class Deployment(object):
     """Base for OpenStack deployments
     """
 
-    def __init__(self, name, os_name, branch, provisioner, status):
+    def __init__(self, name, os_name, branch, provisioner, status, product):
         self.name = name
         self.os_name = os_name
         self.branch = branch
@@ -18,6 +18,7 @@ class Deployment(object):
         self.nodes = []
         self.status = status or "provisioning"
         self.provisioner = provisioner
+        self.product = product
 
     def __repr__(self):
         """ Print out current instance

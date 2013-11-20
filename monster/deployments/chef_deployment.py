@@ -18,10 +18,10 @@ class ChefDeployment(Deployment):
     """
 
     def __init__(self, name, os_name, branch, environment, provisioner,
-                 status=None):
+                 status=None, product=None):
         status = status or "provisioning"
         super(ChefDeployment, self).__init__(name, os_name, branch,
-                                             provisioner, status)
+                                             provisioner, status, product)
         self.environment = environment
         self.has_controller = False
 
@@ -48,7 +48,8 @@ class ChefDeployment(Deployment):
                       'name': self.name,
                       'os_name': self.os_name,
                       'branch': self.branch,
-                      'status': self.status}
+                      'status': self.status,
+                      'product': self.product}
         self.environment.add_override_attr('deployment', deployment)
 
     def build(self):
@@ -90,7 +91,8 @@ class ChefDeployment(Deployment):
         name = template['name']
 
         deployment = cls.deployment_config(template['features'], name, os_name,
-                                           branch, environment, provisioner)
+                                           branch, environment, provisioner,
+                                           product=product)
 
         # provision nodes
         chef_nodes = provisioner.provision(template, deployment)
@@ -133,12 +135,12 @@ class ChefDeployment(Deployment):
         os_name = deployment_args.get('os_name', None)
         branch = deployment_args.get('branch', None)
         status = deployment_args.get('status', "provisioning")
+        product = deployment_args.get('product', None)
         deployment = cls.deployment_config(features, name, os_name, branch,
-                                           environment, provisioner, status)
+                                           environment, provisioner, status,
+                                           product=product)
 
         nodes = deployment_args.get('nodes', [])
-        template = Config(path)[env.name]
-        product = template['product']
         for node in (Node(n, environment.local_api) for n in nodes):
             if not node.exists:
                 util.logger.error("Non existant chef node:{0}".
@@ -165,13 +167,13 @@ class ChefDeployment(Deployment):
 
     @classmethod
     def deployment_config(cls, features, name, os_name, branch, environment,
-                          provisioner, status=None):
+                          provisioner, status=None, product=None):
         """
         Returns deployment given dictionaries of features
         """
         status = status or "provisioning"
         deployment = cls(name, os_name, branch, environment,
-                         provisioner, status)
+                         provisioner, status, product)
         deployment.add_features(features)
         return deployment
 
