@@ -21,8 +21,7 @@ class Deployment(object):
         self.product = product
 
     def __repr__(self):
-        """ Print out current instance
-        """
+        """Print out current instance"""
         outl = 'class: ' + self.__class__.__name__
         for attr in self.__dict__:
             if attr == 'features':
@@ -95,8 +94,7 @@ class Deployment(object):
         self.status = "post-build"
 
     def artifact(self):
-        """ Artifacts openstack and its dependant services for a deployment
-        """
+        """Artifacts openstack and its dependant services for a deployment"""
 
         self.log_path = "/var/log"
         self.etc_path = "/etc/"
@@ -118,17 +116,30 @@ class Deployment(object):
     def search_role(self, feature):
         """
         Returns nodes the have the desired role
+        :param feature: feature to be searched for
+        :type feature: string
+        :rtype: Iterator (Nodes)
         """
         return (node for node in
                 self.nodes if feature in
                 (str(f).lower() for f in node.features))
 
     def feature_in(self, feature):
+        """
+        Boolean function to determine if a feature exists in deployment
+        :param feature: feature to be searched for
+        :type feature: string
+        :rtype: Boolean
+        """
         if feature in (feature.__class__.__name__.lower()
                        for feature in self.features):
             return True
         return False
 
     def feature_names(self):
+        """
+        Returns list features as strings
+        :rtype: list (string)
+        """
         return [feature.__class__.__name__.lower() for feature in
                 self.features]

@@ -13,7 +13,8 @@ from monster.provisioners.provisioner import ChefRazorProvisioner
 
 
 class ChefDeployment(Deployment):
-    """ Deployment mechinisms specific to deployment using:
+    """
+    Deployment mechinisms specific to deployment using
     Opscode's Chef as configuration management
     """
 
@@ -70,18 +71,27 @@ class ChefDeployment(Deployment):
     def fromfile(cls, name, branch, provisioner, path=None):
         """
         Returns a new deployment given a deployment template at path
+        :param name: name for the deployment
+        :type name: string
+        :param branch: branch of the RCBOPS chef cookbook repo to use
+        :type branch:: string
+        :param provisioner: provisioner to use for nodes
+        :type provisioner: Provisioner
+        :param path: path to template
+        :type path: string
+        :rtype: ChefDeployment
         """
-        if not path:
-            path = os.path.join(os.path.dirname(__file__),
-                                os.pardir, os.pardir,
-                                'deployment_templates/default.yaml')
         local_api = autoconfigure()
 
         if Environment(name, api=local_api).exists:
             # Use previous dry build if exists
             util.logger.info("Using previous deployment:{0}".format(name))
-            return cls.from_chef_environment(name, path)
+            return cls.from_chef_environment(name)
 
+        if not path:
+            path = os.path.join(os.path.dirname(__file__),
+                                os.pardir, os.pardir,
+                                'deployment_templates/default.yaml')
         template = Config(path)[name]
 
         environment = Chef(name, local_api, description=name)
@@ -108,15 +118,16 @@ class ChefDeployment(Deployment):
         return deployment
 
     @classmethod
-    def from_chef_environment(cls, environment, path=None,
-                              provisioner=None):
+    def from_chef_environment(cls, environment, provisioner=None):
         """
         Rebuilds a Deployment given a chef environment
+        :param environment: name of environment
+        :type environment: string
+        :param provisioner: where nodes are provisioned
+        :type provisioner: Provisioner
+        :rtype: ChefDeployment
         """
-        if not path:
-            path = os.path.join(os.path.dirname(__file__),
-                                os.pardir, os.pardir,
-                                'deployment_templates/default.yaml')
+
         local_api = autoconfigure()
         env = Environment(environment, api=local_api)
         override = env.override_attributes
@@ -153,23 +164,28 @@ class ChefDeployment(Deployment):
             deployment.nodes.append(cnode)
         return deployment
 
-    # NOTE: This probably should be in node instead and use from_chef_node
-    def node_config(self, features, os_name, product, environment, provisioner,
-                    branch):
-        """
-        Builds a new node given a dictionary of features
-        """
-        cnode = provisioner.available_node(os_name, self)
-        node = ChefNode.from_chef_node(cnode, os_name, product, environment,
-                                       self, provisioner, branch)
-        self.nodes.append(node)
-        node.add_features(features)
-
     @classmethod
     def deployment_config(cls, features, name, os_name, branch, environment,
                           provisioner, status=None, product=None):
         """
         Returns deployment given dictionaries of features
+        :param features: dictionary of features {"monitoring": "default", ...}
+        :type features: dict
+        :param name: name of deployment
+        :type name: string
+        :param os_name: name of operating system
+        :type os_name: string
+        :param branch: branch of rcbops chef cookbooks to use
+        :type branch: string
+        :param environment: ChefEnvironment for deployment
+        :type environment: ChefEnvironment
+        :param provisioner: provisioner to deploy nodes
+        :type provisioner: Provisioner
+        :param status: initial status of deployment
+        :type status: string
+        :param product: name of rcbops product - compute, storage
+        :type product: string
+        :rtype: ChefDeployment
         """
         status = status or "provisioning"
         deployment = cls(name, os_name, branch, environment,
@@ -179,9 +195,9 @@ class ChefDeployment(Deployment):
 
     def add_features(self, features):
         """
-        Adds a dictionary of features as strings to deployment
-
-        ex: {"monitoring": "default", "glance": "cf", ...}
+        Adds a dictionary of features to deployment
+        :param features: dictionary of features {"monitoring": "default", ...}
+        :type features: dict
         """
         # stringify and lowercase classes in deployment features
         classes = util.module_classes(deployment_features)
@@ -234,6 +250,7 @@ class ChefDeployment(Deployment):
     def horizon_ip(self):
         """
         Returns ip of horizon
+        :rtype: string
         """
         controller = next(self.search_role('controller'))
         ip = controller.ipaddress
