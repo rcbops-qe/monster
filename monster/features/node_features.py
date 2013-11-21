@@ -35,6 +35,9 @@ class Node(Feature):
     def artifact(self):
         pass
 
+    def upgrade(self):
+        pass
+
     def set_run_list(self):
         """ Sets the nodes run list based on the Feature
         """
@@ -100,6 +103,33 @@ class Controller(Node):
             controller1 = next(controllers)
             controller1.run_chef_client()
 
+    def upgrade(self):
+        """ Upgrades a controller node
+        """
+
+        disable_services = self.util.config['upgrade']['disable_services']
+        stop_commands = ("service {0} stop".format(x) for x in disable_services)
+        stop_command = "; ".join(stop_commands)
+        start_commands = ("service {0} start".format(x) for x in disable_services)
+        start_command = "; ".join(start_commands)
+
+        # load all controllers
+        controllers = list(self.node.deployment.search_role('controller'))
+
+        if self.deployment.feature_in('highavailability'):
+            if self.number == 1:
+                stop_controller = controllers[-1]
+            else:
+                stop_controller = controllers[0]
+
+            stop_controller.run_cmd(stop_command)
+            util.logger.info('Sleeping to let services move properly')
+            sleep(30)
+            self.node.run_chef_client()
+            stop_controller.run_cmd(start_command)
+        else:
+            self.run_chef_client()
+
     def archive(self):
         """ Services on a controller to archive
         """
@@ -144,6 +174,9 @@ class Compute(Node):
 
     def pre_configure(self):
         self.set_run_list()
+
+    def upgrade(self):
+        self.run_chef_client()
 
     def archive(self):
         """ Archives all services on a compute node
@@ -288,6 +321,13 @@ class ChefServer(Node):
         self.archive = {"log": [""],
                         "configs": [""]}
 
+    def upgrade(self, upgrade_branch):
+        """ Upgrades the Chef Server Cookbooks
+        """
+        self.node.branch = upgrade_branch
+        self._upgrade_cookbooks()
+
+
     def destroy(self):
         # Stop updating remote environment
         self.node.environment.remote_api = None
@@ -317,6 +357,36 @@ class ChefServer(Node):
 
         if 'cookbooks' in cookbook_name:
              # add submodule stuff to list
+            commands.append('git submodule init')
+            commands.append('git submodule sync')
+            commands.append('git submodule update')
+            commands.append('knife cookbook upload --all --cookbook-path '
+                            '{0}/{1}/cookbooks'.format(install_dir,
+                                                       cookbook_name))
+
+        commands.append('knife role from file {0}/{1}/roles/*.rb'.format(
+            install_dir, cookbook_name))
+
+        command = "; ".join(commands)
+
+        return self.node.run_cmd(command)
+
+    def _upgrade_cookbooks(self):
+
+        cookbook_url = util.config['rcbops'][self.node.product]['git']['url']
+        cookbook_branch = self.node.branch
+        cookbook_name = cookbook_url.split("/")[-1].split(".")[0]
+        install_dir = util.config['chef']['server']['install_dir']
+
+        # Purge the cookbooks and upload the new ones
+        commands = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done",
+                    "cd {0}/{1}".format(install_dir, cookbook_name),
+                    "git clone -b '{0}' {1} {2}".format(cookbook_branch,
+                                                        cookbook_url,
+                                                        cookbook_name)]
+
+        if 'cookbooks' in cookbook_name:
+            # add submodule stuff to list
             commands.append('git submodule init')
             commands.append('git submodule sync')
             commands.append('git submodule update')

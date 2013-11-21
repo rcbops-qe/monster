@@ -59,6 +59,26 @@ def build(name="precise-default", branch="master", template_path=None,
         deployment.destroy()
 
 
+def upgrade(name='precise-default', upgrade_branch='v4.1.3rc', 
+            config=None, log=None, log_level="INFO",
+            provisioner='razor'):
+    """
+        Upgrades a current deployment to the new branch / tag
+    """
+
+    # Set the log level
+    _set_log(log, log_level)
+
+    # load the deployment
+    deployment = _load(name, config, provisioner)
+
+    # Log the deployment
+    util.logger.info(deployment)
+
+    # Upgrade
+    deployment.upgrade(upgrade_branch)
+
+
 def destroy(name="precise-default", config=None, log=None, log_level="INFO",
             provisioner="razor"):
     _set_log(log, log_level)

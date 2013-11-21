@@ -60,6 +60,32 @@ class ChefDeployment(Deployment):
         super(ChefDeployment, self).build()
         self.save_to_environment()
 
+    def upgrade(self):
+        """ 
+        Upgrades the deployment (very chefy, rcbopsy)
+        """
+
+        # Gather all the nodes of the deployment
+        chef_server = next(self.search_role('chefserver'))
+        controllers = self.search_role('controller')
+        computes = list(self.search_role('compute'))
+
+        # upgrade the chef server
+        chef_server.upgrade()
+
+        if self.feature_in('highavailability'):
+            controller1 = next(controllers)
+            controller2 = next(controllers)
+
+            controller1.upgrade()
+            controller2.upgrade()
+        else:
+            controller1 = next(controllers)
+            controller1.upgrade()
+
+        for compute in computes:
+            compute.upgrade()
+
     def update_environment(self):
         """
         Saves deployment for restore after update environment

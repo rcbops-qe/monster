@@ -371,3 +371,9 @@ neutron:
     precise:
         network_bridge_device: eth1
         vip: 198.101.133.156
+
+upgrade:
+    disable_services:
+        - monit
+        - keepalived
+        - haproxy

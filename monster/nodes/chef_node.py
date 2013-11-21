@@ -47,12 +47,21 @@ class ChefNode(Node):
         self.save(lnode)
 
     def build(self):
+        """ Builds the node
+        """
+
         # clear run_list
         self.run_list = []
         node = CNode(self.name, self.environment.local_api)
         node.run_list = []
         node.save()
         super(ChefNode, self).build()
+
+    def upgrade(self):
+        """ Upgrade the node according to its features
+        """
+        super(ChefNode, self).upgrade()
+
 
     def save_to_node(self):
         """

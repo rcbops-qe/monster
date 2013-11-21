@@ -120,6 +120,15 @@ class Node(object):
         self.post_configure()
         self.status = "done"
 
+    def upgrade(self):
+        """ Upgrades node based on features
+        """
+
+        for feature in self.features:
+            log = "Node feature: upgrade: {0}".format(str(feature))
+            util.logger.info(log)
+            feature.upgrade()
+
     def destroy(self):
         util.logger.info("Destroying node:{0}".format(self.name))
         for feature in self.features:
