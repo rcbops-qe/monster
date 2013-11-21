@@ -485,7 +485,8 @@ class Nova(Deployment):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Nova, self).__init__(deployment, rpcs_feature)
-        self.environment = util.config['environments'][str(self)][rpcs_feature]
+        self.environment = util.config['environments'][str(self)][
+            self.deployment.provisioner.short_name()]
 
     def __repr__(self):
         """ Print out current instance
