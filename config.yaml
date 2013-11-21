@@ -137,8 +137,8 @@ environments:
         nova: 198.101.133.0/24
         public: 198.101.133.0/24
       rackspace:
-        management: 10.0.0.0/8
-        nova: 10.0.0.0/8
+        management: 128.0.0.0/1
+        nova: 128.0.0.0/1
         public: 128.0.0.0/1
     glance:
         default:
