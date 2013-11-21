@@ -144,6 +144,28 @@ precise-ha-nova-net:
     - [compute]
     - [compute]
 
+centos-ha-nova-net:
+  product: compute
+  name: ha
+  os: centos
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller]
+    - [controller]
+    - [compute]
+    - [compute]
+
 precise-swift:
   product: storage
   name: swift
