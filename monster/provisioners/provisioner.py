@@ -196,7 +196,11 @@ class ChefOpenstackProvisioner(Provisioner):
         for features in template['nodes']:
             name = self.name(features[0], deployment)
             self.names.append(name)
-            events.append(spawn(self.chef_instance, deployment, name))
+            flavor = "2GB"
+            if "compute" in name:
+                flavor = "8GB"
+            events.append(spawn(self.chef_instance, deployment, name,
+                                flavor=flavor))
         joinall(events)
 
         # acquire chef nodes
