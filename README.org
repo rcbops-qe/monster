@@ -29,9 +29,9 @@ An OpenStack Orchestration Engine
 
     Deploys an OpenStack cluster
 
-    #+BEGIN_EXAMPLE
+    #+BEGIN_SRC sh
       compute.py build -n precise-default --branch master --template_path deployment_templates/default.yaml --config config.yaml --destroy --log log.txt --log_level DEBUG --provisioner rackspace --test
-    #+END_EXAMPLE
+    #+END_SRC
 
 **** Arguments
      - name: name of the template
@@ -49,9 +49,9 @@ An OpenStack Orchestration Engine
 
     Shows details about an OpenStack deployment
 
-    #+BEGIN_EXAMPLE
+    #+BEGIN_SRC sh
       compute.py show -n precise-default
-    #+END_EXAMPLE
+    #+END_SRC
 
 **** Arguments
      - name: name of the template
@@ -63,9 +63,9 @@ An OpenStack Orchestration Engine
 
     Destroys an OpenStack deployment
 
-    #+BEGIN_EXAMPLE
+    #+BEGIN_SRC sh
       compute.py destroy -n precise-default --config config.yaml --log log.txt --log_level DEBUG
-    #+END_EXAMPLE
+    #+END_SRC
 
 **** Arguments
      - name: name of the template
@@ -110,9 +110,9 @@ An OpenStack Orchestration Engine
 
     Runs tests on a running OpenStack cluster
 
-    #+BEGIN_EXAMPLE
+    #+BEGIN_SRC sh
       compute.py test -n precise-default --config config.yaml --log log.txt --log_level DEBUG
-    #+END_EXAMPLE
+    #+END_SRC
 
 **** Arguments
      - name: name of the template
