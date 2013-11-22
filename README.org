@@ -1,0 +1,121 @@
+* Monster
+
+An OpenStack Orchestration Engine
+
+** Requirements
+
+   - Must have a chef server installed
+
+     http://docs.opscode.com/install_server.html
+
+   - Must have knife.rb configured for chef server
+
+     http://docs.opscode.com/chef/install_workstation.html
+
+   - Chef server must have rcbops-qa cookbook installed
+     #+BEGIN_SRC sh
+       git clone https://github.com/rcbops-qa/chef-cookbooks.git
+       cd chef-cookbooks
+       git submodule init
+       git submodule sync
+       git submodule update
+       knife cookbook install -a -o cookbooks
+     #+END_SRC
+
+** CLI
+   ~compute.py~ and ~storage.py~ are the CLIs
+
+*** Build
+
+    Deploys an OpenStack cluster
+
+    #+BEGIN_EXAMPLE
+      compute.py build -n precise-default --branch master --template_path deployment_templates/default.yaml --config config.yaml --destroy --log log.txt --log_level DEBUG --provisioner rackspace --test
+    #+END_EXAMPLE
+
+**** Arguments
+     - name: name of the template
+     - branch: branch rcbops cookbooks
+     - template_path: path to templates
+     - config: path to config file
+     - destroy: destroy after build or failure
+     - dry: only build environment
+     - log: path to log file
+     - log_level: level to log - INFO, DEBUG
+     - provisioner: provisioner to use - razor, rackspace, openstack
+     - test: run tests after build
+
+*** Show
+
+    Shows details about an OpenStack deployment
+
+    #+BEGIN_EXAMPLE
+      compute.py show -n precise-default
+    #+END_EXAMPLE
+
+**** Arguments
+     - name: name of the template
+     - config: path to config file
+     - log: path to log file
+     - log_level: level to log - INFO, DEBUG
+
+*** Destroy
+
+    Destroys an OpenStack deployment
+
+    #+BEGIN_EXAMPLE
+      compute.py destroy -n precise-default --config config.yaml --log log.txt --log_level DEBUG
+    #+END_EXAMPLE
+
+**** Arguments
+     - name: name of the template
+     - config: path to config file
+     - log: path to log file
+     - log_level: level to log - INFO, DEBUG
+
+*** openrc
+
+    Load openrc environment variables into shell. After loaded
+    openstack cli commands will communicate to cluster.
+
+    #+BEGIN_SRC sh
+      nova boot --image cirros-image --flavor 1
+    #+END_SRC
+
+    #+BEGIN_SRC sh
+      compute.py openrc -n precise-default
+    #+END_SRC
+
+**** Arguments
+     - name: name of the template
+     - config: path to config file
+     - log: path to log file
+     - log_level: level to log - INFO, DEBUG
+
+*** Horizon
+
+    Attempts to open Horizon in browser
+
+    #+BEGIN_SRC sh
+      compute.py horizon -n precise-default
+    #+END_SRC
+
+**** Arguments
+     - name: name of the template
+     - config: path to config file
+     - log: path to log file
+     - log_level: level to log - INFO, DEBUG
+
+*** Test
+
+    Runs tests on a running OpenStack cluster
+
+    #+BEGIN_EXAMPLE
+      compute.py test -n precise-default --config config.yaml --log log.txt --log_level DEBUG
+    #+END_EXAMPLE
+
+**** Arguments
+     - name: name of the template
+     - config: path to config file
+     - log: path to log file
+     - log_level: level to log - INFO, DEBUG
