@@ -6,11 +6,20 @@ An OpenStack Orchestration Engine
 
    - Must have a chef server installed
 
-     http://docs.opscode.com/install_server.html
+     #+BEGIN_EXAMPLE
+       source <(curl -s https://raw.github.com/rcbops/support-tools/master/chef-install/install-chef-server.sh)
+     #+END_EXAMPLE
 
-   - Must have knife.rb configured for chef server
+     - Must have knife.rb configured for chef server (the above command
+       will take care of this)
 
-     http://docs.opscode.com/chef/install_workstation.html
+       http://docs.opscode.com/chef/install_workstation.html
+
+   - Install packages
+
+     #+BEGIN_EXAMPLE
+       apt-get install git python-pip virtualenvwrapper python-dev libevent-dev
+     #+END_EXAMPLE
 
    - Chef server must have rcbops-qa cookbook installed
      #+BEGIN_SRC sh
@@ -19,8 +28,29 @@ An OpenStack Orchestration Engine
        git submodule init
        git submodule sync
        git submodule update
-       knife cookbook install -a -o cookbooks
+       knife cookbook upload -a -o cookbooks
      #+END_SRC
+
+** Installation
+
+   - Clone the repo and install
+     #+BEGIN_SRC sh
+       git clone https://github.com/rcbops-qa/monster.git ~/monster
+       virtualenv -p `which python2` ~/monster/.venv
+       source ~/monster/.venv/bin/activate
+       pip install -r ~/monster/requirements.txt
+     #+END_SRC
+
+   - put your credentials in ~secret.yaml~ at the top level of monster
+
+     #+BEGIN_EXAMPLE
+       rackspace:
+         user: YOUR_USERNAME
+         api_key: YOUR_API_KEY
+         auth_url: https://identity.api.rackspacecloud.com/v2.0/
+         region: dfw
+         plugin: rackspace
+     #+END_EXAMPLE
 
 ** CLI
    ~compute.py~ and ~storage.py~ are the CLIs
