@@ -197,9 +197,9 @@ class ChefOpenstackProvisioner(Provisioner):
         for features in template['nodes']:
             name = self.name(features[0], deployment)
             self.names.append(name)
-            flavor = "2GB"
+            flavor = "2GBP"
             if "compute" in name:
-                flavor = "8GB"
+                flavor = "8GBP"
             events.append(spawn(self.chef_instance, deployment, name,
                                 flavor=flavor))
         joinall(events)
@@ -222,7 +222,7 @@ class ChefOpenstackProvisioner(Provisioner):
         if client.exists:
             client.delete()
 
-    def chef_instance(self, deployment, name, flavor="2GB"):
+    def chef_instance(self, deployment, name, flavor="2GBP"):
         """
         Builds an instance with desired specs and inits it with chef
         :param client: compute client object
@@ -256,7 +256,7 @@ class ChefOpenstackProvisioner(Provisioner):
         return node
 
     def build_instance(self, name="server", image="precise",
-                       flavor="2GB"):
+                       flavor="2GBP"):
         """
         Builds an instance with desired specs
         :param client: compute client object
