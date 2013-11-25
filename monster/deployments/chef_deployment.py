@@ -68,10 +68,12 @@ class ChefDeployment(Deployment):
         self.save_to_environment()
 
     @classmethod
-    def fromfile(cls, name, branch, provisioner, path=None):
+    def fromfile(cls, name, template, branch, provisioner, path=None):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment
+        :type name: string
+        :param name: name of template to use
         :type name: string
         :param branch: branch of the RCBOPS chef cookbook repo to use
         :type branch:: string
@@ -92,13 +94,12 @@ class ChefDeployment(Deployment):
             path = os.path.join(os.path.dirname(__file__),
                                 os.pardir, os.pardir,
                                 'deployment_templates/default.yaml')
-        template = Config(path)[name]
+        template = Config(path)[template]
 
         environment = Chef(name, local_api, description=name)
 
         os_name = template['os']
         product = template['product']
-        name = template['name']
 
         deployment = cls.deployment_config(template['features'], name, os_name,
                                            branch, environment, provisioner,
