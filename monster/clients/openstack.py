@@ -37,6 +37,9 @@ class rax_plugin(object):
 
 
 class rax_creds(object):
+    """
+    Credentials to authenticate with Rackspace
+    """
     def __init__(self):
         config = util.config['secrets']['rackspace']
         self.user = config['user']
@@ -47,6 +50,9 @@ class rax_creds(object):
 
 
 class creds(object):
+    """
+    Credentials to authenticate with OpenStack
+    """
     def __init__(self):
         config = util.config['secrets']['openstack']
         self.user = config['user']
@@ -56,6 +62,9 @@ class creds(object):
 
 
 class Clients(object):
+    """
+    Openstack client generator
+    """
     def __init__(self, creds):
         self.creds = creds
         insecure = False
@@ -71,6 +80,9 @@ class Clients(object):
         )
 
     def novaclient(self):
+        """
+        Openstack novaclient generator
+        """
         LOG.debug(
             'novaclient connection created using token "%s" and url "%s"'
             % (self.creds_dict['username'], self.creds_dict['auth_url'])
@@ -83,6 +95,9 @@ class Clients(object):
         return client
 
     def cinderclient(self):
+        """
+        Openstack cinderclient generator
+        """
         LOG.debug(
             'cinderclient connection created using token "%s" and url "%s"'
             % (self.creds_dict['username'], self.creds_dict['auth_url'])
@@ -91,11 +106,11 @@ class Clients(object):
         return client
 
     def get_client(self, client):
-        """Get the Client that we need.
-
-        :param client: str
         """
-        # Setup our RAX Client
+        Client generator
+        :param client: desired client
+        :type client: str
+        """
         client_type = getattr(self, client)
         if client_type is None:
             raise Exception('No Client Type Found')
