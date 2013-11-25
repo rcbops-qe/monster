@@ -116,7 +116,7 @@ environments:
                   bridge: br0
                   dns1: 8.8.8.8
                   dns2: 8.8.4.4
-                  bridge_dev: eth1
+                  bridge_dev: eth2
                   network_size: "254"
                   ipv4_cidr: 172.31.0.0/24
                   label: public
@@ -138,7 +138,7 @@ environments:
         public: 198.101.133.0/24
       rackspace:
         management: 128.0.0.0/1
-        nova: 128.0.0.0/1
+        nova: 192.168.3.0/24
         public: 128.0.0.0/1
     glance:
         default:
