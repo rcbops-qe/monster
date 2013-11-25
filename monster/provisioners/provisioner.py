@@ -287,8 +287,17 @@ class ChefOpenstackProvisioner(Provisioner):
         image_obj = self._client_search(self.client.images.list, "name",
                                         image_name, attempts=10)
 
+        # gather networks
+        desired_networks = util.config[self.short_name()]['networks']
+        networks = []
+        for network in desired_networks:
+            obj = self._client_search(self.neutron.list, "label",
+                                      network, attempts=10)
+            networks.append({"net-id": obj.id})
+
         # build instance
-        server = self.client.servers.create(name, image_obj.id, flavor_obj.id)
+        server = self.client.servers.create(name, image_obj.id, flavor_obj.id,
+                                            nics=networks)
         password = server.adminPass
         util.logger.info("Building:{0}".format(name))
         server = self.wait_for_state(self.client.servers.get, server, "status",
@@ -354,5 +363,9 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
         self.names = []
         self.name_index = {}
         self.creds = openstack.rax_creds()
-        self.client = pyrax(self.creds.user, api_key=self.creds.apikey,
-                            region=self.creds.region)
+        pyrax.set_setting("identity_type", "rackspace")
+        pyrax.set_credentials(self.creds.user, api_key=self.creds.apikey,
+                              region=self.creds.region)
+        pyrax.connect_to_services()
+        self.client = pyrax.cloudservers
+        self.neutron = pyrax.cloud_networks
