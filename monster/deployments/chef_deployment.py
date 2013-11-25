@@ -68,7 +68,7 @@ class ChefDeployment(Deployment):
         self.save_to_environment()
 
     @classmethod
-    def fromfile(cls, name, template, branch, provisioner, path=None):
+    def fromfile(cls, name, template_name, branch, provisioner, path=None):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment
@@ -94,7 +94,7 @@ class ChefDeployment(Deployment):
             path = os.path.join(os.path.dirname(__file__),
                                 os.pardir, os.pardir,
                                 'deployment_templates/default.yaml')
-        template = Config(path)[template]
+        template = Config(path)[template_name]
 
         environment = Chef(name, local_api, description=name)
 

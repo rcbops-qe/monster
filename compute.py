@@ -26,8 +26,8 @@ def build(name="build", template="precise-default", branch="master",
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    deployment = ChefDeployment.fromfile(name, branch, cprovisioner,
-                                         template_path)
+    deployment = ChefDeployment.fromfile(name, template, branch, cprovisioner,
+                                         path=template_path)
     if dry:
         # build environment
         try:
@@ -59,7 +59,7 @@ def build(name="build", template="precise-default", branch="master",
         deployment.destroy()
 
 
-def destroy(name="build", template="precise-default", config=None, log=None,
+def destroy(name="build", config=None, log=None,
             log_level="INFO", provisioner="razor"):
     _set_log(log, log_level)
     deployment = _load(name, config, provisioner)
@@ -67,7 +67,7 @@ def destroy(name="build", template="precise-default", config=None, log=None,
     deployment.destroy()
 
 
-def test(name="build", template="precise-default", config=None, log=None,
+def test(name="build", config=None, log=None,
          log_level="INFO"):
     _set_log(log, log_level)
     deployment = _load(name, config)
@@ -78,21 +78,21 @@ def test(name="build", template="precise-default", config=None, log=None,
     tempest.post_configure()
 
 
-def artifact(name="build", template="precise-default", config=None, log=None,
+def artifact(name="build", config=None, log=None,
              log_level="INFO"):
     _set_log(log, log_level)
     deployment = _load(name, config)
     deployment.artifact()
 
 
-def openrc(name="build", template="precise-default", config=None, log=None,
+def openrc(name="build", config=None, log=None,
            log_level="INFO"):
     _set_log(log, log_level)
     deployment = _load(name, config)
     deployment.openrc()
 
 
-def horizon(name="build", template="precise-default", config=None, log=None,
+def horizon(name="build", config=None, log=None,
             log_level="INFO"):
     _set_log(log, log_level)
     deployment = _load(name, config)
@@ -101,7 +101,7 @@ def horizon(name="build", template="precise-default", config=None, log=None,
     webbrowser.open_new_tab(url)
 
 
-def show(name="build", template="precise-default", config=None, log=None,
+def show(name="build", config=None, log=None,
          log_level="INFO"):
     _set_log(log, log_level)
     # load deployment and source openrc
@@ -109,8 +109,7 @@ def show(name="build", template="precise-default", config=None, log=None,
     util.logger.info(str(deployment))
 
 
-def _load(name="build", template="precise-default", config=None,
-          provisioner="razor"):
+def _load(name="build", config=None, provisioner="razor"):
     # load deployment and source openrc
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
