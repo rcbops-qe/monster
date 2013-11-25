@@ -8,6 +8,7 @@ from monster.razor_api import razor_api
 from monster.server_helper import run_cmd
 from monster.clients import openstack
 from monster.clients.openstack import Clients
+import pyrax
 
 
 class Provisioner(object):
@@ -353,4 +354,5 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
         self.names = []
         self.name_index = {}
         self.creds = openstack.rax_creds()
-        self.client = Clients(self.creds).get_client("novaclient")
+        self.client = pyrax(self.creds.user, api_key=self.creds.apikey,
+                            region=self.creds.region)
