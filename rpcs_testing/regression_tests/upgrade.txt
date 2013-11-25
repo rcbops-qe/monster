@@ -1,0 +1,1 @@
+for i in `monit summary | grep Process | grep -v mysql | awk '{print $2}' | sed "s/'//g"`; do service $i stop; done
