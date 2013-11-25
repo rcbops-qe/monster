@@ -362,6 +362,12 @@ rackspace:
     8GB: 8GB Standard Instance
     15GB: 15GB Standard Instance
     30GB: 30GB Standard Instance
+  networks:
+     - public
+     - private
+     - test
+   network:
+     test: 192.168.3.0/24
 
 neutron:
     auto_build_subnets: False
