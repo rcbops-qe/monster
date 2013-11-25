@@ -306,6 +306,20 @@ class ChefOpenstackProvisioner(Provisioner):
 
     def _client_search(self, collection_fun, attr, desired, attempts=None,
                        interval=1):
+        """
+        Searches for a desired attribute in a list of objects
+        :param collection_fun: function to get list of objects
+        :type collection_fun: function
+        :param attr: attribute of object to check
+        :type attr: string
+        :param desired: desired value of object's attribute
+        :type desired: object
+        :param attempts: number of attempts to acheive state
+        :type attempts: int
+        :param interval: time between attempts
+        :type interval: int
+        :rtype: object
+        """
         obj_collection = None
         attempt = 0
         in_attempt = lambda x: not attempts or attempts > x
@@ -341,7 +355,7 @@ class ChefOpenstackProvisioner(Provisioner):
         :param interval: int
         :param attempts: number of attempts to acheive state
         :type attempts: int
-        :rtype: obj
+        :rtype: object
         """
         attempt = 0
         in_attempt = lambda x: not attempts or attempts > x
