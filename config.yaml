@@ -375,8 +375,8 @@ rackspace:
      - public
      - private
      - test
-   network:
-     test: 192.168.3.0/24
+  network:
+    test: 192.168.3.0/24
 
 neutron:
     auto_build_subnets: False
