@@ -56,7 +56,7 @@ precise-neutron:
   nodes:
     - [chefserver]
     - [controller, network]
-    - [compute, network]
+    - [compute]
 
 centos-neutron:
   product: compute
@@ -76,7 +76,7 @@ centos-neutron:
   nodes:
     - [chefserver]
     - [controller, network]
-    - [compute, network]
+    - [compute]
 
 precise-ha:
   product: compute
