@@ -915,6 +915,6 @@ class Tempest(RPCS):
         ]
         command = "; ".join(screen)
         node.run_cmd(command)
-        if xunit:
-            node.scp_from(xunit_file, local_path=".")
-            util.xunit_merge()
+        # if xunit:
+        #     node.scp_from(xunit_file, local_path=".")
+        #     util.xunit_merge()
