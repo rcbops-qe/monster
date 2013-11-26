@@ -116,7 +116,7 @@ environments:
                   bridge: br0
                   dns1: 8.8.8.8
                   dns2: 8.8.4.4
-                  bridge_dev: eth1
+                  bridge_dev: eth2
                   network_size: "254"
                   ipv4_cidr: 172.31.0.0/24
                   label: public
@@ -137,9 +137,9 @@ environments:
         nova: 198.101.133.0/24
         public: 198.101.133.0/24
       rackspace:
-        management: 10.0.0.0/8
-        nova: 10.0.0.0/8
-        public: 192.237.0.0/16
+        management: 128.0.0.0/1
+        nova: 192.168.3.0/24
+        public: 128.0.0.0/1
     glance:
         default:
             image_upload: true
@@ -362,6 +362,21 @@ rackspace:
     8GB: 8GB Standard Instance
     15GB: 15GB Standard Instance
     30GB: 30GB Standard Instance
+    1GBP: 1 GB Performance
+    2GBP: 2 GB Performance
+    4GBP: 4 GB Performance
+    8GBP: 8 GB Performance
+    120GBP: 120 GB Performance
+    15GBP: 15 GB Performance
+    30GBP: 30 GB Performance
+    60GBP: 60 GB Performance
+    90GBP: 90 GB Performance
+  networks:
+     - public
+     - private
+     - test
+  network:
+    test: 192.168.3.0/24
 
 neutron:
     auto_build_subnets: False

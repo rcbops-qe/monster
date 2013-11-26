@@ -9,6 +9,7 @@ from monster.deployments.deployment import Deployment
 from monster.features import deployment_features
 from monster.features.node_features import ChefServer
 from monster.nodes.chef_node import ChefNode
+from monster.provisioners import provisioner as provisioners
 from monster.provisioners.provisioner import ChefRazorProvisioner
 
 
@@ -50,7 +51,8 @@ class ChefDeployment(Deployment):
                       'os_name': self.os_name,
                       'branch': self.branch,
                       'status': self.status,
-                      'product': self.product}
+                      'product': self.product,
+                      'provisioner': self.provisioner.short_name()}
         self.environment.add_override_attr('deployment', deployment)
 
     def build(self):
@@ -94,10 +96,12 @@ class ChefDeployment(Deployment):
         self.save_to_environment()
 
     @classmethod
-    def fromfile(cls, name, branch, provisioner, path=None):
+    def fromfile(cls, name, template_name, branch, provisioner, path=None):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment
+        :type name: string
+        :param name: name of template to use
         :type name: string
         :param branch: branch of the RCBOPS chef cookbook repo to use
         :type branch:: string
@@ -118,13 +122,12 @@ class ChefDeployment(Deployment):
             path = os.path.join(os.path.dirname(__file__),
                                 os.pardir, os.pardir,
                                 'deployment_templates/default.yaml')
-        template = Config(path)[name]
+        template = Config(path)[template_name]
 
         environment = Chef(name, local_api, description=name)
 
         os_name = template['os']
         product = template['product']
-        name = template['name']
 
         deployment = cls.deployment_config(template['features'], name, os_name,
                                            branch, environment, provisioner,
@@ -144,13 +147,11 @@ class ChefDeployment(Deployment):
         return deployment
 
     @classmethod
-    def from_chef_environment(cls, environment, provisioner=None):
+    def from_chef_environment(cls, environment):
         """
         Rebuilds a Deployment given a chef environment
         :param environment: name of environment
         :type environment: string
-        :param provisioner: where nodes are provisioned
-        :type provisioner: Provisioner
         :rtype: ChefDeployment
         """
 
@@ -173,6 +174,11 @@ class ChefDeployment(Deployment):
         branch = deployment_args.get('branch', None)
         status = deployment_args.get('status', "provisioning")
         product = deployment_args.get('product', None)
+        provisioner_name = deployment_args.get('provisioner', "razor")
+        provisioner_class_name = util.config["provisioners"][provisioner_name]
+        provisioner = util.module_classes(provisioners)[
+            provisioner_class_name]()
+
         deployment = cls.deployment_config(features, name, os_name, branch,
                                            environment, provisioner, status,
                                            product=product)

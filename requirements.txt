@@ -6,4 +6,4 @@ pychef
 pyyaml
 gevent
 python-cinderclient
-rackspace-novaclient
+pyrax

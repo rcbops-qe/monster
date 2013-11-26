@@ -14,9 +14,9 @@ from monster.deployments.chef_deployment import ChefDeployment
 from monster.features.deployment_features import Tempest
 
 
-def build(name="precise-default", branch="master", template_path=None,
-          config=None, destroy=False, dry=False, log=None,
-          log_level="INFO", provisioner="razor", test=False):
+def build(name="build", template="precise-default", branch="master",
+          template_path=None, config=None, destroy=False, dry=False,
+          log=None, log_level="INFO", provisioner="razor", test=False):
     """
     Builds an OpenStack Cluster
     """
@@ -26,8 +26,8 @@ def build(name="precise-default", branch="master", template_path=None,
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    deployment = ChefDeployment.fromfile(name, branch, cprovisioner,
-                                         template_path)
+    deployment = ChefDeployment.fromfile(name, template, branch, cprovisioner,
+                                         path=template_path)
     if dry:
         # build environment
         try:
@@ -59,7 +59,7 @@ def build(name="precise-default", branch="master", template_path=None,
         deployment.destroy()
 
 
-def upgrade(name='precise-default', upgrade_branch='v4.1.3rc', 
+def upgrade(name='precise-default', upgrade_branch='v4.1.3rc',
             config=None, log=None, log_level="INFO",
             provisioner='razor'):
     """
@@ -87,7 +87,8 @@ def destroy(name="precise-default", config=None, log=None, log_level="INFO",
     deployment.destroy()
 
 
-def test(name="precise-default", config=None, log=None, log_level="INFO"):
+def test(name="build", config=None, log=None,
+         log_level="INFO"):
     _set_log(log, log_level)
     deployment = _load(name, config)
     tempest = Tempest(deployment, None)
@@ -97,19 +98,22 @@ def test(name="precise-default", config=None, log=None, log_level="INFO"):
     tempest.post_configure()
 
 
-def artifact(name="precise-default", config=None, log=None, log_level="INFO"):
+def artifact(name="build", config=None, log=None,
+             log_level="INFO"):
     _set_log(log, log_level)
     deployment = _load(name, config)
     deployment.artifact()
 
 
-def openrc(name="precise-default", config=None, log=None, log_level="INFO"):
+def openrc(name="build", config=None, log=None,
+           log_level="INFO"):
     _set_log(log, log_level)
     deployment = _load(name, config)
     deployment.openrc()
 
 
-def horizon(name="precise-default", config=None, log=None, log_level="INFO"):
+def horizon(name="build", config=None, log=None,
+            log_level="INFO"):
     _set_log(log, log_level)
     deployment = _load(name, config)
     ip = deployment.horizon_ip()
@@ -117,19 +121,18 @@ def horizon(name="precise-default", config=None, log=None, log_level="INFO"):
     webbrowser.open_new_tab(url)
 
 
-def show(name="precise-default", config=None, log=None, log_level="INFO"):
+def show(name="build", config=None, log=None,
+         log_level="INFO"):
     _set_log(log, log_level)
     # load deployment and source openrc
     deployment = _load(name, config)
     util.logger.info(str(deployment))
 
 
-def _load(name="precise-default", config=None, provisioner="razor"):
+def _load(name="build", config=None, provisioner="razor"):
     # load deployment and source openrc
     util.config = Config(config)
-    class_name = util.config["provisioners"][provisioner]
-    cprovisioner = util.module_classes(provisioners)[class_name]()
-    return ChefDeployment.from_chef_environment(name, provisioner=cprovisioner)
+    return ChefDeployment.from_chef_environment(name)
 
 
 def _set_log(log, log_level):

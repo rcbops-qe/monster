@@ -28,6 +28,7 @@ class Node(object):
 
     def __repr__(self):
         """ Print out current instance
+        :rtype: string
         """
         outl = 'class: ' + self.__class__.__name__
         for attr in self.__dict__:
@@ -46,6 +47,15 @@ class Node(object):
     def run_cmd(self, remote_cmd, user=None, password=None, attempts=None):
         """
         Runs a command on the node
+        :param remote_cmd: command to run on the node
+        :type remote_cmd: string
+        :param user: user to run the command as
+        :type user: string
+        :param password: password to authenticate with
+        :type password:: string
+        :param attempts: number of times
+        :type attempts: number of times to attempt a successfully run cmd
+        :rtype: dict
         """
         user = user or self.user
         password = password or self.password
@@ -67,6 +77,10 @@ class Node(object):
     def scp_to(self, local_path, user=None, password=None, remote_path=""):
         """
         Sends a file to the node
+        :param user: user to run the command as
+        :type user: string
+        :param password: password to authenticate with
+        :type password:: string
         """
         user = user or self.user
         password = password or self.password

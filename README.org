@@ -1,0 +1,151 @@
+* Monster
+
+An OpenStack Orchestration Engine
+
+** Requirements
+
+   - Must have a chef server installed
+
+     #+BEGIN_EXAMPLE
+       source <(curl -s https://raw.github.com/rcbops/support-tools/master/chef-install/install-chef-server.sh)
+     #+END_EXAMPLE
+
+     - Must have knife.rb configured for chef server (the above command
+       will take care of this)
+
+       http://docs.opscode.com/chef/install_workstation.html
+
+   - Install packages
+
+     #+BEGIN_EXAMPLE
+       apt-get install git python-pip virtualenvwrapper python-dev libevent-dev
+     #+END_EXAMPLE
+
+   - Chef server must have rcbops-qa cookbook installed
+     #+BEGIN_SRC sh
+       git clone https://github.com/rcbops-qa/chef-cookbooks.git
+       cd chef-cookbooks
+       git submodule init
+       git submodule sync
+       git submodule update
+       knife cookbook upload -a -o cookbooks
+     #+END_SRC
+
+** Installation
+
+   - Clone the repo and install
+     #+BEGIN_SRC sh
+       git clone https://github.com/rcbops-qa/monster.git ~/monster
+       virtualenv -p `which python2` ~/monster/.venv
+       source ~/monster/.venv/bin/activate
+       pip install -r ~/monster/requirements.txt
+     #+END_SRC
+
+   - put your credentials in ~secret.yaml~ at the top level of monster
+
+     #+BEGIN_EXAMPLE
+       rackspace:
+         user: YOUR_USERNAME
+         api_key: YOUR_API_KEY
+         auth_url: https://identity.api.rackspacecloud.com/v2.0/
+         region: dfw
+         plugin: rackspace
+     #+END_EXAMPLE
+
+** CLI
+   ~compute.py~ and ~storage.py~ are the CLIs
+
+*** Build
+
+    Deploys an OpenStack cluster
+
+    #+BEGIN_SRC sh
+      compute.py build -n precise-default --branch master --template_path deployment_templates/default.yaml --config config.yaml --destroy --log log.txt --log_level DEBUG --provisioner rackspace --test
+    #+END_SRC
+
+**** Arguments
+     - name: name of the template
+     - branch: branch rcbops cookbooks
+     - template_path: path to templates
+     - config: path to config file
+     - destroy: destroy after build or failure
+     - dry: only build environment
+     - log: path to log file
+     - log_level: level to log - INFO, DEBUG
+     - provisioner: provisioner to use - razor, rackspace, openstack
+     - test: run tests after build
+
+*** Show
+
+    Shows details about an OpenStack deployment
+
+    #+BEGIN_SRC sh
+      compute.py show -n precise-default
+    #+END_SRC
+
+**** Arguments
+     - name: name of the template
+     - config: path to config file
+     - log: path to log file
+     - log_level: level to log - INFO, DEBUG
+
+*** Destroy
+
+    Destroys an OpenStack deployment
+
+    #+BEGIN_SRC sh
+      compute.py destroy -n precise-default --config config.yaml --log log.txt --log_level DEBUG
+    #+END_SRC
+
+**** Arguments
+     - name: name of the template
+     - config: path to config file
+     - log: path to log file
+     - log_level: level to log - INFO, DEBUG
+
+*** openrc
+
+    Load openrc environment variables into shell. After loaded
+    openstack cli commands will communicate to cluster.
+
+    #+BEGIN_SRC sh
+      nova boot --image cirros-image --flavor 1
+    #+END_SRC
+
+    #+BEGIN_SRC sh
+      compute.py openrc -n precise-default
+    #+END_SRC
+
+**** Arguments
+     - name: name of the template
+     - config: path to config file
+     - log: path to log file
+     - log_level: level to log - INFO, DEBUG
+
+*** Horizon
+
+    Attempts to open Horizon in browser
+
+    #+BEGIN_SRC sh
+      compute.py horizon -n precise-default
+    #+END_SRC
+
+**** Arguments
+     - name: name of the template
+     - config: path to config file
+     - log: path to log file
+     - log_level: level to log - INFO, DEBUG
+
+*** Test
+
+    Runs tests on a running OpenStack cluster
+
+    #+BEGIN_SRC sh
+      compute.py test -n precise-default --config config.yaml --log log.txt --log_level DEBUG
+    #+END_SRC
+
+**** Arguments
+     - name: name of the template
+     - config: path to config file
+     - log: path to log file
+     - log_level: level to log - INFO, DEBUG

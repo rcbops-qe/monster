@@ -898,7 +898,7 @@ class Tempest(RPCS):
         if config_path:
             config_arg = "-c {0}".format(config_path)
         venv_bin = ".venv/bin"
-        command = (
+        tempest_command = (
             "source {0}/{6}/activate; "
             "python -u {0}/{6}/nosetests -w "
             "{0}/tempest/api {5} "
@@ -906,7 +906,15 @@ class Tempest(RPCS):
                                      tag_flag, path_args,
                                      exclude_flag, config_arg, venv_bin)
         )
+        screen = [
+            "screen -d -m -S tempest -t shell -s /bin/bash",
+            "screen -S tempest -X screen -t tempest",
+            "export NL=`echo -ne '\015'`",
+            'screen -S tempest -p tempest -X stuff "{0}$NL"'.format(
+                tempest_command)
+        ]
+        command = "; ".join(screen)
         node.run_cmd(command)
-        if xunit:
-            node.scp_from(xunit_file, local_path=".")
-            util.xunit_merge()
+        # if xunit:
+        #     node.scp_from(xunit_file, local_path=".")
+        #     util.xunit_merge()

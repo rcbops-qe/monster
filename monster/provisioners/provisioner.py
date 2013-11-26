@@ -8,6 +8,7 @@ from monster.razor_api import razor_api
 from monster.server_helper import run_cmd
 from monster.clients import openstack
 from monster.clients.openstack import Clients
+import pyrax
 
 
 class Provisioner(object):
@@ -196,9 +197,9 @@ class ChefOpenstackProvisioner(Provisioner):
         for features in template['nodes']:
             name = self.name(features[0], deployment)
             self.names.append(name)
-            flavor = "2GB"
+            flavor = "2GBP"
             if "compute" in name:
-                flavor = "8GB"
+                flavor = "8GBP"
             events.append(spawn(self.chef_instance, deployment, name,
                                 flavor=flavor))
         joinall(events)
@@ -221,7 +222,7 @@ class ChefOpenstackProvisioner(Provisioner):
         if client.exists:
             client.delete()
 
-    def chef_instance(self, deployment, name, flavor="2GB"):
+    def chef_instance(self, deployment, name, flavor="2GBP"):
         """
         Builds an instance with desired specs and inits it with chef
         :param client: compute client object
@@ -255,7 +256,7 @@ class ChefOpenstackProvisioner(Provisioner):
         return node
 
     def build_instance(self, name="server", image="precise",
-                       flavor="2GB"):
+                       flavor="2GBP"):
         """
         Builds an instance with desired specs
         :param client: compute client object
@@ -286,8 +287,17 @@ class ChefOpenstackProvisioner(Provisioner):
         image_obj = self._client_search(self.client.images.list, "name",
                                         image_name, attempts=10)
 
+        # gather networks
+        desired_networks = util.config[self.short_name()]['networks']
+        networks = []
+        for network in desired_networks:
+            obj = self._client_search(self.neutron.list, "label",
+                                      network, attempts=10)
+            networks.append({"net-id": obj.id})
+
         # build instance
-        server = self.client.servers.create(name, image_obj.id, flavor_obj.id)
+        server = self.client.servers.create(name, image_obj.id, flavor_obj.id,
+                                            nics=networks)
         password = server.adminPass
         util.logger.info("Building:{0}".format(name))
         server = self.wait_for_state(self.client.servers.get, server, "status",
@@ -296,6 +306,20 @@ class ChefOpenstackProvisioner(Provisioner):
 
     def _client_search(self, collection_fun, attr, desired, attempts=None,
                        interval=1):
+        """
+        Searches for a desired attribute in a list of objects
+        :param collection_fun: function to get list of objects
+        :type collection_fun: function
+        :param attr: attribute of object to check
+        :type attr: string
+        :param desired: desired value of object's attribute
+        :type desired: object
+        :param attempts: number of attempts to acheive state
+        :type attempts: int
+        :param interval: time between attempts
+        :type interval: int
+        :rtype: object
+        """
         obj_collection = None
         attempt = 0
         in_attempt = lambda x: not attempts or attempts > x
@@ -331,7 +355,7 @@ class ChefOpenstackProvisioner(Provisioner):
         :param interval: int
         :param attempts: number of attempts to acheive state
         :type attempts: int
-        :rtype: obj
+        :rtype: object
         """
         attempt = 0
         in_attempt = lambda x: not attempts or attempts > x
@@ -353,4 +377,9 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
         self.names = []
         self.name_index = {}
         self.creds = openstack.rax_creds()
-        self.client = Clients(self.creds).get_client("novaclient")
+        pyrax.set_setting("identity_type", "rackspace")
+        pyrax.set_credentials(self.creds.user, api_key=self.creds.apikey,
+                              region=self.creds.region)
+        pyrax.connect_to_services()
+        self.client = pyrax.cloudservers
+        self.neutron = pyrax.cloud_networks
