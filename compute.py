@@ -112,9 +112,7 @@ def show(name="build", config=None, log=None,
 def _load(name="build", config=None, provisioner="razor"):
     # load deployment and source openrc
     util.config = Config(config)
-    class_name = util.config["provisioners"][provisioner]
-    cprovisioner = util.module_classes(provisioners)[class_name]()
-    return ChefDeployment.from_chef_environment(name, provisioner=cprovisioner)
+    return ChefDeployment.from_chef_environment(name)
 
 
 def _set_log(log, log_level):
