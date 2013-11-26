@@ -261,7 +261,7 @@ class Swift(Deployment):
         ################## Run chef on the controller node ##################
         #####################################################################
 
-        controller.run_chef_client()
+        controller.run()
 
         #####################################################################
         ####### Run through the storage nodes and set up the disks ##########
@@ -396,10 +396,10 @@ class Swift(Deployment):
         if auto:
             util.logger.info("Finalizing install on all nodes")
             for proxy_node in proxy_nodes:
-                proxy_node.run_chef_client()
+                proxy_node.run()
             for storage_node in storage_nodes:
-                storage_node.run_chef_client()
-            controller.run_chef_client()
+                storage_node.run()
+            controller.run()
         else:
             for proxy_node in proxy_nodes:
                 util.logger.info("On node root@{0}, run the following command: "

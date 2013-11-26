@@ -58,10 +58,13 @@ class ChefNode(Node):
         super(ChefNode, self).build()
 
     def upgrade(self):
-        """ Upgrade the node according to its features
         """
+        Upgrade the node according to its features
+        """
+        self.branch = self.deployment.branch
         super(ChefNode, self).upgrade()
-
+        if not self.feature_in("chefserver"):
+            self.run()
 
     def save_to_node(self):
         """
@@ -79,7 +82,7 @@ class ChefNode(Node):
         """
         self.status = "apply-feature"
         if not self.feature_in("chefserver"):
-            self.run_chef_client()
+            self.run()
         super(ChefNode, self).apply_feature()
 
     def save(self, chef_node=None):
@@ -165,9 +168,10 @@ class ChefNode(Node):
         crnode.add_features(archive.get('features', []))
         return crnode
 
-    def run_chef_client(self, times=1):
+    def run(self, times=1):
+        cmd = util.config['chef']['run_cmd']
         for _ in xrange(times):
-            chef_run = self.run_cmd("chef-client")
+            chef_run = self.run_cmd(cmd)
             self.save_locally()
             if not chef_run['success']:
                 raise Exception("Chef client failure")

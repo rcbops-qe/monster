@@ -135,9 +135,7 @@ class Node(object):
         self.status = "done"
 
     def upgrade(self):
-        """ Upgrades node based on features
-        """
-
+        """Upgrades node based on features"""
         for feature in self.features:
             log = "Node feature: upgrade: {0}".format(str(feature))
             util.logger.info(log)

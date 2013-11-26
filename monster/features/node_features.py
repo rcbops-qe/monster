@@ -101,34 +101,7 @@ class Controller(Node):
         if self.number == 2:
             controllers = self.node.deployment.search_role('controller')
             controller1 = next(controllers)
-            controller1.run_chef_client()
-
-    def upgrade(self):
-        """ Upgrades a controller node
-        """
-
-        disable_services = self.util.config['upgrade']['disable_services']
-        stop_commands = ("service {0} stop".format(x) for x in disable_services)
-        stop_command = "; ".join(stop_commands)
-        start_commands = ("service {0} start".format(x) for x in disable_services)
-        start_command = "; ".join(start_commands)
-
-        # load all controllers
-        controllers = list(self.node.deployment.search_role('controller'))
-
-        if self.deployment.feature_in('highavailability'):
-            if self.number == 1:
-                stop_controller = controllers[-1]
-            else:
-                stop_controller = controllers[0]
-
-            stop_controller.run_cmd(stop_command)
-            util.logger.info('Sleeping to let services move properly')
-            sleep(30)
-            self.node.run_chef_client()
-            stop_controller.run_cmd(start_command)
-        else:
-            self.run_chef_client()
+            controller1.run()
 
     def archive(self):
         """ Services on a controller to archive
@@ -168,6 +141,7 @@ class Controller(Node):
                                     "sysctl.d",
                                     "ufw"]}
 
+
 class Compute(Node):
     """ Represents a RPCS compute
     """
@@ -176,7 +150,7 @@ class Compute(Node):
         self.set_run_list()
 
     def upgrade(self):
-        self.run_chef_client()
+        self.run()
 
     def archive(self):
         """ Archives all services on a compute node
@@ -309,7 +283,7 @@ class ChefServer(Node):
         self._erchef_patch
         util.logger.info("Sleeping for solr")
         sleep(120)
-    
+
     def _erchef_patch(self):
         self.node.run_cmd("""echo 'node.override["erchef"]["s3_url_ttl"] = 3600' >> /etc/chef-server/chef-server.rb""")
 
@@ -324,7 +298,6 @@ class ChefServer(Node):
     def upgrade(self, upgrade_branch):
         """ Upgrades the Chef Server Cookbooks
         """
-        self.node.branch = upgrade_branch
         self._upgrade_cookbooks()
 
 
