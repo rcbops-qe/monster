@@ -52,7 +52,7 @@ class ChefDeployment(Deployment):
                       'branch': self.branch,
                       'status': self.status,
                       'product': self.product,
-                      'provisioner': self.provisioner}
+                      'provisioner': self.provisioner.short_name()}
         self.environment.add_override_attr('deployment', deployment)
 
     def build(self):
