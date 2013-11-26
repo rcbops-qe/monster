@@ -149,11 +149,9 @@ class ChefDeployment(Deployment):
         status = deployment_args.get('status', "provisioning")
         product = deployment_args.get('product', None)
         provisioner_name = deployment_args.get('provisioner', "razor")
-        if provisioner_name:
-            provisioner_class_name = util.config["provisioners"][
-                provisioner_name]
-            provisioner = util.module_classes(provisioners)[
-                provisioner_class_name]()
+        provisioner_class_name = util.config["provisioners"][provisioner_name]
+        provisioner = util.module_classes(provisioners)[
+            provisioner_class_name]()
 
         deployment = cls.deployment_config(features, name, os_name, branch,
                                            environment, provisioner, status,
