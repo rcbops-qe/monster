@@ -110,8 +110,6 @@ class ChefDeployment(Deployment):
         for compute in computes:
             compute.upgrade()
 
-
-
     def update_environment(self):
         """
         Saves deployment for restore after update environment
