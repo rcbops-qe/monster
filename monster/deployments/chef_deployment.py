@@ -84,7 +84,7 @@ class ChefDeployment(Deployment):
             try:
                 image_upload = override['glance']['image_upload']
                 override['glance']['image_upload'] = False
-                self.node.environment.save()
+                self.environment.save()
             except KeyError:
                 pass
 
