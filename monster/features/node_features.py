@@ -278,8 +278,8 @@ class ChefServer(Node):
         self._remote_other_nodes()
         self.node.environment.save()
         self._erchef_patch
-        util.logger.info("Sleeping for solr")
-        sleep(120)
+        # util.logger.info("Sleeping for solr")
+        # sleep(120)
 
     def _erchef_patch(self):
         self.node.run_cmd("""echo 'node.override["erchef"]["s3_url_ttl"] = 3600' >> /etc/chef-server/chef-server.rb""")
