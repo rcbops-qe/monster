@@ -105,7 +105,7 @@ class ChefDeployment(Deployment):
 
         if image_upload:
             override['glance']['image_upload'] = image_upload
-            self.node.environment.save()
+            self.environment.save()
 
         for compute in computes:
             compute.upgrade()
