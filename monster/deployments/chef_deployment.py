@@ -73,6 +73,12 @@ class ChefDeployment(Deployment):
         controllers = self.search_role('controller')
         computes = list(self.search_role('compute'))
 
+        # save image upload value
+        override = self.node.environment.override_attributes['image_upload']
+        image_upload = override['glance']['image_upload']
+        override['glance']['image_upload'] = False
+        self.node.environment.save()
+
         # upgrade the chef server
         self.branch = upgrade_branch
         chef_server.upgrade()
@@ -92,9 +98,13 @@ class ChefDeployment(Deployment):
             controller2.upgrade()
             controller2.run_cmd(start)
         controller1.upgrade()
+        override['glance']['image_upload'] = image_upload
+        self.node.environment.save()
 
         for compute in computes:
             compute.upgrade()
+
+
 
     def update_environment(self):
         """
