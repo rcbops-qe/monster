@@ -63,8 +63,11 @@ class ChefNode(Node):
         """
         self.branch = self.deployment.branch
         super(ChefNode, self).upgrade()
+        times = 1
+        if "4.1.3" in self.branch:
+            times = 2
         if not self.feature_in("chefserver"):
-            self.run()
+            self.run(times=times)
 
     def save_to_node(self):
         """
