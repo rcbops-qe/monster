@@ -162,7 +162,7 @@ class Compute(Node):
     def _set_node_archive(self):
 
         self.archive = {"log": ["nova"],
-                         "configs": ["nova"]}
+                        "configs": ["nova"]}
 
 
 class Proxy(Node):
@@ -287,19 +287,14 @@ class ChefServer(Node):
     def _erchef_patch(self):
         self.node.run_cmd("""echo 'node.override["erchef"]["s3_url_ttl"] = 3600' >> /etc/chef-server/chef-server.rb""")
 
-    def destroy(self):
-        # Stop updating remote environment
-        self.node.environment.remote_api = None
-
     def archive(self):
         self.archive = {"log": [""],
                         "configs": [""]}
 
-    def upgrade(self, upgrade_branch):
+    def upgrade(self):
         """ Upgrades the Chef Server Cookbooks
         """
         self._upgrade_cookbooks()
-
 
     def destroy(self):
         # Stop updating remote environment
