@@ -1,4 +1,5 @@
 import os
+from time import sleep
 
 from chef import autoconfigure, Environment, Node
 
@@ -61,6 +62,39 @@ class ChefDeployment(Deployment):
         """
         super(ChefDeployment, self).build()
         self.save_to_environment()
+
+    def upgrade(self, upgrade_branch):
+        """
+        Upgrades the deployment (very chefy, rcbopsy)
+        """
+
+        # Gather all the nodes of the deployment
+        chef_server = next(self.search_role('chefserver'))
+        controllers = self.search_role('controller')
+        computes = list(self.search_role('compute'))
+
+        # upgrade the chef server
+        self.branch = upgrade_branch
+        chef_server.upgrade()
+        controller1 = next(controllers)
+        if self.feature_in('highavailability'):
+            controller2 = next(controllers)
+            stop = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit stop $i; done"""
+            start = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit start $i; done"""
+            keep_stop = "service keepalived stop"
+            controller2.run_cmd(keep_stop)
+            # Sleep for vips to move
+            sleep(10)
+            controller2.run_cmd(stop)
+            # Sleeping for monit to stop services
+            sleep(30)
+            controller1.upgrade()
+            controller2.upgrade()
+            controller2.run_cmd(start)
+        controller1.upgrade()
+
+        for compute in computes:
+            compute.upgrade()
 
     def update_environment(self):
         """

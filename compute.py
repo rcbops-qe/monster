@@ -59,10 +59,20 @@ def build(name="build", template="precise-default", branch="master",
         deployment.destroy()
 
 
-def destroy(name="build", config=None, log=None,
-            log_level="INFO", provisioner="razor"):
+def upgrade(name='precise-default', upgrade_branch='v4.1.3rc',
+            config=None, log=None, log_level="INFO"):
+    """
+    Upgrades a current deployment to the new branch / tag
+    """
     _set_log(log, log_level)
-    deployment = _load(name, config, provisioner)
+    deployment = _load(name, config)
+    util.logger.info(deployment)
+    deployment.upgrade(upgrade_branch)
+
+
+def destroy(name="precise-default", config=None, log=None, log_level="INFO"):
+    _set_log(log, log_level)
+    deployment = _load(name, config)
     util.logger.info(deployment)
     deployment.destroy()
 
@@ -73,7 +83,7 @@ def test(name="build", config=None, log=None,
     deployment = _load(name, config)
     tempest = Tempest(deployment, None)
     tempest.pre_configure()
-    next(deployment.search_role("controller")).run_chef_client()
+    next(deployment.search_role("controller")).run()
     tempest.apply_feature()
     tempest.post_configure()
 
@@ -109,7 +119,7 @@ def show(name="build", config=None, log=None,
     util.logger.info(str(deployment))
 
 
-def _load(name="build", config=None, provisioner="razor"):
+def _load(name="build", config=None):
     # load deployment and source openrc
     util.config = Config(config)
     return ChefDeployment.from_chef_environment(name)
@@ -124,5 +134,5 @@ def _set_log(log, log_level):
 
 if __name__ == "__main__":
     parser = argh.ArghParser()
-    parser.add_commands([build, destroy, openrc, horizon, show, test])
+    parser.add_commands([build, destroy, openrc, horizon, show, test, upgrade])
     parser.dispatch()

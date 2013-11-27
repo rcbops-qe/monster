@@ -35,6 +35,9 @@ class Node(Feature):
     def artifact(self):
         pass
 
+    def upgrade(self):
+        pass
+
     def set_run_list(self):
         """ Sets the nodes run list based on the Feature
         """
@@ -98,7 +101,7 @@ class Controller(Node):
         if self.number == 2:
             controllers = self.node.deployment.search_role('controller')
             controller1 = next(controllers)
-            controller1.run_chef_client()
+            controller1.run()
 
     def archive(self):
         """ Services on a controller to archive
@@ -138,12 +141,16 @@ class Controller(Node):
                                     "sysctl.d",
                                     "ufw"]}
 
+
 class Compute(Node):
     """ Represents a RPCS compute
     """
 
     def pre_configure(self):
         self.set_run_list()
+
+    def upgrade(self):
+        self.run()
 
     def archive(self):
         """ Archives all services on a compute node
@@ -155,7 +162,7 @@ class Compute(Node):
     def _set_node_archive(self):
 
         self.archive = {"log": ["nova"],
-                         "configs": ["nova"]}
+                        "configs": ["nova"]}
 
 
 class Proxy(Node):
@@ -276,17 +283,18 @@ class ChefServer(Node):
         self._erchef_patch
         util.logger.info("Sleeping for solr")
         sleep(120)
-    
+
     def _erchef_patch(self):
         self.node.run_cmd("""echo 'node.override["erchef"]["s3_url_ttl"] = 3600' >> /etc/chef-server/chef-server.rb""")
-
-    def destroy(self):
-        # Stop updating remote environment
-        self.node.environment.remote_api = None
 
     def archive(self):
         self.archive = {"log": [""],
                         "configs": [""]}
+
+    def upgrade(self):
+        """ Upgrades the Chef Server Cookbooks
+        """
+        self._upgrade_cookbooks()
 
     def destroy(self):
         # Stop updating remote environment
@@ -317,6 +325,36 @@ class ChefServer(Node):
 
         if 'cookbooks' in cookbook_name:
              # add submodule stuff to list
+            commands.append('git submodule init')
+            commands.append('git submodule sync')
+            commands.append('git submodule update')
+            commands.append('knife cookbook upload --all --cookbook-path '
+                            '{0}/{1}/cookbooks'.format(install_dir,
+                                                       cookbook_name))
+
+        commands.append('knife role from file {0}/{1}/roles/*.rb'.format(
+            install_dir, cookbook_name))
+
+        command = "; ".join(commands)
+
+        return self.node.run_cmd(command)
+
+    def _upgrade_cookbooks(self):
+
+        cookbook_url = util.config['rcbops'][self.node.product]['git']['url']
+        cookbook_branch = self.node.branch
+        cookbook_name = cookbook_url.split("/")[-1].split(".")[0]
+        install_dir = util.config['chef']['server']['install_dir']
+
+        # Purge the cookbooks and upload the new ones
+        commands = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done",
+                    "cd {0}/{1}".format(install_dir, cookbook_name),
+                    "git clone -b '{0}' {1} {2}".format(cookbook_branch,
+                                                        cookbook_url,
+                                                        cookbook_name)]
+
+        if 'cookbooks' in cookbook_name:
+            # add submodule stuff to list
             commands.append('git submodule init')
             commands.append('git submodule sync')
             commands.append('git submodule update')
