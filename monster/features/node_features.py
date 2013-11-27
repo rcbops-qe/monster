@@ -149,9 +149,6 @@ class Compute(Node):
     def pre_configure(self):
         self.set_run_list()
 
-    def upgrade(self):
-        self.run()
-
     def archive(self):
         """ Archives all services on a compute node
         """
