@@ -73,17 +73,21 @@ class ChefDeployment(Deployment):
         controllers = self.search_role('controller')
         computes = list(self.search_role('compute'))
 
-        # save image upload value
-        override = self.node.environment.override_attributes['image_upload']
-        image_upload = override['glance']['image_upload']
-        override['glance']['image_upload'] = False
-        self.node.environment.save()
-
         # upgrade the chef server
         self.branch = upgrade_branch
         chef_server.upgrade()
         controller1 = next(controllers)
+        image_upload = None
         if self.feature_in('highavailability'):
+            # save image upload value
+            override = self.node.environment.override_attributes
+            try:
+                image_upload = override['glance']['image_upload']
+                override['glance']['image_upload'] = False
+                self.node.environment.save()
+            except KeyError:
+                pass
+
             controller2 = next(controllers)
             stop = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit stop $i; done"""
             start = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit start $i; done"""
@@ -98,8 +102,10 @@ class ChefDeployment(Deployment):
             controller2.upgrade()
             controller2.run_cmd(start)
         controller1.upgrade()
-        override['glance']['image_upload'] = image_upload
-        self.node.environment.save()
+
+        if image_upload:
+            override['glance']['image_upload'] = image_upload
+            self.node.environment.save()
 
         for compute in computes:
             compute.upgrade()
