@@ -80,7 +80,7 @@ class ChefDeployment(Deployment):
         image_upload = None
         if self.feature_in('highavailability'):
             # save image upload value
-            override = self.node.environment.override_attributes
+            override = self.environment.override_attributes
             try:
                 image_upload = override['glance']['image_upload']
                 override['glance']['image_upload'] = False
