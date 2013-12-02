@@ -401,7 +401,7 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
         """
         self.mkswap(node)
 
-    def mkswap(node, size=2):
+    def mkswap(self, node, size=2):
         """
         Makes a swap file of size on the node
         :param node: Node to create swap file
@@ -409,9 +409,9 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
         :param size: Size of swap file in GBs
         :type size: int
         """
-        util.logger("Making swap file on:{0} of {1}GBs".format(node.name,
-                                                               size))
-        size_b = int(pow(1024, float(size)))
+        util.logger.info("Making swap file on:{0} of {1}GBs".format(node.name,
+                                                                    size))
+        size_b = int(pow(1024, size))
         cmds = [
             "dd if=/dev/zero of=/mnt/swap bs=1024 count={0}".format(size_b),
             "sudo mkswap /mnt/swap",
