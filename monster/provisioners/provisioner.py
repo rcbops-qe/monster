@@ -1,5 +1,5 @@
 from time import sleep
-import from math import pow
+from math import pow
 
 from chef import Node, Client, Search, autoconfigure
 from gevent import spawn, joinall, sleep as gsleep
