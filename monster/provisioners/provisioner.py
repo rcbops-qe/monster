@@ -253,6 +253,7 @@ class ChefOpenstackProvisioner(Provisioner):
         node['uuid'] = server.id
         node['current_user'] = "root"
         node.save()
+        util.mkswap(node)
         return node
 
     def build_instance(self, name="server", image="precise",

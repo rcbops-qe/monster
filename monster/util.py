@@ -52,3 +52,15 @@ def xunit_merge(path="."):
         with open("results.xunit", "w") as f:
             f.write(ElementTree.tostring(tree))
     [os.remove(file) for file in files]
+
+
+def mkswap(node, size="2"):
+    size_bytes = size
+    cmds = [
+        "dd if=/dev/zero of=/mnt/swap bs=1024 count={0}".format(size_bytes),
+        "sudo mkswap /mnt/swap",
+        "sed 's/vm.swappiness.*$/vm.swappiness=25/g' "
+        "/etc/sysctl.conf > etc/sysctl.conf",
+        "sysctl vm.swappiness=30"
+    ]
+    node.run_cmd("; ".join(cmds))
