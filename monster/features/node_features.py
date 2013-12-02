@@ -1,7 +1,6 @@
 """
 A nodes features
 """
-from time import sleep
 from chef import ChefAPI
 from monster.features.feature import (Feature,
                                       remove_chef,
