@@ -74,6 +74,7 @@ class ChefDeployment(Deployment):
         computes = list(self.search_role('compute'))
 
         # upgrade the chef server
+        old_branch = self.branch
         self.branch = upgrade_branch
         chef_server.upgrade()
         controller1 = next(controllers)
@@ -98,6 +99,10 @@ class ChefDeployment(Deployment):
             controller2.run_cmd(stop)
             # Sleeping for monit to stop services
             sleep(30)
+            # Upgrade
+            if "4.1.3" in upgrade_branch:
+                controller1.upgrade(times=2, accept_failure=True)
+                controller1.run_cmd("service keepalived restart")
             controller1.upgrade()
             controller2.upgrade()
             controller2.run_cmd(start)
