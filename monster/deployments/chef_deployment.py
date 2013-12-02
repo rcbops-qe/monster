@@ -163,9 +163,11 @@ class ChefDeployment(Deployment):
         # provision nodes
         chef_nodes = provisioner.provision(template, deployment)
         for node in chef_nodes:
-            deployment.nodes.append(
-                ChefNode.from_chef_node(node, os_name, product, environment,
-                                        deployment, provisioner, branch))
+            cnode = ChefNode.from_chef_node(node, os_name, product,
+                                            environment, deployment,
+                                            provisioner, branch)
+            provisioner.post_provision(cnode)
+            deployment.nodes.append(cnode)
 
         # add features
         for node, features in zip(deployment.nodes, template['nodes']):

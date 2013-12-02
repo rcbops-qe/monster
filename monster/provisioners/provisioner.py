@@ -1,4 +1,5 @@
 from time import sleep
+import from math import pow
 
 from chef import Node, Client, Search, autoconfigure
 from gevent import spawn, joinall, sleep as gsleep
@@ -39,6 +40,14 @@ class Provisioner(object):
         :rtype: list
         """
         raise NotImplementedError
+
+    def post_provision(self, node):
+        """
+        Tasks to be done after a node is provisioned
+        :param node: Node object to be tasked
+        :type node: Monster.Node
+        """
+        pass
 
     def destroy_node(self, node):
         """
@@ -253,7 +262,6 @@ class ChefOpenstackProvisioner(Provisioner):
         node['uuid'] = server.id
         node['current_user'] = "root"
         node.save()
-        util.mkswap(node)
         return node
 
     def build_instance(self, name="server", image="precise",
@@ -384,3 +392,29 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
         pyrax.connect_to_services()
         self.client = pyrax.cloudservers
         self.neutron = pyrax.cloud_networks
+
+    def post_provision(self, node):
+        """
+        Tasks to be done after a rackspace node is provisioned
+        :param node: Node object to be tasked
+        :type node: Monster.Node
+        """
+        self.mkswap(node)
+
+    def mkswap(node, size="2"):
+        """
+        Makes a swap file of size on the node
+        :param node: Node to create swap file
+        :type node: monster.Node
+        :param size: Size of swap file in GBs
+        :type size: int
+        """
+        size_b = int(pow(1024, size))
+        cmds = [
+            "dd if=/dev/zero of=/mnt/swap bs=1024 count={0}".format(size_b),
+            "sudo mkswap /mnt/swap",
+            "sed 's/vm.swappiness.*$/vm.swappiness=25/g' "
+            "/etc/sysctl.conf > etc/sysctl.conf",
+            "sysctl vm.swappiness=30"
+        ]
+        node.run_cmd("; ".join(cmds))
