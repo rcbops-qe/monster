@@ -409,6 +409,8 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
         :param size: Size of swap file in GBs
         :type size: int
         """
+        util.logger("Making swap file on:{0} of {1}GBs".format(node.name,
+                                                               size))
         size_b = int(pow(1024, float(size)))
         cmds = [
             "dd if=/dev/zero of=/mnt/swap bs=1024 count={0}".format(size_b),
