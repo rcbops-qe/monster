@@ -806,8 +806,15 @@ class Tempest(RPCS):
                                 url,
                                 service_type="compute")
         image_ids = (i.id for i in compute.images.list())
-        tempest['image_id1'] = next(image_ids)
-        tempest['image_id2'] = next(image_ids) or tempest['image_id1']
+        try:
+            tempest['image_id1'] = next(image_ids)
+        except StopIteration:
+            util.logger.error("No glance images available")
+            tempest['image_id1']
+        try:
+            tempest['image_id2'] = next(image_ids)
+        except StopIteration:
+            tempest['image_id2'] = tempest['image_id1']
 
         # tempest.public_network_id = None
         # tempest.public_router_id = None
@@ -828,6 +835,7 @@ class Tempest(RPCS):
     def pre_configure(self):
         controller = next(self.deployment.search_role("controller"))
         tempest_feature = NodeTempest(controller)
+        self.deployment.environment.override
         controller.features.append(tempest_feature)
 
     def post_configure(self):
