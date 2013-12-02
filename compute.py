@@ -77,14 +77,12 @@ def destroy(name="precise-default", config=None, log=None, log_level="INFO"):
     deployment.destroy()
 
 
-def test(name="build", config=None, log=None,
-         log_level="INFO"):
+def test(name="build", config=None, log=None, log_level="INFO"):
     _set_log(log, log_level)
     deployment = _load(name, config)
     tempest = Tempest(deployment, None)
     tempest.pre_configure()
     next(deployment.search_role("controller")).run()
-    tempest.apply_feature()
     tempest.post_configure()
 
 
