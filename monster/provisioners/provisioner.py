@@ -409,7 +409,7 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
         :param size: Size of swap file in GBs
         :type size: int
         """
-        size_b = int(pow(1024, size))
+        size_b = int(pow(1024, float(size)))
         cmds = [
             "dd if=/dev/zero of=/mnt/swap bs=1024 count={0}".format(size_b),
             "sudo mkswap /mnt/swap",
