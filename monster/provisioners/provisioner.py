@@ -401,7 +401,7 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
         """
         self.mkswap(node)
 
-    def mkswap(node, size="2"):
+    def mkswap(node, size=2):
         """
         Makes a swap file of size on the node
         :param node: Node to create swap file
