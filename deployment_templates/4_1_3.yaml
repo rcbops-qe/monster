@@ -56,7 +56,7 @@ precise-neutron:
   nodes:
     - [chefserver]
     - [controller, network]
-    - [compute, network]
+    - [compute]
 
 centos-neutron:
   product: compute
@@ -68,7 +68,7 @@ centos-neutron:
     mysql: default
     glance: default
     nova: default
-    neutron: neutron
+    neutron: quantum
     horizon: default
     keystone: default
     osops: default
@@ -76,7 +76,7 @@ centos-neutron:
   nodes:
     - [chefserver]
     - [controller, network]
-    - [compute, network]
+    - [compute]
 
 precise-ha:
   product: compute
@@ -88,29 +88,7 @@ precise-ha:
     mysql: default
     glance: cf
     nova: default
-    neutron: neutron
-    horizon: default
-    keystone: default
-    osops: default
-    osopsnetworks: default
-    highavailability: default
-  nodes:
-    - [chefserver]
-    - [controller]
-    - [controller]
-    - [compute]
-
-precise-ha-l3:
-  product: compute
-  name: ha
-  os: precise
-  features:
-    openssh: default
-    monitoring: default
-    mysql: default
-    glance: cf
-    nova: default
-    neutron: neutron
+    neutron: quantum
     horizon: default
     keystone: default
     osops: default
@@ -122,7 +100,7 @@ precise-ha-l3:
     - [controller, network]
     - [compute]
 
-centos-ha-l3:
+centos-ha:
   product: compute
   name: ha
   os: centos
@@ -132,7 +110,7 @@ centos-ha-l3:
     mysql: default
     glance: cf
     nova: default
-    neutron: neutron
+    neutron: quantum
     horizon: default
     keystone: default
     osops: default
@@ -166,7 +144,7 @@ precise-ha-nova-net:
     - [compute]
     - [compute]
 
-centos-ha:
+centos-ha-nova-net:
   product: compute
   name: ha
   os: centos
@@ -176,7 +154,6 @@ centos-ha:
     mysql: default
     glance: cf
     nova: default
-    neutron: neutron
     horizon: default
     keystone: default
     osops: default
@@ -184,8 +161,9 @@ centos-ha:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, network]
-    - [controller, network]
+    - [controller]
+    - [controller]
+    - [compute]
     - [compute]
 
 precise-swift:
