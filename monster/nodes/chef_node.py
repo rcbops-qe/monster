@@ -57,17 +57,21 @@ class ChefNode(Node):
         node.save()
         super(ChefNode, self).build()
 
-    def upgrade(self):
+    def upgrade(self, times=1, accept_failure=False):
         """
         Upgrade the node according to its features
         """
         self.branch = self.deployment.branch
         super(ChefNode, self).upgrade()
-        times = 1
-        if "4.1.3" in self.branch:
-            times = 2
         if not self.feature_in("chefserver"):
-            self.run(times=times)
+            try:
+                self.run(times=times)
+            except Exception as e:
+                if accept_failure:
+                    pass
+                else:
+                    raise Exception("chef-client upgrade failure:{0}".
+                                    format(e))
 
     def save_to_node(self):
         """
