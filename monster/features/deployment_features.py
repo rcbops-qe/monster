@@ -835,7 +835,9 @@ class Tempest(RPCS):
     def pre_configure(self):
         controller = next(self.deployment.search_role("controller"))
         tempest_feature = NodeTempest(controller)
-        self.deployment.environment.override
+        env = self.deployment.environment
+        env.override_attributes['glance']['image_upload'] = True
+        env.save()
         controller.features.append(tempest_feature)
 
     def post_configure(self):
