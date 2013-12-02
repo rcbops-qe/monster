@@ -15,7 +15,7 @@ precise-default:
     tempest: default
   nodes:
     - [chefserver]
-    - [controller]
+    - [controller, orchestration]
     - [compute]
 
 centos-default:
@@ -35,7 +35,7 @@ centos-default:
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller]
+    - [controller, orchestration]
     - [compute]
 
 precise-neutron:
@@ -56,7 +56,7 @@ precise-neutron:
   nodes:
     - [chefserver]
     - [controller, network]
-    - [compute]
+    - [compute, network]
 
 centos-neutron:
   product: compute
@@ -68,7 +68,7 @@ centos-neutron:
     mysql: default
     glance: default
     nova: default
-    neutron: quantum
+    neutron: neutron
     horizon: default
     keystone: default
     osops: default
@@ -76,7 +76,7 @@ centos-neutron:
   nodes:
     - [chefserver]
     - [controller, network]
-    - [compute]
+    - [compute, network]
 
 precise-ha:
   product: compute
@@ -88,7 +88,7 @@ precise-ha:
     mysql: default
     glance: cf
     nova: default
-    neutron: quantum
+    neutron: neutron
     horizon: default
     keystone: default
     osops: default
@@ -96,11 +96,33 @@ precise-ha:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, network]
+    - [controller, orchestration]
+    - [controller]
+    - [compute]
+
+precise-ha-l3:
+  product: compute
+  name: ha
+  os: precise
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    neutron: neutron
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, network, orchestration]
     - [controller, network]
     - [compute]
 
-centos-ha:
+centos-ha-l3:
   product: compute
   name: ha
   os: centos
@@ -110,7 +132,7 @@ centos-ha:
     mysql: default
     glance: cf
     nova: default
-    neutron: quantum
+    neutron: neutron
     horizon: default
     keystone: default
     osops: default
@@ -118,7 +140,7 @@ centos-ha:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, network]
+    - [controller, network, orchestration]
     - [controller, network]
     - [compute]
 
@@ -139,12 +161,12 @@ precise-ha-nova-net:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller]
+    - [controller, orchestration]
     - [controller]
     - [compute]
     - [compute]
 
-centos-ha-nova-net:
+centos-ha:
   product: compute
   name: ha
   os: centos
@@ -154,6 +176,7 @@ centos-ha-nova-net:
     mysql: default
     glance: cf
     nova: default
+    neutron: neutron
     horizon: default
     keystone: default
     osops: default
@@ -161,9 +184,8 @@ centos-ha-nova-net:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller]
-    - [controller]
-    - [compute]
+    - [controller, network, orchestration]
+    - [controller, network]
     - [compute]
 
 precise-swift:
