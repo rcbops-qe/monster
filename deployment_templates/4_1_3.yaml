@@ -6,7 +6,7 @@ precise-default:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
+    glance: default
     nova: default
     horizon: default
     keystone: default
