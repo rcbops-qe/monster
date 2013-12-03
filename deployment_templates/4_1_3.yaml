@@ -12,7 +12,6 @@ precise-default:
     keystone: default
     osops: default
     osopsnetworks: default
-    tempest: default
   nodes:
     - [chefserver]
     - [controller]
