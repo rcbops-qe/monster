@@ -12,6 +12,7 @@ precise-default:
     keystone: default
     osops: default
     osopsnetworks: default
+    neutron: neutron
   nodes:
     - [chefserver]
     - [controller, network, orchestration]
@@ -32,6 +33,7 @@ centos-default:
     keystone: default
     osops: default
     osopsnetworks: default
+    neutron: neutron
   nodes:
     - [chefserver]
     - [controller, network, orchestration]
