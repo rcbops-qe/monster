@@ -6,9 +6,9 @@ An OpenStack Orchestration Engine
 
    - Must have a chef server installed
 
-     #+BEGIN_EXAMPLE
-       source <(curl -s https://raw.github.com/rcbops/support-tools/master/chef-install/install-chef-server.sh)
-     #+END_EXAMPLE
+     #+BEGIN_SRC sh
+       source <(curl -s https://raw.github.com/rcbops/jenkins-build/master/qa/bash/jenkins/install-chef-server.sh)
+     #+END_SRC
 
      - Must have knife.rb configured for chef server (the above command
        will take care of this)
@@ -17,9 +17,9 @@ An OpenStack Orchestration Engine
 
    - Install packages
 
-     #+BEGIN_EXAMPLE
+     #+BEGIN_SRC sh
        apt-get install git python-pip virtualenvwrapper python-dev libevent-dev
-     #+END_EXAMPLE
+     #+END_SRC
 
    - Chef server must have rcbops-qa cookbook installed
      #+BEGIN_SRC sh
