@@ -60,6 +60,10 @@ class ChefNode(Node):
     def upgrade(self, times=1, accept_failure=False):
         """
         Upgrade the node according to its features
+        :param times: number of times to run chef-client
+        :type times: int
+        :param accept_failure: whether to accept failure of chef-client runs
+        :type accept_failure: boolean
         """
         self.branch = self.deployment.branch
         super(ChefNode, self).upgrade()

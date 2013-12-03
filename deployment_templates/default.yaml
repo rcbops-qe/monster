@@ -12,12 +12,53 @@ precise-default:
     keystone: default
     osops: default
     osopsnetworks: default
+    neutron: neutron
+  nodes:
+    - [chefserver]
+    - [controller, network, orchestration]
+    - [compute]
+
+centos-default:
+  product: compute
+  name: default
+  os: centos
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: cf
+    cinder: local
+    nova: default
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    neutron: neutron
+  nodes:
+    - [chefserver]
+    - [controller, network, orchestration]
+    - [compute]
+
+precise-nova-net:
+  product: compute
+  name: default
+  os: precise
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: cf
+    nova: default
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
   nodes:
     - [chefserver]
     - [controller, orchestration]
     - [compute]
 
-centos-default:
+centos-nova-net:
   product: compute
   name: default
   os: centos
