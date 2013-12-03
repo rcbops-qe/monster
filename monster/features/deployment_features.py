@@ -91,7 +91,7 @@ class Neutron(Deployment):
             api_name = '{0}-api'.format(self.provider)
             api_vip = util.config[str(self)][self.deployment.os_name]['vip']
             env.override_attributes['vips'][api_name] = api_vip
-        env.save()nl
+        env.save()
 
     def _reboot_cluster(self):
 
