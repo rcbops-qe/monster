@@ -87,10 +87,11 @@ class Neutron(Deployment):
             env.override_attributes['nova']['network'] = neutron_network
 
         # update the vip to correct api name and vip value
-        api_name = '{0}-api'.format(self.provider)
-        api_vip = util.config[str(self)][self.deployment.os_name]['vip']
-        env.override_attributes['vips'][api_name] = api_vip
-        env.save()
+        if self.deployment.feature_in("highavailability"):
+            api_name = '{0}-api'.format(self.provider)
+            api_vip = util.config[str(self)][self.deployment.os_name]['vip']
+            env.override_attributes['vips'][api_name] = api_vip
+        env.save()nl
 
     def _reboot_cluster(self):
 
