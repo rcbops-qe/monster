@@ -16,14 +16,15 @@ from monster.features.deployment_features import Tempest
 
 def build(name="build", template="precise-default", branch="master",
           template_path=None, config=None, destroy=False, dry=False,
-          log=None, log_level="INFO", provisioner="razor", test=False):
+          log=None, log_level="INFO", provisioner="razor", test=False,
+          secret_path=None):
     """
     Builds an OpenStack Cluster
     """
     _set_log(log, log_level)
 
     # provisiong deployment
-    util.config = Config(config)
+    util.config = Config(config, secret_path=secret_path)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
     deployment = ChefDeployment.fromfile(name, template, branch, cprovisioner,
@@ -60,66 +61,68 @@ def build(name="build", template="precise-default", branch="master",
 
 
 def upgrade(name='precise-default', upgrade_branch='v4.1.3rc',
-            config=None, log=None, log_level="INFO"):
+            config=None, log=None, log_level="INFO", secret_path=None):
     """
     Upgrades a current deployment to the new branch / tag
     """
     _set_log(log, log_level)
-    deployment = _load(name, config)
+    deployment = _load(name, config, secret_path)
     util.logger.info(deployment)
     deployment.upgrade(upgrade_branch)
 
 
-def destroy(name="precise-default", config=None, log=None, log_level="INFO"):
+def destroy(name="precise-default", config=None, log=None, log_level="INFO",
+            secret_path=None):
     _set_log(log, log_level)
-    deployment = _load(name, config)
+    deployment = _load(name, config, secret_path)
     util.logger.info(deployment)
     deployment.destroy()
 
 
-def test(name="build", config=None, log=None, log_level="INFO"):
+def test(name="build", config=None, log=None, log_level="INFO",
+         secret_path=None):
     _set_log(log, log_level)
-    deployment = _load(name, config)
+    deployment = _load(name, config, secret_path)
     tempest = Tempest(deployment, None)
     tempest.pre_configure()
     next(deployment.search_role("controller")).run()
     tempest.post_configure()
 
 
-def artifact(name="build", config=None, log=None,
+def artifact(name="build", config=None, log=None, secret_path=None,
              log_level="INFO"):
     _set_log(log, log_level)
-    deployment = _load(name, config)
+    deployment = _load(name, config, secret_path)
     deployment.artifact()
 
 
-def openrc(name="build", config=None, log=None,
+def openrc(name="build", config=None, log=None, secret_path=None,
            log_level="INFO"):
     _set_log(log, log_level)
-    deployment = _load(name, config)
+    deployment = _load(name, config, secret_path)
     deployment.openrc()
 
 
-def horizon(name="build", config=None, log=None,
+def horizon(name="build", config=None, log=None, secret_path=None,
             log_level="INFO"):
     _set_log(log, log_level)
-    deployment = _load(name, config)
+    deployment = _load(name, config, secret_path)
     ip = deployment.horizon_ip()
     url = "https://%s" % ip
     webbrowser.open_new_tab(url)
 
 
-def show(name="build", config=None, log=None,
+def show(name="build", config=None, log=None, secret_path=None,
          log_level="INFO"):
     _set_log(log, log_level)
     # load deployment and source openrc
-    deployment = _load(name, config)
+    deployment = _load(name, config, secret_path)
     util.logger.info(str(deployment))
 
 
-def _load(name="build", config=None):
+def _load(name="build", config=None, secret_path=None):
     # load deployment and source openrc
-    util.config = Config(config)
+    util.config = Config(config, secret_path=secret_path)
     return ChefDeployment.from_chef_environment(name)
 
 
