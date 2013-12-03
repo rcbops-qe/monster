@@ -15,19 +15,27 @@ from monster.features.deployment_features import Tempest
 
 
 def build(name="build", template="precise-default", branch="master",
-          template_path=None, config=None, destroy=False, dry=False,
+          config=None, destroy=False, dry=False,
           log=None, log_level="INFO", provisioner="razor", test=False):
     """
     Builds an OpenStack Cluster
     """
     _set_log(log, log_level)
 
+    # Magic to get the template location from the branch
+    if branch == "master":
+        template_file = "default"
+    else:
+        temp_branch = branch.lstrip('v')
+        if "rc" in temp_branch:
+            template_file = str(branch).rstrip("rc").replace('.', '_')
+
     # provisiong deployment
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    deployment = ChefDeployment.fromfile(name, template, branch, cprovisioner,
-                                         path=template_path)
+    deployment = ChefDeployment.fromfile(name, template, branch,
+                                         cprovisioner, template_file)
     if dry:
         # build environment
         try:
