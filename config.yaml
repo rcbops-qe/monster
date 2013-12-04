@@ -164,6 +164,8 @@ environments:
             ovs:
                 network_type: gre
         neutron:
+            lbaas:
+                enabled: true
             ovs:
                 network_type: gre
     cinder:
