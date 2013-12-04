@@ -311,6 +311,11 @@ class ChefOpenstackProvisioner(Provisioner):
         util.logger.info("Building:{0}".format(name))
         server = self.wait_for_state(self.client.servers.get, server, "status",
                                      ["ACTIVE", "ERROR"])
+        if server.status == "ERROR":
+            util.logger.error("Instance entered error state. Retrying...")
+            server.delete()
+            return self.build_instance(name=name, image=image, flavor=flavor)
+
         return (server, password)
 
     def _client_search(self, collection_fun, attr, desired, attempts=None,
