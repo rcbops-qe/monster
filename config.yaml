@@ -170,8 +170,8 @@ environments:
                 network_type: gre
     cinder:
         local:
-            provider: lvm
             storage:
+                provider: lvm
                 lvm:
                     volume_group: vgubuntu01
     swift:
