@@ -53,12 +53,12 @@ class creds(object):
     """
     Credentials to authenticate with OpenStack
     """
-    def __init__(self):
+    def __init__(self, user, apikey, region, auth_system):
         config = util.config['secrets']['openstack']
-        self.user = config['user']
-        self.apikey = config['api_key']
-        self.region = config['region']
-        self.system = 'keystone'
+        self.user = user or config['user']
+        self.apikey = apikey or config['api_key']
+        self.region = region or config['region']
+        self.system = auth_system or 'keystone'
 
 
 class Clients(object):
