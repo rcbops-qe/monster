@@ -219,7 +219,8 @@ class ChefDeployment(Deployment):
                                            product=product)
 
         nodes = deployment_args.get('nodes', [])
-        for node in (Node(n, environment.local_api) for n in nodes):
+        api = remote_api or local_api
+        for node in (Node(n, api) for n in nodes):
             if not node.exists:
                 util.logger.error("Non existant chef node:{0}".
                                   format(node.name))
