@@ -67,7 +67,7 @@ class Chef(Environment):
             try:
                 env.save(self.remote_api)
             except Exception as e:
-                util.logger("Remote env error:{0}".format(e))
+                util.logger.error("Remote env error:{0}".format(e))
 
     def destroy(self):
         ChefEnvironment(self.name).delete()
