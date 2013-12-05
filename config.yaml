@@ -170,6 +170,7 @@ environments:
                 network_type: gre
     cinder:
         local:
+            provider: lvm
             storage:
                 lvm:
                     volume_group: vgubuntu01
