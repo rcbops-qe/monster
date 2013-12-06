@@ -1,5 +1,5 @@
 from novaclient.v1_1 import client as nova_client
-# from neutronclient.v1 import client as neutron_client
+from neutronclient.v2_0.client import Client as neutron_client
 from cinderclient.v1 import client as cinder_client
 
 from monster import util
@@ -63,6 +63,21 @@ class Clients(object):
             % (self.creds_dict['username'], self.creds_dict['auth_url'])
         )
         client = cinder_client.Client(**self.creds_dict)
+        return client
+
+    def neutronclient(self):
+        """
+        Openstack neutronclient generator
+        """
+        util.logger.debug(
+            'neutron connection created using token "%s" and url "%s"'
+            % (self.creds_dict['username'], self.creds_dict['auth_url'])
+        )
+
+        client = neutron_client(auth_url=self.creds_dict['auth_url'],
+                                username=self.creds_dict['username'],
+                                password=self.creds_dict['api_key'],
+                                tenant_name=self.creds_dict['username'])
         return client
 
     def get_client(self, client):
