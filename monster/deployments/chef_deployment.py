@@ -339,5 +339,6 @@ class ChefDeployment(Deployment):
         region = "RegionOne"
         apikey = users[user]["password"]
         auth_url = "http://{0}:5000/v2.0".format(self.horizon_ip())
-        creds = Creds(user=user, apikey=apikey, region=region, auth_url=auth_url)
+        creds = Creds(user=user, apikey=apikey, region=region,
+                      auth_url=auth_url)
         self.clients = Clients(creds)
