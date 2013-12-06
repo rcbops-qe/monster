@@ -93,7 +93,8 @@ def test(name="build", config=None, log=None, log_level="INFO",
     deployment = _load(name, config, secret_path)
     tempest = Tempest(deployment, None)
     tempest.pre_configure()
-    next(deployment.search_role("controller")).run()
+    controller = next(deployment.search_role("controller"))
+    controller.run()
     tempest.post_configure()
 
 
