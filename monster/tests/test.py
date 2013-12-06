@@ -2,6 +2,9 @@
 Module to test OpenStack deployments
 """
 
+import os
+from monster import util
+
 
 class Test(object):
     """
@@ -30,6 +33,7 @@ class Tempest(Test):
     def __init__(self, deployment):
         super(Tempest, self).__init__(deployment)
         self.path = "/tmp/%s.conf" % self.deployment.name
+        self.test_node = next(self.deployment.search_role("controller"))
         self.tempest_config = dict(
             identity="", user1_user="", user1_password="", user1_tenant="",
             user2_user="", user2_password="", user2_tenant="", admin_user="",
@@ -39,17 +43,17 @@ class Tempest(Test):
             horizon="", cinder_enabled="", neutron_enabled="",
             glance_enabled="", swift_enabled="", heat_enabled="", nova_ip=""
         )
+        self.xunit_file = ""
 
     def prepare(self):
         """
         Sets up tempest repo, python requirements, and config
         """
-        controller = next(self.deployment.search_role("controller"))
         env = self.deployment.environment
         env.override_attributes['glance']['image_upload'] = True
         env.save()
-        controller.add_run_list_item("recipe[tempest]")
-        controller.run()
+        self.test_node.add_run_list_item("recipe[tempest]")
+        self.test_node.run()
 
         # install python requirements for tempest
         tempest_dir = util.config['tests']['tempest']['dir']
@@ -60,17 +64,17 @@ class Tempest(Test):
         self.build_config()
         tempest_dir = util.config['tests']['tempest']['dir']
         rem_config_path = "{0}/etc/tempest.conf".format(tempest_dir)
-        controller.run_cmd("rm {0}".format(rem_config_path))
-        controller.scp_to(self.path, remote_path=rem_config_path)
+        self.test_node.run_cmd("rm {0}".format(rem_config_path))
+        self.test_node.scp_to(self.path, remote_path=rem_config_path)
 
     def run_tests(self):
         # remove tempest cookbook. subsequent runs will fail
         self.node.remove_run_list_item('recipe[tempest]')
         exclude = ['volume', 'resize', 'floating']
-        self.test_from(controller, xunit=True, exclude=exclude)
+        self.test_from(self.test_node, xunit=True, exclude=exclude)
 
     def collect_results(self):
-        node.scp_from(xunit_file, local_path=".")
+        self.test_node.scp_from(self.xunit_file, local_path=".")
         util.xunit_merge()
 
     def tempest_configure(self):
