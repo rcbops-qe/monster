@@ -335,9 +335,7 @@ class ChefDeployment(Deployment):
         override = self.environment.override_attributes
         keystone = override['keystone']
         users = keystone['users']
-        non_admin_users = (user for user in users.keys()
-                           if "admin" not in users[user]['roles'].keys())
-        user = next(non_admin_users)
+        user = keystone['admin_user']
         region = "RegionOne"
         apikey = users[user]["password"]
         auth_url = "http://{0}:5000/v2.0".format(self.horizon_ip())
