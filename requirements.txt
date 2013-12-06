@@ -6,4 +6,5 @@ pychef
 pyyaml
 gevent
 python-cinderclient
+python-neutronclient
 pyrax
