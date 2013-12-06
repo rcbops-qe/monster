@@ -12,6 +12,7 @@ from monster.features.node_features import ChefServer
 from monster.nodes.chef_node import ChefNode
 from monster.provisioners import provisioner as provisioners
 from monster.provisioners.provisioner import ChefRazorProvisioner
+from monster.clients.openstack import Creds, Clients
 
 
 class ChefDeployment(Deployment):
@@ -21,10 +22,11 @@ class ChefDeployment(Deployment):
     """
 
     def __init__(self, name, os_name, branch, environment, provisioner,
-                 status=None, product=None):
+                 status=None, product=None, clients=None):
         status = status or "provisioning"
         super(ChefDeployment, self).__init__(name, os_name, branch,
-                                             provisioner, status, product)
+                                             provisioner, status, product,
+                                             clients)
         self.environment = environment
         self.has_controller = False
 
@@ -325,3 +327,19 @@ class ChefDeployment(Deployment):
         if "vips" in self.environment.override_attributes:
             ip = self.environment.override_attributes['vips']['nova-api']
         return ip
+
+    def openstack_clients(self):
+        """
+        Setup openstack clients generator for deployment
+        """
+        override = self.environment.override_attributes
+        keystone = override['keystone']
+        users = keystone['users']
+        non_admin_users = (user for user in users.keys()
+                           if "admin" not in users[user]['roles'].keys())
+        user = next(non_admin_users)
+        region = "RegionOne"
+        apikey = users[user]["password"]
+        auth_url = "http://{0}:5000/v2.0".format(self.horizon_ip())
+        creds = Creds(user=user, apikey=apikey, region=region, auth_url=auth_url)
+        self.clients = Clients(creds)
