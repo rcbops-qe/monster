@@ -165,7 +165,7 @@ class ChefOpenstackProvisioner(Provisioner):
     def __init__(self):
         self.names = []
         self.name_index = {}
-        self.creds = openstack.creds()
+        self.creds = openstack.Creds()
         self.client = Clients(self.creds).get_client("novaclient")
 
     def name(self, name, deployment, number=None):
