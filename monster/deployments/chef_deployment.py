@@ -65,6 +65,50 @@ class ChefDeployment(Deployment):
         super(ChefDeployment, self).build()
         self.save_to_environment()
 
+    def prepare_upgrade(self):
+        # 4.2.1 Upgrade procedures
+        chef_server = next(self.search_role('chefserver'))
+        chef_server.run_cmd("for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done")
+        os_munge = []
+
+        if self.os_name == "precise":
+            cmds = ["apt-get -y install python-warlock python-novaclient babel",
+                    "apt-get -y install openstack-dashboard python-django-horizon"
+            os_munge = ["apt-get -y install python-dev",
+                        "apt-get -y install python-setuptools"]
+
+            provisioner = self.provisioner.short_name
+            if provisioner == "rackspace" or provisioner == "openstack":
+                cmds.extend(
+                    ["apt-get update",
+                     "apt-get remove qemu-utils",
+                     "apt-get instal qemu-utils"])
+            if self.feature_in("neutron"):
+                cmds.extend(
+                    ["apt-get update",
+                     "apt-get install python-cmd2 python-pyparsing"])
+
+        if self.os_name == "centos":
+            os_munge = ["yum install -y openssl-devel"
+                        "yum install -y python-devel",
+                        "yum install -y python-setuptools"]
+        chef_server.run_cmd("; ".join(os_munge))
+        commands = "; ".join(cmds)
+        controllers = list(self.search_role('controller'))
+        computes = list(self.search_role('compute'))
+        for node in controllers:
+            node.run_cmd(commands)
+        for node in computes:
+            node.run_cmd(commands)
+
+        munge = ["rm -rf /opt/upgrade/mungerator",
+                 "git clone https://github.com/cloudnull/rcbops_mungerator /opt/upgrade/mungerator",
+                 "python /opt/upgrade/mungerator/setup.py install",
+                 "mungerator munger --client-key /etc/chef-server/admin.pem --auth-url https://127.0.0.1:4443 all-nodes-in-env --name {0}".format(self.name)]
+        chef_server.run_cmd("; ".join(munge))
+        self.environment.save_locally()
+
+
     def upgrade(self, upgrade_branch):
         """
         Upgrades the deployment (very chefy, rcbopsy)
@@ -78,6 +122,8 @@ class ChefDeployment(Deployment):
         # upgrade the chef server
         old_branch = self.branch
         self.branch = upgrade_branch
+        if "4.2.1" in upgrade_branch:
+            self.prepare_upgrade()
         chef_server.upgrade()
         controller1 = next(controllers)
         image_upload = None
@@ -125,7 +171,8 @@ class ChefDeployment(Deployment):
         self.save_to_environment()
 
     @classmethod
-    def fromfile(cls, name, template_name, branch, provisioner, template_file, template_path=None):
+    def fromfile(cls, name, template_name, branch, provisioner, template_file,
+                 template_path=None):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment
@@ -150,7 +197,8 @@ class ChefDeployment(Deployment):
         if not template_path:
             path = os.path.join(os.path.dirname(__file__),
                                 os.pardir, os.pardir,
-                                'deployment_templates/{0}.yaml'.format(template_file))
+                                'deployment_templates/{0}.yaml'.format(
+                                    template_file))
         else:
             path = template_path
 
@@ -226,8 +274,6 @@ class ChefDeployment(Deployment):
                 util.logger.error("Non existant chef node:{0}".
                                   format(node.name))
                 continue
-            if remote_api:
-                node = Node(node.name, remote_api)
             cnode = ChefNode.from_chef_node(node, deployment_args['os_name'],
                                             product, environment, deployment,
                                             provisioner,
