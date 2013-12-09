@@ -163,7 +163,7 @@ class ChefNode(Node):
         """
         remote_api = deployment.environment.remote_api
         if remote_api:
-            rnode = Node(node.name, remote_api)
+            rnode = CNode(node.name, remote_api)
             if rnode.exists:
                 node = rnode
         ipaddress = node['ipaddress']
