@@ -104,8 +104,8 @@ class ChefDeployment(Deployment):
         self.environment.save_locally()
 
         # Delete quantum haproxy config
-        cmd = "rm -rf /etc/haproxy/haproxy.d/vs_quantum-api.cfg"
-        controllers[0].run_cmd(cmd)
+        # cmd = "rm -rf /etc/haproxy/haproxy.d/vs_quantum-api.cfg"
+        # controllers[0].run_cmd(cmd)
 
     def upgrade(self, upgrade_branch):
         """

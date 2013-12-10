@@ -7,8 +7,7 @@ from gevent import spawn, joinall, sleep as gsleep
 from monster import util
 from monster.razor_api import razor_api
 from monster.server_helper import run_cmd
-from monster.clients import openstack
-from monster.clients.openstack import Clients
+from monster.clients.openstack import Clients, Creds
 import pyrax
 
 
@@ -390,7 +389,7 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
     def __init__(self):
         self.names = []
         self.name_index = {}
-        self.creds = openstack.rax_creds()
+        self.creds = Creds(auth_system="rackspace", provisioner="rackspace")
         pyrax.set_setting("identity_type", "rackspace")
         pyrax.set_credentials(self.creds.user, api_key=self.creds.apikey,
                               region=self.creds.region)
