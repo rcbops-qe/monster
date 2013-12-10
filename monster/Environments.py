@@ -52,6 +52,13 @@ class Chef(Environment):
         del self.default_attributes[key]
         self.save()
 
+    def save_locally(self):
+        if self.remote_api:
+            env = ChefEnvironment(self.name, api=self.remote_api)
+            self.override_attributes = env.override_attributes
+            self.default_attributes = env.default_attributes
+            self.save()
+
     def save(self):
         # Load local chef env
         env = ChefEnvironment(self.name, api=self.local_api)

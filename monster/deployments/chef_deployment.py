@@ -65,6 +65,66 @@ class ChefDeployment(Deployment):
         super(ChefDeployment, self).build()
         self.save_to_environment()
 
+    def prepare_upgrade(self):
+        """
+        4.2.1 Upgrade Procedures
+        """
+        chef_server = next(self.search_role('chefserver'))
+        # purge cookbooks
+        munge = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done"]
+        ncmds = []
+        ccmds = []
+        if self.os_name == "precise":
+            # For Ceilometer
+            ncmds.extend([
+                "apt-get clean",
+                "apt-get -y install python-warlock python-novaclient babel"])
+            # For Horizon
+            ccmds.append(
+                "apt-get -y install openstack-dashboard python-django-horizon")
+            # For mungerator
+            munge.extend(["apt-get -y install python-dev",
+                          "apt-get -y install python-setuptools"])
+            # For QEMU
+            provisioner = self.provisioner.short_name
+            if provisioner == "rackspace" or provisioner == "openstack":
+                ncmds.extend(
+                    ["apt-get update",
+                     "apt-get remove qemu-utils",
+                     "apt-get install qemu-utils"])
+
+        if self.os_name == "centos":
+            # For mungerator
+            munge.extend(["yum install -y openssl-devel",
+                          "yum install -y python-devel",
+                          "yum install -y python-setuptools"])
+
+        node_commands = "; ".join(ncmds)
+        controller_commands = "; ".join(ccmds)
+        controllers = list(self.search_role('controller'))
+        computes = list(self.search_role('compute'))
+        for node in controllers:
+            node.run_cmd(node_commands)
+            node.run_cmd(controller_commands)
+        for node in computes:
+            node.run_cmd(node_commands)
+
+        munge_dir = "/opt/upgrade/mungerator"
+        munge_repo = "https://github.com/rcbops/mungerator"
+        munge.extend([
+            "rm -rf {0}".format(munge_dir),
+            "git clone {0} {1}".format(munge_repo, munge_dir),
+            "cd {0}; python setup.py install".format(munge_dir),
+            "mungerator munger --client-key /etc/chef-server/admin.pem "
+            "--auth-url https://127.0.0.1:4443 all-nodes-in-env "
+            "--name {0}".format(self.name)])
+        chef_server.run_cmd("; ".join(munge))
+        self.environment.save_locally()
+
+        # Delete quantum haproxy config
+        # cmd = "rm -rf /etc/haproxy/haproxy.d/vs_quantum-api.cfg"
+        # controllers[0].run_cmd(cmd)
+
     def upgrade(self, upgrade_branch):
         """
         Upgrades the deployment (very chefy, rcbopsy)
@@ -72,14 +132,16 @@ class ChefDeployment(Deployment):
 
         # Gather all the nodes of the deployment
         chef_server = next(self.search_role('chefserver'))
-        controllers = self.search_role('controller')
+        controllers = list(self.search_role('controller'))
         computes = list(self.search_role('compute'))
 
         # upgrade the chef server
         old_branch = self.branch
         self.branch = upgrade_branch
+        if "4.2.1" in upgrade_branch:
+            self.prepare_upgrade()
         chef_server.upgrade()
-        controller1 = next(controllers)
+        controller1 = controllers[0]
         image_upload = None
         if self.feature_in('highavailability'):
             # save image upload value
@@ -91,7 +153,7 @@ class ChefDeployment(Deployment):
             except KeyError:
                 pass
 
-            controller2 = next(controllers)
+            controller2 = controllers[1]
             stop = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit stop $i; done"""
             start = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit start $i; done"""
             keep_stop = "service keepalived stop"
@@ -117,6 +179,16 @@ class ChefDeployment(Deployment):
         for compute in computes:
             compute.upgrade()
 
+        if "4.2.1" in upgrade_branch:
+            if self.feature_in("neutron"):
+                cmds = ["apt-get update",
+                        "apt-get install python-cmd2 python-pyparsing"]
+                cmd = "; ".join(cmds)
+                for controller in controllers:
+                    controller.run_cmd(cmd)
+                for compute in computes:
+                    compute.run_cmd(cmd)
+
     def update_environment(self):
         """
         Saves deployment for restore after update environment
@@ -125,7 +197,8 @@ class ChefDeployment(Deployment):
         self.save_to_environment()
 
     @classmethod
-    def fromfile(cls, name, template_name, branch, provisioner, template_file, template_path=None):
+    def fromfile(cls, name, template_name, branch, provisioner, template_file,
+                 template_path=None):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment
@@ -150,7 +223,8 @@ class ChefDeployment(Deployment):
         if not template_path:
             path = os.path.join(os.path.dirname(__file__),
                                 os.pardir, os.pardir,
-                                'deployment_templates/{0}.yaml'.format(template_file))
+                                'deployment_templates/{0}.yaml'.format(
+                                    template_file))
         else:
             path = template_path
 
@@ -221,8 +295,7 @@ class ChefDeployment(Deployment):
                                            product=product)
 
         nodes = deployment_args.get('nodes', [])
-        api = remote_api or local_api
-        for node in (Node(n, api) for n in nodes):
+        for node in (Node(n, local_api) for n in nodes):
             if not node.exists:
                 util.logger.error("Non existant chef node:{0}".
                                   format(node.name))

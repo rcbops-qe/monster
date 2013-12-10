@@ -10,9 +10,9 @@ class Creds(object):
     Credentials to authenticate with OpenStack
     """
     def __init__(self, user=None, apikey=None, region=None, auth_url=None,
-                 auth_system=None):
+                 auth_system=None, provisioner="openstack"):
         try:
-            config = util.config['secrets']['openstack']
+            config = util.config['secrets'][provisioner]
         except KeyError:
             util.logger.warn("Secret config not found")
         self.user = user or config['user']

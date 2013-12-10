@@ -202,6 +202,11 @@ environments:
             nova-novnc-proxy: 198.101.133.156
             nova-xvpvnc-proxy: 198.101.133.156
             swift-proxy: 198.101.133.156
+            celiometer-api: 198.101.133.156
+            ceilometer-central-agent: 198.101.133.156
+            heat-api: 198.101.133.156
+            heat-api-cfn: 198.101.133.156
+            heat-api-cloudwatch: 198.101.133.156
             config:
                 198.101.133.154:
                     vrid: 10
@@ -228,6 +233,11 @@ environments:
             nova-novnc-proxy: 198.101.133.159
             nova-xvpvnc-proxy: 198.101.133.159
             swift-proxy: 198.101.133.159
+            celiometer-api: 198.101.133.159
+            ceilometer-central-agent: 198.101.133.159
+            heat-api: 198.101.133.159
+            heat-api-cfn: 198.101.133.159
+            heat-api-cloudwatch: 198.101.133.159
             config:
                 198.101.133.157:
                     vrid: 14

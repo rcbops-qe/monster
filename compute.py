@@ -30,6 +30,8 @@ def build(name="build", template="precise-default", branch="master",
         temp_branch = branch.lstrip('v')
         if "rc" in temp_branch:
             template_file = str(temp_branch).rstrip("rc").replace('.', '_')
+        else:
+            template_file = str(temp_branch).replace('.', '_')
 
     # provisiong deployment
     util.config = Config(config, secret_path=secret_path)
