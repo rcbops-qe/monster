@@ -75,7 +75,7 @@ class ChefDeployment(Deployment):
             cmds = ["apt-get -y install python-warlock python-novaclient babel",
                     "apt-get -y install openstack-dashboard python-django-horizon"]
             munge.extend(["apt-get -y install python-dev",
-                             "apt-get -y install python-setuptools"])
+                          "apt-get -y install python-setuptools"])
 
             provisioner = self.provisioner.short_name
             if provisioner == "rackspace" or provisioner == "openstack":
