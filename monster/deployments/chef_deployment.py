@@ -68,38 +68,53 @@ class ChefDeployment(Deployment):
     def prepare_upgrade(self):
         # 4.2.1 Upgrade procedures
         chef_server = next(self.search_role('chefserver'))
-
+        # purge cookbooks
         munge = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done"]
-        cmds = []
+        ncmds = []
+        ccmds = []
         if self.os_name == "precise":
-            cmds = ["apt-get -y install python-warlock python-novaclient babel",
-                    "apt-get -y install openstack-dashboard python-django-horizon"]
+            # For Ceilometer
+            ncmds.append(
+                "apt-get -y install python-warlock python-novaclient babel")
+            # For Horizon
+            ccmds.append(
+                "apt-get -y install openstack-dashboard python-django-horizon")
+            # For mungerator
             munge.extend(["apt-get -y install python-dev",
                           "apt-get -y install python-setuptools"])
-
+            # For QEMU
             provisioner = self.provisioner.short_name
             if provisioner == "rackspace" or provisioner == "openstack":
-                cmds.extend(
+                ncmds.extend(
                     ["apt-get update",
                      "apt-get remove qemu-utils",
                      "apt-get install qemu-utils"])
 
         if self.os_name == "centos":
+            # For mungerator
             munge.extend(["yum install -y openssl-devel",
                           "yum install -y python-devel",
                           "yum install -y python-setuptools"])
-        commands = "; ".join(cmds)
+
+        node_commands = "; ".join(ncmds)
+        controller_commands = "; ".join(ccmds)
         controllers = list(self.search_role('controller'))
         computes = list(self.search_role('compute'))
         for node in controllers:
-            node.run_cmd(commands)
+            node.run_cmd(node_commands)
+            node.run_cmd(controller_commands)
         for node in computes:
-            node.run_cmd(commands)
+            node.run_cmd(node_commands)
 
-        munge.extend(["rm -rf /opt/upgrade/mungerator",
-                      "git clone https://github.com/rcbops/mungerator /opt/upgrade/mungerator",
-                      "cd /opt/upgrade/mungerator; python setup.py install",
-                      "mungerator munger --client-key /etc/chef-server/admin.pem --auth-url https://127.0.0.1:4443 all-nodes-in-env --name {0}".format(self.name)])
+        munge_dir = "/opt/upgrade/mungerator"
+        munge_repo = "https://github.com/rcbops/mungerator"
+        munge.extend([
+            "rm -rf {0}".format(munge_dir),
+            "git clone {0} {1}".format(munge_repo, munge_dir),
+            "cd {0}; python setup.py install".format(munge_dir),
+            "mungerator munger --client-key /etc/chef-server/admin.pem "
+            "--auth-url https://127.0.0.1:4443 all-nodes-in-env "
+            "--name {0}".format(self.name)])
         chef_server.run_cmd("; ".join(munge))
         self.environment.save_locally()
 
