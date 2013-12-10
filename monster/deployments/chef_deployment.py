@@ -76,8 +76,9 @@ class ChefDeployment(Deployment):
         ccmds = []
         if self.os_name == "precise":
             # For Ceilometer
-            ncmds.append(
-                "apt-get -y install python-warlock python-novaclient babel")
+            ncmds.extend([
+                "apt-get clean",
+                "apt-get -y install python-warlock python-novaclient babel"])
             # For Horizon
             ccmds.append(
                 "apt-get -y install openstack-dashboard python-django-horizon")
