@@ -85,7 +85,7 @@ class ChefDeployment(Deployment):
                      "apt-get install qemu-utils"])
 
         if self.os_name == "centos":
-            munge.extend(["yum install -y openssl-devel"
+            munge.extend(["yum install -y openssl-devel",
                           "yum install -y python-devel",
                           "yum install -y python-setuptools"])
         commands = "; ".join(cmds)
@@ -98,7 +98,7 @@ class ChefDeployment(Deployment):
 
         munge.extend(["rm -rf /opt/upgrade/mungerator",
                       "git clone https://github.com/rcbops/mungerator /opt/upgrade/mungerator",
-                      "python /opt/upgrade/mungerator/setup.py install",
+                      "cd /opt/upgrade/mungerator; python setup.py install",
                       "mungerator munger --client-key /etc/chef-server/admin.pem --auth-url https://127.0.0.1:4443 all-nodes-in-env --name {0}".format(self.name)])
         chef_server.run_cmd("; ".join(munge))
         self.environment.save_locally()
