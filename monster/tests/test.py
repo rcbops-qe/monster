@@ -3,7 +3,12 @@ Module to test OpenStack deployments
 """
 
 import os
+from string import Template
+from itertoos import ifilter, chain
+
 from monster import util
+
+from novaclient.v1_1.client import Client as novaclient
 
 
 class Test(object):
@@ -120,11 +125,11 @@ class Tempest(Test):
         tempest['admin_tenant'] = users[admin_user][
             'roles']['admin'][0]
         url = "http://{0}:5000/v2.0".format(tempest['glance_ip'])
-        compute = client.Client(tempest['admin_user'],
-                                tempest['admin_password'],
-                                tempest['admin_tenant'],
-                                url,
-                                service_type="compute")
+        compute = novaclient(tempest['admin_user'],
+                             tempest['admin_password'],
+                             tempest['admin_tenant'],
+                             url,
+                             service_type="compute")
         image_ids = (i.id for i in compute.images.list())
         try:
             tempest['image_id1'] = next(image_ids)
