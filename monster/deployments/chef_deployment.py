@@ -103,6 +103,10 @@ class ChefDeployment(Deployment):
         chef_server.run_cmd("; ".join(munge))
         self.environment.save_locally()
 
+        # Delete quantum haproxy config
+        cmd = "rm -rf /etc/haproxy/haproxy.d/vs_quantum-api.cfg"
+        controller[0].run_cmd(cmd)
+
     def upgrade(self, upgrade_branch):
         """
         Upgrades the deployment (very chefy, rcbopsy)
