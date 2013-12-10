@@ -66,7 +66,9 @@ class ChefDeployment(Deployment):
         self.save_to_environment()
 
     def prepare_upgrade(self):
-        # 4.2.1 Upgrade procedures
+        """
+        4.2.1 Upgrade Procedures
+        """
         chef_server = next(self.search_role('chefserver'))
         # purge cookbooks
         munge = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done"]
