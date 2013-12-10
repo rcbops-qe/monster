@@ -97,12 +97,11 @@ class ChefDeployment(Deployment):
             node.run_cmd(commands)
 
         munge.extend(["rm -rf /opt/upgrade/mungerator",
-                         "git clone https://github.com/cloudnull/mungerator /opt/upgrade/mungerator",
-                         "python /opt/upgrade/mungerator/setup.py install",
-                         "mungerator munger --client-key /etc/chef-server/admin.pem --auth-url https://127.0.0.1:4443 all-nodes-in-env --name {0}".format(self.name)])
+                      "git clone https://github.com/rcbops/mungerator /opt/upgrade/mungerator",
+                      "python /opt/upgrade/mungerator/setup.py install",
+                      "mungerator munger --client-key /etc/chef-server/admin.pem --auth-url https://127.0.0.1:4443 all-nodes-in-env --name {0}".format(self.name)])
         chef_server.run_cmd("; ".join(munge))
         self.environment.save_locally()
-
 
     def upgrade(self, upgrade_branch):
         """
@@ -161,7 +160,7 @@ class ChefDeployment(Deployment):
         if "4.2.1" in upgrade_branch:
             if self.feature_in("neutron"):
                 cmds = ["apt-get update",
-                        "apt-get install python-cmd2 python-pyparsing"])
+                        "apt-get install python-cmd2 python-pyparsing"]
                 cmd = "; ".join(cmds)
                 for controller in controllers:
                     controller.run_cmd(cmd)
