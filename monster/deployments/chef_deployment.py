@@ -70,7 +70,7 @@ class ChefDeployment(Deployment):
         chef_server = next(self.search_role('chefserver'))
 
         munge = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done"]
-
+        cmds = []
         if self.os_name == "precise":
             cmds = ["apt-get -y install python-warlock python-novaclient babel",
                     "apt-get -y install openstack-dashboard python-django-horizon"]
