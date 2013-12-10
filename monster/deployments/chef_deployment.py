@@ -82,12 +82,12 @@ class ChefDeployment(Deployment):
                 cmds.extend(
                     ["apt-get update",
                      "apt-get remove qemu-utils",
-                     "apt-get instal qemu-utils"])
+                     "apt-get install qemu-utils"])
 
         if self.os_name == "centos":
             munge.extend(["yum install -y openssl-devel"
-                             "yum install -y python-devel",
-                             "yum install -y python-setuptools"])
+                          "yum install -y python-devel",
+                          "yum install -y python-setuptools"])
         commands = "; ".join(cmds)
         controllers = list(self.search_role('controller'))
         computes = list(self.search_role('compute'))
