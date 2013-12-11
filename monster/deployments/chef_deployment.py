@@ -179,15 +179,14 @@ class ChefDeployment(Deployment):
         for compute in computes:
             compute.upgrade()
 
-        if "4.2.1" in upgrade_branch:
-            if self.feature_in("neutron"):
-                cmds = ["apt-get update",
-                        "apt-get install python-cmd2 python-pyparsing"]
-                cmd = "; ".join(cmds)
-                for controller in controllers:
-                    controller.run_cmd(cmd)
-                for compute in computes:
-                    compute.run_cmd(cmd)
+        if "4.2.1" in upgrade_branch and self.feature_in("neutron") and self.os_name == "precise":
+            cmds = ["apt-get update",
+                    "apt-get install python-cmd2 python-pyparsing"]
+            cmd = "; ".join(cmds)
+            for controller in controllers:
+                controller.run_cmd(cmd)
+            for compute in computes:
+                compute.run_cmd(cmd)
 
     def update_environment(self):
         """
