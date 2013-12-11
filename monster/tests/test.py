@@ -4,6 +4,7 @@ Module to test OpenStack deployments
 
 import os
 from string import Template
+from time import sleep
 from itertools import ifilter, chain
 
 from monster import util
@@ -80,7 +81,8 @@ class Tempest(Test):
 
     def collect_results(self):
         self.wait_for_results()
-        self.test_node.scp_from(self.xunit_file, local_path=".")
+        self.xunit_file = self.test_node.name + ".xml"
+        self.test_node.scp_from(self.xunit_file, local_path=self.xunit_file)
         util.xunit_merge()
 
     def tempest_configure(self):
@@ -235,7 +237,7 @@ class Tempest(Test):
         command = "; ".join(screen)
         node.run_cmd(command)
 
-    def wait_for_results():
+    def wait_for_results(self):
         cmd = 'stat -c "%s" test-controller.xml'
         result = self.test_node.run_cmd(cmd)['return'].rstrip()
         while result == "0":
