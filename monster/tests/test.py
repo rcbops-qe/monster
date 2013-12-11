@@ -4,7 +4,7 @@ Module to test OpenStack deployments
 
 import os
 from string import Template
-from itertoos import ifilter, chain
+from itertools import ifilter, chain
 
 from monster import util
 
@@ -57,7 +57,7 @@ class Tempest(Test):
         env = self.deployment.environment
         env.override_attributes['glance']['image_upload'] = True
         env.save()
-        self.test_node.add_run_list_item("recipe[tempest]")
+        self.test_node.add_run_list_item(["recipe[tempest]"])
         self.test_node.run()
 
         # install python requirements for tempest
