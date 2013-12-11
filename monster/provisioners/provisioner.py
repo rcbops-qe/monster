@@ -418,9 +418,10 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
         size_b = int(pow(1024, size))
         cmds = [
             "dd if=/dev/zero of=/mnt/swap bs=1024 count={0}".format(size_b),
-            "sudo mkswap /mnt/swap",
+            "mkswap /mnt/swap",
             "sed 's/vm.swappiness.*$/vm.swappiness=25/g' "
-            "/etc/sysctl.conf > etc/sysctl.conf",
-            "sysctl vm.swappiness=30"
+            "/etc/sysctl.conf > /etc/sysctl.conf",
+            "sysctl vm.swappiness=30",
+            "swapon /mnt/swap"
         ]
         node.run_cmd("; ".join(cmds))
