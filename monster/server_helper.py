@@ -73,28 +73,14 @@ def scp_to(ip, local_path, user='root', password=None, remote_path=""):
     sftp.put(local_path, remote_path)
 
 
-def scp_from(ip, remote_path, user=None, password=None, local_path=""):
+def scp_from(ip, remote_path, user='root', password=None, local_path=""):
     """
     @param path_to_file: file to copy
     @param copy_location: place on localhost to place file
     """
 
-    command = ("sshpass -p %s scp "
-               "-o Self.UserKnownHostsFile=/dev/null "
-               "-o StrictHostKeyChecking=no "
-               "-o LogLevel=quiet "
-               "%s@%s:%s %s") % (password,
-                                 user, ip,
-                                 remote_path,
-                                 local_path)
-
-    try:
-        ret = check_call(command, shell=True)
-        return {'success': True,
-                'return': ret,
-                'exception': None}
-    except CalledProcessError, cpe:
-        return {'success': False,
-                'return': None,
-                'exception': cpe,
-                'command': command}
+    ssh = SSHClient()
+    ssh.set_missing_host_key_policy(AutoAddPolicy())
+    ssh.connect(ip, username=user, password=password)
+    sftp = ssh.open_sftp()
+    sftp.get(remote_path, local_path)
