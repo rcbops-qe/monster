@@ -501,25 +501,6 @@ class Berkshelf(Node):
         self.node.run_cmd(command)
 
 
-class Tempest(Node):
-
-    def pre_configure(self):
-        self.set_run_list()
-
-    def apply_feature(self):
-        # remove tempest cookbook. subsequent runs will fail
-        self.node.remove_run_list_item('recipe[tempest]')
-
-        # install python requirements for tempest
-        tempest_dir = util.config['tests']['tempest']['dir']
-        install_cmd = "python {0}/tools/install_venv.py".format(tempest_dir)
-        self.node.run_cmd(install_cmd)
-
-    def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
-
-
 class Orchestration(Node):
 
     def pre_configure(self):
