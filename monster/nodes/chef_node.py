@@ -161,7 +161,9 @@ class ChefNode(Node):
         """
         Restores node from chef node
         """
-        remote_api = deployment.environment.remote_api
+        remote_api = None
+        if deployment:
+            remote_api = deployment.environment.remote_api
         if remote_api:
             rnode = CNode(node.name, remote_api)
             if rnode.exists:
