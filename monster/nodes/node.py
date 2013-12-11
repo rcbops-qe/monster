@@ -84,6 +84,7 @@ class Node(object):
         """
         user = user or self.user
         password = password or self.password
+        util.logger.info("SCP: {0} to {1}:{2}".format(local_path, self.name, remote_path))
         return scp_to(self.ipaddress,
                       local_path,
                       user=user,
@@ -96,6 +97,7 @@ class Node(object):
         """
         user = user or self.user
         password = password or self.password
+        util.logger.info("SCP: {0}:{1} to {2}".format(self.name, remote_path, local_path))
         return scp_from(self.ipaddress,
                         remote_path,
                         user=user,
