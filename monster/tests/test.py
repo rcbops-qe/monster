@@ -63,8 +63,7 @@ class Tempest(Test):
         # install python requirements for tempest
         tempest_dir = util.config['tests']['tempest']['dir']
         install_cmd = "python {0}/tools/install_venv.py".format(tempest_dir)
-        controller = next(self.deployment.search_role("controller"))
-        controller.run_cmd(install_cmd)
+        self.test_node.run_cmd(install_cmd)
 
         # Build and send config
         self.build_config()
@@ -75,11 +74,12 @@ class Tempest(Test):
 
     def run_tests(self):
         # remove tempest cookbook. subsequent runs will fail
-        self.node.remove_run_list_item('recipe[tempest]')
+        self.test_node.remove_run_list_item('recipe[tempest]')
         exclude = ['volume', 'resize', 'floating']
         self.test_from(self.test_node, xunit=True, exclude=exclude)
 
     def collect_results(self):
+        self.wait_for_results()
         self.test_node.scp_from(self.xunit_file, local_path=".")
         util.xunit_merge()
 
@@ -234,6 +234,14 @@ class Tempest(Test):
         ]
         command = "; ".join(screen)
         node.run_cmd(command)
+
+    def wait_for_results():
+        cmd = 'stat -c "%s" test-controller.xml'
+        result = self.test_node.run_cmd(cmd)['return'].rstrip()
+        while result == "0":
+            util.logger.info("Waiting for test results")
+            sleep(10)
+            result = self.test_node.run_cmd(cmd)['return'].rstrip()
 
 
 class CloudCafe(Test):
