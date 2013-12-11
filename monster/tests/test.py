@@ -61,6 +61,10 @@ class Tempest(Test):
         self.test_node.add_run_list_item(["recipe[tempest]"])
         self.test_node.run()
 
+        # centos prepare
+        if self.deployment.os_name == "centos":
+            self.test_node.run_cmd("yum install -y screen python-virtualenv")
+
         # install python requirements for tempest
         tempest_dir = util.config['tests']['tempest']['dir']
         install_cmd = "python {0}/tools/install_venv.py".format(tempest_dir)
