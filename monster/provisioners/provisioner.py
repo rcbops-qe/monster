@@ -389,7 +389,11 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
     def __init__(self):
         self.names = []
         self.name_index = {}
-        self.creds = Creds(auth_system="rackspace", provisioner="rackspace")
+        rackspace = util.config['secrets']['rackspace']
+        self.creds = Creds(
+            user=rackspace['user'], apikey=rackspace['api_key'],
+            auth_url=rackspace['auth_url'], region=rackspace['region'],
+            auth_system=rackspace['plugin'], provisioner="rackspace")
         pyrax.set_setting("identity_type", "rackspace")
         pyrax.set_credentials(self.creds.user, api_key=self.creds.apikey,
                               region=self.creds.region)
