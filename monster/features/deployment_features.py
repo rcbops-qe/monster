@@ -59,6 +59,7 @@ class Neutron(Deployment):
         self.deployment.environment.add_override_attr(self.provider,
                                                       self.environment)
         self._fix_nova_environment()
+        self._fix_networking_environment()
 
     def post_configure(self, auto=False):
         """ Runs cluster post configure commands
@@ -73,7 +74,19 @@ class Neutron(Deployment):
             util.config[str(self)]['auto_build_subnets']
         self._build_subnets(auto_build)
 
-    def _fix_nova_environment(self):
+    def _fix_networking_environment(self):
+        iface = util.config[str(self)][self.deployment.os_name][
+            'network_bridge_device']
+        provider_network = [
+            {"label": "ph-{0}".format(iface),
+             "bridge": "br-{0}".format(iface),
+             "vlans": "1:1000"}]
+        env = self.deployment.environment
+        ovs = env.override_attributes[rpcs_feature]['ovs']
+        ovs['provider_network'] = provider_network
+        env.save()
+
+     def _fix_nova_environment(self):
         # When enabling neutron, have to update the env var correctly
         env = self.deployment.environment
         neutron_network = {'provider': self.provider}
