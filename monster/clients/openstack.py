@@ -9,17 +9,14 @@ class Creds(object):
     """
     Credentials to authenticate with OpenStack
     """
-    def __init__(self, user=None, apikey=None, region=None, auth_url=None,
-                 auth_system=None, provisioner="openstack"):
-        try:
-            config = util.config['secrets'][provisioner]
-        except KeyError:
-            util.logger.warn("Secret config not found")
-        self.user = user or config['user']
-        self.apikey = apikey or config['api_key']
-        self.region = region or config['region']
-        self.system = auth_system or 'keystone'
-        self.auth_url = auth_url or config['auth_url']
+    def __init__(self, user=None, password=None, apikey=None, region=None,
+                 auth_url=None, auth_system=None, provisioner="openstack"):
+        self.user = user
+        self.password = password
+        self.apikey = apikey
+        self.region = region
+        self.system = auth_system
+        self.auth_url = auth_url
 
 
 class Clients(object):
