@@ -69,10 +69,8 @@ class Neutron(Deployment):
             #self._reboot_cluster()
             pass
 
-        # Grab the config to auto build or not
-        auto_build = auto or \
-            util.config[str(self)]['auto_build_subnets']
-        self._build_subnets(auto_build)
+        # Build OVS Bridge for Networking
+        self._build_bridges()
 
         # Auto Add default icmp and tcp sec rules
         self._add_security_rules()
@@ -81,11 +79,13 @@ class Neutron(Deployment):
         """ Auto adds sec rules for ping and ssh
         """
 
-        icmp_command = ("{0} security-group-rule-create "
+        icmp_command = ("source openrc admin; "
+                        "{0} security-group-rule-create "
                         "--protocol icmp "
                         "--direction ingress "
                         "default").format(self.provider)
-        tcp_command = ("{0} security-group-rule-create "
+        tcp_command = ("source openrc admin; "
+                       "{0} security-group-rule-create "
                        "--protocol tcp "
                        "--port-range-min 22 "
                        "--port-range-max 22 "
@@ -151,7 +151,7 @@ class Neutron(Deployment):
                          "after {0} minutes -- ##".format(total_sleep_time))
                 raise Exception(error)
 
-    def _build_subnets(self, auto=False):
+    def _build_bridges(self):
         """ Will print out or build the subnets
         """
 
@@ -167,51 +167,12 @@ class Neutron(Deployment):
                         network_bridge_device)]
         command = "; ".join(commands)
 
-        if auto:
-            util.logger.info("### Building OVS Bridge and "
-                             "Ports on network nodes ###")
-            for controller in controllers:
-                controller.run_cmd(command)
-                for compute in computes:
-                    compute.run_cmd(command)
-        else:
-            util.logger.info("### To build the OVS network bridge "
-                             "log onto your controllers and computes"
-                             " and run the following command: ###")
-            util.logger.info(command)
-
-        commands = ["source openrc admin",
-                    "{0} net-create nettest".format(
-                        self.rpcs_feature, network_bridge_device),
-                    ("{0} subnet-create --name testnet "
-                     "--no-gateway nettest 172.0.0.0/8".format(
-                         self.rpcs_feature))]
-        command = "; ".join(commands)
-
-        if auto:
-            util.logger.info("Adding Neutron Network")
-            for controller in controllers:
-                util.logger.info(
-                    "Attempting to setup network on {0}".format(
-                        controller.name))
-
-                network_run = controller.run_cmd(command)
-                if network_run['success']:
-                    util.logger.info("Network setup succedded")
-                    break
-                else:
-                    util.logger.info(
-                        "Failed to setup network on {0}".format(
-                            controller.name))
-
-            if not network_run['success']:
-                util.logger.info("## Failed to setup networks, "
-                                 "please check logs ##")
-        else:
-            util.logger.info("### To Add Neutron Network log onto the active "
-                             "controller and run the following commands: ###")
-            for command in commands:
-                util.logger.info(command)
+        util.logger.info("### Building OVS Bridge and "
+                         "Ports on network nodes ###")
+        for controller in controllers:
+            controller.run_cmd(command)
+            for compute in computes:
+                compute.run_cmd(command)
 
         util.logger.info("### End of Networking Block ###")
 
