@@ -93,11 +93,10 @@ class Neutron(Deployment):
                        "default").format(self.provider)
 
         controller = next(self.deployment.search_role('controller'))
-        print controller
-        print icmp_command
-        print tcp_command
-        #controller.run_cmd(icmp_command)
-        #controller.run_cmd(tcp_command)
+        util.logger.info("## Setting up ICMP security rule ##")
+        controller.run_cmd(icmp_command)
+        util.logger.info("## Setting up TCP security rule ##")
+        controller.run_cmd(tcp_command)
 
     def _fix_networking_environment(self):
         iface = util.config[str(self)][self.deployment.os_name][
@@ -139,9 +138,9 @@ class Neutron(Deployment):
         sleep_in_minutes = 5
         total_sleep_time = 0
         while not self.deployment.is_online():
-            print "## Current Deployment is Offline ##"
-            print "## Sleeping for {0} minutes ##".format(
-                str(sleep_in_minutes))
+            util.logger.info("## Current Deployment is Offline ##")
+            util.logger.info("## Sleeping for {0} minutes ##".format(
+                str(sleep_in_minutes)))
             time.sleep(sleep_in_minutes * 60)
             total_sleep_time += sleep_in_minutes
             sleep_in_minutes -= 1
