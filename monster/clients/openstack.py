@@ -30,6 +30,7 @@ class Clients(object):
         self.creds_dict = dict(
             username=self.creds.user,
             api_key=self.creds.apikey,
+            password=self.creds.password,
             project_id=self.creds.user,
             region_name=self.creds.region,
             insecure=insecure,
@@ -48,6 +49,11 @@ class Clients(object):
         self.creds_dict.update({
             'auth_system': self.creds.system
         })
+        if self.creds_dict['password']:
+            self.creds_dict.update({
+                'api_key': self.creds.password})
+            self.creds_dict.pop("password")
+
         client = nova_client.Client(**self.creds_dict)
         return client
 
@@ -73,8 +79,9 @@ class Clients(object):
 
         client = neutron_client(auth_url=self.creds_dict['auth_url'],
                                 username=self.creds_dict['username'],
-                                password=self.creds_dict['api_key'],
-                                tenant_name=self.creds_dict['username'])
+                                password=self.creds_dict['password'],
+                                tenant_name=self.creds_dict['username'],
+                                api_key=self.creds_dict['api_key'])
         return client
 
     def get_client(self, client):

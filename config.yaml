@@ -329,7 +329,7 @@ tests:
         - compute/test_authorization.py
         - identity
       neutron:
-        -
+        - network
       cinder:
         - compute/volumes
         - volume
