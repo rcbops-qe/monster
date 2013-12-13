@@ -8,8 +8,7 @@ from time import sleep
 from itertools import ifilter, chain
 
 from monster import util
-
-from novaclient.v1_1.client import Client as novaclient
+from monster.clients.openstack import Clients, Creds
 
 
 class Test(object):
@@ -89,6 +88,29 @@ class Tempest(Test):
         self.test_node.scp_from(self.xunit_file, local_path=self.xunit_file)
         util.xunit_merge()
 
+    def neutron_configure(self, clients):
+        neutron = clients.neutronclient()
+        net_info = {}
+
+        # Create network
+        new_net = {"network": {"name": "test_net", "shared": True}}
+        net = neutron.create_network(new_net)
+        net_id = net['network']['id']
+
+        # Create subnet
+        new_subnet = {"subnet": {
+            "name": "test_subnet", "network_id": net_id,
+            "cidr": "172.0.100.0/24", "ip_version": "4"}}
+        neutron.create_subnet(new_subnet)
+
+        # Create router
+        new_router = {"router": {
+            "name": "testrouter", "network_id": net_id}}
+        router = neutron.create_router(new_router)
+        net_info['net_id'] = net_id
+        net_info['router_id'] = router['router']['id']
+        return net_info
+
     def tempest_configure(self):
         tempest = self.tempest_config
         override = self.deployment.environment.override_attributes
@@ -132,11 +154,11 @@ class Tempest(Test):
         tempest['admin_tenant'] = users[admin_user][
             'roles']['admin'][0]
         url = "http://{0}:5000/v2.0".format(tempest['glance_ip'])
-        compute = novaclient(tempest['admin_user'],
-                             tempest['admin_password'],
-                             tempest['admin_tenant'],
-                             url,
-                             service_type="compute")
+        creds = Creds(user=tempest['admin_user'],
+                      password=tempest['admin_password'],
+                      auth_url=url)
+        clients = Clients(creds)
+        compute = clients.novaclient()
         image_ids = (i.id for i in compute.images.list())
         try:
             tempest['image_id1'] = next(image_ids)
@@ -148,8 +170,9 @@ class Tempest(Test):
         except StopIteration:
             tempest['image_id2'] = tempest['image_id1']
 
-        # tempest.public_network_id = None
-        # tempest.public_router_id = None
+        net_info = self.configure_neutron(clients)
+        tempest.public_network_id = net_info["net_id"]
+        tempest.public_router_id = net_info["router_id"]
 
         featured = lambda x: self.deployment.feature_in(x)
         tempest['cinder_enabled'] = False
