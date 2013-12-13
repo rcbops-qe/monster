@@ -675,8 +675,11 @@ class HighAvailability(RPCS):
     def __init__(self, deployment, rpcs_feature):
         super(HighAvailability, self).__init__(deployment, rpcs_feature,
                                                'vips')
-        self.environment = util.config['environments'][self.name][
-            deployment.os_name]
+        if self.deployment.provisioner.short_name == "rackspace":
+            vips = "rackspace"
+        else:
+            vips = deployment.os_name
+        self.environment = util.config['environments'][self.name][vips]
 
     def __repr__(self):
         """ Print out current instance
