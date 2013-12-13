@@ -82,6 +82,9 @@ def upgrade(name='precise-default', upgrade_branch='v4.1.3rc',
 
 def destroy(name="precise-default", config=None, log=None, log_level="INFO",
             secret_path=None):
+    """
+    Destroys an existing OpenStack deployment
+    """
     _set_log(log, log_level)
     deployment = _load(name, config, secret_path)
     util.logger.info(deployment)
@@ -90,6 +93,9 @@ def destroy(name="precise-default", config=None, log=None, log_level="INFO",
 
 def test(name="build", config=None, log=None, log_level="INFO",
          secret_path=None):
+    """
+    Tests an openstack deployment
+    """
     _set_log(log, log_level)
     deployment = _load(name, config, secret_path)
     tempest = Tempest(deployment)
@@ -105,6 +111,9 @@ def artifact(name="build", config=None, log=None, secret_path=None,
 
 def openrc(name="build", config=None, log=None, secret_path=None,
            log_level="INFO"):
+    """
+    Loads OpenStack credentials into shell env
+    """
     _set_log(log, log_level)
     deployment = _load(name, config, secret_path)
     deployment.openrc()
@@ -112,6 +121,9 @@ def openrc(name="build", config=None, log=None, secret_path=None,
 
 def horizon(name="build", config=None, log=None, secret_path=None,
             log_level="INFO"):
+    """
+    Opens horizon in a browser tab
+    """
     _set_log(log, log_level)
     deployment = _load(name, config, secret_path)
     ip = deployment.horizon_ip()
@@ -121,6 +133,9 @@ def horizon(name="build", config=None, log=None, secret_path=None,
 
 def show(name="build", config=None, log=None, secret_path=None,
          log_level="INFO"):
+    """
+    Shows details about and OpenStack deployment
+    """
     _set_log(log, log_level)
     # load deployment and source openrc
     deployment = _load(name, config, secret_path)
