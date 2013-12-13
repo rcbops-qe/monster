@@ -129,6 +129,11 @@ class ChefDeployment(Deployment):
         """
         Upgrades the deployment (very chefy, rcbopsy)
         """
+        supported = util.config['upgrade']['supported'][self.branch]
+        if upgrade_branch not in supported:
+            util.logger.error("{0} to {1} upgarde not supported".format(
+                self.branch, upgrade_branch))
+            raise NotImplementedError
 
         # Gather all the nodes of the deployment
         chef_server = next(self.search_role('chefserver'))
