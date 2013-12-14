@@ -121,7 +121,11 @@ class Neutron(Deployment):
         # update the vip to correct api name and vip value
         if self.deployment.feature_in("highavailability"):
             api_name = '{0}-api'.format(self.provider)
-            api_vip = util.config[str(self)][self.deployment.os_name]['vip']
+            if self.deployment.provider.short_name() == "razor":
+                vip = self.deployment.os_name
+            elif self.deployment.provider.short_name() == "rackspace":
+                vip = "rackspace"
+            api_vip = util.config[str(self)][vip]['vip']
             env.override_attributes['vips'][api_name] = api_vip
         env.save()
 
@@ -675,7 +679,7 @@ class HighAvailability(RPCS):
     def __init__(self, deployment, rpcs_feature):
         super(HighAvailability, self).__init__(deployment, rpcs_feature,
                                                'vips')
-        if self.deployment.provisioner.short_name == "rackspace":
+        if self.deployment.provisioner.short_name() == "rackspace":
             vips = "rackspace"
         else:
             vips = deployment.os_name
