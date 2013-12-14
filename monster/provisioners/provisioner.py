@@ -182,7 +182,7 @@ class ChefOpenstackProvisioner(Provisioner):
             # Name already exists, use index to name
             num = self.name_index[name] + 1
             self.name_index[name] = num
-            return "{0}-{1}{2}".format(deployment.name, name, number=num)
+            return "{0}-{1}{2}".format(deployment.name, name, num)
 
         # Name doesn't exist initalize index use name
         self.name_index[name] = 1
