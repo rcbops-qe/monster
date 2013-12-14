@@ -138,9 +138,9 @@ environments:
         nova: 198.101.133.0/24
         public: 198.101.133.0/24
       rackspace:
-        management: 128.0.0.0/1
+        management: 192.168.3.0/24
         nova: 192.168.3.0/24
-        public: 128.0.0.0/1
+        public: 192.168.3.0/24
     glance:
         default:
             image_upload: true
@@ -186,6 +186,37 @@ environments:
                 dispersion:
                     dis_key: secrete
     vips:
+        rackspace:
+            mysql-db: 192.168.3.154
+            rabbitmq-queue: 192.168.3.155
+            cinder-api: 192.168.3.156
+            glance-api: 192.168.3.156
+            glance-registry: 192.168.3.156
+            horizon-dash: 192.168.3.156
+            horizon-dash_ssl: 192.168.3.156
+            keystone-admin-api: 192.168.3.156
+            keystone-internal-api: 192.168.3.156
+            keystone-service-api: 192.168.3.156
+            nova-api: 192.168.3.156
+            nova-ec2-public: 192.168.3.156
+            nova-novnc-proxy: 192.168.3.156
+            nova-xvpvnc-proxy: 192.168.3.156
+            swift-proxy: 192.168.3.156
+            celiometer-api: 192.168.3.156
+            ceilometer-central-agent: 192.168.3.156
+            heat-api: 192.168.3.156
+            heat-api-cfn: 192.168.3.156
+            heat-api-cloudwatch: 192.168.3.156
+            config:
+                192.168.3.154:
+                    vrid: 10
+                    network: public
+                192.168.3.155:
+                    vrid: 11
+                    network: public
+                192.168.3.156:
+                    vrid: 12
+                    network: public
         precise:
             mysql-db: 198.101.133.154
             rabbitmq-queue: 198.101.133.155
