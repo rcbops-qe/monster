@@ -91,12 +91,21 @@ class Neutron(Deployment):
                        "--port-range-max 22 "
                        "--direction ingress "
                        "default").format(self.provider)
+        tcp_command2 = ("source openrc admin; "
+                        "{0} security-group-rule-create "
+                        "--protocol tcp "
+                        "--port-range-min 8080 "
+                        "--port-range-max 8080 "
+                        "--direction ingress "
+                        "default").format(self.provider)
 
         controller = next(self.deployment.search_role('controller'))
         util.logger.info("## Setting up ICMP security rule ##")
         controller.run_cmd(icmp_command)
         util.logger.info("## Setting up TCP security rule ##")
         controller.run_cmd(tcp_command)
+        util.logger.info("## Setting up LBAAS testing security rule ##")
+        controller.run_cmd(tcp_command2)
 
     def _fix_networking_environment(self):
         iface = util.config[str(self)][self.deployment.os_name][
