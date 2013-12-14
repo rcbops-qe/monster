@@ -74,6 +74,9 @@ class ChefDeployment(Deployment):
         munge = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done"]
         ncmds = []
         ccmds = []
+        if self.feature_in('highavailability'):
+            ccmds.append(
+                "rm -rf /etc/monit/conf.d/quantum*")
         if self.os_name == "precise":
             # For Ceilometer
             ncmds.extend([
