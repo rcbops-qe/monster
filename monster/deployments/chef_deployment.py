@@ -185,7 +185,10 @@ class ChefDeployment(Deployment):
             self.environment.save()
 
         for compute in computes:
-            compute.upgrade()
+            times = 1
+            if "4.2.1" in upgrade_branch:
+                times = 2
+            compute.upgrade(times=times)
 
         if "4.2.1" in upgrade_branch and self.feature_in("neutron") and self.os_name == "precise":
             cmds = ["apt-get update",
