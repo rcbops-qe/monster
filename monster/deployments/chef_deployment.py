@@ -64,7 +64,7 @@ class ChefDeployment(Deployment):
         """
         super(ChefDeployment, self).build()
         self.save_to_environment()
-p
+
     def prepare_upgrade(self):
         """
         4.2.1 Upgrade Procedures
