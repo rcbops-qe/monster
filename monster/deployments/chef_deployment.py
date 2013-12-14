@@ -64,7 +64,7 @@ class ChefDeployment(Deployment):
         """
         super(ChefDeployment, self).build()
         self.save_to_environment()
-
+p
     def prepare_upgrade(self):
         """
         4.2.1 Upgrade Procedures
@@ -193,7 +193,11 @@ class ChefDeployment(Deployment):
         if "4.2.1" in upgrade_branch and self.feature_in("neutron") and (
                 self.os_name == "precise"):
             cmds = ["apt-get update",
-                    "apt-get install python-cmd2 python-pyparsing"]
+                    "apt-get install python-cmd2 python-pyparsing",
+                    "service neutron-server stop",
+                    "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini downgrade grizzly",
+                    "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini upgrade havana",
+                    "neutron server start"]
             cmd = "; ".join(cmds)
             for controller in controllers:
                 controller.run_cmd(cmd)
