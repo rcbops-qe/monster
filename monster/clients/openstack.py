@@ -49,12 +49,16 @@ class Clients(object):
         self.creds_dict.update({
             'auth_system': self.creds.system
         })
-        if self.creds_dict['password']:
-            self.creds_dict.update({
-                'api_key': self.creds.password})
-            self.creds_dict.pop("password")
 
-        client = nova_client.Client(**self.creds_dict)
+        key = None
+        if 'password' in self.creds_dict:
+            key = self.creds_dict['password']
+        else:
+            key = self.creds_dict['api_key']
+
+        client = nova_client.Client(self.creds_dict['username'], key,
+                                    self.creds_dict['username'],
+                                    auth_url=self.creds_dict['auth_url'])
         return client
 
     def cinderclient(self):
