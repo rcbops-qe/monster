@@ -170,7 +170,7 @@ class Tempest(Test):
         except StopIteration:
             tempest['image_id2'] = tempest['image_id1']
 
-        net_info = self.configure_neutron(clients)
+        net_info = self.neutron_configure(clients)
         tempest.public_network_id = net_info["net_id"]
         tempest.public_router_id = net_info["router_id"]
 
