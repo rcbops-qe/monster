@@ -75,8 +75,9 @@ class ChefDeployment(Deployment):
         ncmds = []
         ccmds = []
         if self.feature_in('highavailability'):
-            ccmds.append(
-                "rm -rf /etc/monit/conf.d/quantum*")
+            ccmds.extend([
+                "quantum-db-manage --config-file /etc/quantum/quantum.conf --config-file /etc/quantum/plugins/openvswitch/ovs_quantum_plugin.ini stamp grizzly",
+                "rm -rf /etc/monit/conf.d/quantum*"])
         if self.os_name == "precise":
             # For Ceilometer
             ncmds.extend([
@@ -144,7 +145,6 @@ class ChefDeployment(Deployment):
         computes = list(self.search_role('compute'))
 
         # upgrade the chef server
-        old_branch = self.branch
         self.branch = upgrade_branch
         if "4.2.1" in upgrade_branch:
             self.prepare_upgrade()
@@ -190,7 +190,8 @@ class ChefDeployment(Deployment):
                 times = 2
             compute.upgrade(times=times)
 
-        if "4.2.1" in upgrade_branch and self.feature_in("neutron") and self.os_name == "precise":
+        if "4.2.1" in upgrade_branch and self.feature_in("neutron") and (
+                self.os_name == "precise"):
             cmds = ["apt-get update",
                     "apt-get install python-cmd2 python-pyparsing"]
             cmd = "; ".join(cmds)
