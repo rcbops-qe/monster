@@ -202,7 +202,7 @@ environments:
             nova-novnc-proxy: 192.168.3.156
             nova-xvpvnc-proxy: 192.168.3.156
             swift-proxy: 192.168.3.156
-            celiometer-api: 192.168.3.156
+            ceilometer-api: 192.168.3.156
             ceilometer-central-agent: 192.168.3.156
             heat-api: 192.168.3.156
             heat-api-cfn: 192.168.3.156
