@@ -430,6 +430,9 @@ neutron:
     precise:
         network_bridge_device: eth1
         vip: 198.101.133.156
+    rackspace:
+        network_bridge_device: eth3
+        vip: 198.101.133.156
 
 upgrade:
     supported:
