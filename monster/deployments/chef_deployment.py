@@ -76,7 +76,6 @@ class ChefDeployment(Deployment):
         ccmds = []
         if self.feature_in('highavailability'):
             ccmds.extend([
-                "quantum-db-manage --config-file /etc/quantum/quantum.conf --config-file /etc/quantum/plugins/openvswitch/ovs_quantum_plugin.ini stamp grizzly",
                 "rm -rf /etc/monit/conf.d/quantum*"])
         if self.os_name == "precise":
             # For Ceilometer
@@ -113,6 +112,17 @@ class ChefDeployment(Deployment):
         for node in computes:
             node.run_cmd(node_commands)
 
+        # Send scripts and backup
+        controller1 = controllers[0]
+        script_path = os.path.join(os.path.dirname(__file__), os.pardir,
+                                   os.pardir)
+        backup_file = os.path.join(script_path, "neutron_backup.sh")
+        restore_file = os.path.join(script_path, "neutron_restore.sh")
+        controller1.scp_to(backup_file, "/opt/upgrade/neutron_backup.sh")
+        controller1.scp_to(restore_file, "/opt/upgrade/neutron_restore.sh")
+        controller1.run_cmd("/opt/upgrade/neutron_backup.sh")
+
+        # Munge away quantum
         munge_dir = "/opt/upgrade/mungerator"
         munge_repo = "https://github.com/rcbops/mungerator"
         munge.extend([
@@ -124,10 +134,6 @@ class ChefDeployment(Deployment):
             "--name {0}".format(self.name)])
         chef_server.run_cmd("; ".join(munge))
         self.environment.save_locally()
-
-        # Delete quantum haproxy config
-        # cmd = "rm -rf /etc/haproxy/haproxy.d/vs_quantum-api.cfg"
-        # controllers[0].run_cmd(cmd)
 
     def upgrade(self, upgrade_branch):
         """
@@ -176,28 +182,31 @@ class ChefDeployment(Deployment):
                 controller1.upgrade(times=2, accept_failure=True)
                 controller1.run_cmd("service keepalived restart")
             controller1.upgrade()
+            # retore quantum db and upgrade
             controller2.upgrade()
-            controller2.run_cmd(start)
         controller1.upgrade()
+        controller1.run_cmd("/opt/upgrade/neutron_restore.sh")
 
+        # restart services of controller2
+        controller2.run_cmd(start)
+
+        # restore value of image upload
         if image_upload:
             override['glance']['image_upload'] = image_upload
             self.environment.save()
 
+        # run the computes
         for compute in computes:
             times = 1
             if "4.2.1" in upgrade_branch:
                 times = 2
             compute.upgrade(times=times)
 
+        # update packages for neutron on precise
         if "4.2.1" in upgrade_branch and self.feature_in("neutron") and (
                 self.os_name == "precise"):
             cmds = ["apt-get update",
-                    "apt-get install python-cmd2 python-pyparsing",
-                    "service neutron-server stop",
-                    "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini downgrade grizzly",
-                    "neutron-db-manage --config-file /etc/neutron/neutron.conf --config-file /etc/neutron/plugins/openvswitch/ovs_neutron_plugin.ini upgrade havana",
-                    "neutron server start"]
+                    "apt-get install python-cmd2 python-pyparsing"]
             cmd = "; ".join(cmds)
             for controller in controllers:
                 controller.run_cmd(cmd)
