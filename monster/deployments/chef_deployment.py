@@ -118,8 +118,10 @@ class ChefDeployment(Deployment):
                                    os.pardir)
         backup_file = os.path.join(script_path, "neutron_backup.sh")
         restore_file = os.path.join(script_path, "neutron_restore.sh")
-        controller1.scp_to(backup_file, "/opt/upgrade/neutron_backup.sh")
-        controller1.scp_to(restore_file, "/opt/upgrade/neutron_restore.sh")
+        controller1.scp_to(backup_file,
+                           remote_path="/opt/upgrade/neutron_backup.sh")
+        controller1.scp_to(restore_file,
+                           remote_path="/opt/upgrade/neutron_restore.sh")
         controller1.run_cmd("/opt/upgrade/neutron_backup.sh")
 
         # Munge away quantum
