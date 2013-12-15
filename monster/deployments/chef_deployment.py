@@ -118,6 +118,7 @@ class ChefDeployment(Deployment):
                                    os.pardir, "files")
         backup_file = os.path.join(script_path, "neutron_backup.sh")
         restore_file = os.path.join(script_path, "neutron_restore.sh")
+        controller1.run_cmd("mkdir -p /opt/upgrade")
         controller1.scp_to(backup_file,
                            remote_path="/opt/upgrade/neutron_backup.sh")
         controller1.scp_to(restore_file,
@@ -187,8 +188,7 @@ class ChefDeployment(Deployment):
             # retore quantum db and upgrade
             controller2.upgrade()
         controller1.upgrade()
-        controller1.run_cmd("mkdir -p /opt/upgrade; "
-                            "source /opt/upgrade/neutron_restore.sh")
+        controller1.run_cmd("source /opt/upgrade/neutron_restore.sh")
 
         # restart services of controller2
         controller2.run_cmd(start)
