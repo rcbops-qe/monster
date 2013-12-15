@@ -115,7 +115,7 @@ class ChefDeployment(Deployment):
         # Send scripts and backup
         controller1 = controllers[0]
         script_path = os.path.join(os.path.dirname(__file__), os.pardir,
-                                   os.pardir)
+                                   os.pardir, "/files")
         backup_file = os.path.join(script_path, "neutron_backup.sh")
         restore_file = os.path.join(script_path, "neutron_restore.sh")
         controller1.scp_to(backup_file,
