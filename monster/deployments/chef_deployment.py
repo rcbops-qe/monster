@@ -115,14 +115,14 @@ class ChefDeployment(Deployment):
         # Send scripts and backup
         controller1 = controllers[0]
         script_path = os.path.join(os.path.dirname(__file__), os.pardir,
-                                   os.pardir, "/files")
+                                   os.pardir, "files")
         backup_file = os.path.join(script_path, "neutron_backup.sh")
         restore_file = os.path.join(script_path, "neutron_restore.sh")
         controller1.scp_to(backup_file,
                            remote_path="/opt/upgrade/neutron_backup.sh")
         controller1.scp_to(restore_file,
                            remote_path="/opt/upgrade/neutron_restore.sh")
-        controller1.run_cmd("/opt/upgrade/neutron_backup.sh")
+        controller1.run_cmd("source /opt/upgrade/neutron_backup.sh")
 
         # Munge away quantum
         munge_dir = "/opt/upgrade/mungerator"
@@ -187,7 +187,7 @@ class ChefDeployment(Deployment):
             # retore quantum db and upgrade
             controller2.upgrade()
         controller1.upgrade()
-        controller1.run_cmd("/opt/upgrade/neutron_restore.sh")
+        controller1.run_cmd("source /opt/upgrade/neutron_restore.sh")
 
         # restart services of controller2
         controller2.run_cmd(start)
