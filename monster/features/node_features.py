@@ -503,8 +503,20 @@ class Berkshelf(Node):
 
 class Orchestration(Node):
 
+    def __init__(self, node):
+        super(Orchestration, self).__init__(node)
+        self.number = None
+
     def pre_configure(self):
-        self.set_run_list()
+        if self.node.deployment.has_orch_master:
+            self.number = 2
+            self.set_run_list()
+        else:
+            self.number = 1
+            self.set_run_list()
+
+    def apply_feature(self):
+        self.deployment.has_orch_master = True
 
     def archive(self):
         self.archive = {"log": [""],

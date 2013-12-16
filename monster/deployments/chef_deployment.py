@@ -29,6 +29,7 @@ class ChefDeployment(Deployment):
                                              clients)
         self.environment = environment
         self.has_controller = False
+        self.has_orch_master = False
 
     def __str__(self):
         nodes = "\n\t".join(str(node) for node in self.nodes)
