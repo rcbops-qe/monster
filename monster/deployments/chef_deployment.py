@@ -213,8 +213,8 @@ class ChefDeployment(Deployment):
             cmd = "; ".join(cmds)
             for controller in controllers:
                 controller.run_cmd(cmd)
-            for compute in computes:
-                compute.run_cmd(cmd)
+            # for compute in computes:
+            #     compute.run_cmd(cmd)
 
     def update_environment(self):
         """
