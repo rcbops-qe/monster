@@ -319,11 +319,11 @@ rcbops:
         tempest:
             run_list: ['recipe[tempest]']
         orchestration1:
-            run_list: ['heat-all']
+            run_list: ['role[heat-all]']
         orchestration2:
-            run_list: ['heat-api',
-                       'heat-api-cfn',
-                       'heat-api-cloudwatch']
+            run_list: ['role[heat-api]',
+                       'role[heat-api-cfn]',
+                       'role[heat-api-cloudwatch]']
         networkmanager:
             run_list: ['role[quantum-network-manager]']
         metrics:
