@@ -16,10 +16,13 @@ SECURITY_GROUP_ID=$(neutron security-group-create web -f shell -c id router1 | g
 neutron security-group-rule-create --direction ingress --protocol TCP --port-range-min 80 --port-range-max 80 $SECURITY_GROUP_ID
 neutron security-group-rule-create --direction ingress --protocol TCP --port-range-min 22 --port-range-max 22 $SECURITY_GROUP_ID
 
+# create key
+mkdir -p ~/.ssh; nova keypair-add key1 > ~/.ssh/mykey && chmod 600 ~/.ssh/mykey
+
 # create instances
-SERVER1_ID=$(nova boot --image precise-image --flavor 2 --key-name key --nic net-id=$NET_ID --security_groups web server1 | grep id | head -n +1 | awk '{print $4}')
-SERVER2_ID=$(nova boot --image precise-image --flavor 2 --key-name key --nic net-id=$NET_ID --security_groups web server2 | grep id | head -n +1 | awk '{print $4}')
-CLIENT_ID=$(nova boot --image precise-image --flavor 2 --key-name key --nic net-id=$NET_ID --security_groups web client | grep id | head -n +1 | awk '{print $4}')
+SERVER1_ID=$(nova boot --image precise-image --flavor 2 --key-name key1 --nic net-id=$NET_ID --security_groups web server1 | grep id | head -n +1 | awk '{print $4}')
+SERVER2_ID=$(nova boot --image precise-image --flavor 2 --key-name key1 --nic net-id=$NET_ID --security_groups web server2 | grep id | head -n +1 | awk '{print $4}')
+CLIENT_ID=$(nova boot --image precise-image --flavor 2 --key-name key1 --nic net-id=$NET_ID --security_groups web client | grep id | head -n +1 | awk '{print $4}')
 
 # setup loadbalancer
 POOL_ID=$(neutron lb-pool-create --lb-method ROUND_ROBIN --name mypool --protocol HTTP --subnet-id $SUBNET_ID -f shell -c id | grep id | awk -F "\"" '{print $2}')
