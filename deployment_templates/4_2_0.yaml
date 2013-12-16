@@ -97,7 +97,7 @@ precise-ha:
   nodes:
     - [chefserver]
     - [controller, orchestration]
-    - [controller]
+    - [controller, orchestration]
     - [compute]
 
 precise-ha-l3:
@@ -119,7 +119,7 @@ precise-ha-l3:
   nodes:
     - [chefserver]
     - [controller, network, orchestration]
-    - [controller, network]
+    - [controller, network, orchestration]
     - [compute]
 
 centos-ha-l3:
@@ -141,7 +141,7 @@ centos-ha-l3:
   nodes:
     - [chefserver]
     - [controller, network, orchestration]
-    - [controller, network]
+    - [controller, network, orchestration]
     - [compute]
 
 precise-ha-nova-net:
@@ -185,7 +185,7 @@ centos-ha:
   nodes:
     - [chefserver]
     - [controller, network, orchestration]
-    - [controller, network]
+    - [controller, network, orchestration]
     - [compute]
 
 precise-swift:
