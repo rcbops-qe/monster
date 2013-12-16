@@ -516,7 +516,7 @@ class Orchestration(Node):
             self.set_run_list()
 
     def apply_feature(self):
-        self.deployment.has_orch_master = True
+        self.node.deployment.has_orch_master = True
 
     def archive(self):
         self.archive = {"log": [""],
