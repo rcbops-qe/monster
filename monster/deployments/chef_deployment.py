@@ -127,11 +127,7 @@ class ChefDeployment(Deployment):
         backup_file = os.path.join(script_path, "neutron_backup.sh")
         restore_file = os.path.join(script_path, "neutron_restore.sh")
         controller1.run_cmd("mkdir -p /opt/upgrade")
-        controller1.scp_to(backup_file,
-                           remote_path="/opt/upgrade/neutron_backup.sh")
-        controller1.scp_to(restore_file,
-                           remote_path="/opt/upgrade/neutron_restore.sh")
-        controller1.run_cmd("source /opt/upgrade/neutron_backup.sh")
+        controller1.run_cmd("bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/database_backup.sh)")
 
         # Munge away quantum
         munge_dir = "/opt/upgrade/mungerator"
@@ -179,13 +175,12 @@ class ChefDeployment(Deployment):
                 pass
 
             controller2 = controllers[1]
-            stop = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit stop $i; done"""
-            start = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit start $i; done"""
+            stop = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit stop $i; done; service keepalived stop"""
+            start = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit start $i; done; service keepalived restart"""
             keep_stop = "service keepalived stop"
-            controller2.run_cmd(keep_stop)
             # Sleep for vips to move
-            sleep(10)
             controller2.run_cmd(stop)
+            sleep(10)
             # Sleeping for monit to stop services
             sleep(30)
             # Upgrade
@@ -196,7 +191,7 @@ class ChefDeployment(Deployment):
             # retore quantum db and upgrade
             controller2.upgrade()
         controller1.upgrade()
-        controller1.run_cmd("source /opt/upgrade/neutron_restore.sh")
+        controller1.run_cmd("bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/quantum_upgrade.sh")
 
         # restart services of controller2
         controller2.run_cmd(start)
