@@ -12,12 +12,12 @@ ROUTER_ID=$(neutron router-create -f shell -c id router1 | grep id | awk -F "\""
 neutron router-interface-add $ROUTER_ID $SUBNET_ID
 
 # create security group
-SECURITY_GROUP_ID=$(neutron security-group-create web -f shell -c id router1 | grep id | awk -F "\"" '{print $2}')
+SECURITY_GROUP_ID=$(neutron security-group-create web -f shell -c id | grep id | awk -F "\"" '{print $2}')
 neutron security-group-rule-create --direction ingress --protocol TCP --port-range-min 80 --port-range-max 80 $SECURITY_GROUP_ID
 neutron security-group-rule-create --direction ingress --protocol TCP --port-range-min 22 --port-range-max 22 $SECURITY_GROUP_ID
 
 # create key
-mkdir -p ~/.ssh; nova keypair-add key1 > ~/.ssh/mykey && chmod 600 ~/.ssh/key1
+mkdir -p ~/.ssh; nova keypair-add key1 > ~/.ssh/mykey && chmod 600 ~/.ssh/mykey
 
 # create instances
 echo """echo 1 > index.html; nohup python -m SimpleHTTPServer 80 &""" > server.sh
@@ -38,5 +38,11 @@ neutron lb-healthmonitor-associate $HEALTH_MONITOR_ID $POOL_ID
 neutron lb-vip-create --name myvip --protocol-port 80 --protocol HTTP --subnet-id $SUBNET_ID $POOL_ID
 
 # setup web servers
-# ip netns exec qdhcp-$NET_ID ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/mykey $ADDRESS1
-# ip netns exec qdhcp-$NET_ID ssh -i ~/.ssh/mykey $ADDRESS2 echo 1 > index.html; nohup python -m SimpleHTTPServer &
+# ip netns exec qdhcp-$NET_ID ssh -o UseprKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/mykey $ADDRESS1
+# ip netns exec qdhcp-$NET_ID
+# ssh -i ~/.ssh/mykey $ADDRESS2
+# echo 1 > index.html; nohup python -m SimpleHTTPServer 80 &
+
+# test heat
+IMAGE_ID=$(nova image-show precise-image | grep id | awk '{print $4}')
+heat stack create -u https://raw.github.com/openstack/heat-templates/master/hot/hello_world.yaml -P "KeyName=key1;ImageId=$IMAGEID;db_password=Password" mystack
