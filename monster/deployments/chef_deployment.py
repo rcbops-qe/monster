@@ -193,8 +193,9 @@ class ChefDeployment(Deployment):
         controller1.upgrade()
         controller1.run_cmd("bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/quantum-upgrade.sh)")
 
-        # restart services of controller2
-        controller2.run_cmd(start)
+        if self.feature_in('highavailability'):
+            # restart services of controller2
+            controller2.run_cmd(start)
 
         # restore value of image upload
         if image_upload:
