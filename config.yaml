@@ -399,6 +399,7 @@ provisioners:
 rackspace:
   run_list:
     - recipe[rcbops-qa]
+    - recipe[emacs]
   images:
     precise: Ubuntu 12.04 LTS (Precise Pangolin)
     centos: CentOS 6.4
@@ -435,7 +436,7 @@ neutron:
         vip: 198.101.133.156
     rackspace:
         network_bridge_device: eth3
-        vip: 198.101.133.156
+        vip: 192.168.3.156
 
 upgrade:
     supported:
