@@ -70,12 +70,22 @@ class ChefDeployment(Deployment):
         """
         4.2.1 Upgrade Procedures
         """
+        controllers = list(self.search_role('controller'))
+        computes = list(self.search_role('compute'))
+        controller1 = controllers[0]
+        controller2 = None
+
         chef_server = next(self.search_role('chefserver'))
         # purge cookbooks
         munge = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done"]
         ncmds = []
         ccmds = []
+        controller1.add_run_list_item(['role[heat-all]'])
         if self.feature_in('highavailability'):
+            controller2 = controllers[1]
+            controller2.add_run_list_item(['role[heat-api]',
+                                           'role[heat-api-cfn]',
+                                           'role[heat-api-cloudwatch]'])
             ccmds.extend([
                 "rm -rf /etc/monit/conf.d/quantum*"])
         if self.os_name == "precise":
@@ -105,8 +115,6 @@ class ChefDeployment(Deployment):
 
         node_commands = "; ".join(ncmds)
         controller_commands = "; ".join(ccmds)
-        controllers = list(self.search_role('controller'))
-        computes = list(self.search_role('compute'))
         for node in controllers:
             node.run_cmd(node_commands)
             node.run_cmd(controller_commands)
@@ -114,7 +122,6 @@ class ChefDeployment(Deployment):
             node.run_cmd(node_commands)
 
         # Send scripts and backup
-        controller1 = controllers[0]
         script_path = os.path.join(os.path.dirname(__file__), os.pardir,
                                    os.pardir, "files")
         backup_file = os.path.join(script_path, "neutron_backup.sh")
