@@ -90,7 +90,6 @@ environments:
            ops_password: "secrete"
     monitoring:
         default:
-            metric_provider: collectd
             procmon_provider: monit
     mysql:
         default:
