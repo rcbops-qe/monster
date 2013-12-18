@@ -86,8 +86,6 @@ class ChefDeployment(Deployment):
             controller2.add_run_list_item(['role[heat-api]',
                                            'role[heat-api-cfn]',
                                            'role[heat-api-cloudwatch]'])
-            ccmds.extend([
-                "rm -rf /etc/monit/conf.d/quantum*"])
         if self.os_name == "precise":
             # For Ceilometer
             ncmds.extend([
@@ -100,12 +98,12 @@ class ChefDeployment(Deployment):
             munge.extend(["apt-get -y install python-dev",
                           "apt-get -y install python-setuptools"])
             # For QEMU
-            provisioner = self.provisioner.short_name
+            provisioner = self.provisioner.short_name()
             if provisioner == "rackspace" or provisioner == "openstack":
                 ncmds.extend(
                     ["apt-get update",
-                     "apt-get remove qemu-utils",
-                     "apt-get install qemu-utils"])
+                     "apt-get remove qemu-utils -y",
+                     "apt-get install qemu-utils -y"])
 
         if self.os_name == "centos":
             # For mungerator
@@ -115,18 +113,13 @@ class ChefDeployment(Deployment):
 
         node_commands = "; ".join(ncmds)
         controller_commands = "; ".join(ccmds)
-        for node in controllers:
-            node.run_cmd(node_commands)
-            node.run_cmd(controller_commands)
-        for node in computes:
-            node.run_cmd(node_commands)
+        for controller in controllers:
+            controller.run_cmd(node_commands)
+            controller.run_cmd(controller_commands)
+        for compute in computes:
+            compute.run_cmd(node_commands)
 
-        # Send scripts and backup
-        script_path = os.path.join(os.path.dirname(__file__), os.pardir,
-                                   os.pardir, "files")
-        backup_file = os.path.join(script_path, "neutron_backup.sh")
-        restore_file = os.path.join(script_path, "neutron_restore.sh")
-        controller1.run_cmd("mkdir -p /opt/upgrade")
+        # backup db
         controller1.run_cmd("bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/database_backup.sh)")
 
         # Munge away quantum
@@ -163,37 +156,40 @@ class ChefDeployment(Deployment):
             self.prepare_upgrade()
         chef_server.upgrade()
         controller1 = controllers[0]
-        image_upload = None
-        if self.feature_in('highavailability'):
-            # save image upload value
-            override = self.environment.override_attributes
-            try:
-                image_upload = override['glance']['image_upload']
-                override['glance']['image_upload'] = False
-                self.environment.save()
-            except KeyError:
-                pass
 
+        # save image upload value
+        override = self.environment.override_attributes
+        try:
+            image_upload = override['glance']['image_upload']
+            override['glance']['image_upload'] = False
+            self.environment.save()
+        except KeyError:
+            pass
+
+        if self.feature_in('highavailability'):
             controller2 = controllers[1]
             stop = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit stop $i; done; service keepalived stop"""
             start = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit start $i; done; service keepalived restart"""
             keep_stop = "service keepalived stop"
+
             # Sleep for vips to move
             controller2.run_cmd(stop)
-            sleep(10)
-            # Sleeping for monit to stop services
             sleep(30)
+
             # Upgrade
             if "4.1.3" in upgrade_branch:
                 controller1.upgrade(times=2, accept_failure=True)
                 controller1.run_cmd("service keepalived restart")
             controller1.upgrade()
-            # retore quantum db and upgrade
             controller2.upgrade()
         controller1.upgrade()
-        controller1.run_cmd("bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/quantum-upgrade.sh); service haproxy restart; monit restart rpcdaemon")
+
+        # restore quantum db
+        controller1.run_cmd("bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/quantum-upgrade.sh)")
 
         if self.feature_in('highavailability'):
+            controller1.run_cmd("service haproxy restart; "
+                                "monit restart rpcdaemon")
             # restart services of controller2
             controller2.run_cmd(start)
 
