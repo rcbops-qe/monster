@@ -164,7 +164,7 @@ class ChefOpenstackProvisioner(Provisioner):
     def __init__(self):
         self.names = []
         self.name_index = {}
-        self.creds = openstack.Creds()
+        self.creds = Creds()
         self.client = Clients(self.creds).get_client("novaclient")
 
     def name(self, name, deployment, number=None):
@@ -408,6 +408,12 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
         :type node: Monster.Node
         """
         self.mkswap(node)
+        self.clean()
+
+    def clean(self, node):
+        # remove /etc/hosts entries
+        cmd = "sed '/{0}/d' /etc/hosts > /etc/hosts".format(node.name)
+        node.run_cmd(cmd)
 
     def mkswap(self, node, size=2):
         """
