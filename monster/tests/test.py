@@ -62,11 +62,11 @@ class Tempest(Test):
 
         # centos prepare
         if self.deployment.os_name == "centos":
-            self.test_node.run_cmd("yum install -y screen python-virtualenv")
+            self.test_node.run_cmd("yum install -y screen")
 
         # install python requirements for tempest
         tempest_dir = util.config['tests']['tempest']['dir']
-        install_cmd = "python {0}/tools/install_venv.py".format(tempest_dir)
+        install_cmd = "pip install {0}/requirements.txt".format(tempest_dir)
         self.test_node.run_cmd(install_cmd)
 
         # Build and send config
@@ -247,7 +247,6 @@ class Tempest(Test):
             config_arg = "-c {0}".format(config_path)
         venv_bin = ".venv/bin"
         tempest_command = (
-            "source {0}/{6}/activate; "
             "python -u {0}/{6}/nosetests -w "
             "{0}/tempest/api {5} "
             "{1} {2} {3} {4}".format(tempest_dir, xunit_flag,
