@@ -14,10 +14,18 @@ class Node(Feature):
     """
 
     def __init__(self, node):
+        """
+        Initialize Node object
+
+        :param node: node object
+        :type: Node
+        """
         self.node = node
 
     def __repr__(self):
-        """ Print out current instance
+        """ 
+        Print out current class instance
+        :rtype: String
         """
         outl = 'class: ' + self.__class__.__name__
         return outl
@@ -38,7 +46,8 @@ class Node(Feature):
         pass
 
     def set_run_list(self):
-        """ Sets the nodes run list based on the Feature
+        """ 
+        Sets the nodes run list based on the feature
         """
 
         # have to add logic for controllers
@@ -56,6 +65,9 @@ class Node(Feature):
         self.node.add_run_list_item(run_list)
 
     def build_archive(self):
+        """
+        Builds an archive to save Node information
+        """
         self.log_path = '/tmp/archive/var/log'
         self.etc_path = '/tmp/archive/etc'
         self.misc_path = '/tmp/archive/misc'
@@ -68,7 +80,8 @@ class Node(Feature):
         self.node.run_cmd(build_archive_cmd)
 
     def save_node_running_services(self):
-        """ Saves the nodes running services
+        """ 
+        Saves the nodes running services
         """
         store_running_services = "{0} > {1}/running-services.out".format(
             self.deployment.list_packages_cmd, self.misc_path)
@@ -80,10 +93,16 @@ class Controller(Node):
     """
 
     def __init__(self, node):
+        """
+        Initialize node
+        """
         super(Controller, self).__init__(node)
         self.number = None
 
     def pre_configure(self):
+        """ 
+        Set controller number and run list based on single or HA features
+        """
         if self.node.deployment.has_controller:
             self.number = 2
             self.set_run_list()
@@ -103,7 +122,8 @@ class Controller(Node):
             controller1.run()
 
     def archive(self):
-        """ Services on a controller to archive
+        """ 
+        Services on a controller to archive
         """
 
         self.build_archive()
@@ -111,8 +131,8 @@ class Controller(Node):
         self._set_node_archive()
 
     def _set_node_archive(self):
-
-        """ Sets a dict in the node object of services and their logs
+        """ 
+        Sets a dict in the node object of services and their logs
         """
 
         self.archive = {"log": ["apache2",
@@ -149,7 +169,8 @@ class Compute(Node):
         self.set_run_list()
 
     def archive(self):
-        """ Archives all services on a compute node
+        """ 
+        Archives all services on a compute node
         """
 
         self.save_node_running_services()
@@ -210,7 +231,8 @@ class Remote(Node):
                         "configs": [""]}
 
     def _bootstrap_chef(self):
-        """ Bootstraps the node to a chef server
+        """ 
+        Bootstraps the node to a chef server
         """
 
         # Gather the info for the chef server
@@ -224,8 +246,7 @@ class Remote(Node):
 
 
 class Cinder(Node):
-    """
-    Enables cinder with local lvm backend
+    """ Enables cinder with local lvm backend
     """
 
     def pre_configure(self):
@@ -237,7 +258,8 @@ class Cinder(Node):
                         "configs": [""]}
 
     def prepare_cinder(self):
-        """ Prepares the node for use with cinder
+        """ 
+        Prepares the node for use with cinder
         """
 
         # Update our environment
@@ -288,7 +310,8 @@ class ChefServer(Node):
                         "configs": [""]}
 
     def upgrade(self):
-        """ Upgrades the Chef Server Cookbooks
+        """
+        Upgrades the Chef Server Cookbooks
         """
         self._upgrade_cookbooks()
 
@@ -297,7 +320,8 @@ class ChefServer(Node):
         self.node.environment.remote_api = None
 
     def _install(self):
-        """ Installs chef server on the given node
+        """
+        Installs chef server on the given node
         """
 
         self.node.run_cmd(self.script_download, attempts=5)
@@ -305,7 +329,8 @@ class ChefServer(Node):
         self.node.run_cmd(command)
 
     def _install_cookbooks(self, dir=None):
-        """ Installs cookbooks
+        """
+        Installs cookbooks
         """
 
         cookbook_url = util.config['rcbops'][self.node.product]['git']['url']
@@ -343,8 +368,8 @@ class ChefServer(Node):
         return self._install_cookbooks(dir=install_dir)
 
     def _set_up_remote(self):
-        """ Sets up and saves a remote api and dict to the nodes
-            environment
+        """ 
+        Sets up and saves a remote api and dict to the nodes environment
         """
 
         remote_chef = {
@@ -365,13 +390,15 @@ class ChefServer(Node):
 
     @classmethod
     def _remote_chef_api(cls, chef_api_dict):
-        """ Builds a remote chef API object
+        """ 
+        Builds a remote chef API object
         """
 
         return ChefAPI(**chef_api_dict)
 
     def _get_admin_pem(self):
-        """ Gets the admin pem from the chef server
+        """
+        Gets the admin pem from the chef server
         """
 
         command = 'cat ~/.chef/admin.pem'
@@ -426,7 +453,8 @@ class Metrics(Node):
                         "configs": [""]}
 
     def _set_run_list(self):
-        """ Metrics run list set
+        """
+        Metrics run list set
         """
 
         role = self.__class__.__name__.lower()
@@ -455,7 +483,8 @@ class Berkshelf(Node):
                         "configs": [""]}
 
     def _install_berkshelf(self):
-        """ Installs Berkshelf and correct rvms/gems
+        """
+        Installs Berkshelf and correct rvms/gems
         """
 
         # Install needed server packages for berkshelf
@@ -475,11 +504,12 @@ class Berkshelf(Node):
         install_ruby_gems(self.node, gems)
 
     def _write_berks_config(self):
-        """ Will write the berks config file
+        """
+        Will write the berks config file
 
-            TODO: I need to make this more robust and
-            allow you to correctly write the config the way you want.
-            For now the ghetto way is how we will do it (jwagner)
+        TODO: I need to make this more robust and
+        allow you to correctly write the config the way you want.
+        For now the ghetto way is how we will do it (jwagner)
         """
 
         command = ('mkdir -p .berkshelf; cd .berkshelf; '
@@ -488,7 +518,8 @@ class Berkshelf(Node):
         self.node.run_cmd(command)
 
     def _run_berks(self):
-        """ This will run berksheld to apply the feature
+        """
+        This will run berksheld to apply the feature
         """
 
         # Run berkshelf on server
