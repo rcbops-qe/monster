@@ -1,3 +1,0 @@
-This is a netstat test for checking the ports, need to convert this to a test to compare across the nodes
-
-netstat -ntop | grep 198.101.133.158 | grep 5672 | grep EST | awk '{print $4}' | grep -v 5672 | sort

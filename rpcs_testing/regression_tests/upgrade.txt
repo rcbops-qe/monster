@@ -1,5 +1,0 @@
-for i in `monit summary | grep Process | grep -v mysql | awk '{print $2}' | sed "s/'//g"`; do monit stop $i; done
-wait for 60 seconds for all services to stop
-service keepalived stop
-
-
