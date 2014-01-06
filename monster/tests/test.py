@@ -75,6 +75,8 @@ class Tempest(Test):
         # centos prepare
         if self.deployment.os_name == "centos":
             self.test_node.run_cmd("yum install -y screen")
+        if self.deployment.os_name == "precise":
+            self.test_node.run_cmd("apt-get install -y screen")
 
         # install python requirements for tempest
         install_cmd = "pip install -r {0}/requirements.txt".format(tempest_dir)
