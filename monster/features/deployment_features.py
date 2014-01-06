@@ -45,30 +45,45 @@ class Neutron(Deployment):
     """ Represents a neutron network cluster
     """
 
-    def __init__(self, deployment, rpcs_feature):
-        super(Neutron, self).__init__(deployment, rpcs_feature)
-        self.environment = util.config['environments'][str(self)][rpcs_feature]
-        self.provider = rpcs_feature
+    def __init__(self, deployment, provider):
+        """
+        Create neutron feature in deployment
+
+        :param deployment: The deployment to add neutron feature
+        :type deployment: Object
+        :param provider: feature provider (quantum/neutron)
+        :type provider: String
+        """
+
+        super(Neutron, self).__init__(deployment, provider)
+
+        # Grab correct environment based on the provider passed in the config
+        self.environment = util.config['environments'][str(self)][provider]
+        
+        # Set the provider name in object (future use)
+        self.provider = provider
 
     def update_environment(self):
+        """
+        Updates environment file to include feature
+        """
         self.deployment.environment.add_override_attr(self.provider,
                                                       self.environment)
+        # Fix the nova network block in the env
         self._fix_nova_environment()
+
+        # Fix the network provider block in the env
         self._fix_networking_environment()
 
-    def post_configure(self, auto=False):
+    def post_configure(self):
         """
         Runs cluster post configure commands
         """
-        if self.deployment.os_name in ['centos', 'rhel']:
-            # This is no longer needed. i think
-            #self._reboot_cluster()
-            pass
 
-        # Build OVS Bridge for Networking
+        # Build OVS bridge for networking
         self._build_bridges()
 
-        # Auto Add default icmp and tcp sec rules
+        # Auto add default icmp and tcp sec rules
         self._add_security_rules()
 
     def _add_security_rules(self):
@@ -105,21 +120,32 @@ class Neutron(Deployment):
         controller.run_cmd(tcp_command2)
 
     def _fix_networking_environment(self):
+        """
+        Fix the network provider block in the enviornment
+        """
+        
         iface = util.config[str(self)][self.deployment.os_name][
             'network_bridge_device']
+        
         provider_network = [
             {"label": "ph-{0}".format(iface),
              "bridge": "br-{0}".format(iface),
              "vlans": "1:1000"}]
+        
         env = self.deployment.environment
         ovs = env.override_attributes[self.provider]['ovs']
         ovs['provider_network'] = provider_network
         env.save()
 
     def _fix_nova_environment(self):
-        # When enabling neutron, have to update the env var correctly
+        """
+        Fix the nova networking environment block
+        """
+
         env = self.deployment.environment
+        # set the network block key to the configured provider
         neutron_network = {'provider': self.provider}
+        
         if 'networks' in env.override_attributes['nova']:
             del env.override_attributes['nova']['networks']
             env.override_attributes['nova']['network'] = neutron_network
@@ -133,9 +159,15 @@ class Neutron(Deployment):
                 vip = "rackspace"
             api_vip = util.config[str(self)][vip]['vip']
             env.override_attributes['vips'][api_name] = api_vip
+        
+        # Save the environment
         env.save()
 
     def _reboot_cluster(self):
+        """ 
+        Reboots the deployment cluster
+        : depreciated : no longer needed in RPCS
+        """
 
         # reboot the deployment
         self.deployment.reboot_deployment()
@@ -170,6 +202,7 @@ class Neutron(Deployment):
 
         network_bridge_device = util.config[str(self)][
             self.deployment.os_name]['network_bridge_device']
+
         controllers = self.deployment.search_role('controller')
         computes = self.deployment.search_role('compute')
 
@@ -180,10 +213,13 @@ class Neutron(Deployment):
 
         util.logger.info("### Building OVS Bridge and "
                          "Ports on network nodes ###")
+        # loop through controllers and run
         for controller in controllers:
             controller.run_cmd(command)
-            for compute in computes:
-                compute.run_cmd(command)
+
+        # loop through computes and run
+        for compute in computes:
+            compute.run_cmd(command)
 
         util.logger.info("### End of Networking Block ###")
 

@@ -46,6 +46,7 @@ class ChefDeployment(Deployment):
         """
         Save deployment restore attributes to chef environment
         """
+
         features = {key: value for (key, value) in
                     ((str(x).lower(), x.rpcs_feature) for x in self.features)}
         nodes = [n.name for n in self.nodes]
@@ -63,6 +64,7 @@ class ChefDeployment(Deployment):
         """
         Saves deployment for restore after build
         """
+
         super(ChefDeployment, self).build()
         self.save_to_environment()
 
@@ -70,6 +72,7 @@ class ChefDeployment(Deployment):
         """
         4.2.1 Upgrade Procedures
         """
+
         controllers = list(self.search_role('controller'))
         computes = list(self.search_role('compute'))
         controller1 = controllers[0]
@@ -139,6 +142,7 @@ class ChefDeployment(Deployment):
         """
         Upgrades the deployment (very chefy, rcbopsy)
         """
+
         supported = util.config['upgrade']['supported'][self.branch]
         if upgrade_branch not in supported:
             util.logger.error("{0} to {1} upgarde not supported".format(
@@ -220,6 +224,7 @@ class ChefDeployment(Deployment):
         """
         Saves deployment for restore after update environment
         """
+
         super(ChefDeployment, self).update_environment()
         self.save_to_environment()
 
@@ -240,6 +245,7 @@ class ChefDeployment(Deployment):
         :type path: string
         :rtype: ChefDeployment
         """
+
         local_api = autoconfigure()
 
         if Environment(name, api=local_api).exists:
@@ -357,6 +363,7 @@ class ChefDeployment(Deployment):
         :type product: string
         :rtype: ChefDeployment
         """
+
         status = status or "provisioning"
         deployment = cls(name, os_name, branch, environment,
                          provisioner, status, product)
@@ -369,6 +376,7 @@ class ChefDeployment(Deployment):
         :param features: dictionary of features {"monitoring": "default", ...}
         :type features: dict
         """
+
         # stringify and lowercase classes in deployment features
         classes = util.module_classes(deployment_features)
         for feature, rpcs_feature in features.items():
@@ -380,6 +388,7 @@ class ChefDeployment(Deployment):
         """
         Destroys Chef Deployment
         """
+
         self.status = "Destroying"
         # Nullify remote api so attributes are not sent remotely
         self.environment.remote_api = None
@@ -401,6 +410,7 @@ class ChefDeployment(Deployment):
         """
         Opens a new shell with variables loaded for novaclient
         """
+
         user_name = self.environment.override_attributes['keystone'][
             'admin_user']
         user = self.environment.override_attributes['keystone']['users'][
@@ -420,8 +430,9 @@ class ChefDeployment(Deployment):
     def horizon_ip(self):
         """
         Returns ip of horizon
-        :rtype: string
+        :rtype: String
         """
+
         controller = next(self.search_role('controller'))
         ip = controller.ipaddress
         if "vips" in self.environment.override_attributes:
@@ -432,6 +443,7 @@ class ChefDeployment(Deployment):
         """
         Setup openstack clients generator for deployment
         """
+        
         override = self.environment.override_attributes
         keystone = override['keystone']
         users = keystone['users']

@@ -22,7 +22,10 @@ class Deployment(object):
         self.clients = clients
 
     def __repr__(self):
-        """Print out current instance"""
+        """
+        Print out current instance
+        """
+        
         outl = 'class: ' + self.__class__.__name__
         for attr in self.__dict__:
             if attr == 'features':
@@ -39,7 +42,10 @@ class Deployment(object):
         return "\n".join([outl, features, nodes])
 
     def destroy(self):
-        """ Destroys an OpenStack deployment """
+        """
+        Destroys an OpenStack deployment
+        """
+        
         self.status = "destroying"
         util.logger.info("Destroying deployment:{0}".format(self.name))
         for node in self.nodes:
@@ -47,7 +53,10 @@ class Deployment(object):
         self.status = "destroyed"
 
     def update_environment(self):
-        """Pre configures node for each feature"""
+        """
+        Pre configures node for each feature
+        """
+        
         self.status = "loading environment"
         for feature in self.features:
             log = "Deployment feature: update environment: {0}"\
@@ -58,7 +67,10 @@ class Deployment(object):
         self.status = "environment ready"
 
     def pre_configure(self):
-        """Pre configures node for each feature"""
+        """
+        Pre configures node for each feature
+        """
+
         self.status = "pre-configure"
         for feature in self.features:
             log = "Deployment feature: pre-configure: {0}"\
@@ -67,14 +79,20 @@ class Deployment(object):
             feature.pre_configure()
 
     def build_nodes(self):
+        """
+        Builds each node
+        """
+        
         self.status = "building nodes"
-        """Builds each node"""
         for node in self.nodes:
             node.build()
         self.status = "nodes built"
 
     def post_configure(self):
-        """Post configures node for each feature"""
+        """
+        Post configures node for each feature
+        """
+        
         self.status = "post-configure"
         for feature in self.features:
             log = "Deployment feature: post-configure: {0}"\
@@ -83,7 +101,10 @@ class Deployment(object):
             feature.post_configure()
 
     def build(self):
-        """Runs build steps for node's features"""
+        """
+        Runs build steps for node's features
+        """
+        
         util.logger.debug("Deployment step: update environment")
         self.update_environment()
         util.logger.debug("Deployment step: pre-configure")
@@ -95,7 +116,9 @@ class Deployment(object):
         self.status = "post-build"
 
     def artifact(self):
-        """Artifacts openstack and its dependant services for a deployment"""
+        """
+        Artifacts openstack and its dependant services for a deployment
+        """
 
         self.log_path = "/var/log"
         self.etc_path = "/etc/"
@@ -121,6 +144,7 @@ class Deployment(object):
         :type feature: string
         :rtype: Iterator (Nodes)
         """
+
         return (node for node in
                 self.nodes if feature in
                 (str(f).lower() for f in node.features))
@@ -132,6 +156,7 @@ class Deployment(object):
         :type feature: string
         :rtype: Boolean
         """
+
         if feature in (feature.__class__.__name__.lower()
                        for feature in self.features):
             return True
@@ -142,5 +167,6 @@ class Deployment(object):
         Returns list features as strings
         :rtype: list (string)
         """
+        
         return [feature.__class__.__name__.lower() for feature in
                 self.features]
