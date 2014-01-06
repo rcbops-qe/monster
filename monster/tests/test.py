@@ -54,12 +54,26 @@ class Tempest(Test):
         """
         Sets up tempest repo, python requirements, and config
         """
+        branch = self.deployment.branch
+        branches = util.config['rcbops']['compute']['git']['branches']
+        branch_format = "stable/{0}"
+        if branch in branches.keys():
+            tempest_branch = branch_format.format(branch)
+        else:
+            tag_branch = next(key for key, value in branches.items() if
+                              value == branch)
+            tempest_branch = branch_format.format(tag_branch)
+        repo = util.config['tests']['tempest']['repo']
+        tempest_dir = util.config['tests']['tempest']['dir']
+        clone = "git clone {0} -b {1} {2}".format(repo, tempest_branch,
+                                                  tempest_dir)
+        self.test_node.run_cmd(clone)
+
         # centos prepare
         if self.deployment.os_name == "centos":
             self.test_node.run_cmd("yum install -y screen")
 
         # install python requirements for tempest
-        tempest_dir = util.config['tests']['tempest']['dir']
         install_cmd = "pip install -r {0}/requirements.txt".format(tempest_dir)
         self.test_node.run_cmd(install_cmd)
 
