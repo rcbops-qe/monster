@@ -99,6 +99,7 @@ class Tempest(Test):
         self.xunit_file = self.test_node.name + ".xml"
         self.test_node.scp_from(self.xunit_file, local_path=self.xunit_file)
         util.xunit_merge()
+        self.test_node.run_cmd("killall screen")
 
     def neutron_configure(self, clients):
         neutron = clients.neutronclient()
