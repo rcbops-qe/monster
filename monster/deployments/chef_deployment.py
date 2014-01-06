@@ -443,7 +443,7 @@ class ChefDeployment(Deployment):
         """
         Setup openstack clients generator for deployment
         """
-        
+
         override = self.environment.override_attributes
         keystone = override['keystone']
         users = keystone['users']
