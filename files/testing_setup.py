@@ -3,11 +3,9 @@ from subprocess import check_call
 from novaclient.v1_1 import client as nova_client
 from neutronclient.v2_0.client import Client as neutron_client
 
-user = $USER
-password = $PASSWORD
-url = $URL
-
-data = {}
+user = "admin"
+password = "secrete"
+url = "http://192.168.3.156:5000/v2.0"
 
 # Setup clients
 nova = nova_client.Client(user, password, user, auth_url=url)
@@ -28,6 +26,7 @@ def instance_cmd(server_id, net_id, cmd):
             "{2}").format(namespace, server_ip, cmd)
     run_cmd(icmd)
 
+
 def get_images():
     image_ids = (i.id for i in nova.images.list())
     try:
@@ -42,10 +41,12 @@ def get_images():
         image_id2 = image_id1
     return (image_id1, image_id2)
 
+
 def create_network():
     new_net = {"network": {"name": "test_net", "shared": True}}
     net = neutron.create_network(new_net)
     return net['network']['id']
+
 
 def create_subnet(network_id):
     new_subnet = {"subnet": {
@@ -54,24 +55,27 @@ def create_subnet(network_id):
     subnet = neutron.create_subnet(new_subnet)
     return subnet['subnet']['id']
 
+
 def create_router():
     new_router = {"router": {
         "name": "testrouter",
         "admin_state_up": True}}
     router = neutron.create_router(new_router)
-    router_id = router['router']['id']
     return router['router']['id']
+
 
 def attach_router(router_id, subnet_id):
     new_router_interface = {"subnet_id": subnet_id}
-    neutron.add_interface_router(router_id)
+    neutron.add_interface_router(router_id, new_router_interface)
 
-def create_security_group()
+
+def create_security_group():
     new_security_group = {"security_group": {
         "name": "web",
         "description": "http and ssh"}}
     security_group = neutron.create_security_group(new_security_group)
     return security_group['security_group']['id']
+
 
 def create_security_group_rule(security_group_id):
     all_rule = {"security_group_rule": {
@@ -83,9 +87,13 @@ def create_security_group_rule(security_group_id):
         "port_range_max": "65535"}}
     neutron.create_security_group_rule(all_rule)
 
+
 def create_key():
-    create_key = "mkdir -p ~/.ssh; nova keypair-add testkey > ~/.ssh/testkey; chmod 600 ~/.ssh/testkey"
+    create_key = ("mkdir -p ~/.ssh; "
+                  "nova keypair-add testkey > ~/.ssh/testkey; "
+                  "chmod 600 ~/.ssh/testkey")
     run_cmd(create_key)
+
 
 def prepare_tempest():
     image_id1, image_id2 = get_images()
@@ -101,8 +109,8 @@ def prepare_tempest():
         "subnet_id": subnet_id,
         "router_id": router_id,
     }
-    json.dumps(data)1
+    print json.dumps(data)
 
     # Not required for tempest
     # security_group_id = create_security_group()
-    # create_security_group_rule(security_group_i
+    # create_security_group_rule(security_group_id)
