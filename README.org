@@ -109,11 +109,11 @@ An OpenStack Orchestration Engine
     openstack cli commands will communicate to cluster.
 
     #+BEGIN_SRC sh
-      nova boot --image cirros-image --flavor 1
-    #+END_SRC
-
-    #+BEGIN_SRC sh
       compute.py openrc -n precise-default
+    #+END_SRC
+    
+    #+BEGIN_SRC sh
+      nova boot --image cirros-image --flavor 1
     #+END_SRC
 
 **** Arguments
