@@ -23,12 +23,8 @@ An OpenStack Orchestration Engine
 
    - Chef server must have rcbops-qa cookbook installed
      #+BEGIN_SRC sh
-       git clone https://github.com/rcbops-qa/chef-cookbooks.git
-       cd chef-cookbooks
-       git submodule init
-       git submodule sync
-       git submodule update
-       knife cookbook upload -a -o cookbooks
+       git clone https://github.com/rcbops-qa/rcbops-qa.git
+       knife cookbook upload -o rcbops-qa
      #+END_SRC
 
 ** Installation
@@ -120,7 +116,7 @@ An OpenStack Orchestration Engine
     #+BEGIN_SRC sh
       compute.py openrc -n precise-default
     #+END_SRC
-    
+
     #+BEGIN_SRC sh
       nova boot --image cirros-image --flavor 1
     #+END_SRC
