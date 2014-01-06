@@ -52,6 +52,15 @@ An OpenStack Orchestration Engine
          plugin: rackspace
      #+END_EXAMPLE
 
+     if you use cloudfiles your user and password can also be placed
+     in the secret.yaml
+
+     #+BEGIN_EXAMPLE
+       cloudfiles:
+         user: YOUR_USER
+         password: YOUR_PASSWORD
+     #+END_EXAMPLE
+
 ** CLI
    ~compute.py~ and ~storage.py~ are the CLIs
 
