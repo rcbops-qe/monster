@@ -3,9 +3,9 @@ from subprocess import check_call
 from novaclient.v1_1 import client as nova_client
 from neutronclient.v2_0.client import Client as neutron_client
 
-user = "admin"
-password = "secrete"
-url = "http://192.168.3.156:5000/v2.0"
+user = "${USER}"
+password = "${PASSWORD}"
+url = "${URL}"
 
 # Setup clients
 nova = nova_client.Client(user, password, user, auth_url=url)
@@ -98,15 +98,14 @@ def create_key():
 def prepare_tempest():
     image_id1, image_id2 = get_images()
     network_id = create_network()
-    subnet_id = create_subnet(network_id)
+    # subnet_id = create_subnet(network_id)
     router_id = create_router()
-    attach_router(router_id, subnet_id)
+    # attach_router(router_id, subnet_id)
 
     data = {
         "image_id1": image_id1,
         "image_id2": image_id2,
         "network_id": network_id,
-        "subnet_id": subnet_id,
         "router_id": router_id,
     }
     print json.dumps(data)
@@ -114,3 +113,6 @@ def prepare_tempest():
     # Not required for tempest
     # security_group_id = create_security_group()
     # create_security_group_rule(security_group_id)
+
+if __name__ == "__main__":
+    prepare_tempest()
