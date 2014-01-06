@@ -15,6 +15,7 @@ neutron router-interface-add $ROUTER_ID $SUBNET_ID
 SECURITY_GROUP_ID=$(neutron security-group-create web | grep id | head -n +1 | awk '{print $4}')
 neutron security-group-rule-create --direction ingress --protocol TCP --port-range-min 80 --port-range-max 80 $SECURITY_GROUP_ID
 neutron security-group-rule-create --direction ingress --protocol TCP --port-range-min 22 --port-range-max 22 $SECURITY_GROUP_ID
+neutron security-group-rule-create --protocol icmp --direction ingress $SECURITY_GROUP_ID
 
 # create key
 mkdir -p ~/.ssh; nova keypair-add key1 > ~/.ssh/mykey && chmod 600 ~/.ssh/mykey
@@ -22,9 +23,9 @@ mkdir -p ~/.ssh; nova keypair-add key1 > ~/.ssh/mykey && chmod 600 ~/.ssh/mykey
 # create instances
 echo """echo 1 > index.html; nohup python -m SimpleHTTPServer 80 &""" > server.sh
 chmod u+x server.sh
-SERVER1_ID=$(nova boot --image precise-image --flavor 2 --key-name key1 --nic net-id=$NET_ID --security_groups $SECURITY_GRUOP_ID server1 | grep id | head -n +1 | awk '{print $4}')
-SERVER2_ID=$(nova boot --image precise-image --flavor 2 --key-name key1 --nic net-id=$NET_ID --security_groups $SECURITY_GRUOP_ID server2 | grep id | head -n +1 | awk '{print $4}')
-CLIENT_ID=$(nova boot --image precise-image --flavor 2 --key-name key1 --nic net-id=$NET_ID --security_groups $SECURITY_GRUOP_ID client | grep id | head -n +1 | awk '{print $4}')
+SERVER1_ID=$(nova boot --image precise-image --flavor 2 --key-name key1 --nic net-id=$NET_ID --security_groups $SECURITY_GROUP_ID server1 | grep id | head -n +1 | awk '{print $4}')
+SERVER2_ID=$(nova boot --image precise-image --flavor 2 --key-name key1 --nic net-id=$NET_ID --security_groups $SECURITY_GROUP_ID server2 | grep id | head -n +1 | awk '{print $4}')
+CLIENT_ID=$(nova boot --image precise-image --flavor 2 --key-name key1 --nic net-id=$NET_ID --security_groups $SECURITY_GROUP_ID client | grep id | head -n +1 | awk '{print $4}')
 
 # setup loadbalancer
 POOL_ID=$(neutron lb-pool-create --lb-method ROUND_ROBIN --name mypool --protocol HTTP --subnet-id $SUBNET_ID | grep id | head -n +1 | awk '{print $4}')
@@ -45,4 +46,4 @@ neutron lb-vip-create --name myvip --protocol-port 80 --protocol HTTP --subnet-i
 
 # test heat
 IMAGE_ID=$(nova image-show precise-image | grep id | awk '{print $4}')
-heat stack create -u https://raw.github.com/openstack/heat-templates/master/hot/hello_world.yaml -P "KeyName=key1;ImageId=$IMAGEID;db_password=Password" mystack
+heat stack-create -u https://raw.github.com/openstack/heat-templates/master/hot/hello_world.yaml -P "KeyName=key1;ImageId=${IMAGE_ID};db_password=Password" mystack
