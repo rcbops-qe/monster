@@ -395,7 +395,6 @@ provisioners:
 rackspace:
   run_list:
     - recipe[rcbops-qa]
-    - recipe[emacs]
   images:
     precise: Ubuntu 12.04 LTS (Precise Pangolin)
     centos: CentOS 6.4
