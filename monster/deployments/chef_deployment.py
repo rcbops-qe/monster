@@ -256,7 +256,7 @@ class ChefDeployment(Deployment):
         if not template_path:
             path = os.path.join(os.path.dirname(__file__),
                                 os.pardir, os.pardir,
-                                'deployment_templates/{0}.yaml'.format(
+                                'templates/{0}.yaml'.format(
                                     template_file))
         else:
             path = template_path
