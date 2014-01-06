@@ -3,12 +3,12 @@ Module to test OpenStack deployments
 """
 
 import os
+import json
 from string import Template
 from time import sleep
 from itertools import ifilter, chain
 
 from monster import util
-from monster.clients.openstack import Clients, Creds
 
 
 class Test(object):
@@ -54,19 +54,13 @@ class Tempest(Test):
         """
         Sets up tempest repo, python requirements, and config
         """
-        env = self.deployment.environment
-        env.override_attributes['glance']['image_upload'] = True
-        env.save()
-        self.test_node.add_run_list_item(["recipe[tempest]"])
-        self.test_node.run()
-
         # centos prepare
         if self.deployment.os_name == "centos":
             self.test_node.run_cmd("yum install -y screen")
 
         # install python requirements for tempest
         tempest_dir = util.config['tests']['tempest']['dir']
-        install_cmd = "pip install {0}/requirements.txt".format(tempest_dir)
+        install_cmd = "pip install -r {0}/requirements.txt".format(tempest_dir)
         self.test_node.run_cmd(install_cmd)
 
         # Build and send config
@@ -78,7 +72,6 @@ class Tempest(Test):
 
     def run_tests(self):
         # remove tempest cookbook. subsequent runs will fail
-        self.test_node.remove_run_list_item('recipe[tempest]')
         exclude = ['volume', 'resize', 'floating']
         self.test_from(self.test_node, xunit=True, exclude=exclude)
 
@@ -115,6 +108,7 @@ class Tempest(Test):
         tempest = self.tempest_config
         override = self.deployment.environment.override_attributes
         controller = next(self.deployment.search_role("controller"))
+        ip = controller['rabbitmq']['address']
 
         if "highavailability" in self.deployment.feature_names():
             #use vips
@@ -125,10 +119,10 @@ class Tempest(Test):
             tempest['nova_ip'] = vips['nova-api']
         else:
             # use controller1
-            tempest['identity'] = controller.ipaddress
-            tempest['glance_ip'] = controller.ipaddress
-            tempest['horizon'] = controller.ipaddress
-            tempest['nova_ip'] = controller.ipaddress
+            tempest['identity'] = ip
+            tempest['glance_ip'] = ip
+            tempest['horizon'] = ip
+            tempest['nova_ip'] = ip
 
         ec2_creds = controller['credentials']['EC2']['admin']
         tempest['aws_access'] = ec2_creds['access']
@@ -149,30 +143,17 @@ class Tempest(Test):
             tempest['user2_tenant'] = users[user2]['roles']['Member'][0]
         admin_user = keystone['admin_user']
         tempest['admin_user'] = admin_user
-        tempest['admin_password'] = users[admin_user][
-            'password']
+        admin_password = users[admin_user]['password']
+        tempest['admin_password'] = admin_password
         tempest['admin_tenant'] = users[admin_user][
             'roles']['admin'][0]
-        url = "http://{0}:5000/v2.0".format(tempest['glance_ip'])
-        creds = Creds(user=tempest['admin_user'],
-                      password=tempest['admin_password'],
-                      auth_url=url)
-        clients = Clients(creds)
-        compute = clients.novaclient()
-        image_ids = (i.id for i in compute.images.list())
-        try:
-            tempest['image_id1'] = next(image_ids)
-        except StopIteration:
-            util.logger.error("No glance images available")
-            tempest['image_id1']
-        try:
-            tempest['image_id2'] = next(image_ids)
-        except StopIteration:
-            tempest['image_id2'] = tempest['image_id1']
 
-        net_info = self.neutron_configure(clients)
-        tempest.public_network_id = net_info["net_id"]
-        tempest.public_router_id = net_info["router_id"]
+        url = controller['keystone']['adminURL']
+        ids = self.tempest_ids(url, admin_user, admin_password, controller)
+        tempest['image_id1'] = ids['image_id1']
+        tempest['image_id2'] = ids['image_id2']
+        tempest['public_network_id'] = ids['network_id']
+        tempest['public_router_id'] = ids['router_id']
 
         featured = lambda x: self.deployment.feature_in(x)
         tempest['cinder_enabled'] = False
@@ -187,12 +168,31 @@ class Tempest(Test):
         tempest['swift_enabled'] = True if featured('swift') else False
         tempest['heat_enabled'] = True if featured('orchestration') else False
 
-    def build_networks(self):
-        pass
+    def tempest_ids(self, url, user, password, node):
+        creds = {
+            "USER": user,
+            "PASSWORD": password,
+            "URL": url}
+        template_path = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), os.pardir, os.pardir,
+            "files/testing_setup.py")
+
+        with open(template_path) as f:
+            template = Template(f.read()).substitute(creds)
+        name = "{0}-testing_setup.py".format(self.deployment.name)
+        path = "/tmp/{0}".format(name)
+        with open(path, 'w') as w:
+            util.logger.info("Writing test setup:{0}". format(self.path))
+            util.logger.debug(template)
+            w.write(template)
+
+        node.scp_to(path, remote_path=name)
+        ret = node.run_cmd("python {0}".format(name))
+        raw = ret['return']
+        ids = json.loads(raw)
+        return ids
 
     def build_config(self):
-        self.build_networks()
-
         self.tempest_configure()
         template_path = os.path.join(os.path.dirname(
             os.path.abspath(__file__)), os.pardir, os.pardir,
@@ -247,7 +247,7 @@ class Tempest(Test):
             config_arg = "-c {0}".format(config_path)
         venv_bin = ".venv/bin"
         tempest_command = (
-            "python -u {0}/{6}/nosetests -w "
+            "python -u /usr/bin/nosetests -w "
             "{0}/tempest/api {5} "
             "{1} {2} {3} {4}".format(tempest_dir, xunit_flag,
                                      tag_flag, path_args,
@@ -264,7 +264,7 @@ class Tempest(Test):
         node.run_cmd(command)
 
     def wait_for_results(self):
-        cmd = 'stat -c "%s" test-controller.xml'
+        cmd = 'stat -c "%s" {0}.xml'.format(self.test_node.name)
         result = self.test_node.run_cmd(cmd)['return'].rstrip()
         while result == "0":
             util.logger.info("Waiting for test results")
