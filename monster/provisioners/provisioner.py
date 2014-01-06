@@ -408,7 +408,7 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
         :type node: Monster.Node
         """
         self.mkswap(node)
-        self.clean()
+        self.clean(node)
 
     def clean(self, node):
         # remove /etc/hosts entries
