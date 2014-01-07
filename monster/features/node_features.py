@@ -23,7 +23,7 @@ class Node(Feature):
         self.node = node
 
     def __repr__(self):
-        """ 
+        """
         Print out current class instance
         :rtype: String
         """
@@ -46,7 +46,7 @@ class Node(Feature):
         pass
 
     def set_run_list(self):
-        """ 
+        """
         Sets the nodes run list based on the feature
         """
 
@@ -80,7 +80,7 @@ class Node(Feature):
         self.node.run_cmd(build_archive_cmd)
 
     def save_node_running_services(self):
-        """ 
+        """
         Saves the nodes running services
         """
         store_running_services = "{0} > {1}/running-services.out".format(
@@ -100,7 +100,7 @@ class Controller(Node):
         self.number = None
 
     def pre_configure(self):
-        """ 
+        """
         Set controller number and run list based on single or HA features
         """
         if self.node.deployment.has_controller:
@@ -122,7 +122,7 @@ class Controller(Node):
             controller1.run()
 
     def archive(self):
-        """ 
+        """
         Services on a controller to archive
         """
 
@@ -131,7 +131,7 @@ class Controller(Node):
         self._set_node_archive()
 
     def _set_node_archive(self):
-        """ 
+        """
         Sets a dict in the node object of services and their logs
         """
 
@@ -169,7 +169,7 @@ class Compute(Node):
         self.set_run_list()
 
     def archive(self):
-        """ 
+        """
         Archives all services on a compute node
         """
 
@@ -231,7 +231,7 @@ class Remote(Node):
                         "configs": [""]}
 
     def _bootstrap_chef(self):
-        """ 
+        """
         Bootstraps the node to a chef server
         """
 
@@ -258,7 +258,7 @@ class Cinder(Node):
                         "configs": [""]}
 
     def prepare_cinder(self):
-        """ 
+        """
         Prepares the node for use with cinder
         """
 
@@ -368,7 +368,7 @@ class ChefServer(Node):
         return self._install_cookbooks(dir=install_dir)
 
     def _set_up_remote(self):
-        """ 
+        """
         Sets up and saves a remote api and dict to the nodes environment
         """
 
@@ -390,7 +390,7 @@ class ChefServer(Node):
 
     @classmethod
     def _remote_chef_api(cls, chef_api_dict):
-        """ 
+        """
         Builds a remote chef API object
         """
 
@@ -402,7 +402,10 @@ class ChefServer(Node):
         """
 
         command = 'cat ~/.chef/admin.pem'
-        return self.node.run_cmd(command)['return']
+        pem = self.node.run_cmd(command)['return']
+        if not pem:
+            raise Exception("Chef Server setup error")
+        return pem
 
     def _remote_other_nodes(self):
         for node in self.node.deployment.nodes:
