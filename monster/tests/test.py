@@ -172,8 +172,8 @@ class Tempest(Test):
         ids = self.tempest_ids(url, admin_user, admin_password, controller)
         tempest['image_id1'] = ids['image_id1']
         tempest['image_id2'] = ids['image_id2']
-        tempest['public_network_id'] = ids['network_id']
-        tempest['public_router_id'] = ids['router_id']
+        tempest['public_network_id'] = ids.get('network_id')
+        tempest['public_router_id'] = ids.get('router_id')
 
         featured = lambda x: self.deployment.feature_in(x)
         tempest['cinder_enabled'] = False
@@ -189,10 +189,12 @@ class Tempest(Test):
         tempest['heat_enabled'] = True if featured('orchestration') else False
 
     def tempest_ids(self, url, user, password, node):
+        is_neutron = self.deployment.feature_in("neutron")
         creds = {
             "USER": user,
             "PASSWORD": password,
-            "URL": url}
+            "URL": url,
+            "IS_NEUTRON": is_neutron}
         template_path = os.path.join(os.path.dirname(
             os.path.abspath(__file__)), os.pardir, os.pardir,
             "files/testing_setup.py")
