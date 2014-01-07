@@ -93,7 +93,7 @@ class Upgrade_4_2_1(object):
             "git clone {0} {1}".format(munge_repo, munge_dir),
             "cd {0}; python setup.py install".format(munge_dir),
             "mungerator munger --client-key /etc/chef-server/admin.pem "
-            "--auth-url https://127.0.0.1:4443 all-nodes-in-env "
+            "--auth-url https://127.0.0.1:443 all-nodes-in-env "
             "--name {0}".format(self.deployment.name)])
         chef_server.run_cmd("; ".join(munge))
         self.deployment.environment.save_locally()

@@ -375,7 +375,7 @@ class ChefServer(Node):
         remote_chef = {
             "client": "admin",
             "key": self._get_admin_pem(),
-            "url": "https://{0}:4443".format(self.node.ipaddress)
+            "url": "https://{0}:443".format(self.node.ipaddress)
         }
 
         # set the remote chef server name
