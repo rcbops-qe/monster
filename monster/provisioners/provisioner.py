@@ -413,7 +413,8 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
 
     def clean(self, node):
         # remove /etc/hosts entries
-        cmd = ("sed '/{0}/d' /etc/hosts > /etc/hosts".format(node.name))
+        cmd = ("mv /etc/hosts /etc/hosts.bak; "
+               "grep -v {0} /etc/hosts.back > /etc/hosts".format(node.name))
         node.run_cmd(cmd)
 
     def mkswap(self, node, size=2):
