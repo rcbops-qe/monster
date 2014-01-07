@@ -63,7 +63,13 @@ def build(name="build", template="precise-default", branch="master",
     util.logger.info(deployment)
 
     if test:
-        Tempest(deployment).test()
+        try:
+            Tempest(deployment).test()
+        except Exception:
+            util.logger.error(traceback.print_exc())
+            if destroy:
+                deployment.destroy()
+            sys.exit(1)
 
     if destroy:
         deployment.destroy()
