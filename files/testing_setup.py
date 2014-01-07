@@ -6,6 +6,7 @@ from neutronclient.v2_0.client import Client as neutron_client
 user = "${USER}"
 password = "${PASSWORD}"
 url = "${URL}"
+is_neutron = $IS_NEUTRON
 
 # Setup clients
 nova = nova_client.Client(user, password, user, auth_url=url)
@@ -96,18 +97,15 @@ def create_key():
 
 
 def prepare_tempest():
+    data = {}
     image_id1, image_id2 = get_images()
-    network_id = create_network()
-    # subnet_id = create_subnet(network_id)
-    router_id = create_router()
-    # attach_router(router_id, subnet_id)
-
-    data = {
-        "image_id1": image_id1,
-        "image_id2": image_id2,
-        "network_id": network_id,
-        "router_id": router_id,
-    }
+    data['image_id1'] = image_id1
+    data['image_id2'] = image_id2
+    if is_neutron:
+        network_id = create_network()
+        # subnet_id = create_subnet(network_id)
+        router_id = create_router()
+        # attach_router(router_id, subnet_id)
     print json.dumps(data)
 
     # Not required for tempest
