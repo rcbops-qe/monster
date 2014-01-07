@@ -408,12 +408,12 @@ class ChefRackspaceProvisioner(ChefOpenstackProvisioner):
         :type node: Monster.Node
         """
         self.mkswap(node)
-        self.clean(node)
+        if "chefserver" not in node.name:
+            self.clean(node)
 
     def clean(self, node):
         # remove /etc/hosts entries
-        cmd = ("sed '/{0}/d' /etc/hosts > /etc/hosts; "
-               "echo '127.0.0.1 localhost' >> /etc/hosts".format(node.name))
+        cmd = ("sed '/{0}/d' /etc/hosts > /etc/hosts".format(node.name))
         node.run_cmd(cmd)
 
     def mkswap(self, node, size=2):
