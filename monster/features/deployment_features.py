@@ -18,7 +18,7 @@ class Deployment(Feature):
         self.deployment = deployment
 
     def __repr__(self):
-        """ 
+        """
         Print out current instance
         """
         outl = 'class: ' + self.__class__.__name__
@@ -59,7 +59,7 @@ class Neutron(Deployment):
 
         # Grab correct environment based on the provider passed in the config
         self.environment = util.config['environments'][str(self)][provider]
-        
+
         # Set the provider name in object (future use)
         self.provider = provider
 
@@ -123,15 +123,15 @@ class Neutron(Deployment):
         """
         Fix the network provider block in the enviornment
         """
-        
+
         iface = util.config[str(self)][self.deployment.os_name][
             'network_bridge_device']
-        
+
         provider_network = [
             {"label": "ph-{0}".format(iface),
              "bridge": "br-{0}".format(iface),
              "vlans": "1:1000"}]
-        
+
         env = self.deployment.environment
         ovs = env.override_attributes[self.provider]['ovs']
         ovs['provider_network'] = provider_network
@@ -145,7 +145,7 @@ class Neutron(Deployment):
         env = self.deployment.environment
         # set the network block key to the configured provider
         neutron_network = {'provider': self.provider}
-        
+
         if 'networks' in env.override_attributes['nova']:
             del env.override_attributes['nova']['networks']
             env.override_attributes['nova']['network'] = neutron_network
@@ -159,12 +159,12 @@ class Neutron(Deployment):
                 vip = "rackspace"
             api_vip = util.config[str(self)][vip]['vip']
             env.override_attributes['vips'][api_name] = api_vip
-        
+
         # Save the environment
         env.save()
 
     def _reboot_cluster(self):
-        """ 
+        """
         Reboots the deployment cluster
         : depreciated : no longer needed in RPCS
         """
@@ -282,9 +282,9 @@ class Swift(Deployment):
         env.save()
 
     def _build_rings(self, auto=False):
-        """ 
+        """
         This will either build the rings or print how to build the rings.
-            
+
         :param auto: Whether or not to auto build the rings
         :type auto: Boolean
         """
@@ -637,8 +637,13 @@ class OsOpsNetworks(RPCS):
     def __init__(self, deployment, rpcs_feature='default'):
         super(OsOpsNetworks, self).__init__(deployment, rpcs_feature,
                                             'osops_networks')
-        self.environment = util.config['environments'][self.name][
-            self.deployment.provisioner.short_name()]
+        provisioner = self.deployment.provisioner.short_name()
+        self.environment = util.config['environments'][self.name][provisioner]
+        if provisioner == "rackspace":
+            if self.deployment.feature_in("highavailability"):
+                controller = self.deployment.search_role("controller")
+                public = "{0}/32".format(controller.ipaddress)
+                self.environment['public'] = public
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
