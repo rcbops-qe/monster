@@ -126,6 +126,8 @@ environments:
         default:
             apply_patches: true
     horizon:
+        neutron:
+          enable_lb: true
         default:
             theme: default
     developer_mode:
@@ -345,7 +347,7 @@ rcbops:
             run_list: ['role[spc-starter-storage]']
 tests:
   tempest:
-    repo: http://github.com/openstack/tempest
+    repo: https://github.com/openstack/tempest.git
     dir: "/opt/tempest"
     test_map:
       glance:
