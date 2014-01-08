@@ -640,7 +640,8 @@ class OsOpsNetworks(RPCS):
         provisioner = self.deployment.provisioner.short_name()
         self.environment = util.config['environments'][self.name][provisioner]
         if provisioner == "rackspace":
-            if self.deployment.feature_in("highavailability"):
+            if not self.deployment.feature_in("highavailability"):
+                # use public nic as public network
                 controller = self.deployment.search_role("controller")
                 public = "{0}/32".format(controller.ipaddress)
                 self.environment['public'] = public
