@@ -639,14 +639,17 @@ class OsOpsNetworks(RPCS):
                                             'osops_networks')
         provisioner = self.deployment.provisioner.short_name()
         self.environment = util.config['environments'][self.name][provisioner]
+
+    def update_environment(self):
+        provisioner = self.deployment.provisioner.short_name()
         if provisioner == "rackspace":
             if not self.deployment.feature_in("highavailability"):
                 # use public nic as public network
-                controller = self.deployment.search_role("controller")
+                controller = next(self.deployment.search_role("controller"))
+                raise Exception
                 public = "{0}/32".format(controller.ipaddress)
                 self.environment['public'] = public
 
-    def update_environment(self):
         self.deployment.environment.add_override_attr(
             self.name, self.environment)
 
