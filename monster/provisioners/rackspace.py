@@ -1,4 +1,5 @@
 import pyrax
+from time import sleep
 
 from monster import util
 from openstack import Openstack
@@ -18,12 +19,12 @@ class Rackspace(Openstack):
             user=rackspace['user'], apikey=rackspace['api_key'],
             auth_url=rackspace['auth_url'], region=rackspace['region'],
             auth_system=rackspace['plugin'], provisioner="rackspace")
-        
+
         pyrax.set_setting("identity_type", "rackspace")
         pyrax.set_credentials(self.creds.user, api_key=self.creds.apikey,
                               region=self.creds.region)
         pyrax.connect_to_services()
-        
+
         self.client = pyrax.cloudservers
         self.neutron = pyrax.cloud_networks
 
@@ -34,10 +35,26 @@ class Rackspace(Openstack):
         :type node: Monster.Node
         """
         self.mkswap(node)
-        self.clean(node)
+        self.hosts(node)
+        if "controller" in node.name and self.deployment.os_name == "centos":
+            self.rdo()
 
-    def clean(self, node):
-        # remove /etc/hosts entries
+    def rdo(self, node):
+        kernel = util.config['rcbops']['compute']['kernel']
+        version = kernel['centos']['version']
+        install = kernel['centos']['install']
+        if not node.run_cmd("uname -r")['return'] == version:
+            node.run_cmd(install)
+            node.run_cmd("reboot now")
+            sleep(30)
+
+    def hosts(self, node):
+        """
+        remove /etc/hosts entries
+        rabbitmq uses hostnames and don't listen on the existing public ifaces
+        :param node: Node object to clean ifaces
+        :type node: Monster.node
+        """
         cmd = ("sed '/{0}/d' /etc/hosts > /etc/hosts; "
                "echo '127.0.0.1 localhost' >> /etc/hosts".format(node.name))
         node.run_cmd(cmd)
