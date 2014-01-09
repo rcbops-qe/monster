@@ -646,7 +646,6 @@ class OsOpsNetworks(RPCS):
             if not self.deployment.feature_in("highavailability"):
                 # use public nic as public network
                 controller = next(self.deployment.search_role("controller"))
-                raise Exception
                 public = "{0}/32".format(controller.ipaddress)
                 self.environment['public'] = public
 
