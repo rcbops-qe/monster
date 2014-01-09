@@ -3,6 +3,7 @@ OpenStack deployments
 """
 
 import types
+import tmuxp
 from monster import util
 
 
@@ -25,7 +26,7 @@ class Deployment(object):
         """
         Print out current instance
         """
-        
+
         outl = 'class: ' + self.__class__.__name__
         for attr in self.__dict__:
             if attr == 'features':
@@ -45,7 +46,7 @@ class Deployment(object):
         """
         Destroys an OpenStack deployment
         """
-        
+
         self.status = "destroying"
         util.logger.info("Destroying deployment:{0}".format(self.name))
         for node in self.nodes:
@@ -56,7 +57,7 @@ class Deployment(object):
         """
         Pre configures node for each feature
         """
-        
+
         self.status = "loading environment"
         for feature in self.features:
             log = "Deployment feature: update environment: {0}"\
@@ -82,7 +83,7 @@ class Deployment(object):
         """
         Builds each node
         """
-        
+
         self.status = "building nodes"
         for node in self.nodes:
             node.build()
@@ -92,7 +93,7 @@ class Deployment(object):
         """
         Post configures node for each feature
         """
-        
+
         self.status = "post-configure"
         for feature in self.features:
             log = "Deployment feature: post-configure: {0}"\
@@ -104,7 +105,7 @@ class Deployment(object):
         """
         Runs build steps for node's features
         """
-        
+
         util.logger.debug("Deployment step: update environment")
         self.update_environment()
         util.logger.debug("Deployment step: pre-configure")
@@ -162,11 +163,24 @@ class Deployment(object):
             return True
         return False
 
+    def tmux(self):
+        """
+        Creates an new tmux session with an window for each node
+        """
+
+        server = tmuxp.Server()
+        session = server.new_session(session_name=self.name)
+        cmd = "sshpass -p {1} ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=quiet -l root {0}"
+        for node in self.nodes:
+            window = session.new_window(window_name=node.name)
+            pane = window.panes[0]
+            pane.send_keys(cmd.format(node.ipaddress, node.password))
+
     def feature_names(self):
         """
         Returns list features as strings
         :rtype: list (string)
         """
-        
+
         return [feature.__class__.__name__.lower() for feature in
                 self.features]

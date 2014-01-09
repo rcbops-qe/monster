@@ -125,6 +125,16 @@ def openrc(name="build", config=None, log=None, secret_path=None,
     deployment.openrc()
 
 
+def tmux(name="build", config=None, log=None, secret_path=None,
+         log_level="INFO"):
+    """
+    Loads OpenStack nodes into new tmux session
+    """
+    _set_log(log, log_level)
+    deployment = _load(name, config, secret_path)
+    deployment.tmux()
+
+
 def horizon(name="build", config=None, log=None, secret_path=None,
             log_level="INFO"):
     """
@@ -163,5 +173,5 @@ def _set_log(log, log_level):
 
 if __name__ == "__main__":
     parser = argh.ArghParser()
-    parser.add_commands([build, destroy, openrc, horizon, show, test, upgrade])
+    parser.add_commands([build, destroy, openrc, horizon, show, test, upgrade, tmux])
     parser.dispatch()
