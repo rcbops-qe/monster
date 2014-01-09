@@ -638,7 +638,7 @@ class OsOpsNetworks(RPCS):
         super(OsOpsNetworks, self).__init__(deployment, rpcs_feature,
                                             'osops_networks')
         self.environment = util.config['environments'][self.name][
-            str(self.deployment.provisioner)]
+            self.deployment.provisioner]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(

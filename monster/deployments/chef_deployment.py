@@ -58,7 +58,7 @@ class ChefDeployment(Deployment):
                       'branch': self.branch,
                       'status': self.status,
                       'product': self.product,
-                      'provisioner': str(self.provisioner)}
+                      'provisioner': self.provisioner}
         self.environment.add_override_attr('deployment', deployment)
 
     def build(self):

@@ -6,7 +6,7 @@ class Provisioner(object):
     Enforce implementation of provsision and destroy_node and naming convention
     """
 
-    def __str__(self):
+    def __repr__(self):
         return self.__class__.__name__.lower()
 
     def provision(self, template, deployment):

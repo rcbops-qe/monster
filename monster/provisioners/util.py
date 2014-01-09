@@ -1,5 +1,4 @@
 import sys
-import types
 from monster.provisioners import *
 from monster.util import module_classes
 
@@ -16,4 +15,4 @@ def get_provisioner(provisioner):
     except AttributeError:
         raise NameError("{0} doesn't exist.".format(provisioner))
 
-    return module_classes(identifier)[provisioner]
+    return module_classes(identifier)[provisioner]()

@@ -17,7 +17,7 @@ class Deployment(object):
         self.features = []
         self.nodes = []
         self.status = status or "provisioning"
-        self.provisioner = provisioner
+        self.provisioner = str(provisioner)
         self.product = product
         self.clients = clients
 

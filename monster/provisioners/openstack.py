@@ -95,7 +95,7 @@ class Openstack(Provisioner):
         image = deployment.os_name
         server, password = self.build_instance(name=name, image=image,
                                                flavor=flavor)
-        run_list = ",".join(util.config[self.short_name()]['run_list'])
+        run_list = ",".join(util.config[str(self)]['run_list'])
         run_list_arg = ""
         if run_list:
             run_list_arg = "-r {0}".format(run_list)
@@ -126,7 +126,7 @@ class Openstack(Provisioner):
         :type flavor: string
         :rtype: Server
         """
-        config = util.config[self.short_name()]
+        config = util.config[str(self)]
 
         # get image
         try:
@@ -145,7 +145,7 @@ class Openstack(Provisioner):
                                         image_name, attempts=10)
 
         # gather networks
-        desired_networks = util.config[self.short_name()]['networks']
+        desired_networks = util.config[str(self)]['networks']
         networks = []
         for network in desired_networks:
             obj = self._client_search(self.neutron.list, "label",
