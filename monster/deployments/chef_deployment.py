@@ -12,7 +12,7 @@ from monster.features.node_features import ChefServer
 from monster.nodes.chef_node import ChefNode
 from monster.provisioners import provisioner as provisioners
 from monster.provisioners.util import get_provisioner
-from monster.provisioners.provisioner import ChefRazorProvisioner
+from monster.provisioners.razor import Razor
 from monster.clients.openstack import Creds, Clients
 
 
@@ -394,7 +394,7 @@ class ChefDeployment(Deployment):
         super(ChefDeployment, self).destroy()
         # Destroy rogue nodes
         if not self.nodes:
-            nodes = ChefRazorProvisioner.node_search("chef_environment:{0}".
+            nodes = Razor.node_search("chef_environment:{0}".
                                                      format(self.name),
                                                      tries=1)
             for n in nodes:
