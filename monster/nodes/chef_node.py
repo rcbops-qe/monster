@@ -3,6 +3,7 @@ from chef import Node as CNode
 from monster import util
 from monster.nodes.node import Node
 from monster.features import node_features
+from monster.provisioners.util import get_provisioner
 from monster.provisioners import provisioner as provisioners
 
 
@@ -176,9 +177,8 @@ class ChefNode(Node):
         status = archive.get('status', "provisioning")
         if not provisioner:
             provisioner_name = archive.get('provisioner',
-                                           "chefrazorprovisioner")
-            classes = util.module_classes(provisioners)
-            provisioner = classes[provisioner_name]()
+                                           "chefrazor")
+            provisioner = get_provisioner(provisioner_name)
         run_list = node.run_list
         crnode = cls(ipaddress, user, password, os, product, environment,
                      deployment, name, provisioner, branch, status=status,

@@ -3,10 +3,10 @@ from provisioner import Provisioner
 from gevent import spawn, joinall, sleep
 
 from monster import util
-from monster.clients import Creds, Clients
+from monster.clients.openstack import Creds, Clients
 from monster.server_helper import run_cmd
 
-class ChefOpenstack(Provisioner):
+class Openstack(Provisioner):
     """
     Provisions chef nodes in openstack vms
     """

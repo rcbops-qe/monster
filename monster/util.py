@@ -1,5 +1,8 @@
 import os
+import sys
+import types
 import logging
+import importlib
 from glob import glob
 from xml.etree import ElementTree
 
@@ -19,18 +22,15 @@ def set_log_level(level):
     log_level = getattr(logging, level, logging.INFO)
     logger.setLevel(log_level)
 
-
 def log_to_file(path):
     log_file = logging.FileHandler(path)
     log_file.setFormatter(console_handler.formatter)
     log_file.setLevel(logging.DEBUG)
     logger.addHandler(log_file)
 
-
 def module_classes(module):
     return {k.lower(): v for (k, v) in
             getmembers(module, isclass)}
-
 
 def xunit_merge(path="."):
     print "Merging xunit files"

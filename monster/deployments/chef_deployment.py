@@ -11,6 +11,7 @@ from monster.features import deployment_features
 from monster.features.node_features import ChefServer
 from monster.nodes.chef_node import ChefNode
 from monster.provisioners import provisioner as provisioners
+from monster.provisioners.util import get_provisioner
 from monster.provisioners.provisioner import ChefRazorProvisioner
 from monster.clients.openstack import Creds, Clients
 
@@ -319,9 +320,7 @@ class ChefDeployment(Deployment):
         status = deployment_args.get('status', "provisioning")
         product = deployment_args.get('product', None)
         provisioner_name = deployment_args.get('provisioner', "razor")
-        provisioner_class_name = util.config["provisioners"][provisioner_name]
-        provisioner = util.module_classes(provisioners)[
-            provisioner_class_name]()
+        provisioner = get_provisioner(provisioner_name)
 
         deployment = cls.deployment_config(features, name, os_name, branch,
                                            environment, provisioner, status,

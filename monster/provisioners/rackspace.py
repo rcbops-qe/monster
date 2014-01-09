@@ -1,10 +1,10 @@
 import pyrax
 
 from monster import util
-from chef_openstack import ChefOpenstack
-from monster.clients import Creds
+from openstack import Openstack
+from monster.clients.openstack import Creds
 
-class ChefRackspace(ChefOpenstack):
+class Rackspace(Openstack):
     """
     Provisions chef nodes in Rackspace Cloud Servers vms
     """
