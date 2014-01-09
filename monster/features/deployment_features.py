@@ -641,7 +641,7 @@ class OsOpsNetworks(RPCS):
             self.deployment.provisioner]
 
     def update_environment(self):
-        provisioner = self.deployment.provisioner.short_name()
+        provisioner = str(self.deployment.provisioner)
         if provisioner == "rackspace":
             if not self.deployment.feature_in("highavailability"):
                 # use public nic as public network
