@@ -282,6 +282,10 @@ environments:
                     network: public
 rcbops:
     compute:
+        kernel:
+          centos:
+            version: 2.6.32-358.123.2.openstack.el6.x86_64
+            install: rpm -Uvh http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/epel-6/kernel-2.6.32-358.123.2.openstack.el6.x86_64.rpm http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/epel-6/kernel-firmware-2.6.32-358.123.2.openstack.el6.noarch.rpm http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/epel-6/kernel-headers-2.6.32-358.123.2.openstack.el6.x86_64.rpm
         git:
             url: https://github.com/rcbops/chef-cookbooks.git
             branches:
