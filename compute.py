@@ -11,7 +11,7 @@ from monster import util
 from monster.provisioners import provisioner as provisioners
 from monster.config import Config
 from monster.deployments.chef_deployment import ChefDeployment
-from monster.tests.test import Tempest
+from monster.tests.tempest import Tempest
 
 
 def build(name="build", template="precise-default", branch="master",
