@@ -11,7 +11,8 @@ class Deployment(object):
     """Base for OpenStack deployments
     """
 
-    def __init__(self, name, os_name, branch, provisioner, status, product, clients=None):
+    def __init__(self, name, os_name, branch, provisioner, status, product,
+                 clients=None):
         self.name = name
         self.os_name = os_name
         self.branch = branch
@@ -170,7 +171,8 @@ class Deployment(object):
 
         server = tmuxp.Server()
         session = server.new_session(session_name=self.name)
-        cmd = "sshpass -p {1} ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=quiet -l root {0}"
+        cmd = ("sshpass -p {1} ssh -o UserKnownHostsFile=/dev/null "
+               "-o StrictHostKeyChecking=no -o LogLevel=quiet -l root {0}")
         for node in self.nodes:
             name = node.name[len(self.name)+1:]
             window = session.new_window(window_name=name)
