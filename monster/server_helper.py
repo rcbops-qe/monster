@@ -42,7 +42,7 @@ def ssh_cmd(ip, remote_cmd, user='root', password=None):
     error = StringIO()
     ssh = SSHClient()
     ssh.set_missing_host_key_policy(AutoAddPolicy())
-    ssh.connect(ip, username=user, password=password)
+    ssh.connect(ip, username=user, password=password, allow_agent=False)
     stdin, stdout, stderr = ssh.exec_command(remote_cmd)
     stdin.close()
     for line in stdout:
@@ -68,7 +68,7 @@ def scp_to(ip, local_path, user='root', password=None, remote_path=""):
 
     ssh = SSHClient()
     ssh.set_missing_host_key_policy(AutoAddPolicy())
-    ssh.connect(ip, username=user, password=password)
+    ssh.connect(ip, username=user, password=password, allow_agent=False)
     sftp = ssh.open_sftp()
     sftp.put(local_path, remote_path)
 
@@ -81,6 +81,6 @@ def scp_from(ip, remote_path, user='root', password=None, local_path=""):
 
     ssh = SSHClient()
     ssh.set_missing_host_key_policy(AutoAddPolicy())
-    ssh.connect(ip, username=user, password=password)
+    ssh.connect(ip, username=user, password=password, allow_agent=False)
     sftp = ssh.open_sftp()
     sftp.get(remote_path, local_path)
