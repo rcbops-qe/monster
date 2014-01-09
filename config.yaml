@@ -337,7 +337,7 @@ rcbops:
                 master:
                     tags:
                         - v4.2.0
-        chef_server:
+        chefserver:
             run_list: []
         controller1:
             run_list: ['role[spc-starter-controller]']
@@ -388,11 +388,6 @@ swift:
 
 cinder:
     vg_name: vg_storage
-
-provisioners:
-  razor: chefrazorprovisioner
-  openstack: chefopenstackprovisioner
-  rackspace: chefrackspaceprovisioner
 
 rackspace:
   run_list:

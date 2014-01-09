@@ -153,9 +153,9 @@ class Neutron(Deployment):
         # update the vip to correct api name and vip value
         if self.deployment.feature_in("highavailability"):
             api_name = '{0}-api'.format(self.provider)
-            if self.deployment.provisioner.short_name() == "razor":
+            if str(self.deployment.provisioner) == "razor":
                 vip = self.deployment.os_name
-            elif self.deployment.provisioner.short_name() == "rackspace":
+            elif str(self.deployment.provisioner) == "rackspace":
                 vip = "rackspace"
             api_vip = util.config[str(self)][vip]['vip']
             env.override_attributes['vips'][api_name] = api_vip
@@ -511,13 +511,13 @@ class Nova(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Nova, self).__init__(deployment, rpcs_feature)
         self.environment = util.config['environments'][str(self)][
-            self.deployment.provisioner.short_name()]
+            str(self.deployment.provisioner)]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
             str(self), self.environment)
         bridge_dev = None
-        if self.deployment.provisioner.short_name() == 'openstack':
+        if str(self.deployment.provisioner) == 'openstack':
             bridge_dev = 'eth1'
         elif self.deployment.os_name in ['centos', 'rhel']:
             bridge_dev = 'em1'
@@ -637,8 +637,8 @@ class OsOpsNetworks(RPCS):
     def __init__(self, deployment, rpcs_feature='default'):
         super(OsOpsNetworks, self).__init__(deployment, rpcs_feature,
                                             'osops_networks')
-        provisioner = self.deployment.provisioner.short_name()
-        self.environment = util.config['environments'][self.name][provisioner]
+        self.environment = util.config['environments'][self.name][
+            self.deployment.provisioner]
 
     def update_environment(self):
         provisioner = self.deployment.provisioner.short_name()
@@ -660,7 +660,7 @@ class HighAvailability(RPCS):
     def __init__(self, deployment, rpcs_feature):
         super(HighAvailability, self).__init__(deployment, rpcs_feature,
                                                'vips')
-        if self.deployment.provisioner.short_name() == "rackspace":
+        if str(self.deployment.provisioner) == "rackspace":
             vips = "rackspace"
         else:
             vips = deployment.os_name

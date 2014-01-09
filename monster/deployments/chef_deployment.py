@@ -11,7 +11,8 @@ from monster.features import deployment_features
 from monster.features.node_features import ChefServer
 from monster.nodes.chef_node import ChefNode
 from monster.provisioners import provisioner as provisioners
-from monster.provisioners.provisioner import ChefRazorProvisioner
+from monster.provisioners.util import get_provisioner
+from monster.provisioners.razor import Razor
 from monster.clients.openstack import Creds, Clients
 
 
@@ -57,7 +58,7 @@ class ChefDeployment(Deployment):
                       'branch': self.branch,
                       'status': self.status,
                       'product': self.product,
-                      'provisioner': self.provisioner.short_name()}
+                      'provisioner': self.provisioner}
         self.environment.add_override_attr('deployment', deployment)
 
     def build(self):
@@ -101,7 +102,7 @@ class ChefDeployment(Deployment):
             munge.extend(["apt-get -y install python-dev",
                           "apt-get -y install python-setuptools"])
             # For QEMU
-            provisioner = self.provisioner.short_name()
+            provisioner = str(self.provisioner)
             if provisioner == "rackspace" or provisioner == "openstack":
                 ncmds.extend(
                     ["apt-get update",
@@ -319,9 +320,7 @@ class ChefDeployment(Deployment):
         status = deployment_args.get('status', "provisioning")
         product = deployment_args.get('product', None)
         provisioner_name = deployment_args.get('provisioner', "razor")
-        provisioner_class_name = util.config["provisioners"][provisioner_name]
-        provisioner = util.module_classes(provisioners)[
-            provisioner_class_name]()
+        provisioner = get_provisioner(provisioner_name)
 
         deployment = cls.deployment_config(features, name, os_name, branch,
                                            environment, provisioner, status,
@@ -395,7 +394,7 @@ class ChefDeployment(Deployment):
         super(ChefDeployment, self).destroy()
         # Destroy rogue nodes
         if not self.nodes:
-            nodes = ChefRazorProvisioner.node_search("chef_environment:{0}".
+            nodes = Razor.node_search("chef_environment:{0}".
                                                      format(self.name),
                                                      tries=1)
             for n in nodes:
