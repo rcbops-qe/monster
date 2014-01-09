@@ -172,7 +172,8 @@ class Deployment(object):
         session = server.new_session(session_name=self.name)
         cmd = "sshpass -p {1} ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o LogLevel=quiet -l root {0}"
         for node in self.nodes:
-            window = session.new_window(window_name=node.name)
+            name = node.name[len(self.name)+1:]
+            window = session.new_window(window_name=name)
             pane = window.panes[0]
             pane.send_keys(cmd.format(node.ipaddress, node.password))
 
