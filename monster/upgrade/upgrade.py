@@ -61,7 +61,7 @@ class Upgrade_4_2_1(object):
             munge.extend(["apt-get -y install python-dev",
                           "apt-get -y install python-setuptools"])
             # For QEMU
-            provisioner = self.deployment.provisioner.short_name()
+            provisioner = str(self.deployment.provisioner)
             if provisioner == "rackspace" or provisioner == "openstack":
                 ncmds.extend(
                     ["apt-get update",

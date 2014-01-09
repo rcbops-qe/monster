@@ -9,14 +9,6 @@ class Provisioner(object):
     def __str__(self):
         return self.__class__.__name__.lower()
 
-    @property
-    def short_name(self):
-        """
-        Converts to short hand name
-        :rtype: string
-        """
-        return str(self)
-
     def provision(self, template, deployment):
         """
         Provisions nodes

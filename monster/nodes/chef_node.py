@@ -85,7 +85,7 @@ class ChefNode(Node):
         features = [str(f).lower() for f in self.features]
         node = {'features': features,
                 'status': self.status,
-                'provisioner': self.provisioner.__class__.__name__.lower()}
+                'provisioner': str(self.provisioner)}
         self['archive'] = node
 
     def apply_feature(self):

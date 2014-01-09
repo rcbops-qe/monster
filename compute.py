@@ -8,7 +8,7 @@ import argh
 import traceback
 import webbrowser
 from monster import util
-from monster.provisioners import provisioner as provisioners
+from monster.provisioners.util import get_provisioner
 from monster.config import Config
 from monster.deployments.chef_deployment import ChefDeployment
 from monster.tests.test import Tempest
@@ -35,8 +35,7 @@ def build(name="build", template="precise-default", branch="master",
 
     # provisiong deployment
     util.config = Config(config, secret_path=secret_path)
-    class_name = util.config["provisioners"][provisioner]
-    cprovisioner = util.module_classes(provisioners)[class_name]()
+    cprovisioner = get_provisioner(provisioner)
     deployment = ChefDeployment.fromfile(name, template, branch,
                                          cprovisioner, template_file)
     if dry:
