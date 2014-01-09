@@ -58,7 +58,7 @@ class ChefDeployment(Deployment):
                       'branch': self.branch,
                       'status': self.status,
                       'product': self.product,
-                      'provisioner': self.provisioner.short_name()}
+                      'provisioner': self.provisioner.short_name}
         self.environment.add_override_attr('deployment', deployment)
 
     def build(self):
@@ -102,7 +102,7 @@ class ChefDeployment(Deployment):
             munge.extend(["apt-get -y install python-dev",
                           "apt-get -y install python-setuptools"])
             # For QEMU
-            provisioner = self.provisioner.short_name()
+            provisioner = self.provisioner.short_name
             if provisioner == "rackspace" or provisioner == "openstack":
                 ncmds.extend(
                     ["apt-get update",

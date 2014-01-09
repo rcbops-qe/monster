@@ -9,13 +9,13 @@ class Provisioner(object):
     def __str__(self):
         return self.__class__.__name__.lower()
 
+    @property
     def short_name(self):
         """
         Converts to short hand name
         :rtype: string
         """
-        provisioners = util.config['provisioners']
-        return {value: key for key, value in provisioners.items()}[str(self)]
+        return str(self)
 
     def provision(self, template, deployment):
         """

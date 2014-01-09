@@ -13,7 +13,6 @@ def get_provisioner(provisioner):
 
     try:
         identifier = getattr(sys.modules['monster'].provisioners, provisioner)
-        print dir(identifier)
     except AttributeError:
         raise NameError("{0} doesn't exist.".format(provisioner))
 
