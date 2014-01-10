@@ -36,7 +36,7 @@ class Rackspace(Openstack):
         """
         self.mkswap(node)
         self.hosts(node)
-        if "controller" in node.name and self.deployment.os_name == "centos":
+        if "controller" in node.name and node.os_name == "centos":
             self.rdo()
 
     def rdo(self, node):
