@@ -479,7 +479,10 @@ class Glance(Deployment):
         response = requests.post(url, data=data, headers=head, verify=False)
         
         if not response.ok:
-            response.raise_for_status()
+            raise Exception(
+                "Unable to authorize your cloudfiles credentials, "
+                "please check secretes.yaml file")
+            #response.raise_for_status()
         try:
             services = response.json()['access']['serviceCatalog']
         except KeyError:
