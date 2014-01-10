@@ -69,7 +69,7 @@ class Rackspace(Openstack):
         """
         util.logger.info("Making swap file on:{0} of {1}GBs".format(node.name,
                                                                     size))
-        size_b = int(pow(1024, size))
+        size_b = 1048576 * size
         cmds = [
             "dd if=/dev/zero of=/mnt/swap bs=1024 count={0}".format(size_b),
             "mkswap /mnt/swap",
