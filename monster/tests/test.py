@@ -2,6 +2,7 @@
 Module to test OpenStack deployments
 """
 
+
 class Test(object):
     """
     Parent class to test OpenStack deployments
