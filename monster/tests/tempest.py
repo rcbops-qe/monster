@@ -13,6 +13,10 @@ from monster.tests.test import Test
 
 
 class Tempest(Test):
+    """
+    Tests a deployment with tempest
+    """
+
     def __init__(self, deployment):
         super(Tempest, self).__init__(deployment)
         self.path = "/tmp/%s.conf" % self.deployment.name
@@ -28,83 +32,10 @@ class Tempest(Test):
         )
         self.xunit_file = ""
 
-    def prepare(self):
-        """
-        Sets up tempest repo, python requirements, and config
-        """
-        branch = self.deployment.branch
-        branches = util.config['rcbops']['compute']['git']['branches']
-        branch_format = "stable/{0}"
-        if branch in branches.keys():
-            tempest_branch = branch_format.format(branch)
-        else:
-            for branch_name, tags in branches.items():
-                if branch in tags:
-                    tag_branch = branch_name
-                else:
-                    tag_branch = "master"
-        tempest_branch = branch_format.format(tag_branch)
-        repo = util.config['tests']['tempest']['repo']
-        tempest_dir = util.config['tests']['tempest']['dir']
-        clone = "git clone {0} -b {1} {2}".format(repo, tempest_branch,
-                                                  tempest_dir)
-        self.test_node.run_cmd(clone)
-
-        # centos prepare
-        if self.deployment.os_name == "centos":
-            self.test_node.run_cmd("yum install -y screen libxslt-devel "
-                                   "postgresql-devel python-pip python-devel")
-        if self.deployment.os_name == "precise":
-            self.test_node.run_cmd("apt-get install -y screen python-dev "
-                                   "libxml2 libxslt1-dev libpq-dev python-pip")
-
-        # install python requirements for tempest
-        install_cmd = "pip install -r {0}/requirements.txt".format(tempest_dir)
-        self.test_node.run_cmd(install_cmd)
-
-        # Build and send config
-        self.build_config()
-        tempest_dir = util.config['tests']['tempest']['dir']
-        rem_config_path = "{0}/etc/tempest.conf".format(tempest_dir)
-        self.test_node.run_cmd("rm {0}".format(rem_config_path))
-        self.test_node.scp_to(self.path, remote_path=rem_config_path)
-
-    def run_tests(self):
-        # remove tempest cookbook. subsequent runs will fail
-        exclude = ['volume', 'resize', 'floating']
-        self.test_from(self.test_node, xunit=True, exclude=exclude)
-
-    def collect_results(self):
-        self.wait_for_results()
-        self.xunit_file = self.test_node.name + ".xml"
-        self.test_node.scp_from(self.xunit_file, local_path=self.xunit_file)
-        util.xunit_merge()
-        self.test_node.run_cmd("killall screen")
-
-    def neutron_configure(self, clients):
-        neutron = clients.neutronclient()
-        net_info = {}
-
-        # Create network
-        new_net = {"network": {"name": "test_net", "shared": True}}
-        net = neutron.create_network(new_net)
-        net_id = net['network']['id']
-
-        # Create subnet
-        new_subnet = {"subnet": {
-            "name": "test_subnet", "network_id": net_id,
-            "cidr": "172.0.100.0/24", "ip_version": "4"}}
-        neutron.create_subnet(new_subnet)
-
-        # Create router
-        new_router = {"router": {
-            "name": "testrouter", "network_id": net_id}}
-        router = neutron.create_router(new_router)
-        net_info['net_id'] = net_id
-        net_info['router_id'] = router['router']['id']
-        return net_info
-
     def tempest_configure(self):
+        """
+        Gather all the values for tempest config file
+        """
         tempest = self.tempest_config
         override = self.deployment.environment.override_attributes
         controller = next(self.deployment.search_role("controller"))
@@ -148,6 +79,7 @@ class Tempest(Test):
         tempest['admin_tenant'] = users[admin_user][
             'roles']['admin'][0]
 
+        # create network, router, and get image ids
         url = controller['keystone']['adminURL']
         ids = self.tempest_ids(url, admin_user, admin_password, controller)
         tempest['image_id1'] = ids['image_id1']
@@ -155,6 +87,7 @@ class Tempest(Test):
         tempest['public_network_id'] = ids.get('network_id')
         tempest['public_router_id'] = ids.get('router_id')
 
+        # discover enabled features
         featured = lambda x: self.deployment.feature_in(x)
         tempest['cinder_enabled'] = False
         if featured('cinder'):
@@ -162,13 +95,24 @@ class Tempest(Test):
             tempest['storage_protocol'] = override['cinder']['storage'][
                 'provider']
             tempest['vendor_name'] = "Open Source"
-
         tempest['neutron_enabled'] = True if featured('neutron') else False
         tempest['glance_enabled'] = True if featured('glance') else False
         tempest['swift_enabled'] = True if featured('swift') else False
         tempest['heat_enabled'] = True if featured('orchestration') else False
 
-    def tempest_ids(self, url, user, password, node):
+    def tempest_ids(self, url, user, password):
+        """
+        Creates a router, network, and gets image, returns their ids
+        :param url: authentication url
+        :type url: string
+        :param user: user authenticate with
+        :type user: string
+        :param password: password to authenticate user
+        :type password: string
+        :rtype: dict
+        """
+
+        # template values
         is_neutron = self.deployment.feature_in("neutron")
         creds = {
             "USER": user,
@@ -179,8 +123,11 @@ class Tempest(Test):
             os.path.abspath(__file__)), os.pardir, os.pardir,
             "files/testing_setup.py")
 
+        # apply values
         with open(template_path) as f:
             template = Template(f.read()).substitute(creds)
+
+        # save script
         name = "{0}-testing_setup.py".format(self.deployment.name)
         path = "/tmp/{0}".format(name)
         with open(path, 'w') as w:
@@ -188,27 +135,23 @@ class Tempest(Test):
             util.logger.debug(template)
             w.write(template)
 
+        # send script to node
+        node = self.test_node
         node.scp_to(path, remote_path=name)
+
+        # run script
         ret = node.run_cmd("python {0}".format(name))
         raw = ret['return']
-        ids = json.loads(raw)
-        return ids
 
-    def build_config(self):
-        self.tempest_configure()
-        template_path = os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), os.pardir, os.pardir,
-            "files/tempest.conf")
+        return json.loads(raw)
 
-        with open(template_path) as f:
-            template = Template(f.read()).substitute(
-                self.tempest_config)
-
-        with open(self.path, 'w') as w:
-            util.logger.info("Writing tempest config:{0}".
-                             format(self.path))
-            util.logger.debug(template)
-            w.write(template)
+    def feature_test_paths(self, paths):
+        test_map = util.config['tests']['tempest']['test_map']
+        if not paths:
+            features = self.deployment.feature_names()
+            paths = ifilter(None, set(
+                chain(*ifilter(None, (
+                    test_map.get(feature, None) for feature in features)))))
 
     def test_from(self, node, xunit=False, tags=None, exclude=None,
                   paths=None, config_path=None):
@@ -224,10 +167,12 @@ class Tempest(Test):
         @param paths: list
         """
 
+        # clone tempest
         tempest_dir = util.config['tests']['tempest']['dir']
         checkout = "cd {0}; git checkout stable/havana".format(tempest_dir)
         node.run_cmd(checkout)
 
+        # format flags
         xunit_file = "{0}.xml".format(node.name)
         xunit_flag = ''
         if xunit:
@@ -237,24 +182,19 @@ class Tempest(Test):
 
         exclude_flag = "-e " + " -e ".join(exclude) if exclude else ''
 
-        test_map = util.config['tests']['tempest']['test_map']
-        if not paths:
-            features = self.deployment.feature_names()
-            paths = ifilter(None, set(
-                chain(*ifilter(None, (
-                    test_map.get(feature, None) for feature in features)))))
-        path_args = " ".join(paths)
+        path_args = " ".join(self.feature_test_paths)
+
         config_arg = ""
         if config_path:
             config_arg = "-c {0}".format(config_path)
-        venv_bin = ".venv/bin"
+
+        # build commands
         tempest_command = (
             "python -u `which nosetests` -w "
             "{0}/tempest/api {5} "
             "{1} {2} {3} {4}".format(tempest_dir, xunit_flag,
                                      tag_flag, path_args,
-                                     exclude_flag, config_arg, venv_bin)
-        )
+                                     exclude_flag, config_arg))
         screen = [
             "screen -d -m -S tempest -t shell -s /bin/bash",
             "screen -S tempest -X screen -t tempest",
@@ -263,12 +203,120 @@ class Tempest(Test):
                 tempest_command)
         ]
         command = "; ".join(screen)
+
         node.run_cmd(command)
 
     def wait_for_results(self):
+        """
+        Wait for tempest results to come be reported
+        """
         cmd = 'stat -c "%s" {0}.xml'.format(self.test_node.name)
         result = self.test_node.run_cmd(cmd)['return'].rstrip()
         while result == "0":
             util.logger.info("Waiting for test results")
-            sleep(10)
+            sleep(30)
             result = self.test_node.run_cmd(cmd)['return'].rstrip()
+
+    def tempest_branch(self, branch):
+        """
+        Given rcbops branch, returns tempest branch
+        :param branch: branch of rcbops
+        :type branch: string
+        :rtype: string
+        """
+        branches = util.config['rcbops']['compute']['git']['branches']
+        branch_format = "stable/{0}"
+        if branch in branches.keys():
+            tag_branch = branch_format.format(branch)
+        else:
+            for branch_name, tags in branches.items():
+                if branch in tags:
+                    tag_branch = branch_name
+                else:
+                    tag_branch = "master"
+        return branch_format.format(tag_branch)
+
+    def clone_repo(self, branch):
+        """
+        Clones repo onto node
+        :param branch: branch to clone
+        :type branch: string
+        """
+        repo = util.config['tests']['tempest']['repo']
+        tempest_dir = util.config['tests']['tempest']['dir']
+        clone = "git clone {0} -b {1} {2}".format(repo, branch, tempest_dir)
+        self.test_node.run_cmd(clone)
+
+    def install_package_requirements(self):
+        """
+        Installs requirements of tempest
+        """
+        if self.deployment.os_name == "centos":
+            self.test_node.run_cmd("yum install -y screen libxslt-devel "
+                                   "postgresql-devel python-pip python-devel")
+        if self.deployment.os_name == "precise":
+            self.test_node.run_cmd("apt-get install -y screen python-dev "
+                                   "libxml2 libxslt1-dev libpq-dev python-pip")
+
+        # install python requirements for tempest
+        tempest_dir = util.config['tests']['tempest']['dir']
+        install_cmd = "pip install -r {0}/requirements.txt".format(tempest_dir)
+        self.test_node.run_cmd(install_cmd)
+
+    def build_config(self):
+        """
+        Builds tempest config files
+        """
+        self.tempest_configure()
+        # find template
+        template_path = os.path.join(os.path.dirname(
+            os.path.abspath(__file__)), os.pardir, os.pardir,
+            "files/tempest.conf")
+
+        # open template and add values
+        with open(template_path) as f:
+            template = Template(f.read()).substitute(
+                self.tempest_config)
+
+        # save config
+        with open(self.path, 'w') as w:
+            util.logger.info("Writing tempest config:{0}".
+                             format(self.path))
+            util.logger.debug(template)
+            w.write(template)
+
+    def send_config(self):
+        """
+        Sends tempest config file to node
+        """
+        tempest_dir = util.config['tests']['tempest']['dir']
+        rem_config_path = "{0}/etc/tempest.conf".format(tempest_dir)
+        self.test_node.run_cmd("rm {0}".format(rem_config_path))
+        self.test_node.scp_to(self.path, remote_path=rem_config_path)
+
+    def prepare(self):
+        """
+        Sets up tempest repo, python requirements, and config
+        """
+        branch = self.tempest_branch(self.deployment.branch)
+        self.clone_repo(branch)
+        self.install_package_requirements()
+        self.build_config()
+        self.send_config()
+
+    def run_tests(self):
+        """
+        Runs tempest
+        """
+        exclude = ['volume', 'resize', 'floating']
+        self.test_from(self.test_node, xunit=True, exclude=exclude)
+
+    def collect_results(self):
+        """
+        Collects tempest report as xunit report
+        """
+        self.wait_for_results()  # tests are run in screen
+        self.xunit_file = self.test_node.name + ".xml"
+        self.test_node.scp_from(self.xunit_file, local_path=self.xunit_file)
+        # util.xunit_merge()
+        self.test_node.run_cmd("killall screen")
