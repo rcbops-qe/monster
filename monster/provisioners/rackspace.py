@@ -5,6 +5,7 @@ from monster import util
 from openstack import Openstack
 from monster.clients.openstack import Creds
 
+
 class Rackspace(Openstack):
     """
     Provisions chef nodes in Rackspace Cloud Servers vms
@@ -37,7 +38,7 @@ class Rackspace(Openstack):
         self.mkswap(node)
         self.hosts(node)
         if "controller" in node.name and node.os_name == "centos":
-            self.rdo()
+            self.rdo(node)
 
     def rdo(self, node):
         kernel = util.config['rcbops']['compute']['kernel']
