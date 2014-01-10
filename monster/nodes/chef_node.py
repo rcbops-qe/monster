@@ -4,7 +4,6 @@ from monster import util
 from monster.nodes.node import Node
 from monster.features import node_features
 from monster.provisioners.util import get_provisioner
-from monster.provisioners import provisioner as provisioners
 
 
 class ChefNode(Node):
@@ -112,7 +111,8 @@ class ChefNode(Node):
         """
         Syncs the remote chef nodes attribute to the local chef server
         """
-        util.logger.debug("Syncing chef node from remote:{0}".format(self.name))
+        util.logger.debug("Syncing chef node from remote:{0}".format(
+            self.name))
         if self.environment.remote_api:
             chef_node = chef_node or CNode(self.name,
                                            self.environment.remote_api)
@@ -177,7 +177,7 @@ class ChefNode(Node):
         status = archive.get('status', "provisioning")
         if not provisioner:
             provisioner_name = archive.get('provisioner',
-                                           "chefrazor")
+                                           "razor")
             provisioner = get_provisioner(provisioner_name)
         run_list = node.run_list
         crnode = cls(ipaddress, user, password, os, product, environment,
