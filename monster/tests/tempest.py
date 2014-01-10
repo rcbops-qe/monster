@@ -52,9 +52,11 @@ class Tempest(Test):
 
         # centos prepare
         if self.deployment.os_name == "centos":
-            self.test_node.run_cmd("yum install -y screen libxslt-devel postgresql-devel python-pip python-devel")
+            self.test_node.run_cmd("yum install -y screen libxslt-devel "
+                                   "postgresql-devel python-pip python-devel")
         if self.deployment.os_name == "precise":
-            self.test_node.run_cmd("apt-get install -y screen python-dev libxml2 libxslt1-dev libpq-dev python-pip")
+            self.test_node.run_cmd("apt-get install -y screen python-dev "
+                                   "libxml2 libxslt1-dev libpq-dev python-pip")
 
         # install python requirements for tempest
         install_cmd = "pip install -r {0}/requirements.txt".format(tempest_dir)
