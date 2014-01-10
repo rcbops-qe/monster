@@ -15,9 +15,8 @@ from monster.tests.tempest import Tempest
 
 
 def build(name="build", template="precise-default", branch="master",
-          config=None, destroy=False, dry=False,
-          log=None, log_level="INFO", provisioner="razor", test=False,
-          secret_path=None):
+          config=None, destroy=False, dry=False, log=None, log_level="INFO",
+          provisioner="razor", test=False, secret_path=None):
     """
     Builds an OpenStack Cluster
     """

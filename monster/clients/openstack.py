@@ -9,8 +9,8 @@ class Creds(object):
     """
     Credentials to authenticate with OpenStack
     """
-    def __init__(self, user=None, password=None, apikey=None, region=None,
-                 auth_url=None, auth_system=None, provisioner="openstack"):
+    def __init__(self, user=None, password=None, apikey=None,
+                 region=None, auth_url=None, auth_system=None):
         self.user = user
         self.password = password
         self.apikey = apikey
@@ -35,8 +35,7 @@ class Clients(object):
             region_name=self.creds.region,
             insecure=insecure,
             cacert=cacert,
-            auth_url=self.creds.auth_url,
-        )
+            auth_url=self.creds.auth_url)
 
     def novaclient(self):
         """
