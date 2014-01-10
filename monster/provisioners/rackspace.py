@@ -36,9 +36,10 @@ class Rackspace(Openstack):
         :type node: Monster.Node
         """
         self.mkswap(node)
-        self.hosts(node)
-        if "controller" in node.name and node.os_name == "centos":
-            self.rdo(node)
+        if "controller" in node.name:
+            self.hosts(node)
+            if node.os_name == "centos":
+                self.rdo(node)
 
     def rdo(self, node):
         kernel = util.config['rcbops']['compute']['kernel']
