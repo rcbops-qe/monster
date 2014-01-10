@@ -1,7 +1,6 @@
 """ A Deployment Features
 """
 
-import json
 import time
 import requests
 
@@ -476,12 +475,16 @@ class Glance(Deployment):
         head = {"content-type": "application/json"}
         auth_address = self.environment['api']['swift_store_auth_address']
         url = "{0}/tokens".format(auth_address)
+        
         response = requests.post(url, data=data, headers=head, verify=False)
+        
+        if not response.ok:
+            response.raise_for_status()
         try:
-            services = json.loads(response._content)['access'][
-                'serviceCatalog']
+            services = response.json()['access']['serviceCatalog']
         except KeyError:
-            raise Exception("Unable to authenticate with Endpoint")
+            raise KeyError("Response content has no key: serviceCatalog")
+        
         cloudfiles = next(s for s in services if s['type'] == "object-store")
         tenant_id = cloudfiles['endpoints'][0]['tenantId']
 
