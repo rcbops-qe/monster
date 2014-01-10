@@ -36,8 +36,14 @@ def build(name="build", template="precise-default", branch="master",
     # provisiong deployment
     util.config = Config(config, secret_path=secret_path)
     cprovisioner = get_provisioner(provisioner)
-    deployment = ChefDeployment.fromfile(name, template, branch,
-                                         cprovisioner, template_file)
+    try:
+        deployment = ChefDeployment.fromfile(name, template, branch,
+                                             cprovisioner, template_file)
+    except Exception:
+        util.logger.error(traceback.print_exc())
+        if destroy:
+            deployment.destroy()
+        sys.exit(1)
     if dry:
         # build environment
         try:
