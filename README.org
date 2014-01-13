@@ -17,7 +17,6 @@ An OpenStack Orchestration Engine
 
      - Once the script is done running you will have to logout and back in to use knife
 
-
    - Install packages
 
      #+BEGIN_SRC sh
