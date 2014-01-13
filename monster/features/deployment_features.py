@@ -475,9 +475,9 @@ class Glance(Deployment):
         head = {"content-type": "application/json"}
         auth_address = self.environment['api']['swift_store_auth_address']
         url = "{0}/tokens".format(auth_address)
-        
+
         response = requests.post(url, data=data, headers=head, verify=False)
-        
+
         if not response.ok:
             raise Exception(
                 "Unable to authorize your cloudfiles credentials, "
@@ -487,7 +487,7 @@ class Glance(Deployment):
             services = response.json()['access']['serviceCatalog']
         except KeyError:
             raise KeyError("Response content has no key: serviceCatalog")
-        
+
         cloudfiles = next(s for s in services if s['type'] == "object-store")
         tenant_id = cloudfiles['endpoints'][0]['tenantId']
 
@@ -647,13 +647,13 @@ class OsOpsNetworks(RPCS):
             self.deployment.provisioner]
 
     def update_environment(self):
-        provisioner = str(self.deployment.provisioner)
-        if provisioner == "rackspace":
-            if not self.deployment.feature_in("highavailability"):
-                # use public nic as public network
-                controller = next(self.deployment.search_role("controller"))
-                public = "{0}/32".format(controller.ipaddress)
-                self.environment['public'] = public
+        # provisioner = str(self.deployment.provisioner)
+        # if provisioner == "rackspace":
+        #     if not self.deployment.feature_in("highavailability"):
+        #         # use public nic as public network
+        #         controller = next(self.deployment.search_role("controller"))
+        #         public = "{0}/32".format(controller.ipaddress)
+        #         self.environment['public'] = public
 
         self.deployment.environment.add_override_attr(
             self.name, self.environment)
