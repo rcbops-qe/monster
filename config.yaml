@@ -284,6 +284,7 @@ rcbops:
     compute:
         kernel:
           centos:
+            image: ce44b9c0-bb94-4fac-a7df-99b6aeab4c57
             version: 2.6.32-358.123.2.openstack.el6.x86_64
             install: rpm -Uvh http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/epel-6/kernel-2.6.32-358.123.2.openstack.el6.x86_64.rpm http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/epel-6/kernel-firmware-2.6.32-358.123.2.openstack.el6.noarch.rpm http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/epel-6/kernel-headers-2.6.32-358.123.2.openstack.el6.x86_64.rpm
         git:
@@ -398,7 +399,7 @@ rackspace:
     - recipe[rcbops-qa]
   images:
     precise: Ubuntu 12.04 LTS (Precise Pangolin)
-    centos: CentOS 6.4
+    centos: centos-rdo
   flavors:
     512MB: 512MB Standard Instance
     1GB: 1GB Standard Instance
