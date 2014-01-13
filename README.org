@@ -32,10 +32,10 @@ An OpenStack Orchestration Engine
 
    - Clone the repo and install
      #+BEGIN_SRC sh
-       git clone https://github.com/rcbops-qa/monster.git /opt/monster
-       virtualenv -p `which python2` /opt/monster/.venv
-       source /opt/monster/.venv/bin/activate
-       pip install -r /opt/monster/requirements.txt
+       git clone https://github.com/rcbops-qa/monster.git ~/monster
+       virtualenv -p `which python2` ~/monster/.venv
+       source ~/monster/.venv/bin/activate
+       pip install -r ~/monster/requirements.txt
      #+END_SRC
 
    - put your credentials in ~secret.yaml~ at the top level of monster
