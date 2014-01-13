@@ -395,34 +395,51 @@ cinder:
     vg_name: vg_storage
 
 rackspace:
-  run_list:
-    - recipe[rcbops-qa]
-  images:
-    precise: Ubuntu 12.04 LTS (Precise Pangolin)
-    centos: centos-rdo
-  flavors:
-    512MB: 512MB Standard Instance
-    1GB: 1GB Standard Instance
-    2GB: 2GB Standard Instance
-    4GB: 4GB Standard Instance
-    8GB: 8GB Standard Instance
-    15GB: 15GB Standard Instance
-    30GB: 30GB Standard Instance
-    1GBP: 1 GB Performance
-    2GBP: 2 GB Performance
-    4GBP: 4 GB Performance
-    8GBP: 8 GB Performance
-    120GBP: 120 GB Performance
-    15GBP: 15 GB Performance
-    30GBP: 30 GB Performance
-    60GBP: 60 GB Performance
-    90GBP: 90 GB Performance
-  networks:
-     - public
-     - private
-     - test
-  network:
-    test: 192.168.3.0/24
+    run_list:
+        - recipe[rcbops-qa]
+    images:
+        precise: Ubuntu 12.04 LTS (Precise Pangolin)
+        centos: centos-rdo
+    flavors:
+        512MB: 512MB Standard Instance
+        1GB: 1GB Standard Instance
+        2GB: 2GB Standard Instance
+        4GB: 4GB Standard Instance
+        8GB: 8GB Standard Instance
+        15GB: 15GB Standard Instance
+        30GB: 30GB Standard Instance
+        1GBP: 1 GB Performance
+        2GBP: 2 GB Performance
+        4GBP: 4 GB Performance
+        8GBP: 8 GB Performance
+        120GBP: 120 GB Performance
+        15GBP: 15 GB Performance
+        30GBP: 30 GB Performance
+        60GBP: 60 GB Performance
+        90GBP: 90 GB Performance
+    networks:
+        - public
+        - private
+        - test
+    network:
+        test: 192.168.3.0/24
+
+openstack:
+    run_list:
+        - recipe[rcbops-qa]
+    images:
+        precise: precise-image
+    flavors:
+        512MB: m1.tiny
+        1GB: m1.small
+        2GB: m1.medium
+        4GB: m1.large
+        8GB: m1.xlarge
+    networks:
+        - public
+        - private
+    network:
+        private: 172.31.0.0/24
 
 neutron:
     centos:
