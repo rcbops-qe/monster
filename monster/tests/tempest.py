@@ -152,6 +152,7 @@ class Tempest(Test):
             paths = ifilter(None, set(
                 chain(*ifilter(None, (
                     test_map.get(feature, None) for feature in features)))))
+        return paths
 
     def test_from(self, node, xunit=False, tags=None, exclude=None,
                   paths=None, config_path=None):
