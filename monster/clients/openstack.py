@@ -1,6 +1,7 @@
 from novaclient.v1_1 import client as nova_client
 from neutronclient.v2_0.client import Client as neutron_client
 from cinderclient.v1 import client as cinder_client
+from keystoneclient.v2_0 import client as keystone_client
 
 from monster import util
 
@@ -29,6 +30,7 @@ class Clients(object):
         cacert = None
         self.creds_dict = dict(
             username=self.creds.user,
+            tenant_name=self.creds.user,
             api_key=self.creds.apikey,
             password=self.creds.password,
             project_id=self.creds.user,
@@ -36,6 +38,17 @@ class Clients(object):
             insecure=insecure,
             cacert=cacert,
             auth_url=self.creds.auth_url)
+
+    def keystoneclient(self):
+        """
+        Openstack keystone client
+        """
+
+        util.logger.debug(
+            "keystone connection created using token {0} and url {1}".format(
+                self.creds_dict['username'], self.creds_dict['auth_url']))
+
+        return keystone_client.Client(**self.creds_dict)
 
     def novaclient(self):
         """
