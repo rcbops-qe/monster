@@ -19,7 +19,7 @@ class Rackspace(Openstack):
         self.creds = Creds(
             user=rackspace['user'], apikey=rackspace['api_key'],
             auth_url=rackspace['auth_url'], region=rackspace['region'],
-            auth_system=rackspace['plugin'], provisioner="rackspace")
+            auth_system=rackspace['plugin'])
 
         pyrax.set_setting("identity_type", "rackspace")
         pyrax.set_credentials(self.creds.user, api_key=self.creds.apikey,
