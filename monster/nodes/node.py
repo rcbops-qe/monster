@@ -163,7 +163,7 @@ class Node(object):
                 self.features]
 
     def power_off(self):
-        pass
+        self.provisioner(self).power_off()
 
     def power_on(self):
-        pass
+        self.provisioner(self).power_on()
