@@ -45,7 +45,7 @@ class Rackspace(Openstack):
         kernel = util.config['rcbops']['compute']['kernel']
         version = kernel['centos']['version']
         install = kernel['centos']['install']
-        if not node.run_cmd("uname -r")['return'] == version:
+        if version not in node.run_cmd("uname -r")['return']:
             node.run_cmd(install)
             node.run_cmd("reboot now")
             sleep(30)
