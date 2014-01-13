@@ -129,7 +129,7 @@ class Openstack(Provisioner):
         """
         config = util.config[str(self)]
 
-        # get image
+        # get flavor
         try:
             flavor_name = config['flavors'][flavor]
         except KeyError:
@@ -137,7 +137,7 @@ class Openstack(Provisioner):
         flavor_obj = self._client_search(self.client.flavors.list, "name",
                                          flavor_name, attempts=10)
 
-        # get flavor
+        # get image
         try:
             image_name = config['images'][image]
         except KeyError:
