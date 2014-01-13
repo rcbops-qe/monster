@@ -161,3 +161,8 @@ class Node(object):
     def feature_names(self):
         return [feature.__class__.__name__.lower() for feature in
                 self.features]
+
+    def power_off(self):
+        self.provi
+
+    def power_on(self)

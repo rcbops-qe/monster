@@ -1,4 +1,3 @@
-
 class Provisioner(object):
     """
     Provisioner class template
@@ -32,6 +31,22 @@ class Provisioner(object):
         """
         Destroys node
         :param node: node to destroy
-        :type node: Node
+        :type node: Monster.Node
+        """
+        raise NotImplementedError
+
+    def power_down(self, node):
+        """
+        Turns a node off
+        :param node: node to power off
+        :type node: Monster.Node
+        """
+        raise NotImplementedError
+
+    def power_up(self, node):
+        """
+        Turns a node on
+        :param node: node to power on
+        :type node: Monster.Node
         """
         raise NotImplementedError
