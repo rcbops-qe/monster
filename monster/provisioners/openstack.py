@@ -233,10 +233,10 @@ class Openstack(Provisioner):
 
     def power_off(self, node):
         id = node['uuid']
-        server = self.client.servers.get(id)
+        server = self.nova_client.servers.get(id)
         server.shutdown()
 
     def power_on(self, node):
         id = node['uuid']
-        server = self.client.servers.get(id)
+        server = self.nova_client.servers.get(id)
         server.startup()
