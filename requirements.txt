@@ -7,5 +7,6 @@ pyyaml
 gevent
 python-cinderclient
 python-neutronclient
+python-keystoneclient
 pyrax
 tmuxp

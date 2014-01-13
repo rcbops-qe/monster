@@ -15,7 +15,8 @@ class Openstack(Provisioner):
         self.names = []
         self.name_index = {}
         self.creds = Creds()
-        self.client = Clients(self.creds).get_client("novaclient")
+        self.keystone_client = Clients(self.creds).get_client("keystoneclient")
+        self.nova_client = Clients(self.creds).get_client("novaclient")
 
     def name(self, name, deployment, number=None):
         """
@@ -74,7 +75,7 @@ class Openstack(Provisioner):
         """
         cnode = Node(node.name, node.environment.local_api)
         if cnode.exists:
-            self.client.servers.get(node['uuid']).delete()
+            self.nova_client.servers.get(node['uuid']).delete()
             cnode.delete()
         client = Client(node.name, node.environment.local_api)
         if client.exists:
@@ -134,7 +135,7 @@ class Openstack(Provisioner):
             flavor_name = config['flavors'][flavor]
         except KeyError:
             raise Exception("Flavor not supported:{0}".format(flavor))
-        flavor_obj = self._client_search(self.client.flavors.list, "name",
+        flavor_obj = self._client_search(self.nova_client.flavors.list, "name",
                                          flavor_name, attempts=10)
 
         # get image
@@ -142,7 +143,7 @@ class Openstack(Provisioner):
             image_name = config['images'][image]
         except KeyError:
             raise Exception("Image not supported:{0}".format(image))
-        image_obj = self._client_search(self.client.images.list, "name",
+        image_obj = self._client_search(self.nova_client.images.list, "name",
                                         image_name, attempts=10)
 
         # gather networks
@@ -154,11 +155,11 @@ class Openstack(Provisioner):
             networks.append({"net-id": obj.id})
 
         # build instance
-        server = self.client.servers.create(name, image_obj.id, flavor_obj.id,
+        server = self.nova_client.servers.create(name, image_obj.id, flavor_obj.id,
                                             nics=networks)
         password = server.adminPass
         util.logger.info("Building:{0}".format(name))
-        server = self.wait_for_state(self.client.servers.get, server, "status",
+        server = self.wait_for_state(self.nova_client.servers.get, server, "status",
                                      ["ACTIVE", "ERROR"])
         if server.status == "ERROR":
             util.logger.error("Instance entered error state. Retrying...")
