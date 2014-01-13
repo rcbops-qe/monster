@@ -7,7 +7,7 @@ An OpenStack Orchestration Engine
    - Must have a chef server installed
 
      #+BEGIN_SRC sh
-       source <(curl -s https://raw.github.com/rcbops/jenkins-build/master/qa/bash/jenkins/install-chef-server.sh)
+       source <(curl -s https://raw.github.com/rcbops/support-tools/master/chef-install/install-chef-server.sh)
      #+END_SRC
 
      - Must have knife.rb configured for chef server (the above command
