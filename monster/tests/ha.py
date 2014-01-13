@@ -50,6 +50,7 @@ class HA_Test(Tempest):
         tempest.test()
 
         self.controller1.power_on()
+        sleep
 
     def collect_results(self):
         """
