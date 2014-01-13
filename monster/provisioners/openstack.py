@@ -230,3 +230,13 @@ class Openstack(Provisioner):
             obj = fun(obj.id)
             attempt = attempt + 1
         return obj
+
+    def power_off(self, node):
+        id = node['uuid']
+        server = self.client.servers.get(id)
+        server.shutdown()
+
+    def power_on(self, node):
+        id = node['uuid']
+        server = self.client.servers.get(id)
+        server.startup()
