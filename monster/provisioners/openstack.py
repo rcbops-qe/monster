@@ -155,12 +155,12 @@ class Openstack(Provisioner):
             networks.append({"net-id": obj.id})
 
         # build instance
-        server = self.nova_client.servers.create(name, image_obj.id, flavor_obj.id,
-                                            nics=networks)
+        server = self.nova_client.servers.create(name, image_obj.id,
+                                                 flavor_obj.id, nics=networks)
         password = server.adminPass
         util.logger.info("Building:{0}".format(name))
-        server = self.wait_for_state(self.nova_client.servers.get, server, "status",
-                                     ["ACTIVE", "ERROR"])
+        server = self.wait_for_state(self.nova_client.servers.get, server,
+                                     "status", ["ACTIVE", "ERROR"])
         if server.status == "ERROR":
             util.logger.error("Instance entered error state. Retrying...")
             server.delete()
