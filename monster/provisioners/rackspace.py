@@ -26,7 +26,7 @@ class Rackspace(Openstack):
                               region=self.creds.region)
         pyrax.connect_to_services()
 
-        self.client = pyrax.cloudservers
+        self.nova_client = pyrax.cloudservers
         self.neutron = pyrax.cloud_networks
 
     def post_provision(self, node):
