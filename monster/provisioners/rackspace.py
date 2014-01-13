@@ -17,16 +17,16 @@ class Rackspace(Openstack):
         self.names = []
         self.name_index = {}
         self.creds = Creds(
-            user=rackspace['user'], apikey=rackspace['api_key'],
+            username=rackspace['user'], apikey=rackspace['api_key'],
             auth_url=rackspace['auth_url'], region=rackspace['region'],
             auth_system=rackspace['plugin'])
 
         pyrax.set_setting("identity_type", "rackspace")
-        pyrax.set_credentials(self.creds.user, api_key=self.creds.apikey,
+        pyrax.set_credentials(self.creds.username, api_key=self.creds.apikey,
                               region=self.creds.region)
         pyrax.connect_to_services()
 
-        self.nova_client = pyrax.cloudservers
+        self.compute_client = pyrax.cloudservers
         self.neutron = pyrax.cloud_networks
 
     def post_provision(self, node):

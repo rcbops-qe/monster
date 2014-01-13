@@ -6,17 +6,22 @@ from keystoneclient.v2_0 import client as keystone_client
 from monster import util
 
 
-class Creds(object):
+class Creds(dict):
     """
     Credentials to authenticate with OpenStack
     """
-    def __init__(self, user=None, password=None, apikey=None,
-                 region=None, auth_url=None, auth_system=None):
-        self.user = user
-        self.password = password
+    def __init__(self, username=None, password=None, apikey=None,
+                 region=None, auth_url=None, auth_system=None,
+                 tenant_name=None, project_id=None, insecure=False,
+                 cacert=None):
+        self.username = username
+        self.tenant_name = tenant_name
         self.apikey = apikey
-        self.region = region
-        self.system = auth_system
+        self.password = password
+        self.project_id = project_id
+        self.region_name = region
+        self.insecure = insecure
+        self.cacert = cacert
         self.auth_url = auth_url
 
 
@@ -25,19 +30,7 @@ class Clients(object):
     Openstack client generator
     """
     def __init__(self, creds):
-        self.creds = creds
-        insecure = False
-        cacert = None
-        self.creds_dict = dict(
-            username=self.creds.user,
-            tenant_name=self.creds.user,
-            api_key=self.creds.apikey,
-            password=self.creds.password,
-            project_id=self.creds.user,
-            region_name=self.creds.region,
-            insecure=insecure,
-            cacert=cacert,
-            auth_url=self.creds.auth_url)
+        self.creds = creds.__dict__
 
     def keystoneclient(self):
         """
@@ -46,9 +39,9 @@ class Clients(object):
 
         util.logger.debug(
             "keystone connection created using token {0} and url {1}".format(
-                self.creds_dict['username'], self.creds_dict['auth_url']))
+                self.creds['username'], self.creds['auth_url']))
 
-        return keystone_client.Client(**self.creds_dict)
+        return keystone_client.Client(**self.creds)
 
     def novaclient(self):
         """
@@ -56,21 +49,21 @@ class Clients(object):
         """
         util.logger.debug(
             'novaclient connection created using token "%s" and url "%s"'
-            % (self.creds_dict['username'], self.creds_dict['auth_url'])
+            % (self.creds['username'], self.creds['auth_url'])
         )
-        self.creds_dict.update({
+        self.creds.update({
             'auth_system': self.creds.system
         })
 
         key = None
-        if 'password' in self.creds_dict:
-            key = self.creds_dict['password']
+        if 'password' in self.creds:
+            key = self.creds['password']
         else:
-            key = self.creds_dict['api_key']
+            key = self.creds['api_key']
 
-        client = nova_client.Client(self.creds_dict['username'], key,
-                                    self.creds_dict['username'],
-                                    auth_url=self.creds_dict['auth_url'])
+        client = nova_client.Client(self.creds['username'], key,
+                                    self.creds['username'],
+                                    auth_url=self.creds['auth_url'])
         return client
 
     def cinderclient(self):
@@ -79,9 +72,9 @@ class Clients(object):
         """
         util.logger.debug(
             'cinderclient connection created using token "%s" and url "%s"'
-            % (self.creds_dict['username'], self.creds_dict['auth_url'])
+            % (self.creds['username'], self.creds['auth_url'])
         )
-        client = cinder_client.Client(**self.creds_dict)
+        client = cinder_client.Client(**self.creds)
         return client
 
     def neutronclient(self):
@@ -90,14 +83,14 @@ class Clients(object):
         """
         util.logger.debug(
             'neutron connection created using token "%s" and url "%s"'
-            % (self.creds_dict['username'], self.creds_dict['auth_url'])
+            % (self.creds['username'], self.creds['auth_url'])
         )
 
-        client = neutron_client(auth_url=self.creds_dict['auth_url'],
-                                username=self.creds_dict['username'],
-                                password=self.creds_dict['password'],
-                                tenant_name=self.creds_dict['username'],
-                                api_key=self.creds_dict['api_key'])
+        client = neutron_client(auth_url=self.creds['auth_url'],
+                                username=self.creds['username'],
+                                password=self.creds['password'],
+                                tenant_name=self.creds['username'],
+                                api_key=self.creds['api_key'])
         return client
 
     def get_client(self, client):
