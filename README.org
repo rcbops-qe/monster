@@ -18,13 +18,14 @@ An OpenStack Orchestration Engine
    - Install packages
 
      #+BEGIN_SRC sh
-       apt-get install git python-pip virtualenvwrapper python-dev libevent-dev
+       apt-get install -y git python-pip virtualenvwrapper python-dev libevent-dev
      #+END_SRC
 
    - Chef server must have rcbops-qa cookbook installed
      #+BEGIN_SRC sh
-       git clone https://github.com/rcbops-qa/rcbops-qa.git
-       knife cookbook upload -o rcbops-qa
+       git clone https://github.com/rcbops-qa/rcbops-qa.git /opt/cookbooks/rcbops-qa
+       git clone https://github.com/opscode-cookbooks/yum.git /opt/cookbooks/yum
+       knife cookbook upload -a -o /opt/cookbooks/
      #+END_SRC
 
 ** Installation
