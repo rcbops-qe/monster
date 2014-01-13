@@ -1,6 +1,6 @@
 import sys
 from cStringIO import StringIO
-from paramiko import SSHClient, AutoAddPolicy
+from paramiko import SSHClient, WarningPolicy
 from subprocess import check_call, CalledProcessError
 
 from monster import util
@@ -41,7 +41,7 @@ def ssh_cmd(ip, remote_cmd, user='root', password=None):
     output = StringIO()
     error = StringIO()
     ssh = SSHClient()
-    ssh.set_missing_host_key_policy(AutoAddPolicy())
+    ssh.set_missing_host_key_policy(WarningPolicy())
     ssh.connect(ip, username=user, password=password, allow_agent=False)
     stdin, stdout, stderr = ssh.exec_command(remote_cmd)
     stdin.close()
@@ -67,7 +67,7 @@ def scp_to(ip, local_path, user='root', password=None, remote_path=""):
     """
 
     ssh = SSHClient()
-    ssh.set_missing_host_key_policy(AutoAddPolicy())
+    ssh.set_missing_host_key_policy(WarningPolicy())
     ssh.connect(ip, username=user, password=password, allow_agent=False)
     sftp = ssh.open_sftp()
     sftp.put(local_path, remote_path)
@@ -80,7 +80,7 @@ def scp_from(ip, remote_path, user='root', password=None, local_path=""):
     """
 
     ssh = SSHClient()
-    ssh.set_missing_host_key_policy(AutoAddPolicy())
+    ssh.set_missing_host_key_policy(WarningPolicy())
     ssh.connect(ip, username=user, password=password, allow_agent=False)
     sftp = ssh.open_sftp()
     sftp.get(remote_path, local_path)

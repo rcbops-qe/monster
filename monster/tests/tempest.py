@@ -81,7 +81,7 @@ class Tempest(Test):
 
         # create network, router, and get image ids
         url = controller['keystone']['adminURL']
-        ids = self.tempest_ids(url, admin_user, admin_password, controller)
+        ids = self.tempest_ids(url, admin_user, admin_password)
         tempest['image_id1'] = ids['image_id1']
         tempest['image_id2'] = ids['image_id2']
         tempest['public_network_id'] = ids.get('network_id')
@@ -152,6 +152,7 @@ class Tempest(Test):
             paths = ifilter(None, set(
                 chain(*ifilter(None, (
                     test_map.get(feature, None) for feature in features)))))
+        return paths
 
     def test_from(self, node, xunit=False, tags=None, exclude=None,
                   paths=None, config_path=None):
@@ -318,5 +319,4 @@ class Tempest(Test):
         self.wait_for_results()  # tests are run in screen
         self.xunit_file = self.test_node.name + ".xml"
         self.test_node.scp_from(self.xunit_file, local_path=self.xunit_file)
-        # util.xunit_merge()
         self.test_node.run_cmd("killall screen")

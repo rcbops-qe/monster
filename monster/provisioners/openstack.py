@@ -6,6 +6,7 @@ from monster import util
 from monster.clients.openstack import Creds, Clients
 from monster.server_helper import run_cmd
 
+
 class Openstack(Provisioner):
     """
     Provisions chef nodes in openstack vms
