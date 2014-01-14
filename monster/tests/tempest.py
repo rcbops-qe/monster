@@ -183,7 +183,7 @@ class Tempest(Test):
 
         exclude_flag = "-e " + " -e ".join(exclude) if exclude else ''
 
-        path_args = " ".join(self.feature_test_paths)
+        path_args = " ".join(self.feature_test_paths())
 
         config_arg = ""
         if config_path:
