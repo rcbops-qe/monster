@@ -1,19 +1,21 @@
 import os
 from time import sleep
 
-from chef import autoconfigure, Environment, Node
+from chef import autoconfigure
+from chef import Environment as ChefEnvironment
+from chef import Node as ChefNode
 
 from monster import util
-from monster.Environments import Chef
 from monster.config import Config
 from monster.deployments.deployment import Deployment
 from monster.features import deployment_features
 from monster.features.node_features import ChefServer
-from monster.nodes.chef_node import ChefNode
 from monster.provisioners import provisioner as provisioners
 from monster.provisioners.util import get_provisioner
 from monster.provisioners.razor import Razor
 from monster.clients.openstack import Creds, Clients
+from monster.nodes.chef_node import ChefNode as MonsterChefNode
+from monster.environments.chef_environment import Chef as MonsterChefEnvironment
 
 
 class ChefDeployment(Deployment):
@@ -249,7 +251,7 @@ class ChefDeployment(Deployment):
 
         local_api = autoconfigure()
 
-        if Environment(name, api=local_api).exists:
+        if ChefEnvironment(name, api=local_api).exists:
             # Use previous dry build if exists
             util.logger.info("Using previous deployment:{0}".format(name))
             return cls.from_chef_environment(name)
@@ -264,7 +266,7 @@ class ChefDeployment(Deployment):
 
         template = Config(path)[template_name]
 
-        environment = Chef(name, local_api, description=name)
+        environment = MonsterChefEnvironment(name, local_api, description=name)
 
         os_name = template['os']
         product = template['product']
@@ -276,7 +278,7 @@ class ChefDeployment(Deployment):
         # provision nodes
         chef_nodes = provisioner.provision(template, deployment)
         for node in chef_nodes:
-            cnode = ChefNode.from_chef_node(node, os_name, product,
+            cnode = MonsterChefNode.from_chef_node(node, os_name, product,
                                             environment, deployment,
                                             provisioner, branch)
             provisioner.post_provision(cnode)
@@ -298,19 +300,19 @@ class ChefDeployment(Deployment):
         """
 
         local_api = autoconfigure()
-        env = Environment(environment, api=local_api)
+        env = ChefEnvironment(environment, api=local_api)
         override = env.override_attributes
         default = env.default_attributes
         chef_auth = override.get('remote_chef', None)
         remote_api = None
         if chef_auth and chef_auth["key"]:
             remote_api = ChefServer._remote_chef_api(chef_auth)
-            renv = Environment(environment, api=remote_api)
+            renv = ChefEnvironment(environment, api=remote_api)
             override = renv.override_attributes
             default = renv.default_attributes
-        environment = Chef(env.name, local_api, description=env.name,
-                           default=default, override=override,
-                           remote_api=remote_api)
+        environment = MonsterChefEnvironment(
+            env.name, local_api, description=env.name,
+            default=default, override=override, remote_api=remote_api)
 
         name = env.name
         deployment_args = override.get('deployment', {})
@@ -327,12 +329,12 @@ class ChefDeployment(Deployment):
                                            product=product)
 
         nodes = deployment_args.get('nodes', [])
-        for node in (Node(n, local_api) for n in nodes):
+        for node in (ChefNode(n, local_api) for n in nodes):
             if not node.exists:
                 util.logger.error("Non existant chef node:{0}".
                                   format(node.name))
                 continue
-            cnode = ChefNode.from_chef_node(node, deployment_args['os_name'],
+            cnode = MonsterChefNode.from_chef_node(node, deployment_args['os_name'],
                                             product, environment, deployment,
                                             provisioner,
                                             deployment_args['branch'])
@@ -398,7 +400,7 @@ class ChefDeployment(Deployment):
                                                      format(self.name),
                                                      tries=1)
             for n in nodes:
-                ChefNode.from_chef_node(n, environment=self.environment).\
+                MonsterChefNode.from_chef_node(n, environment=self.environment).\
                     destroy()
 
         # Destroy Chef environment
@@ -417,7 +419,7 @@ class ChefDeployment(Deployment):
         password = user['password']
         tenant = user['roles'].keys()[0]
         controller = next(self.search_role('controller'))
-        url = Node(controller.name).normal['keystone']['publicURL']
+        url = ChefNode(controller.name).normal['keystone']['publicURL']
         strategy = 'keystone'
         openrc = {'OS_USERNAME': user_name, 'OS_PASSWORD': password,
                   'OS_TENANT_NAME': tenant, 'OS_AUTH_URL': url,

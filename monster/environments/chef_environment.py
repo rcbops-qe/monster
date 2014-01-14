@@ -1,29 +1,12 @@
 """
-OpenStack Environments
+Chef Environment
 """
 
 from monster import util
 from chef import Environment as ChefEnvironment
+from environment import Environment as MonsterEnvironment
 
-
-class Environment(dict):
-
-    def __init__(self, name, description):
-        self.name = name
-        self.description = description
-
-    def __repr__(self):
-        """ 
-        Print out current instance
-        """
-        
-        outl = 'class: ' + self.__class__.__name__
-        for attr in self.__dict__:
-            outl += '\n\t' + attr + ' : ' + str(getattr(self, attr))
-        return outl
-
-
-class Chef(Environment):
+class Chef(MonsterEnvironment):
 
     def __init__(self, name, local_api, chef_server_name=None, remote_api=None,
                  description='', default=None, override=None):
@@ -62,6 +45,7 @@ class Chef(Environment):
             self.save()
 
     def save(self):
+
         # Load local chef env
         env = ChefEnvironment(self.name, api=self.local_api)
 
