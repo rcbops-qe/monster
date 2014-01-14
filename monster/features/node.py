@@ -2,11 +2,11 @@
 A nodes features
 """
 from chef import ChefAPI
+from monster import util
 from monster.features.feature import (Feature,
                                       remove_chef,
                                       install_packages,
                                       install_ruby_gems)
-from monster import util
 
 
 class Node(Feature):

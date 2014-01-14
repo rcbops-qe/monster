@@ -1,12 +1,12 @@
-from chef import Node as CNode
+from chef import Node as ChefNode
 
 from monster import util
-from monster.nodes.node import Node
-from monster.features import node_features
+from monster.nodes.node import Node as MonsterNode
+from monster.features import node as node_features
 from monster.provisioners.util import get_provisioner
 
 
-class ChefNode(Node):
+class Chef(MonsterNode):
     """
     A chef entity
     Provides chef related server fuctions
@@ -14,7 +14,7 @@ class ChefNode(Node):
     def __init__(self, ip, user, password, os, product, environment,
                  deployment, name, provisioner, branch, status=None,
                  run_list=None):
-        super(ChefNode, self).__init__(ip, user, password, os, product,
+        super(Chef, self).__init__(ip, user, password, os, product,
                                        environment, deployment, provisioner,
                                        status)
         self.name = name
@@ -24,25 +24,25 @@ class ChefNode(Node):
 
     def __str__(self):
         features = ", ".join(self.feature_names())
-        node = ("Node - name:{0}, os:{1}, branch:{2}, ip:{3}, status:{4}\n\t\t"
+        node = ("MonsterNode - name:{0}, os:{1}, branch:{2}, ip:{3}, status:{4}\n\t\t"
                 "Features: {5}").format(self.name, self.os_name, self.branch,
                                         self.ipaddress, self.status, features)
         return node
 
     def __getitem__(self, item):
         """
-        Node has access to chef attributes
+        MonsterNode has access to chef attributes
         """
         util.logger.debug("getting {0} on {1}".format(item, self.name))
-        return CNode(self.name, api=self.environment.local_api)[item]
+        return ChefNode(self.name, api=self.environment.local_api)[item]
 
     def __setitem__(self, item, value):
         """
-        Node can set chef attributes
+        MonsterNode can set chef attributes
         """
         util.logger.debug("setting {0} to {1} on {2}".format(item, value,
                                                              self.name))
-        lnode = CNode(self.name, api=self.environment.local_api)
+        lnode = ChefNode(self.name, api=self.environment.local_api)
         lnode[item] = value
         self.save(lnode)
 
@@ -52,10 +52,10 @@ class ChefNode(Node):
 
         # clear run_list
         self.run_list = []
-        node = CNode(self.name, self.environment.local_api)
+        node = ChefNode(self.name, self.environment.local_api)
         node.run_list = []
         node.save()
-        super(ChefNode, self).build()
+        super(Chef, self).build()
 
     def upgrade(self, times=1, accept_failure=False):
         """
@@ -66,7 +66,7 @@ class ChefNode(Node):
         :type accept_failure: boolean
         """
         self.branch = self.deployment.branch
-        super(ChefNode, self).upgrade()
+        super(Chef, self).upgrade()
         if not self.feature_in("chefserver"):
             try:
                 self.run(times=times)
@@ -94,14 +94,14 @@ class ChefNode(Node):
         self.status = "apply-feature"
         if not self.feature_in("chefserver"):
             self.run()
-        super(ChefNode, self).apply_feature()
+        super(Chef, self).apply_feature()
 
     def save(self, chef_node=None):
         """
         Saves a chef node to local and remote chef server
         """
         util.logger.debug("Saving chef_node:{0}".format(self.name))
-        chef_node = chef_node or CNode(self.name, self.environment.local_api)
+        chef_node = chef_node or ChefNode(self.name, self.environment.local_api)
         chef_node.save(self.environment.local_api)
         if self.environment.remote_api:
             # syncs to remote chef server if available
@@ -114,12 +114,12 @@ class ChefNode(Node):
         util.logger.debug("Syncing chef node from remote:{0}".format(
             self.name))
         if self.environment.remote_api:
-            chef_node = chef_node or CNode(self.name,
+            chef_node = chef_node or ChefNode(self.name,
                                            self.environment.remote_api)
             chef_node.save(self.environment.local_api)
 
     def get_run_list(self):
-        return CNode(self.name, self.environment.local_api).run_list
+        return ChefNode(self.name, self.environment.local_api).run_list
 
     def add_run_list_item(self, items):
         """
@@ -127,7 +127,7 @@ class ChefNode(Node):
         """
         util.logger.debug("run_list:{0} add:{1}".format(self.run_list, items))
         self.run_list.extend(items)
-        cnode = CNode(self.name, api=self.environment.local_api)
+        cnode = ChefNode(self.name, api=self.environment.local_api)
         cnode.run_list = self.run_list
         self.save(cnode)
 
@@ -138,7 +138,7 @@ class ChefNode(Node):
         util.logger.debug("run_list:{0} remove:{1}".format(self.run_list,
                                                            item))
         self.run_list.pop(self.run_list.index(item))
-        cnode = CNode(self.name, api=self.environment.local_api)
+        cnode = ChefNode(self.name, api=self.environment.local_api)
         cnode.run_list = self.run_list
         self.save(cnode)
 
@@ -166,7 +166,7 @@ class ChefNode(Node):
         if deployment:
             remote_api = deployment.environment.remote_api
         if remote_api:
-            rnode = CNode(node.name, remote_api)
+            rnode = ChefNode(node.name, remote_api)
             if rnode.exists:
                 node = rnode
         ipaddress = node['ipaddress']

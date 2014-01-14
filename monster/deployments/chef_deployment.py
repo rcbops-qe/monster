@@ -8,8 +8,8 @@ from chef import Node as ChefNode
 from monster import util
 from monster.config import Config
 from monster.deployments.deployment import Deployment
-from monster.features import deployment_features
-from monster.features.node_features import ChefServer
+from monster.features import deployment as deployment_features
+from monster.features.node import ChefServer
 from monster.provisioners import provisioner as provisioners
 from monster.provisioners.util import get_provisioner
 from monster.provisioners.razor import Razor
