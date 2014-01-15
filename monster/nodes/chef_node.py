@@ -1,12 +1,12 @@
 from chef import Node as ChefNode
 
 from monster import util
-from monster.nodes.node import Node as MonsterNode
+from monster.nodes.node import Node
 from monster.features import node as node_features
 from monster.provisioners.util import get_provisioner
 
 
-class Chef(MonsterNode):
+class Chef(Node):
     """
     A chef entity
     Provides chef related server fuctions
@@ -24,21 +24,21 @@ class Chef(MonsterNode):
 
     def __str__(self):
         features = ", ".join(self.feature_names())
-        node = ("MonsterNode - name:{0}, os:{1}, branch:{2}, ip:{3}, status:{4}\n\t\t"
+        node = ("Node - name:{0}, os:{1}, branch:{2}, ip:{3}, status:{4}\n\t\t"
                 "Features: {5}").format(self.name, self.os_name, self.branch,
                                         self.ipaddress, self.status, features)
         return node
 
     def __getitem__(self, item):
         """
-        MonsterNode has access to chef attributes
+        Node has access to chef attributes
         """
         util.logger.debug("getting {0} on {1}".format(item, self.name))
         return ChefNode(self.name, api=self.environment.local_api)[item]
 
     def __setitem__(self, item, value):
         """
-        MonsterNode can set chef attributes
+        Node can set chef attributes
         """
         util.logger.debug("setting {0} to {1} on {2}".format(item, value,
                                                              self.name))
