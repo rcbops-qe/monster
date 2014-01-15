@@ -417,6 +417,11 @@ rackspace:
         30GBP: 30 GB Performance
         60GBP: 60 GB Performance
         90GBP: 90 GB Performance
+    roles:
+      chefserver: 1GBP
+      controller: 2GBP
+      compute: 8GBP
+
     networks:
         - public
         - private
