@@ -145,7 +145,7 @@ class Tempest(Test):
 
         return json.loads(raw)
 
-    def feature_test_paths(self, paths):
+    def feature_test_paths(self, paths=None):
         test_map = util.config['tests']['tempest']['test_map']
         if not paths:
             features = self.deployment.feature_names()
@@ -183,7 +183,7 @@ class Tempest(Test):
 
         exclude_flag = "-e " + " -e ".join(exclude) if exclude else ''
 
-        path_args = " ".join(self.feature_test_paths)
+        path_args = " ".join(self.feature_test_paths())
 
         config_arg = ""
         if config_path:
