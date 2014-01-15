@@ -68,18 +68,19 @@ An OpenStack Orchestration Engine
     Deploys an OpenStack cluster
 
     #+BEGIN_SRC sh
-      compute.py build -n precise-default --branch master --template_path deployment_templates/default.yaml --config config.yaml --destroy --log log.txt --log_level DEBUG --provisioner rackspace --test
+      compute.py build -n precise-default --branch master --template precise-default --config config.yaml --secret-path secret.yaml --destroy --log log.txt --log_level DEBUG --provisioner rackspace --test
     #+END_SRC
 
 **** Arguments
      - name: name of the template
      - branch: branch rcbops cookbooks
-     - template_path: path to templates
+     - template: name of template to use
      - config: path to config file
+     - secret-path: path to secret config file
      - destroy: destroy after build or failure
      - dry: only build environment
      - log: path to log file
-     - log_level: level to log - INFO, DEBUG
+     - log-level: level to log - INFO, DEBUG
      - provisioner: provisioner to use - razor, rackspace, openstack
      - test: run tests after build
 
@@ -94,8 +95,9 @@ An OpenStack Orchestration Engine
 **** Arguments
      - name: name of the template
      - config: path to config file
+     - secret-path: path to secret config file
      - log: path to log file
-     - log_level: level to log - INFO, DEBUG
+     - log-level: level to log - INFO, DEBUG
 
 *** Destroy
 
@@ -108,8 +110,9 @@ An OpenStack Orchestration Engine
 **** Arguments
      - name: name of the template
      - config: path to config file
+     - secret-path: path to secret config file
      - log: path to log file
-     - log_level: level to log - INFO, DEBUG
+     - log-level: level to log - INFO, DEBUG
 
 *** openrc
 
@@ -127,6 +130,7 @@ An OpenStack Orchestration Engine
 **** Arguments
      - name: name of the template
      - config: path to config file
+     - secret-path: path to secret config file
      - log: path to log file
      - log_level: level to log - INFO, DEBUG
 
@@ -141,6 +145,7 @@ An OpenStack Orchestration Engine
 **** Arguments
      - name: name of the template
      - config: path to config file
+     - secret-path: path to secret config file
      - log: path to log file
      - log_level: level to log - INFO, DEBUG
 
@@ -155,5 +160,6 @@ An OpenStack Orchestration Engine
 **** Arguments
      - name: name of the template
      - config: path to config file
+     - secret-path: path to secret config file
      - log: path to log file
      - log_level: level to log - INFO, DEBUG
