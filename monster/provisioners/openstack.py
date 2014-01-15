@@ -56,9 +56,7 @@ class Openstack(Provisioner):
         for features in template['nodes']:
             name = self.name(features[0], deployment)
             self.names.append(name)
-            flavor = "2GBP"
-            if "compute" in name:
-                flavor = "8GBP"
+            flavor = util.config['rackspace']['roles'][features[0]]
             events.append(spawn(self.chef_instance, deployment, name,
                                 flavor=flavor))
         joinall(events)
