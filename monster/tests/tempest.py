@@ -10,6 +10,7 @@ from itertools import ifilter, chain
 
 from monster import util
 from monster.tests.test import Test
+from monster.util import xunit_merge
 
 
 class Tempest(Test):
@@ -320,3 +321,4 @@ class Tempest(Test):
         self.xunit_file = self.test_node.name + ".xml"
         self.test_node.scp_from(self.xunit_file, local_path=self.xunit_file)
         self.test_node.run_cmd("killall screen")
+        xunit_merge()
