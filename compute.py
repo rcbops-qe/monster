@@ -8,10 +8,10 @@ import argh
 import traceback
 import webbrowser
 from monster import util
-from monster.provisioners.util import get_provisioner
 from monster.config import Config
-from monster.deployments.chef_deployment import ChefDeployment
 from monster.tests.tempest import Tempest
+from monster.provisioners.util import get_provisioner
+from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
 
 
 def build(name="build", template="precise-default", branch="master",
@@ -35,8 +35,8 @@ def build(name="build", template="precise-default", branch="master",
     # provisiong deployment
     util.config = Config(config, secret_path=secret_path)
     cprovisioner = get_provisioner(provisioner)
-    deployment = ChefDeployment.fromfile(name, template, branch,
-                                         cprovisioner, template_file)
+    deployment = MonsterChefDeployment.fromfile(
+        name, template, branch, cprovisioner, template_file)
     if dry:
         # build environment
         try:
@@ -159,7 +159,7 @@ def show(name="build", config=None, log=None, secret_path=None,
 def _load(name="build", config=None, secret_path=None):
     # load deployment and source openrc
     util.config = Config(config, secret_path=secret_path)
-    return ChefDeployment.from_chef_environment(name)
+    return MonsterChefDeployment.from_chef_environment(name)
 
 
 def _set_log(log, log_level):
