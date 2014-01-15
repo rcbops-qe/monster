@@ -40,6 +40,10 @@ An OpenStack Orchestration Engine
        pip install -r ~/monster/requirements.txt
      #+END_SRC
 
+     note: If you're on a small server I've experienced failed
+     installs of gevent because there isn't enough memory. Adding swap
+     fixed things.
+
    - put your credentials in ~secret.yaml~ at the top level of monster
 
      #+BEGIN_EXAMPLE
