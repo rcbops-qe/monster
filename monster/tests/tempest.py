@@ -145,7 +145,7 @@ class Tempest(Test):
 
         return json.loads(raw)
 
-    def feature_test_paths(self, paths):
+    def feature_test_paths(self, paths=None):
         test_map = util.config['tests']['tempest']['test_map']
         if not paths:
             features = self.deployment.feature_names()
