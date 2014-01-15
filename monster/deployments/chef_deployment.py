@@ -13,9 +13,9 @@ from monster.clients.openstack import Creds, Clients
 from monster.provisioners.util import get_provisioner
 from monster.deployments.deployment import Deployment
 from monster.nodes.chef_node import Chef as MonsterChefNode
-from monster.provisioners import provisioner as provisioners
 from monster.features import deployment as deployment_features
-from monster.environments.chef_environment import Chef as MonsterChefEnvironment
+from monster.environments.chef_environment import Chef as \
+    MonsterChefEnvironment
 
 
 class Chef(Deployment):
@@ -28,8 +28,8 @@ class Chef(Deployment):
                  status=None, product=None, clients=None):
         status = status or "provisioning"
         super(Chef, self).__init__(name, os_name, branch,
-                                             provisioner, status, product,
-                                             clients)
+                                   provisioner, status, product,
+                                   clients)
         self.environment = environment
         self.has_controller = False
         self.has_orch_master = False
@@ -126,7 +126,8 @@ class Chef(Deployment):
             compute.run_cmd(node_commands)
 
         # backup db
-        controller1.run_cmd("bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/database_backup.sh)")
+        backup = util.config['upgrade']['commands']['backup-db']
+        controller1.run_cmd(backup)
 
         # Munge away quantum
         munge_dir = "/opt/upgrade/mungerator"
@@ -175,9 +176,8 @@ class Chef(Deployment):
 
         if self.feature_in('highavailability'):
             controller2 = controllers[1]
-            stop = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit stop $i; done; service keepalived stop"""
-            start = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit start $i; done; service keepalived restart"""
-            keep_stop = "service keepalived stop"
+            stop = util.config['upgrade']['commands']['stop-services']
+            start = util.config['upgrade']['commands']['start-services']
 
             # Sleep for vips to move
             controller2.run_cmd(stop)
@@ -192,7 +192,8 @@ class Chef(Deployment):
         controller1.upgrade()
 
         # restore quantum db
-        controller1.run_cmd("bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/quantum-upgrade.sh)")
+        restore_db = util.config['upgrade']['commands']['restore-db']
+        controller1.run_cmd(restore_db)
 
         if self.feature_in('highavailability'):
             controller1.run_cmd("service haproxy restart; "
@@ -230,6 +231,8 @@ class Chef(Deployment):
 
         super(Chef, self).update_environment()
         self.save_to_environment()
+        with open("{0}.json".format(self.name), "w") as f:
+            f.write(self.environment.__dict__)
 
     @classmethod
     def fromfile(cls, name, template_name, branch, provisioner, template_file,
@@ -279,8 +282,8 @@ class Chef(Deployment):
         chef_nodes = provisioner.provision(template, deployment)
         for node in chef_nodes:
             cnode = MonsterChefNode.from_chef_node(node, os_name, product,
-                                            environment, deployment,
-                                            provisioner, branch)
+                                                   environment, deployment,
+                                                   provisioner, branch)
             provisioner.post_provision(cnode)
             deployment.nodes.append(cnode)
 
@@ -334,10 +337,11 @@ class Chef(Deployment):
                 util.logger.error("Non existant chef node:{0}".
                                   format(node.name))
                 continue
-            cnode = MonsterChefNode.from_chef_node(node, deployment_args['os_name'],
-                                            product, environment, deployment,
-                                            provisioner,
-                                            deployment_args['branch'])
+            cnode = MonsterChefNode.from_chef_node(node,
+                                                   deployment_args['os_name'],
+                                                   product, environment,
+                                                   deployment, provisioner,
+                                                   deployment_args['branch'])
             deployment.nodes.append(cnode)
         return deployment
 
@@ -397,10 +401,11 @@ class Chef(Deployment):
         # Destroy rogue nodes
         if not self.nodes:
             nodes = Razor.node_search("chef_environment:{0}".
-                                                     format(self.name),
-                                                     tries=1)
+                                      format(self.name),
+                                      tries=1)
             for n in nodes:
-                MonsterChefNode.from_chef_node(n, environment=self.environment).\
+                MonsterChefNode.from_chef_node(n,
+                                               environment=self.environment).\
                     destroy()
 
         # Destroy Chef environment

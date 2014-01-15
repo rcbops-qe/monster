@@ -298,12 +298,6 @@ class ChefServer(Node):
         self._set_up_remote()
         self._remote_other_nodes()
         self.node.environment.save()
-        self._erchef_patch
-        # util.logger.info("Sleeping for solr")
-        # sleep(120)
-
-    def _erchef_patch(self):
-        self.node.run_cmd("""echo 'node.override["erchef"]["s3_url_ttl"] = 3600' >> /etc/chef-server/chef-server.rb""")
 
     def archive(self):
         self.archive = {"log": [""],
@@ -463,8 +457,8 @@ class Metrics(Node):
         role = self.__class__.__name__.lower()
 
         # Set the run list based on the deployment config for the role
-        run_list = util.config['rcbops'][self.node.product]\
-                              [role][self.role]['run_list']
+        run_list = util.config['rcbops'][self.node.product][
+            role][self.role]['run_list']
 
         # Add the run list to the node
         self.node.add_run_list_item(run_list)

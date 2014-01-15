@@ -116,6 +116,7 @@ class Deployment(object):
         util.logger.debug("Deployment step: post-configure")
         self.post_configure()
         self.status = "post-build"
+        util.logger.info(self)
 
     def artifact(self):
         """

@@ -15,8 +15,8 @@ class Chef(Node):
                  deployment, name, provisioner, branch, status=None,
                  run_list=None):
         super(Chef, self).__init__(ip, user, password, os, product,
-                                       environment, deployment, provisioner,
-                                       status)
+                                   environment, deployment, provisioner,
+                                   status)
         self.name = name
         self.branch = branch
         self.run_list = run_list or []
@@ -101,7 +101,8 @@ class Chef(Node):
         Saves a chef node to local and remote chef server
         """
         util.logger.debug("Saving chef_node:{0}".format(self.name))
-        chef_node = chef_node or ChefNode(self.name, self.environment.local_api)
+        chef_node = chef_node or ChefNode(self.name,
+                                          self.environment.local_api)
         chef_node.save(self.environment.local_api)
         if self.environment.remote_api:
             # syncs to remote chef server if available
@@ -115,7 +116,7 @@ class Chef(Node):
             self.name))
         if self.environment.remote_api:
             chef_node = chef_node or ChefNode(self.name,
-                                           self.environment.remote_api)
+                                              self.environment.remote_api)
             chef_node.save(self.environment.local_api)
 
     def get_run_list(self):

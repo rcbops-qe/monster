@@ -438,10 +438,10 @@ class Swift(Deployment):
             controller.run()
         else:
             for proxy_node in proxy_nodes:
-                util.logger.info("On node root@{0}, run the following command: "
+                util.logger.info("On node root@{0}, run: "
                                  "chef client".format(proxy_node.ipaddress))
             for storage_node in storage_nodes:
-                util.logger.info("On node root@{0}, run the following command: "
+                util.logger.info("On node root@{0}, run: "
                                  "chef client".format(storage_node.ipaddress))
             util.logger.info(
                 "On node root@{0} run the following command: chef-client "
