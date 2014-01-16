@@ -1,5 +1,7 @@
 * Monster
 
+[[https://travis-ci.org/rcbops-qa/monster.png?branch=master]]
+
 An OpenStack Orchestration Engine
 
 ** Requirements
