@@ -83,7 +83,8 @@ class Upgrade_4_2_1(object):
             compute.run_cmd(node_commands)
 
         # backup db
-        controller1.run_cmd("bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/database_backup.sh)")
+        backup = util.config['upgrade']['commands']['backup-db']
+        controller1.run_cmd(backup)
 
         # Munge away quantum
         munge_dir = "/opt/upgrade/mungerator"
@@ -112,8 +113,8 @@ class Upgrade_4_2_1(object):
 
         if self.deployment.feature_in('highavailability'):
             controller2 = controllers[1]
-            stop = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit stop $i; done; service keepalived stop"""
-            start = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit start $i; done; service keepalived restart"""
+            stop = util.config['upgrade']['commands']['stop-services']
+            start = util.config['upgrade']['commands']['start-services']
 
             # Sleep for vips to move
             controller2.run_cmd(stop)
@@ -126,7 +127,8 @@ class Upgrade_4_2_1(object):
         controller1.upgrade()
 
         # restore quantum db
-        controller1.run_cmd("bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/quantum-upgrade.sh)")
+        restore_db = util.config['upgrade']['commands']['restore-db']
+        controller1.run_cmd(restore_db)
 
         if self.deployment.feature_in('highavailability'):
             controller1.run_cmd("service haproxy restart; "
@@ -191,9 +193,8 @@ class Upgrade_4_1_3(object):
 
         if self.feature_in('highavailability'):
             controller2 = controllers[1]
-            stop = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit stop $i; done; service keepalived stop"""
-            start = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit start $i; done; service keepalived restart"""
-            keep_stop = "service keepalived stop"
+            stop = util.config['upgrade']['commands']['stop-services']
+            start = util.config['upgrade']['commands']['start-services']
 
             # Sleep for vips to move
             controller2.run_cmd(stop)
@@ -207,7 +208,8 @@ class Upgrade_4_1_3(object):
         controller1.upgrade()
 
         # restore quantum db
-        controller1.run_cmd("bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/quantum-upgrade.sh)")
+        restore_db = util.config['upgrade']['commands']['restore-db']
+        controller1.run_cmd(restore_db)
 
         if self.feature_in('highavailability'):
             controller1.run_cmd("service haproxy restart; "

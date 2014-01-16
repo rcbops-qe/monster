@@ -122,7 +122,7 @@ class Tempest(Test):
             "IS_NEUTRON": is_neutron}
         template_path = os.path.join(os.path.dirname(
             os.path.abspath(__file__)), os.pardir, os.pardir,
-            "files/testing_setup.py")
+            "files/testing_setup.py.template")
 
         # apply values
         with open(template_path) as f:

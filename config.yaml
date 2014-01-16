@@ -458,10 +458,15 @@ neutron:
         vip: 192.168.3.156
 
 upgrade:
-    supported:
-      v4.1.2:
-        - v4.1.3rc
-        - v4.1.3
-      v4.1.3:
-        - v4.2.1rc
-        - v4.2.1
+  commands:
+    backup-db: bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/database_backup.sh)
+    restore-db: bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/quantum-upgrade.sh)
+    stop-services: for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit stop $i; done; service keepalived stop
+    start-services: for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit start $i; done; service keepalived restart
+  supported:
+    v4.1.2:
+      - v4.1.3rc
+      - v4.1.3
+    v4.1.3:
+      - v4.2.1rc
+      - v4.2.1

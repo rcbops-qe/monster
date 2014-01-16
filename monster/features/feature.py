@@ -4,12 +4,12 @@ Base Feature
 
 
 class Feature(object):
-    """ 
+    """
     Represents a OpenStack Feature
     """
 
     def __repr__(self):
-        """ 
+        """
         Print out current instance
         :rtype: String
         """
@@ -17,7 +17,7 @@ class Feature(object):
         return outl
 
     def __str__(self):
-        """ 
+        """
         Prints out class name
         :rtype: String
         """
@@ -44,9 +44,9 @@ class Feature(object):
 
 
 def remove_chef(node):
-    """ 
+    """
     Removes chef from the given node
-    
+
     :param node: Node object to remove chef from
     :type node: object
     :rtype: function
@@ -65,7 +65,7 @@ def remove_chef(node):
 
 
 def install_package(node, package):
-    """ 
+    """
     Installs given package
 
     :param package: package to install

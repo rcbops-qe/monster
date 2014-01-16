@@ -6,6 +6,7 @@ from monster import util
 from chef import Environment as ChefEnvironment
 from environment import Environment as MonsterEnvironment
 
+
 class Chef(MonsterEnvironment):
 
     def __init__(self, name, local_api, chef_server_name=None, remote_api=None,
