@@ -78,6 +78,7 @@ class Rackspace(Openstack):
             "sed 's/vm.swappiness.*$/vm.swappiness=25/g' "
             "/etc/sysctl.conf > /etc/sysctl.conf",
             "sysctl vm.swappiness=30",
-            "swapon /mnt/swap"
+            "swapon /mnt/swap",
+            "echo '/mnt/swap swap swap defaults 0 0' >> /etc/fstab"
         ]
         node.run_cmd("; ".join(cmds))
