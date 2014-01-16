@@ -12,7 +12,8 @@ from monster.provisioners import provisioner as provisioners
 from monster.config import Config
 from monster.deployments.chef_deployment import ChefDeployment
 
-def build(name="precise-swift", branch="master", provisioner="razor", 
+
+def build(name="precise-swift", branch="master", provisioner="razor",
           template_path=None, config=None, destroy=False,
           dry=False, log=None, log_level="INFO"):
 
@@ -95,6 +96,7 @@ def _load(name="precise-swift", config=None, provisioner="razor"):
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
     return ChefDeployment.from_chef_environment(name, provisioner=cprovisioner)
+
 
 def _set_log(log, log_level):
     # set log level and file
