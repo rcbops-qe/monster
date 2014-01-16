@@ -10,6 +10,7 @@ import webbrowser
 from monster import util
 from monster.config import Config
 from monster.tests.tempest import Tempest
+from monster.tests.ha import HA_Test
 from monster.provisioners.util import get_provisioner
 from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
 
@@ -104,6 +105,10 @@ def test(name="build", config=None, log=None, log_level="INFO",
     deployment = _load(name, config, secret_path)
     tempest = Tempest(deployment)
     tempest.test()
+
+    if "ha" in deployment.feature_names:
+        ha = HA_Test(deployment)
+        ha.test()
 
 
 def artifact(name="build", config=None, log=None, secret_path=None,
