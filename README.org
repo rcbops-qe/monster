@@ -72,17 +72,17 @@ An OpenStack Orchestration Engine
     Deploys an OpenStack cluster
 
     #+BEGIN_SRC sh
-      compute.py build -n precise-default --branch master --template precise-default --config config.yaml --secret-path secret.yaml --destroy --log log.txt --log_level DEBUG --provisioner rackspace --test
+      compute.py build -n precise-default --branch master --template precise-default --config config.yaml --secret-path secret.yaml --destroy --log log.txt --log-level DEBUG --provisioner rackspace --test
     #+END_SRC
 
 **** Arguments
-     - name: name of the template
+     - name: name of the deployment
      - branch: branch rcbops cookbooks
      - template: name of template to use
      - config: path to config file
      - secret-path: path to secret config file
      - destroy: destroy after build or failure
-     - dry: only build environment
+     - dry: only build environment (will provision in cloud)
      - log: path to log file
      - log-level: level to log - INFO, DEBUG
      - provisioner: provisioner to use - razor, rackspace, openstack
@@ -97,7 +97,7 @@ An OpenStack Orchestration Engine
     #+END_SRC
 
 **** Arguments
-     - name: name of the template
+     - name: name of the deployment
      - config: path to config file
      - secret-path: path to secret config file
      - log: path to log file
@@ -108,11 +108,11 @@ An OpenStack Orchestration Engine
     Destroys an OpenStack deployment
 
     #+BEGIN_SRC sh
-      compute.py destroy -n precise-default --config config.yaml --log log.txt --log_level DEBUG
+      compute.py destroy -n precise-default --config config.yaml --log log.txt --log-level DEBUG
     #+END_SRC
 
 **** Arguments
-     - name: name of the template
+     - name: name of the deployment
      - config: path to config file
      - secret-path: path to secret config file
      - log: path to log file
@@ -132,11 +132,11 @@ An OpenStack Orchestration Engine
     #+END_SRC
 
 **** Arguments
-     - name: name of the template
+     - name: name of the deployment
      - config: path to config file
      - secret-path: path to secret config file
      - log: path to log file
-     - log_level: level to log - INFO, DEBUG
+     - log-level: level to log - INFO, DEBUG
 
 *** Horizon
 
@@ -147,23 +147,56 @@ An OpenStack Orchestration Engine
     #+END_SRC
 
 **** Arguments
-     - name: name of the template
+     - name: name of the deployment
      - config: path to config file
      - secret-path: path to secret config file
      - log: path to log file
-     - log_level: level to log - INFO, DEBUG
+     - log-level: level to log - INFO, DEBUG
 
 *** Test
 
     Runs tests on a running OpenStack cluster
 
     #+BEGIN_SRC sh
-      compute.py test -n precise-default --config config.yaml --log log.txt --log_level DEBUG
+      compute.py test -n precise-default --config config.yaml --log log.txt --log-level DEBUG
     #+END_SRC
 
 **** Arguments
-     - name: name of the template
+     - name: name of the deployment
      - config: path to config file
      - secret-path: path to secret config file
      - log: path to log file
-     - log_level: level to log - INFO, DEBUG
+     - log-level: level to log - INFO, DEBUG
+
+*** Upgrade
+
+    Upgrades the deployment to the specified branch
+
+    #+BEGIN_SRC sh
+      compute.py upgrade -n precise-default -u v4.2.1 --log-level DEBUG
+    #+END_SRC
+
+**** Arguments
+     - name: name of the deployment
+     - upgrade-branch: branch to upgrade to
+     - config: path to config file
+     - secret-path: path to secret config file
+     - log: path to log file
+     - log-level: level to log - INFO, DEBUG
+
+*** Tmux
+
+    Opens an new tmux session with each node in a different window
+
+    *Requires tmux to be installed*
+
+    #+BEGIN_SRC sh
+      compute.py tmux -n precise-default
+    #+END_SRC
+
+**** Arguments
+     - name: name of the deployment
+     - config: path to config file
+     - secret-path: path to secret config file
+     - log: path to log file
+     - log-level: level to log - INFO, DEBUG
