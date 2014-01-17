@@ -57,8 +57,8 @@ tens = ["ten ", "eleven ", "twelve ", "thirteen ", "fourteen ",
 twenties = ["", "", "twenty ", "thirty ", "forty ",
             "fifty ", "sixty ", "seventy ", "eighty ", "ninety "]
 thousands = ["", "thousand ", "million ", "billion ", "trillion ",
-            "quadrillion ", "quintillion ", "sextillion ", "septillion ",
-            "octillion ", "nonillion ", "decillion ", "undecillion ",
-            "duodecillion ", "tredecillion ", "quattuordecillion ",
-            "sexdecillion ", "septendecillion ", "octodecillion ",
-            "novemdecillion ", "vigintillion "]
+             "quadrillion ", "quintillion ", "sextillion ", "septillion ",
+             "octillion ", "nonillion ", "decillion ", "undecillion ",
+             "duodecillion ", "tredecillion ", "quattuordecillion ",
+             "sexdecillion ", "septendecillion ", "octodecillion ",
+             "novemdecillion ", "vigintillion "]
