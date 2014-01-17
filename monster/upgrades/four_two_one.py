@@ -3,6 +3,7 @@ from time import sleep
 from monster import util
 from monster.upgrades.upgrade import Upgrade
 
+
 class FourTwoOne(Upgrade):
     """
     4.2.1 Upgrade Procedures

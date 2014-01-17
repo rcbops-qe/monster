@@ -1,6 +1,5 @@
 import os
 import sys
-from time import sleep
 
 from chef import autoconfigure
 from chef import Node as ChefNode
@@ -91,11 +90,12 @@ class Chef(Deployment):
         word_b = [int2word(b) for b in branch_i]
 
         # convert list to class name
-        up_class = "".join(word_b).replace(" ","")
-        up_class_module = "_".join(word_b).replace(" ","")
+        up_class = "".join(word_b).replace(" ", "")
+        up_class_module = "_".join(word_b).replace(" ", "")
 
         try:
-            identifier = getattr(sys.modules['monster'].upgrades, up_class_module)
+            identifier = getattr(sys.modules['monster'].upgrades,
+                                 up_class_module)
             print dir(identifier)
         except AttributeError:
             raise NameError("{0} doesn't exist.".format(up_class_module))
