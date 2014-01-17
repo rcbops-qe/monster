@@ -3,6 +3,7 @@ from time import sleep
 from monster import util
 from monster.upgrades.upgrade import Upgrade
 
+
 class FourTwoOne(Upgrade):
     """
     4.2.1 Upgrade Procedures
@@ -15,7 +16,7 @@ class FourTwoOne(Upgrade):
         """
         Prepares a 4.2.1 upgrade with mungerator
         """
-        
+
         controllers = list(self.deployment.search_role('controller'))
         computes = list(self.deployment.search_role('compute'))
         controller1 = controllers[0]
