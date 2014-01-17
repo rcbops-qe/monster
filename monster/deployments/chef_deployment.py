@@ -118,7 +118,7 @@ class Chef(Deployment):
         super(Chef, self).update_environment()
         self.save_to_environment()
         with open("{0}.json".format(self.name), "w") as f:
-            f.write(str(self.environment.__dict__))
+            f.write(str(self.environment))
 
     @classmethod
     def fromfile(cls, name, template_name, branch, provisioner, template_file,
