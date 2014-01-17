@@ -27,7 +27,6 @@ def int2word(n):
                 n3.append(int(r[:2]))
             elif q >= -2:
                 n3.append(int(r[:1]))
-
     # break each group of 3 digits into
     # ones, tens/twenties, hundreds
     # and form a string
