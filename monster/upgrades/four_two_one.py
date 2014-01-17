@@ -16,7 +16,6 @@ class FourTwoOne(Upgrade):
         """
         Prepares a 4.2.1 upgrade with mungerator
         """
-
         controllers = list(self.deployment.search_role('controller'))
         computes = list(self.deployment.search_role('compute'))
         controller1 = controllers[0]

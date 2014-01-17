@@ -1,10 +1,9 @@
 from monster.upgrades import *
 
+
 # Borrowed from vegaseat
 # http://www.daniweb.com/software-development/
 # python/code/216839/number-to-word-converter-python
-
-
 def int2word(n):
     """
     convert an integer number n into a string of english words
