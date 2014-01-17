@@ -96,7 +96,6 @@ class Chef(Deployment):
         try:
             identifier = getattr(sys.modules['monster'].upgrades,
                                  up_class_module)
-            print dir(identifier)
         except AttributeError:
             raise NameError("{0} doesn't exist.".format(up_class_module))
 
