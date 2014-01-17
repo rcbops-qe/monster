@@ -12,7 +12,7 @@ class Razor(Provisioner):
     """
 
     def __init__(self, ip=None):
-        self.ipaddress = ip or util.config['razor']['ip']
+        self.ipaddress = ip or util.config['secrets']['razor']['ip']
         self.api = razor_api(self.ipaddress)
 
     def provision(self, template, deployment):

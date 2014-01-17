@@ -4,8 +4,6 @@ chef:
     install_dir: /opt/rcbops
     upgrade_dir: /opt/upgrade
   run_cmd: "chef-client"
-razor:
-  ip: 198.101.133.3
 environments:
     openssh:
       server:
