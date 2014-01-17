@@ -145,6 +145,24 @@ class Node(object):
             util.logger.info(log)
             feature.upgrade()
 
+    def update_packages(self, dist_upgrade=False):
+        """
+        Updates installed packages
+        """
+
+        if 'precise' in self.os_name:
+            update_cmds = ['apt-get update',
+                           'apt-get upgrade -y']
+            if dist_upgrade:
+                update_cmds.append('apt-get dist-upgrade -y')
+        else:
+            update_cmds = ['yum update -y']
+
+        update_cmd = ';'.join(update_cmds)
+
+        util.logger.info('Updating Distribution Packages')
+        self.run_cmd(update_cmd)
+
     def destroy(self):
         util.logger.info("Destroying node:{0}".format(self.name))
         for feature in self.features:
