@@ -5,13 +5,14 @@ from chef import Node, Client, Search, autoconfigure
 from monster import util
 from monster.razor_api import razor_api
 
+
 class Razor(Provisioner):
     """
     Provisions chef nodes in a Razor environment
     """
 
     def __init__(self, ip=None):
-        self.ipaddress = ip or util.config['razor']['ip']
+        self.ipaddress = ip or util.config['secrets']['razor']['ip']
         self.api = razor_api(self.ipaddress)
 
     def provision(self, template, deployment):

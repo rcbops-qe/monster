@@ -1,5 +1,5 @@
 import os
-from time import sleep
+import sys
 
 from chef import autoconfigure
 from chef import Node as ChefNode
@@ -7,15 +7,16 @@ from chef import Environment as ChefEnvironment
 
 from monster import util
 from monster.config import Config
+from monster.upgrades.util import int2word
 from monster.features.node import ChefServer
 from monster.provisioners.razor import Razor
 from monster.clients.openstack import Creds, Clients
 from monster.provisioners.util import get_provisioner
 from monster.deployments.deployment import Deployment
 from monster.nodes.chef_node import Chef as MonsterChefNode
-from monster.provisioners import provisioner as provisioners
 from monster.features import deployment as deployment_features
-from monster.environments.chef_environment import Chef as MonsterChefEnvironment
+from monster.environments.chef_environment import Chef as \
+    MonsterChefEnvironment
 
 
 class Chef(Deployment):
@@ -28,8 +29,8 @@ class Chef(Deployment):
                  status=None, product=None, clients=None):
         status = status or "provisioning"
         super(Chef, self).__init__(name, os_name, branch,
-                                             provisioner, status, product,
-                                             clients)
+                                   provisioner, status, product,
+                                   clients)
         self.environment = environment
         self.has_controller = False
         self.has_orch_master = False
@@ -71,157 +72,42 @@ class Chef(Deployment):
         super(Chef, self).build()
         self.save_to_environment()
 
-    def prepare_upgrade(self):
+    def get_upgrade(self, upgrade):
         """
-        4.2.1 Upgrade Procedures
+        This will return an instance of the correct upgrade class
+        :param upgrade: The name of the provisoner
+        :type upgrade: String
+        :rtype: object
         """
 
-        controllers = list(self.search_role('controller'))
-        computes = list(self.search_role('compute'))
-        controller1 = controllers[0]
-        controller2 = None
+        # convert branch into a list of int strings
+        if 'v' in upgrade:
+            branch_i = [int(x) for x in upgrade.strip('v').split('.')]
+        else:
+            branch_i = [int(x) for x in upgrade.split('.')]
 
-        chef_server = next(self.search_role('chefserver'))
-        # purge cookbooks
-        munge = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done"]
-        ncmds = []
-        ccmds = []
-        controller1.add_run_list_item(['role[heat-all]'])
-        if self.feature_in('highavailability'):
-            controller2 = controllers[1]
-            controller2.add_run_list_item(['role[heat-api]',
-                                           'role[heat-api-cfn]',
-                                           'role[heat-api-cloudwatch]'])
-        if self.os_name == "precise":
-            # For Ceilometer
-            ncmds.extend([
-                "apt-get clean",
-                "apt-get -y install python-warlock python-novaclient babel"])
-            # For Horizon
-            ccmds.append(
-                "apt-get -y install openstack-dashboard python-django-horizon")
-            # For mungerator
-            munge.extend(["apt-get -y install python-dev",
-                          "apt-get -y install python-setuptools"])
-            # For QEMU
-            provisioner = str(self.provisioner)
-            if provisioner == "rackspace" or provisioner == "openstack":
-                ncmds.extend(
-                    ["apt-get update",
-                     "apt-get remove qemu-utils -y",
-                     "apt-get install qemu-utils -y"])
+        # convert list of int strings to their english counterpart
+        word_b = [int2word(b) for b in branch_i]
 
-        if self.os_name == "centos":
-            # For mungerator
-            munge.extend(["yum install -y openssl-devel",
-                          "yum install -y python-devel",
-                          "yum install -y python-setuptools"])
+        # convert list to class name
+        up_class = "".join(word_b).replace(" ", "")
+        up_class_module = "_".join(word_b).replace(" ", "")
 
-        node_commands = "; ".join(ncmds)
-        controller_commands = "; ".join(ccmds)
-        for controller in controllers:
-            controller.run_cmd(node_commands)
-            controller.run_cmd(controller_commands)
-        for compute in computes:
-            compute.run_cmd(node_commands)
+        try:
+            identifier = getattr(sys.modules['monster'].upgrades,
+                                 up_class_module)
+        except AttributeError:
+            raise NameError("{0} doesn't exist.".format(up_class_module))
 
-        # backup db
-        controller1.run_cmd("bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/database_backup.sh)")
-
-        # Munge away quantum
-        munge_dir = "/opt/upgrade/mungerator"
-        munge_repo = "https://github.com/rcbops/mungerator"
-        munge.extend([
-            "rm -rf {0}".format(munge_dir),
-            "git clone {0} {1}".format(munge_repo, munge_dir),
-            "cd {0}; python setup.py install".format(munge_dir),
-            "mungerator munger --client-key /etc/chef-server/admin.pem "
-            "--auth-url https://127.0.0.1:443 all-nodes-in-env "
-            "--name {0}".format(self.name)])
-        chef_server.run_cmd("; ".join(munge))
-        self.environment.save_locally()
+        return util.module_classes(identifier)[up_class](self)
 
     def upgrade(self, upgrade_branch):
         """
         Upgrades the deployment (very chefy, rcbopsy)
         """
 
-        supported = util.config['upgrade']['supported'][self.branch]
-        if upgrade_branch not in supported:
-            util.logger.error("{0} to {1} upgarde not supported".format(
-                self.branch, upgrade_branch))
-            raise NotImplementedError
-
-        # Gather all the nodes of the deployment
-        chef_server = next(self.search_role('chefserver'))
-        controllers = list(self.search_role('controller'))
-        computes = list(self.search_role('compute'))
-
-        # upgrade the chef server
-        self.branch = upgrade_branch
-        if "4.2.1" in upgrade_branch:
-            self.prepare_upgrade()
-        chef_server.upgrade()
-        controller1 = controllers[0]
-
-        # save image upload value
-        override = self.environment.override_attributes
-        try:
-            image_upload = override['glance']['image_upload']
-            override['glance']['image_upload'] = False
-            self.environment.save()
-        except KeyError:
-            pass
-
-        if self.feature_in('highavailability'):
-            controller2 = controllers[1]
-            stop = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit stop $i; done; service keepalived stop"""
-            start = """for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit start $i; done; service keepalived restart"""
-            keep_stop = "service keepalived stop"
-
-            # Sleep for vips to move
-            controller2.run_cmd(stop)
-            sleep(30)
-
-            # Upgrade
-            if "4.1.3" in upgrade_branch:
-                controller1.upgrade(times=2, accept_failure=True)
-                controller1.run_cmd("service keepalived restart")
-            controller1.upgrade()
-            controller2.upgrade()
-        controller1.upgrade()
-
-        # restore quantum db
-        controller1.run_cmd("bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/quantum-upgrade.sh)")
-
-        if self.feature_in('highavailability'):
-            controller1.run_cmd("service haproxy restart; "
-                                "monit restart rpcdaemon")
-            # restart services of controller2
-            controller2.run_cmd(start)
-
-        # restore value of image upload
-        if image_upload:
-            override['glance']['image_upload'] = image_upload
-            self.environment.save()
-
-        # run the computes
-        for compute in computes:
-            times = 1
-            if "4.2.1" in upgrade_branch:
-                times = 2
-            compute.upgrade(times=times)
-
-        # update packages for neutron on precise
-        if "4.2.1" in upgrade_branch and self.feature_in("neutron") and (
-                self.os_name == "precise"):
-            cmds = ["apt-get update",
-                    "apt-get install python-cmd2 python-pyparsing"]
-            cmd = "; ".join(cmds)
-            for controller in controllers:
-                controller.run_cmd(cmd)
-            # for compute in computes:
-            #     compute.run_cmd(cmd)
+        upgrade = self.get_upgrade(upgrade_branch)
+        upgrade.upgrade()
 
     def update_environment(self):
         """
@@ -230,6 +116,8 @@ class Chef(Deployment):
 
         super(Chef, self).update_environment()
         self.save_to_environment()
+        with open("{0}.json".format(self.name), "w") as f:
+            f.write(str(self.environment))
 
     @classmethod
     def fromfile(cls, name, template_name, branch, provisioner, template_file,
@@ -279,8 +167,8 @@ class Chef(Deployment):
         chef_nodes = provisioner.provision(template, deployment)
         for node in chef_nodes:
             cnode = MonsterChefNode.from_chef_node(node, os_name, product,
-                                            environment, deployment,
-                                            provisioner, branch)
+                                                   environment, deployment,
+                                                   provisioner, branch)
             provisioner.post_provision(cnode)
             deployment.nodes.append(cnode)
 
@@ -334,10 +222,11 @@ class Chef(Deployment):
                 util.logger.error("Non existant chef node:{0}".
                                   format(node.name))
                 continue
-            cnode = MonsterChefNode.from_chef_node(node, deployment_args['os_name'],
-                                            product, environment, deployment,
-                                            provisioner,
-                                            deployment_args['branch'])
+            cnode = MonsterChefNode.from_chef_node(node,
+                                                   deployment_args['os_name'],
+                                                   product, environment,
+                                                   deployment, provisioner,
+                                                   deployment_args['branch'])
             deployment.nodes.append(cnode)
         return deployment
 
@@ -397,10 +286,11 @@ class Chef(Deployment):
         # Destroy rogue nodes
         if not self.nodes:
             nodes = Razor.node_search("chef_environment:{0}".
-                                                     format(self.name),
-                                                     tries=1)
+                                      format(self.name),
+                                      tries=1)
             for n in nodes:
-                MonsterChefNode.from_chef_node(n, environment=self.environment).\
+                MonsterChefNode.from_chef_node(n,
+                                               environment=self.environment).\
                     destroy()
 
         # Destroy Chef environment

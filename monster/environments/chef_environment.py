@@ -6,6 +6,7 @@ from monster import util
 from chef import Environment as ChefEnvironment
 from environment import Environment as MonsterEnvironment
 
+
 class Chef(MonsterEnvironment):
 
     def __init__(self, name, local_api, chef_server_name=None, remote_api=None,
@@ -64,3 +65,19 @@ class Chef(MonsterEnvironment):
 
     def destroy(self):
         ChefEnvironment(self.name).delete()
+
+    def __repr__(self):
+        """
+        Exclude unserializable chef objects
+        """
+
+        chef_dict = {
+            "chef_type": self.chef_type,
+            "cookbook_versions": self.cookbook_versions,
+            "description": self.description,
+            "json_class": self.json_class,
+            "name": self.name,
+            "default_attributes": self.default_attributes,
+            "override_attributes": self.override_attributes
+        }
+        return str(chef_dict)
