@@ -24,7 +24,6 @@ class Rackspace(Openstack):
         pyrax.set_setting("identity_type", "rackspace")
         pyrax.set_credentials(self.creds.username, api_key=self.creds.apikey,
                               region=self.creds.region_name)
-        pyrax.connect_to_services()
 
         self.compute_client = pyrax.cloudservers
         self.neutron = pyrax.cloud_networks
