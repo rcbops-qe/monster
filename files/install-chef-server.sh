@@ -45,7 +45,7 @@ function install_chef_client {
 OS_TYPE="undef"
 id_OS
 
-CHEF_SERVER_VERSION=${CHEF_SERVER_VERSION:-11.0.8-1}
+CHEF_SERVER_VERSION=${CHEF_SERVER_VERSION:-11.0.10-1}
 
 if [[ $OS_TYPE = "debian"  ]] || [[ $OS_TYPE = "ubuntu" ]]; then
     locale-gen en_US.UTF-8
