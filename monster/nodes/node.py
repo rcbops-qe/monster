@@ -3,6 +3,7 @@ Provides classes of nodes (server entities)
 """
 
 import types
+from time import sleep
 from monster import util
 from monster.server_helper import ssh_cmd, scp_to, scp_from
 
@@ -67,6 +68,9 @@ class Node(object):
             ret = ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
                           user=user, password=password)
             count -= 1
+            if not ret['success']:
+                # sleep for a few seconds, allows services time to do things
+                sleep(5)
 
         if not ret['success'] and attempts:
             raise Exception("Failed to run {0} after {1} attempts".format(
