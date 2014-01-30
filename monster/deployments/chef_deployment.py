@@ -113,6 +113,12 @@ class Chef(Deployment):
             upgrade_branch = upgrade_branch.rstrip("rc")
             rc = True
 
+<<<<<<< HEAD
+=======
+        print upgrade_branch
+        print rc
+
+>>>>>>> 6c384188366011ce59da232745211d6a2c0c16f6
         upgrade = self.get_upgrade(upgrade_branch)
         upgrade.upgrade(rc)
 
