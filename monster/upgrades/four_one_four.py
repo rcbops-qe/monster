@@ -4,13 +4,13 @@ from monster import util
 from monster.upgrades.upgrade import Upgrade
 
 
-class FourOneThree(Upgrade):
+class FourOneFour(Upgrade):
     """
-    4.1.3 Upgrade Procedures
+    4.1.4 Upgrade Procedures
     """
 
     def __init__(self, deployment):
-        super(FourOneThree, self).__init__(deployment)
+        super(FourOneFour, self).__init__(deployment)
 
     def upgrade(self, rc=False):
         """
@@ -18,13 +18,13 @@ class FourOneThree(Upgrade):
         """
 
         if rc:
-            upgrade_branch = "v4.1.3rc"
+            upgrade_branch = "v4.1.4rc"
         else:
-            upgrade_branch = "v4.1.3"
+            upgrade_branch = "v4.1.4"
 
         supported = util.config['upgrade']['supported'][self.deployment.branch]
         if upgrade_branch not in supported:
-            util.logger.error("{0} to {1} upgarde not supported".format(
+            util.logger.error("{0} to {1} upgrade not supported".format(
                 self.deployment.branch, upgrade_branch))
             raise NotImplementedError
 
@@ -78,49 +78,3 @@ class FourOneThree(Upgrade):
         # run the computes
         for compute in computes:
             compute.upgrade
-
-        # Fix OVS as per issue
-        # https://github.com/rcbops/chef-cookbooks/issues/758
-        if self.deployment.feature_in('neutron'):
-            if self.deployment.feature_in('highavailability'):
-
-                # Fix ovs
-                self.ovs_fix(controller1)
-
-                # Sleep 10 seconds to allow vips to move
-                sleep(10)
-
-                # Fix controller 2 ovs
-                self.ovs_fix(controller2)
-
-                # sleep
-                sleep(10)
-            else:
-                self.ovs_fix(controller1)
-                sleep(10)
-
-            for compute in computes:
-                self.ovs_fix(compute)
-
-    def ovs_fix(self, node):
-        """
-        This is code to work around the ovs package upgrade issue
-        : param node : Monter node object
-        : type node : Node
-        """
-
-        # STEPS
-        # 1. apt-get update; apt-get upgrade -y
-        # 2. service networking stop
-        # 3. /usr/share/openvswitch/scripts/ovs-ctl force-reload-kmod
-        # 4. service networking start
-        # 5. service keepalived restart
-
-        node.update_packages()
-        commands = ['/usr/share/openvswitch/scripts/ovs-ctl force-reload-kmod']
-
-        if self.deployment.feature_in('highavailability'):
-            if 'controller' in node.name:
-                commands.append('service keepalived restart')
-
-        node.run_cmd(';'.join(commands))

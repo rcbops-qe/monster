@@ -82,15 +82,20 @@ class FourTwoOne(Upgrade):
         chef_server.run_cmd("; ".join(munge))
         self.deployment.environment.save_locally()
 
-    def upgrade(self):
+    def upgrade(self, rc=False):
         """
         Upgrades the deployment (very chefy, rcbopsy)
         """
 
+        if rc:
+            upgrade_branch = "v4.2.1rc"
+        else:
+            upgrade_branch = "v4.2.1"
+
         supported = util.config['upgrade']['supported'][self.deployment.branch]
-        if 'v4.2.1' not in supported:
+        if upgrade_branch not in supported:
             util.logger.error("{0} to {1} upgarde not supported".format(
-                self.deployment.branch, 'v4.2.1'))
+                self.deployment.branch, upgrade_branch))
             raise NotImplementedError
 
         # prepare the upgrade
@@ -102,7 +107,7 @@ class FourTwoOne(Upgrade):
         computes = list(self.deployment.search_role('compute'))
 
         # upgrade the chef server
-        self.deployment.branch = 'v4.2.1'
+        self.deployment.branch = upgrade_branch
 
         controllers = list(self.deployment.search_role('controller'))
         computes = list(self.deployment.search_role('compute'))
