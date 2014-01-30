@@ -183,6 +183,7 @@ class FourTwoOne(Upgrade):
         try:
             image_upload = override['glance']['image_upload']
             override['glance']['image_upload'] = False
+            override['osops']['do_package_upgrades'] = True
             self.deployment.environment.save()
         except KeyError:
             pass
@@ -215,6 +216,7 @@ class FourTwoOne(Upgrade):
         # restore value of image upload
         if image_upload:
             override['glance']['image_upload'] = image_upload
+            override['osops']['do_package_upgrades'] = False
             self.deployment.environment.save()
 
         # run the computes
