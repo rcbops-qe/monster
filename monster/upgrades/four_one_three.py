@@ -12,15 +12,20 @@ class FourOneThree(Upgrade):
     def __init__(self, deployment):
         super(FourOneThree, self).__init__(deployment)
 
-    def upgrade(self):
+    def upgrade(self, rc=False):
         """
         Upgrades the deployment (very chefy, rcbopsy)
         """
 
+        if rc:
+            upgrade_branch = "v4.1.3rc"
+        else:
+            upgrade_branch = "v4.1.3"
+
         supported = util.config['upgrade']['supported'][self.deployment.branch]
-        if 'v4.1.3' not in supported:
+        if upgrade_branch not in supported:
             util.logger.error("{0} to {1} upgarde not supported".format(
-                self.deployment.branch, 'v4.1.3'))
+                self.deployment.branch, upgrade_branch))
             raise NotImplementedError
 
         # Gather all the nodes of the deployment
@@ -29,7 +34,7 @@ class FourOneThree(Upgrade):
         computes = list(self.deployment.search_role('compute'))
 
         # upgrade the chef server
-        self.deployment.branch = 'v4.1.3'
+        self.deployment.branch = upgrade_branch
         chef_server.upgrade()
         controller1 = controllers[0]
 
