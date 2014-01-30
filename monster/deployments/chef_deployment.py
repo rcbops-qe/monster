@@ -106,8 +106,15 @@ class Chef(Deployment):
         Upgrades the deployment (very chefy, rcbopsy)
         """
 
+        rc = False
+
+        # if we are deploying a release candidate upgrade
+        if "rc" in upgrade_branch:
+            upgrade_branch = upgrade_branch.rstrip("rc")
+            rc = True
+
         upgrade = self.get_upgrade(upgrade_branch)
-        upgrade.upgrade()
+        upgrade.upgrade(rc)
 
     def update_environment(self):
         """
