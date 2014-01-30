@@ -40,3 +40,7 @@ nosetests.xml
 # Emacs
 *~
 .ropeproject
+
+# monster
+*.json
+*.log
