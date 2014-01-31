@@ -9,3 +9,10 @@ class Upgrade(object):
 
     def upgrade(self, rc=False):
         raise NotImplementedError
+
+    def update_environment(self):
+        """
+        Updates the deployments environment
+        """
+
+        self.deployment.environment.save()
