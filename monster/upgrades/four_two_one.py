@@ -26,13 +26,13 @@ class FourTwoOne(Upgrade):
         ncmds = []
         ccmds = []
         controller1.add_run_list_item(['role[heat-all]'])
-        
+
         if self.deployment.feature_in('highavailability'):
             controller2 = controllers[1]
             controller2.add_run_list_item(['role[heat-api]',
                                            'role[heat-api-cfn]',
                                            'role[heat-api-cloudwatch]'])
-        
+
         if self.deployment.os_name == "precise":
             # For Ceilometer
             ncmds.extend([
@@ -46,6 +46,7 @@ class FourTwoOne(Upgrade):
                           "apt-get -y install python-setuptools"])
             # For QEMU
             provisioner = str(self.deployment.provisioner)
+
             if provisioner == "rackspace" or provisioner == "openstack":
                 ncmds.extend(
                     ["apt-get update",
@@ -60,11 +61,11 @@ class FourTwoOne(Upgrade):
 
         node_commands = "; ".join(ncmds)
         controller_commands = "; ".join(ccmds)
-        
+
         for controller in controllers:
             controller.run_cmd(node_commands)
             controller.run_cmd(controller_commands)
-        
+
         for compute in computes:
             compute.run_cmd(node_commands)
 
