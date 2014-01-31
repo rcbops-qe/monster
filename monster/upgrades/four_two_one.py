@@ -16,22 +16,23 @@ class FourTwoOne(Upgrade):
         """
         Prepares a 4.2.1 upgrade with mungerator
         """
+        chef_server = next(self.deployment.search_role('chefserver'))
         controllers = list(self.deployment.search_role('controller'))
         computes = list(self.deployment.search_role('compute'))
         controller1 = controllers[0]
-        controller2 = None
 
-        chef_server = next(self.deployment.search_role('chefserver'))
         # purge cookbooks
         munge = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done"]
         ncmds = []
         ccmds = []
         controller1.add_run_list_item(['role[heat-all]'])
+
         if self.deployment.feature_in('highavailability'):
             controller2 = controllers[1]
             controller2.add_run_list_item(['role[heat-api]',
                                            'role[heat-api-cfn]',
                                            'role[heat-api-cloudwatch]'])
+
         if self.deployment.os_name == "precise":
             # For Ceilometer
             ncmds.extend([
@@ -45,6 +46,7 @@ class FourTwoOne(Upgrade):
                           "apt-get -y install python-setuptools"])
             # For QEMU
             provisioner = str(self.deployment.provisioner)
+
             if provisioner == "rackspace" or provisioner == "openstack":
                 ncmds.extend(
                     ["apt-get update",
@@ -59,9 +61,11 @@ class FourTwoOne(Upgrade):
 
         node_commands = "; ".join(ncmds)
         controller_commands = "; ".join(ccmds)
+
         for controller in controllers:
             controller.run_cmd(node_commands)
             controller.run_cmd(controller_commands)
+
         for compute in computes:
             compute.run_cmd(node_commands)
 
@@ -113,15 +117,12 @@ class FourTwoOne(Upgrade):
         chef_server = next(self.deployment.search_role('chefserver'))
         controllers = list(self.deployment.search_role('controller'))
         computes = list(self.deployment.search_role('compute'))
-
         controller1 = controllers[0]
-        controller2 = None
 
-        chef_server = next(self.deployment.search_role('chefserver'))
-
+        # upgrade chef
         chef_server.upgrade()
-        controller1 = controllers[0]
 
+        # change environment flags for upgrade
         try:
             image_upload = override['glance']['image_upload']
             override['glance']['image_upload'] = False
@@ -130,6 +131,7 @@ class FourTwoOne(Upgrade):
         except KeyError:
             pass
 
+        # Upgrade nodes
         if self.deployment.feature_in('highavailability'):
             controller2 = controllers[1]
             stop = util.config['upgrade']['commands']['stop-services']
