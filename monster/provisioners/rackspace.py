@@ -35,6 +35,7 @@ class Rackspace(Openstack):
         :type node: Monster.Node
         """
         self.mkswap(node)
+        self.update(node)
         if "controller" in node.name:
             self.hosts(node)
             if node.os_name == "centos":
@@ -80,4 +81,22 @@ class Rackspace(Openstack):
             "swapon /mnt/swap",
             "echo '/mnt/swap swap swap defaults 0 0' >> /etc/fstab"
         ]
+        node.run_cmd("; ".join(cmds))
+
+    def update(self, node):
+        """
+        Pulls updates from the repos
+        :param node: Node to update
+        :type node: monster.Node
+        """
+        util.logger.info("Updating node:{0}".format(node.name))
+        cmds = [
+            "apt-get update -y",
+            "apt-get upgrade -y"
+        ]
+        if node.os_name == "centos":
+            cmds = [
+                "yum update -y",
+                "yum upgrade -y"
+            ]
         node.run_cmd("; ".join(cmds))
