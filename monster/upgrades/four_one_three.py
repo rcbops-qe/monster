@@ -68,7 +68,7 @@ class FourOneThree(Upgrade):
         if self.deployment.feature_in('highavailability'):
             controller1.run_cmd("service haproxy restart", attempts=2)
             controller1.run_cmd("monit restart rpcdaemon", attempts=5)
-            
+
             # restart services of controller2
             controller2.run_cmd(start, attempts=5)
 
