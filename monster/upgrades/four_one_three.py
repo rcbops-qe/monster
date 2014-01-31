@@ -66,20 +66,21 @@ class FourOneThree(Upgrade):
             controller1.upgrade()
 
         if self.deployment.feature_in('highavailability'):
-            controller1.run_cmd("service haproxy restart; "
-                                "monit restart rpcdaemon")
+            controller1.run_cmd("service haproxy restart", attempts=2)
+            controller1.run_cmd("monit restart rpcdaemon", attempts=5)
+
             # restart services of controller2
-            controller2.run_cmd(start)
+            controller2.run_cmd(start, attempts=5)
+
+        # run the computes
+        for compute in computes:
+            compute.upgrade
 
         # restore value of image upload
         if image_upload:
             override['glance']['image_upload'] = image_upload
             override['osops']['do_package_upgrades'] = False
             self.deployment.environment.save()
-
-        # run the computes
-        for compute in computes:
-            compute.upgrade
 
         # Fix OVS as per issue
         # https://github.com/rcbops/chef-cookbooks/issues/758
