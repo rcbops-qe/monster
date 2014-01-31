@@ -28,18 +28,24 @@ class FourOneFour(Upgrade):
                 self.deployment.branch, upgrade_branch))
             raise NotImplementedError
 
+        # load override attrs from env
+        override = self.deployment.environment.override_attributes
+
+        # set the deploy branch to the upgrade branch
+        self.deployment.branch = upgrade_branch
+        override['deployment']['branch'] = upgrade_branch
+        self.deployment.environment.save()
+
         # Gather all the nodes of the deployment
         chef_server = next(self.deployment.search_role('chefserver'))
         controllers = list(self.deployment.search_role('controller'))
         computes = list(self.deployment.search_role('compute'))
 
         # upgrade the chef server
-        self.deployment.branch = upgrade_branch
         chef_server.upgrade()
         controller1 = controllers[0]
 
         # save image upload value
-        override = self.deployment.environment.override_attributes
         try:
             image_upload = override['glance']['image_upload']
             override['glance']['image_upload'] = False
