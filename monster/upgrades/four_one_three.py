@@ -80,7 +80,7 @@ class FourOneThree(Upgrade):
 
         # run the computes
         for compute in computes:
-            compute.upgrade
+            compute.upgrade(times=2)
 
         # restore value of image upload
         if image_upload:
