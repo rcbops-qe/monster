@@ -140,21 +140,23 @@ class FourTwoOne(Upgrade):
             sleep(30)
 
             # Upgrade
+            controller1.upgrade(times=2, accept_failure=True)
+            controller1.run_cmd("service keepalived restart")
             controller1.upgrade()
             controller2.upgrade()
 
-        controller1.upgrade()
-
-        # restore quantum db
-        restore_db = util.config['upgrade']['commands']['restore-db']
-        controller1.run_cmd(restore_db)
-
-        if self.deployment.feature_in('highavailability'):
+            #restart services
             controller1.run_cmd("service haproxy restart", attempts=2)
             controller1.run_cmd("monit restart rpcdaemon", attempts=5)
 
             # restart services of controller2
             controller2.run_cmd(start, attempts=5)
+        else:
+            controller1.upgrade()
+
+        # restore quantum db
+        restore_db = util.config['upgrade']['commands']['restore-db']
+        controller1.run_cmd(restore_db)
 
         # restore value of image upload
         if image_upload:
