@@ -79,8 +79,7 @@ class Rackspace(Openstack):
             "/etc/sysctl.conf > /etc/sysctl.conf",
             "sysctl vm.swappiness=30",
             "swapon /mnt/swap",
-            "echo '/mnt/swap swap swap defaults 0 0' >> /etc/fstab"
-        ]
+            "echo '/mnt/swap swap swap defaults 0 0' >> /etc/fstab"]
         node.run_cmd("; ".join(cmds))
 
     def update(self, node):
@@ -90,13 +89,9 @@ class Rackspace(Openstack):
         :type node: monster.Node
         """
         util.logger.info("Updating node:{0}".format(node.name))
-        cmds = [
-            "apt-get update -y",
-            "apt-get upgrade -y"
-        ]
+        cmds = ["apt-get update -y",
+                "apt-get upgrade -y"]
         if node.os_name == "centos":
-            cmds = [
-                "yum update -y",
-                "yum upgrade -y"
-            ]
+            cmds = ["yum update -y",
+                    "yum upgrade -y"]
         node.run_cmd("; ".join(cmds))
