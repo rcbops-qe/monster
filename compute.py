@@ -104,8 +104,6 @@ def test(name="build", config=None, log=None, log_level="INFO",
     _set_log(log, log_level)
     deployment = _load(name, config, secret_path)
     branch = TempestQuantum.tempest_branch(deployment.branch)
-    print deployment.branch
-    print branch
     if "grizzly" in branch:
         tempest = TempestQuantum(deployment)
     else:
