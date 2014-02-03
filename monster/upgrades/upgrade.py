@@ -1,5 +1,6 @@
 from monster import util
 
+
 class Upgrade(object):
     """
     Base upgrade class
