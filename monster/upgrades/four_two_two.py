@@ -4,13 +4,13 @@ from monster import util
 from monster.upgrades.upgrade import Upgrade
 
 
-class FourTwoOne(Upgrade):
+class FourTwoTwo(Upgrade):
     """
-    4.2.1 Upgrade Procedures
+    4.2.2 Upgrade Procedures
     """
 
     def __init__(self, deployment):
-        super(FourTwoOne, self).__init__(deployment)
+        super(FourTwoTwo, self).__init__(deployment)
 
     def upgrade(self, rc=False):
         """
@@ -20,9 +20,9 @@ class FourTwoOne(Upgrade):
         current_branch = self.deployment.branch
 
         if rc:
-            upgrade_branch = "v4.2.1rc"
+            upgrade_branch = "v4.2.2rc"
         else:
-            upgrade_branch = "v4.2.1"
+            upgrade_branch = "v4.2.2"
 
         supported = util.config['upgrade']['supported'][self.deployment.branch]
         if upgrade_branch not in supported:
