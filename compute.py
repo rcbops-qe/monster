@@ -9,7 +9,8 @@ import traceback
 import webbrowser
 from monster import util
 from monster.config import Config
-from monster.tests.tempest import Tempest
+from monster.tests.tempest_neutron import TempestNeutron
+from monster.tests.tempest_quantum import TempestQuantum
 from monster.provisioners.util import get_provisioner
 from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
 
@@ -62,7 +63,7 @@ def build(name="build", template="precise-default", branch="master",
 
     if test:
         try:
-            Tempest(deployment).test()
+            TempestNeutron(deployment).test()
         except Exception:
             util.logger.error(traceback.print_exc())
             if destroy:
@@ -102,7 +103,13 @@ def test(name="build", config=None, log=None, log_level="INFO",
     """
     _set_log(log, log_level)
     deployment = _load(name, config, secret_path)
-    tempest = Tempest(deployment)
+    branch = TempestQuantum.tempest_branch(deployment.branch)
+    print deployment.branch
+    print branch
+    if "grizzly" in branch:
+        tempest = TempestQuantum(deployment)
+    else:
+        tempest = TempestNeutron(deployment)
     tempest.test()
 
 
