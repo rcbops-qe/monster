@@ -114,12 +114,16 @@ class Upgrade(object):
 
         # For mungerator
         if self.deployment.os_name == "precise":
-            munge.extend(["{0} -y install python-dev",
-                          "{0} -y install python-setuptools"])
+            munge.extend([
+                "{0} -y install python-dev".format(self.pkg_up_cmd),
+                "{0} -y install python-setuptools".format(self.pkg_up_cmd)
+            ])
         if self.deployment.os_name == "centos":
-            munge.extend(["yum install -y openssl-devel",
-                          "yum install -y python-devel",
-                          "yum install -y python-setuptools"])
+            munge.extend([
+                "{0} install -y openssl-devel".format(self.pkg_up_cmd),
+                "{0} install -y python-devel".format(self.pkg_up_cmd),
+                "{0} install -y python-setuptools".format(self.pkg_up_cmd)
+            ])
 
         # backup db
         backup = util.config['upgrade']['commands']['backup-db']
