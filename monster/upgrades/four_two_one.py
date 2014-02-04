@@ -40,12 +40,12 @@ class FourTwoOne(Upgrade):
 
         # prepare the upgrade
         if "4.1" in current_branch:
+            if self.deployment.os_name == "precise":
+                self.pre_upgrade()
             self.mungerate()
 
         # Gather all the nodes of the deployment
-        chef_server = next(self.deployment.search_role('chefserver'))
-        controllers = list(self.deployment.search_role('controller'))
-        computes = list(self.deployment.search_role('compute'))
+        chef_server, controllers, computes = self.deployment_nodes()
         controller1 = controllers[0]
 
         # upgrade chef
@@ -60,9 +60,18 @@ class FourTwoOne(Upgrade):
         except KeyError:
             pass
 
+        # add heat
+        controller1.add_run_list_item(['role[heat-all]'])
+
         # Upgrade nodes
         if self.deployment.feature_in('highavailability'):
             controller2 = controllers[1]
+
+            # add heat
+            controller2.add_run_list_item(['role[heat-api]',
+                                           'role[heat-api-cfn]',
+                                           'role[heat-api-cloudwatch]'])
+
             stop = util.config['upgrade']['commands']['stop-services']
             start = util.config['upgrade']['commands']['start-services']
 
@@ -99,3 +108,8 @@ class FourTwoOne(Upgrade):
         # run the computes
         for compute in computes:
             compute.upgrade(times=2)
+
+        # post upgrade
+        if "4.1" in current_branch:
+            if self.deployment.os_name == "precise":
+                self.post_upgrade()

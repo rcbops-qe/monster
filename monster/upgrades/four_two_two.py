@@ -40,12 +40,12 @@ class FourTwoTwo(Upgrade):
 
         # prepare the upgrade
         if "4.1" in current_branch:
+            if self.deployment.os_name == "precise":
+                self.pre_upgrade()
             self.mungerate()
 
         # Gather all the nodes of the deployment
-        chef_server = next(self.deployment.search_role('chefserver'))
-        controllers = list(self.deployment.search_role('controller'))
-        computes = list(self.deployment.search_role('compute'))
+        chef_server, controllers, computes = self.deployment_nodes()
         controller1 = controllers[0]
 
         # upgrade chef
@@ -99,3 +99,8 @@ class FourTwoTwo(Upgrade):
         # run the computes
         for compute in computes:
             compute.upgrade(times=2)
+
+        # post upgrade
+        if "4.1" in current_branch:
+            if self.deployment.os_name == "precise":
+                self.post_upgrade()
