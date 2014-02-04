@@ -71,7 +71,7 @@ An OpenStack Orchestration Engine
 
      #+BEGIN_EXAMPLE
        razor:
-         ip: 198.101.133.3
+         ip: RAZOR_IP
      #+END_EXAMPLE
 
 ** CLI
