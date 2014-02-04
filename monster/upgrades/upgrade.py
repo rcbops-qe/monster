@@ -8,7 +8,7 @@ class Upgrade(object):
 
     def __init__(self, deployment):
         self.deployment = deployment
-        
+
         if self.deployment.os_name == "precise":
             self.pkg_up_cmd = "apt-get"
 
@@ -61,7 +61,7 @@ class Upgrade(object):
                  "{0} -y install babel".format(self.pkg_up_cmd)]
 
         node_commands = "; ".join(ncmds)
-        
+
         for controller in controllers:
             controller.run_cmd(node_commands)
 
@@ -73,10 +73,12 @@ class Upgrade(object):
         Fixes a deployments horizon
         """
         controllers = self.deployment_controllers()
-        ccmds = ["{0} clean".format(self.pkg_up_cmd),
-                 "{0} update".format(self.pkg_up_cmd),
-                 "{0} -y install openstack-dashboard".format(self.pkg_up_cmd),
-                 "{0} -y install python-django-horizon".format(self.pkg_up_cmd)]
+        ccmds = [
+            "{0} clean".format(self.pkg_up_cmd),
+            "{0} update".format(self.pkg_up_cmd),
+            "{0} -y install openstack-dashboard".format(self.pkg_up_cmd),
+            "{0} -y install python-django-horizon".format(self.pkg_up_cmd)
+        ]
         controller_commands = "; ".join(ccmds)
 
         for controller in controllers:
@@ -147,7 +149,7 @@ class Upgrade(object):
         Fix stuff post upgrade
         """
         self.fix_horizon()
-        
+
         # For QEMU
         provisioner = str(self.deployment.provisioner)
         if provisioner == "rackspace" or provisioner == "openstack":
