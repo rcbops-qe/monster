@@ -8,72 +8,122 @@ class Upgrade(object):
 
     def __init__(self, deployment):
         self.deployment = deployment
+        
+        if self.deployment.os_name == "precise":
+            self.pkg_up_cmd = "apt-get"
+
+        if self.deployment.os_name == "centos":
+            self.pkg_up_cmd = "yum"
 
     def upgrade(self, rc=False):
         raise NotImplementedError
 
-    def mungerate(self):
+    def deployment_nodes(self):
         """
-        Prepares a 4.1.x -> 4.2.x upgrade with mungerator
+        Returns a deployments nodes
         """
-        chef_server = next(self.deployment.search_role('chefserver'))
-        controllers = list(self.deployment.search_role('controller'))
-        computes = list(self.deployment.search_role('compute'))
-        controller1 = controllers[0]
 
-        # purge cookbooks
-        munge = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done"]
-        ncmds = []
-        ccmds = []
-        controller1.add_run_list_item(['role[heat-all]'])
+        return (self.deployment_chef_server(),
+                self.deployment_controllers(),
+                self.deployment_computes())
 
-        if self.deployment.feature_in('highavailability'):
-            controller2 = controllers[1]
-            controller2.add_run_list_item(['role[heat-api]',
-                                           'role[heat-api-cfn]',
-                                           'role[heat-api-cloudwatch]'])
+    def deployment_chef_server(self):
+        """
+        Returns the deployments chef server
+        """
 
-        if self.deployment.os_name == "precise":
-            # For Ceilometer
-            ncmds.extend([
-                "apt-get clean",
-                "apt-get -y install python-warlock python-novaclient babel"])
-            # For Horizon
-            ccmds.append(
-                "apt-get -y install openstack-dashboard python-django-horizon")
-            # For mungerator
-            munge.extend(["apt-get -y install python-dev",
-                          "apt-get -y install python-setuptools"])
-            # For QEMU
-            provisioner = str(self.deployment.provisioner)
+        return next(self.deployment.search_role('chefserver'))
 
-            if provisioner == "rackspace" or provisioner == "openstack":
-                ncmds.extend(
-                    ["apt-get update",
-                     "apt-get remove qemu-utils -y",
-                     "apt-get install qemu-utils -y"])
+    def deployment_controllers(self):
+        """
+        Returns a deployments controller(s)
+        """
 
-        if self.deployment.os_name == "centos":
-            # For mungerator
-            munge.extend(["yum install -y openssl-devel",
-                          "yum install -y python-devel",
-                          "yum install -y python-setuptools"])
+        return list(self.deployment.search_role('controller'))
+
+    def deployment_computes(self):
+        """
+        Returns a deployments computes
+        """
+
+        return list(self.deployment.search_role('compute'))
+
+    def fix_celiometer(self):
+        """
+        Fixes a deployments fix_celiometer
+        """
+        controllers = self.deployment_controllers()
+        computes = self.deployment_computes()
+        ncmds = ["{0} clean".format(self.pkg_up_cmd),
+                 "{0} update".format(self.pkg_up_cmd),
+                 "{0} -y install python-warlock".format(self.pkg_up_cmd),
+                 "{0} -y install python-swiftclient".format(self.pkg_up_cmd),
+                 "{0} -y install babel".format(self.pkg_up_cmd)]
 
         node_commands = "; ".join(ncmds)
-        controller_commands = "; ".join(ccmds)
-
+        
         for controller in controllers:
             controller.run_cmd(node_commands)
-            controller.run_cmd(controller_commands)
 
         for compute in computes:
             compute.run_cmd(node_commands)
+
+    def fix_horizon(self):
+        """
+        Fixes a deployments horizon
+        """
+        controllers = self.deployment_controllers()
+        ccmds = ["{0} clean".format(self.pkg_up_cmd),
+                 "{0} update".format(self.pkg_up_cmd),
+                 "{0} -y install openstack-dashboard".format(self.pkg_up_cmd),
+                 "{0} -y install python-django-horizon".format(self.pkg_up_cmd)]
+        controller_commands = "; ".join(ccmds)
+
+        for controller in controllers:
+            controller.run_cmd(controller_commands)
+
+    def fix_qemu(self):
+        """
+        Fixes a deployments QEMU
+        """
+        controllers = self.deployment_controllers()
+        computes = self.deployment_computes()
+        ncmds = (["{0} update".format(self.pkg_up_cmd),
+                  "{0} remove qemu-utils -y".format(self.pkg_up_cmd),
+                  "{0} install qemu-utils -y".format(self.pkg_up_cmd)])
+        node_commands = "; ".join(ncmds)
+
+        for controller in controllers:
+            controller.run_cmd(node_commands)
+
+        for compute in computes:
+            compute.run_cmd(node_commands)
+
+    def mungerate(self):
+        """
+        Runs RCBOPS mungerator for upgradinf 4.1.x to 4.2.x
+        or from grizzly to havana
+        """
+
+        chef_server = self.deployment_chef_server()
+        controllers = self.deployment_controllers()
+        controller1 = controllers[0]
+        munge = []
+
+        # For mungerator
+        if self.deployment.os_name == "precise":
+            munge.extend(["{0} -y install python-dev",
+                          "{0} -y install python-setuptools"])
+        if self.deployment.os_name == "centos":
+            munge.extend(["yum install -y openssl-devel",
+                          "yum install -y python-devel",
+                          "yum install -y python-setuptools"])
 
         # backup db
         backup = util.config['upgrade']['commands']['backup-db']
         controller1.run_cmd(backup)
 
-        # Munge away quantum
+        # Mungerate all the things
         munge_dir = "/opt/upgrade/mungerator"
         munge_repo = "https://github.com/rcbops/mungerator"
         munge.extend([
@@ -85,3 +135,20 @@ class Upgrade(object):
             "--name {0}".format(self.deployment.name)])
         chef_server.run_cmd("; ".join(munge))
         self.deployment.environment.save_locally()
+
+    def pre_upgrade(self):
+        """
+        Does upgrade prep
+        """
+        self.fix_celiometer()
+
+    def post_upgrade(self):
+        """
+        Fix stuff post upgrade
+        """
+        self.fix_horizon()
+        
+        # For QEMU
+        provisioner = str(self.deployment.provisioner)
+        if provisioner == "rackspace" or provisioner == "openstack":
+            self.fix_qemu()
