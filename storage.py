@@ -3,14 +3,13 @@
 """ Command Line interface for Building Openstack Swift clusters
 """
 import sys
-import traceback
-
 import argh
+import traceback
 
 from monster import util
 from monster.provisioners import provisioner as provisioners
 from monster.config import Config
-from monster.deployments.chef_deployment import ChefDeployment
+from monster.deployments.chef_deployment import Chef
 
 
 def build(name="precise-swift", branch="master", provisioner="razor",
@@ -26,8 +25,7 @@ def build(name="precise-swift", branch="master", provisioner="razor",
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    deployment = ChefDeployment.fromfile(name, branch, cprovisioner,
-                                         template_path)
+    deployment = Chef.fromfile(name, branch, cprovisioner, template_path)
     if dry:
         # build environment
         try:
@@ -95,7 +93,7 @@ def _load(name="precise-swift", config=None, provisioner="razor"):
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    return ChefDeployment.from_chef_environment(name, provisioner=cprovisioner)
+    return Chef.from_chef_environment(name, provisioner=cprovisioner)
 
 
 def _set_log(log, log_level):
