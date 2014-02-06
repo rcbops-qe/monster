@@ -13,6 +13,7 @@ from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
 from monster.provisioners.util import get_provisioner
 from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
+from monster.tests.ha import HATest
 
 
 def build(name="build", template="precise-default", branch="master",
@@ -111,6 +112,17 @@ def test(name="build", config=None, log=None, log_level="INFO",
     tempest.test()
 
 
+def ha_test(name="build", config=None, log=None, log_level="INFO",
+            secret_path=None):
+    """
+    Tests an ha openstack deployment
+    """
+    _set_log(log, log_level)
+    deployment = _load(name, config, secret_path)
+    ha = HATest(deployment)
+    ha.test()
+
+
 def artifact(name="build", config=None, log=None, secret_path=None,
              log_level="INFO"):
     _set_log(log, log_level)
@@ -176,6 +188,6 @@ def _set_log(log, log_level):
 
 if __name__ == "__main__":
     parser = argh.ArghParser()
-    parser.add_commands([build, destroy, openrc, horizon, show, test, upgrade,
-                         tmux])
+    parser.add_commands([build, destroy, openrc, horizon, show, test, ha_test,
+                         upgrade, tmux])
     parser.dispatch()

@@ -187,7 +187,7 @@ class Node(object):
                 self.features]
 
     def power_off(self):
-        self.provisioner(self).power_off()
+        self.provisioner.power_down(self)
 
     def power_on(self):
-        self.provisioner(self).power_on()
+        self.provisioner.power_up(self)

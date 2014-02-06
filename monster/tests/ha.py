@@ -1,20 +1,19 @@
-"""
-Module to test HA OpenStack deployments
-"""
 from time import sleep
 
 from monster.util import xunit_merge
-from monster.tests.tempest import Tempest
+from monster.tests.tempest_neutron import TempestNeutron
+from monster.tests.tempest_quantum import TempestQuantum
+from monster.tests.test import Test
 
 
-class HA_Test(Tempest):
+class HATest(Test):
     """
     Parent class to test OpenStack deployments
     """
 
     def __init__(self, deployment):
-        super(HA_Test, self).__init__(deployment)
-        controllers = self.deployment.search_role("controller")
+        super(HATest, self).__init__(deployment)
+        controllers = list(self.deployment.search_role("controller"))
         self.controller1 = controllers[0]
         self.controller2 = controllers[1]
 
@@ -46,7 +45,12 @@ class HA_Test(Tempest):
         """
         Run tempest on second controller
         """
-        tempest = Tempest(self.deployment, unit=True, node=self.controller2)
+        branch = TempestQuantum.tempest_branch(self.deployment.branch)
+        if "grizzly" in branch:
+            tempest = TempestQuantum(self.deployment)
+        else:
+            tempest = TempestNeutron(self.deployment)
+        tempest.test_node = self.controller2
         tempest.test()
 
         self.controller1.power_on()
