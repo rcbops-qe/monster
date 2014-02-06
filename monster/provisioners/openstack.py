@@ -224,16 +224,15 @@ class Openstack(Provisioner):
         in_attempt = lambda x: not attempts or attempts > x
         while getattr(obj, attr) not in desired and in_attempt(attempt):
             util.logger.info("Waiting:{0} {1}:{2}".format(obj, attr,
-                                                         getattr(obj, attr)))
+                                                          getattr(obj, attr)))
             sleep(interval)
             obj = fun(obj.id)
             attempt = attempt + 1
         return obj
 
     def power_down(self, node):
-        id = node['uuid']
-        server = self.compute_client.servers.get(id)
-        node.run_cmd("echo 1 > /proc/sys/kernel/sysrq; echo o > /proc/sysrq-trigger")
+        node.run_cmd("echo 1 > /proc/sys/kernel/sysrq; "
+                     "echo o > /proc/sysrq-trigger")
 
     def power_up(self, node):
         id = node['uuid']

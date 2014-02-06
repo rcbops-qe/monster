@@ -5,6 +5,7 @@ from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
 from monster.tests.test import Test
 
+
 class HATest(Test):
     """
     Parent class to test OpenStack deployments
@@ -65,4 +66,3 @@ class HATest(Test):
         self.prepare()
         self.run_tests()
         self.collect_results()
-

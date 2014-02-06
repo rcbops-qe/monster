@@ -113,13 +113,12 @@ def test(name="build", config=None, log=None, log_level="INFO",
 
 
 def ha_test(name="build", config=None, log=None, log_level="INFO",
-         secret_path=None):
+            secret_path=None):
     """
     Tests an ha openstack deployment
     """
     _set_log(log, log_level)
     deployment = _load(name, config, secret_path)
-    branch = TempestQuantum.tempest_branch(deployment.branch)
     ha = HATest(deployment)
     ha.test()
 

@@ -6,7 +6,7 @@ import types
 from time import sleep
 from monster import util
 from monster.server_helper import ssh_cmd, scp_to, scp_from
-from monster.provisioners.openstack import Openstack as openstack
+
 
 class Node(object):
     """
