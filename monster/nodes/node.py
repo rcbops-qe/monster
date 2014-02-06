@@ -6,7 +6,7 @@ import types
 from time import sleep
 from monster import util
 from monster.server_helper import ssh_cmd, scp_to, scp_from
-
+from monster.provisioners.openstack import Openstack as openstack
 
 class Node(object):
     """
@@ -187,7 +187,7 @@ class Node(object):
                 self.features]
 
     def power_off(self):
-        self.provisioner(self).power_off()
+        self.provisioner.power_down(self)
 
     def power_on(self):
-        self.provisioner(self).power_on()
+        self.provisioner.power_up(self)
