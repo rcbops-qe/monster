@@ -75,6 +75,10 @@ class FourTwoTwo(Upgrade):
             controller1.run_cmd("service keepalived restart")
             controller1.upgrade()
             controller2.upgrade()
+            controller1.upgrade()
+
+            # sleep for monit
+            sleep(30)
 
             #restart services
             controller1.run_cmd("service haproxy restart", attempts=2)
