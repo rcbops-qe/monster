@@ -88,192 +88,69 @@ class Node(Feature):
         self.run_cmd(store_running_services)
 
 
-class Controller(Node):
-    """ Represents a RPCS Controller
+class Berkshelf(Node):
+    """ Represents a node with berks installed
     """
 
-    def __init__(self, node):
-        """
-        Initialize node
-        """
-        super(Controller, self).__init__(node)
-        self.number = None
-
     def pre_configure(self):
-        """
-        Set controller number and run list based on single or HA features
-        """
-        if self.node.deployment.has_controller:
-            self.number = 2
-            self.set_run_list()
-        else:
-            self.number = 1
-            self.set_run_list()
+        self._install_berkshelf()
 
     def apply_feature(self):
-        """
-        Run chef client on controler1 after controller2's completes
-        """
-        self.node.deployment.has_controller = True
-
-        if self.number == 2:
-            controllers = self.node.deployment.search_role('controller')
-            controller1 = next(controllers)
-            controller1.run()
-
-    def archive(self):
-        """
-        Services on a controller to archive
-        """
-
-        self.build_archive()
-        self.save_node_running_services()
-        self._set_node_archive()
-
-    def _set_node_archive(self):
-        """
-        Sets a dict in the node object of services and their logs
-        """
-
-        self.archive = {"log": ["apache2",
-                                "apt",
-                                "daemon.log",
-                                "dist_upgrades",
-                                "dmesg",
-                                "rsyslog",
-                                "syslog",
-                                "upstart"],
-                        "configs": ["apache2",
-                                    "apt",
-                                    "collectd",
-                                    "dhcp",
-                                    "host.conf",
-                                    "hostname",
-                                    "hosts",
-                                    "init",
-                                    "init.d",
-                                    "network",
-                                    "rabbitmq",
-                                    "rsylog.conf",
-                                    "rsyslog.d",
-                                    "sysctl.conf",
-                                    "sysctl.d",
-                                    "ufw"]}
-
-
-class Compute(Node):
-    """ Represents a RPCS compute
-    """
-
-    def pre_configure(self):
-        self.set_run_list()
-
-    def archive(self):
-        """
-        Archives all services on a compute node
-        """
-
-        self.save_node_running_services()
-        self._set_node_archive()
-
-    def _set_node_archive(self):
-
-        self.archive = {"log": ["nova"],
-                        "configs": ["nova"]}
-
-
-class Proxy(Node):
-    """ Represents a RPCS proxy node
-    """
-
-    def pre_configure(self):
-        self.set_run_list()
+        self._write_berks_config()
+        self._run_berks()
 
     def archive(self):
         self.archive = {"log": [""],
                         "configs": [""]}
 
-
-class Storage(Node):
-    """ Represents a RPCS proxy node
-    """
-
-    def pre_configure(self):
-        self.set_run_list()
-
-    def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
-
-
-class Network(Node):
-    """ Sets the node to be a Network
-    """
-
-    def pre_configure(self):
-        self.set_run_list()
-
-    def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
-
-
-class Remote(Node):
-    """ Represents the deployment having a remote chef server
-    """
-
-    def pre_configure(self):
-        remove_chef(self.node)
-        self._bootstrap_chef()
-
-    def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
-
-    def _bootstrap_chef(self):
+    def _install_berkshelf(self):
         """
-        Bootstraps the node to a chef server
+        Installs Berkshelf and correct rvms/gems
         """
 
-        # Gather the info for the chef server
-        chef_server = next(self.node.deployment.search_role('chefserver'))
+        # Install needed server packages for berkshelf
+        packages = ['libxml2-dev', 'libxslt-dev', 'libz-dev']
+        rvm_install = ("curl -L https://get.rvm.io | bash -s -- stable "
+                       "--ruby=1.9.3 --autolibs=enable --auto-dotfiles")
+        gems = ['berkshelf', 'chef']
 
-        command = 'knife bootstrap {0} -u root -P {1}'.format(
-            self.node.ipaddress, self.node.password)
+        # Install OS packages
+        install_packages(self.node, packages)
 
-        chef_server.run_cmd(command)
-        self.node.save()
+        # Install RVM
+        # We commonly see issues with rvms servers, so loop
+        self.node.run_cmd(rvm_install, attempts=10)
 
+        # Install Ruby Gems
+        install_ruby_gems(self.node, gems)
 
-class Cinder(Node):
-    """ Enables cinder with local lvm backend
-    """
-
-    def pre_configure(self):
-        self.prepare_cinder()
-        self.set_run_list()
-
-    def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
-
-    def prepare_cinder(self):
+    def _write_berks_config(self):
         """
-        Prepares the node for use with cinder
+        Will write the berks config file
+
+        TODO: I need to make this more robust and
+        allow you to correctly write the config the way you want.
+        For now the ghetto way is how we will do it (jwagner)
         """
 
-        # Update our environment
-        env = self.node.environment
-        vol_group = util.config['cinder']['vg_name']
-        cinder = {
-            "storage": {
-                "lvm": {
-                    "volume_group": vol_group
-                }
-            }
-        }
-        util.logging.info("Setting cinder volume to {0}".format(vol_group))
-        env.add_override_attr("cinder", cinder)
+        command = ('mkdir -p .berkshelf; cd .berkshelf; '
+                   'echo "{\\"ssl\\":{\\"verify\\":false}}" > config.json')
+
+        self.node.run_cmd(command)
+
+    def _run_berks(self):
+        """
+        This will run berksheld to apply the feature
+        """
+
+        # Run berkshelf on server
+        commands = ['cd /opt/rcbops/swift-private-cloud',
+                    'source /usr/local/rvm/scripts/rvm',
+                    'berks install',
+                    'berks upload']
+        command = "; ".join(commands)
+
+        self.node.run_cmd(command)
 
 
 class ChefServer(Node):
@@ -409,24 +286,129 @@ class ChefServer(Node):
                 node.save_to_node()
 
 
-class OpenLDAP(Node):
-    """ Represents a LDAP server
+class Cinder(Node):
+    """ Enables cinder with local lvm backend
     """
 
     def pre_configure(self):
+        self.prepare_cinder()
         self.set_run_list()
-
-    def post_configure(self):
-        self._configure_ldap()
 
     def archive(self):
         self.archive = {"log": [""],
                         "configs": [""]}
 
-    def _configure_ldap(self):
-        ldapadd = ('ldapadd -x -D "cn=admin,dc=rcb,dc=me" '
-                   '-wsecrete -f /root/base.ldif')
-        self.node.run_cmd(ldapadd)
+    def prepare_cinder(self):
+        """
+        Prepares the node for use with cinder
+        """
+
+        # Update our environment
+        env = self.node.environment
+        vol_group = util.config['cinder']['vg_name']
+        cinder = {
+            "storage": {
+                "lvm": {
+                    "volume_group": vol_group
+                }
+            }
+        }
+        util.logging.info("Setting cinder volume to {0}".format(vol_group))
+        env.add_override_attr("cinder", cinder)
+
+
+class Compute(Node):
+    """ Represents a RPCS compute
+    """
+
+    def pre_configure(self):
+        self.set_run_list()
+
+    def archive(self):
+        """
+        Archives all services on a compute node
+        """
+
+        self.save_node_running_services()
+        self._set_node_archive()
+
+    def _set_node_archive(self):
+
+        self.archive = {"log": ["nova"],
+                        "configs": ["nova"]}
+
+
+class Controller(Node):
+    """ Represents a RPCS Controller
+    """
+
+    def __init__(self, node):
+        """
+        Initialize node
+        """
+        super(Controller, self).__init__(node)
+        self.number = None
+
+    def pre_configure(self):
+        """
+        Set controller number and run list based on single or HA features
+        """
+        if self.node.deployment.has_controller:
+            self.number = 2
+            self.set_run_list()
+        else:
+            self.number = 1
+            self.set_run_list()
+
+    def apply_feature(self):
+        """
+        Run chef client on controler1 after controller2's completes
+        """
+        self.node.deployment.has_controller = True
+
+        if self.number == 2:
+            controllers = self.node.deployment.search_role('controller')
+            controller1 = next(controllers)
+            controller1.run()
+
+    def archive(self):
+        """
+        Services on a controller to archive
+        """
+
+        self.build_archive()
+        self.save_node_running_services()
+        self._set_node_archive()
+
+    def _set_node_archive(self):
+        """
+        Sets a dict in the node object of services and their logs
+        """
+
+        self.archive = {"log": ["apache2",
+                                "apt",
+                                "daemon.log",
+                                "dist_upgrades",
+                                "dmesg",
+                                "rsyslog",
+                                "syslog",
+                                "upstart"],
+                        "configs": ["apache2",
+                                    "apt",
+                                    "collectd",
+                                    "dhcp",
+                                    "host.conf",
+                                    "hostname",
+                                    "hosts",
+                                    "init",
+                                    "init.d",
+                                    "network",
+                                    "rabbitmq",
+                                    "rsylog.conf",
+                                    "rsyslog.d",
+                                    "sysctl.conf",
+                                    "sysctl.d",
+                                    "ufw"]}
 
 
 class Metrics(Node):
@@ -464,69 +446,46 @@ class Metrics(Node):
         self.node.add_run_list_item(run_list)
 
 
-class Berkshelf(Node):
-    """ Represents a node with berks installed
+class Network(Node):
+    """ Sets the node to be a Network
     """
 
     def pre_configure(self):
-        self._install_berkshelf()
-
-    def apply_feature(self):
-        self._write_berks_config()
-        self._run_berks()
+        self.set_run_list()
 
     def archive(self):
         self.archive = {"log": [""],
                         "configs": [""]}
 
-    def _install_berkshelf(self):
-        """
-        Installs Berkshelf and correct rvms/gems
-        """
 
-        # Install needed server packages for berkshelf
-        packages = ['libxml2-dev', 'libxslt-dev', 'libz-dev']
-        rvm_install = ("curl -L https://get.rvm.io | bash -s -- stable "
-                       "--ruby=1.9.3 --autolibs=enable --auto-dotfiles")
-        gems = ['berkshelf', 'chef']
+class NetworkManager(Node):
 
-        # Install OS packages
-        install_packages(self.node, packages)
+    def preconfigure(self):
+        self.set_run_list()
 
-        # Install RVM
-        # We commonly see issues with rvms servers, so loop
-        self.node.run_cmd(rvm_install, attempts=10)
+    def archive(self):
+        self.archive = {"log": [""],
+                        "configs": [""]}
 
-        # Install Ruby Gems
-        install_ruby_gems(self.node, gems)
 
-    def _write_berks_config(self):
-        """
-        Will write the berks config file
+class OpenLDAP(Node):
+    """ Represents a LDAP server
+    """
 
-        TODO: I need to make this more robust and
-        allow you to correctly write the config the way you want.
-        For now the ghetto way is how we will do it (jwagner)
-        """
+    def pre_configure(self):
+        self.set_run_list()
 
-        command = ('mkdir -p .berkshelf; cd .berkshelf; '
-                   'echo "{\\"ssl\\":{\\"verify\\":false}}" > config.json')
+    def post_configure(self):
+        self._configure_ldap()
 
-        self.node.run_cmd(command)
+    def archive(self):
+        self.archive = {"log": [""],
+                        "configs": [""]}
 
-    def _run_berks(self):
-        """
-        This will run berksheld to apply the feature
-        """
-
-        # Run berkshelf on server
-        commands = ['cd /opt/rcbops/swift-private-cloud',
-                    'source /usr/local/rvm/scripts/rvm',
-                    'berks install',
-                    'berks upload']
-        command = "; ".join(commands)
-
-        self.node.run_cmd(command)
+    def _configure_ldap(self):
+        ldapadd = ('ldapadd -x -D "cn=admin,dc=rcb,dc=me" '
+                   '-wsecrete -f /root/base.ldif')
+        self.node.run_cmd(ldapadd)
 
 
 class Orchestration(Node):
@@ -551,9 +510,50 @@ class Orchestration(Node):
                         "configs": [""]}
 
 
-class NetworkManager(Node):
+class Proxy(Node):
+    """ Represents a RPCS proxy node
+    """
 
-    def preconfigure(self):
+    def pre_configure(self):
+        self.set_run_list()
+
+    def archive(self):
+        self.archive = {"log": [""],
+                        "configs": [""]}
+
+
+class Remote(Node):
+    """ Represents the deployment having a remote chef server
+    """
+
+    def pre_configure(self):
+        remove_chef(self.node)
+        self._bootstrap_chef()
+
+    def archive(self):
+        self.archive = {"log": [""],
+                        "configs": [""]}
+
+    def _bootstrap_chef(self):
+        """
+        Bootstraps the node to a chef server
+        """
+
+        # Gather the info for the chef server
+        chef_server = next(self.node.deployment.search_role('chefserver'))
+
+        command = 'knife bootstrap {0} -u root -P {1}'.format(
+            self.node.ipaddress, self.node.password)
+
+        chef_server.run_cmd(command)
+        self.node.save()
+
+
+class Storage(Node):
+    """ Represents a RPCS proxy node
+    """
+
+    def pre_configure(self):
         self.set_run_list()
 
     def archive(self):
