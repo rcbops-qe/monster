@@ -17,8 +17,8 @@ from monster.tests.ha import HATest
 
 
 def build(name="build", template="precise-default", branch="master",
-          config=None, destroy=False, dry=False, log=None, log_level="INFO",
-          provisioner="razor", test=False, secret_path=None):
+          config=None, dry=False, log=None, log_level="INFO",
+          provisioner="razor", secret_path=None):
     """
     Builds an OpenStack Cluster
     """
@@ -62,18 +62,6 @@ def build(name="build", template="precise-default", branch="master",
 
     util.logger.info(deployment)
 
-    if test:
-        try:
-            TempestNeutron(deployment).test()
-        except Exception:
-            util.logger.error(traceback.print_exc())
-            if destroy:
-                deployment.destroy()
-            sys.exit(1)
-
-    if destroy:
-        deployment.destroy()
-
 
 def upgrade(name='precise-default', upgrade_branch='v4.1.3rc',
             config=None, log=None, log_level="INFO", secret_path=None):
@@ -97,30 +85,29 @@ def destroy(name="precise-default", config=None, log=None, log_level="INFO",
     deployment.destroy()
 
 
-def test(name="build", config=None, log=None, log_level="INFO",
-         secret_path=None):
+def test(name="precise-default", config=None, log=None, log_level="INFO",
+         tempest=False, ha=False, secret_path=None, deployment=None):
     """
     Tests an openstack deployment
     """
-    _set_log(log, log_level)
-    deployment = _load(name, config, secret_path)
-    branch = TempestQuantum.tempest_branch(deployment.branch)
-    if "grizzly" in branch:
-        tempest = TempestQuantum(deployment)
-    else:
-        tempest = TempestNeutron(deployment)
-    tempest.test()
-
-
-def ha_test(name="build", config=None, log=None, log_level="INFO",
-            secret_path=None):
-    """
-    Tests an ha openstack deployment
-    """
-    _set_log(log, log_level)
-    deployment = _load(name, config, secret_path)
-    ha = HATest(deployment)
-    ha.test()
+    if not deployment:
+        _set_log(log, log_level)
+        deployment = _load(name, config, secret_path)
+    if not tempest and not ha:
+        tempest = True
+        ha = True
+    if not deployment.feature_in("highavailability"):
+        ha = False
+    if ha:
+        ha = HATest(deployment)
+        ha.test()
+    if tempest:
+        branch = TempestQuantum.tempest_branch(deployment.branch)
+        if "grizzly" in branch:
+            tempest = TempestQuantum(deployment)
+        else:
+            tempest = TempestNeutron(deployment)
+        tempest.test()
 
 
 def artifact(name="build", config=None, log=None, secret_path=None,
@@ -188,6 +175,5 @@ def _set_log(log, log_level):
 
 if __name__ == "__main__":
     parser = argh.ArghParser()
-    parser.add_commands([build, destroy, openrc, horizon, show, test, ha_test,
-                         upgrade, tmux])
+    parser.add_commands([build, openrc, horizon, show, test, upgrade, tmux])
     parser.dispatch()
