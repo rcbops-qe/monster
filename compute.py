@@ -96,10 +96,10 @@ def test(name="build", config=None, log=None, log_level="INFO",
         _set_log(log, log_level)
         deployment = _load(name, config, secret_path)
     if not tempest and not ha:
-        tempest=True
-        ha=True
+        tempest = True
+        ha = True
     if not deployment.feature_in("highavailability"):
-        ha=False
+        ha = False
     if ha:
         ha = HATest(deployment)
         ha.test()
