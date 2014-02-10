@@ -186,9 +186,13 @@ class Chef(Node):
         crnode.add_features(archive.get('features', []))
         return crnode
 
-    def run(self, times=1):
+    def run(self, times=1, debug=False):
         cmd = util.config['chef']['run_cmd']
-        for _ in xrange(times):
+        for i in xrange(times):
+            if debug:
+                log_file = 'client-run-{0}'.format(i)
+                cmd = '{0} -l drbug -L /opt/chef/{1}'.format(cmd,
+                                                             log_file)
             chef_run = self.run_cmd(cmd)
             self.save_locally()
             if not chef_run['success']:
