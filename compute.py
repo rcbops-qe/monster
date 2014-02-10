@@ -85,14 +85,12 @@ def destroy(name="precise-default", config=None, log=None, log_level="INFO",
     deployment.destroy()
 
 
-def test(name="build", config=None, log=None, log_level="INFO",
-         tempest=False, ha=False, secret_path=None, deployment_instance=None):
+def test(name="precise-default", config=None, log=None, log_level="INFO",
+         tempest=False, ha=False, secret_path=None, deployment=None):
     """
     Tests an openstack deployment
     """
-    if deployment_instance:
-        deployment = deployment_instance
-    else:
+    if not deployment:
         _set_log(log, log_level)
         deployment = _load(name, config, secret_path)
     if not tempest and not ha:
