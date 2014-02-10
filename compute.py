@@ -175,6 +175,6 @@ def _set_log(log, log_level):
 
 if __name__ == "__main__":
     parser = argh.ArghParser()
-    parser.add_commands([build, upgrade, destroy,
-                         openrc, horizon, show, test, tmux])
+    parser.add_commands([build, destroy, openrc, horizon, show, test, upgrade,
+                         tmux])
     parser.dispatch()
