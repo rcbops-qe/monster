@@ -541,9 +541,12 @@ class Remote(Node):
 
         # Gather the info for the chef server
         chef_server = next(self.node.deployment.search_role('chefserver'))
+        client_version = util.config['chef']['client']['version']
 
-        command = 'knife bootstrap {0} -u root -P {1}'.format(
-            self.node.ipaddress, self.node.password)
+        command = ("knife bootstrap {0} -u root -P {1}"
+                   " --bootstrap-version {3}".format(self.node.ipaddress,
+                                                     self.node.password,
+                                                     client_version))
 
         chef_server.run_cmd(command)
         self.node.save()
