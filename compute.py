@@ -9,16 +9,16 @@ import traceback
 import webbrowser
 from monster import util
 from monster.config import Config
+from monster.tests.ha import HATest
+from monster.provisioners.util import get_provisioner
 from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
-from monster.provisioners.util import get_provisioner
 from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
-from monster.tests.ha import HATest
 
 
-def build(name="build", template="precise-default", branch="master",
+def build(name="autotest", template="precise-default", branch="master",
           config=None, dry=False, log=None, log_level="INFO",
-          provisioner="razor", secret_path=None):
+          provisioner="rackspace", secret_path=None):
     """
     Builds an OpenStack Cluster
     """
@@ -63,7 +63,7 @@ def build(name="build", template="precise-default", branch="master",
     util.logger.info(deployment)
 
 
-def upgrade(name='precise-default', upgrade_branch='v4.1.3rc',
+def upgrade(name='autotest', upgrade_branch='v4.1.3rc',
             config=None, log=None, log_level="INFO", secret_path=None):
     """
     Upgrades a current deployment to the new branch / tag
@@ -74,7 +74,7 @@ def upgrade(name='precise-default', upgrade_branch='v4.1.3rc',
     deployment.upgrade(upgrade_branch)
 
 
-def destroy(name="precise-default", config=None, log=None, log_level="INFO",
+def destroy(name="autotest", config=None, log=None, log_level="INFO",
             secret_path=None):
     """
     Destroys an existing OpenStack deployment
@@ -85,7 +85,7 @@ def destroy(name="precise-default", config=None, log=None, log_level="INFO",
     deployment.destroy()
 
 
-def test(name="precise-default", config=None, log=None, log_level="INFO",
+def test(name="autotest", config=None, log=None, log_level="INFO",
          tempest=False, ha=False, secret_path=None, deployment=None):
     """
     Tests an openstack deployment
@@ -110,14 +110,14 @@ def test(name="precise-default", config=None, log=None, log_level="INFO",
         tempest.test()
 
 
-def artifact(name="build", config=None, log=None, secret_path=None,
+def artifact(name="autotest", config=None, log=None, secret_path=None,
              log_level="INFO"):
     _set_log(log, log_level)
     deployment = _load(name, config, secret_path)
     deployment.artifact()
 
 
-def openrc(name="build", config=None, log=None, secret_path=None,
+def openrc(name="autotest", config=None, log=None, secret_path=None,
            log_level="INFO"):
     """
     Loads OpenStack credentials into shell env
@@ -127,7 +127,7 @@ def openrc(name="build", config=None, log=None, secret_path=None,
     deployment.openrc()
 
 
-def tmux(name="build", config=None, log=None, secret_path=None,
+def tmux(name="autotest", config=None, log=None, secret_path=None,
          log_level="INFO"):
     """
     Loads OpenStack nodes into new tmux session
@@ -137,7 +137,7 @@ def tmux(name="build", config=None, log=None, secret_path=None,
     deployment.tmux()
 
 
-def horizon(name="build", config=None, log=None, secret_path=None,
+def horizon(name="autotest", config=None, log=None, secret_path=None,
             log_level="INFO"):
     """
     Opens horizon in a browser tab
@@ -145,11 +145,11 @@ def horizon(name="build", config=None, log=None, secret_path=None,
     _set_log(log, log_level)
     deployment = _load(name, config, secret_path)
     ip = deployment.horizon_ip()
-    url = "https://%s" % ip
+    url = "https://{0}".format(ip)
     webbrowser.open_new_tab(url)
 
 
-def show(name="build", config=None, log=None, secret_path=None,
+def show(name="autotest", config=None, log=None, secret_path=None,
          log_level="INFO"):
     """
     Shows details about and OpenStack deployment
@@ -160,7 +160,7 @@ def show(name="build", config=None, log=None, secret_path=None,
     util.logger.info(str(deployment))
 
 
-def _load(name="build", config=None, secret_path=None):
+def _load(name="autotest", config=None, secret_path=None):
     # load deployment and source openrc
     util.config = Config(config, secret_path=secret_path)
     return MonsterChefDeployment.from_chef_environment(name)
