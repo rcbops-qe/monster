@@ -6,7 +6,7 @@ precise-default:
     openssh: default
     monitoring: default
     mysql: default
-    glance: default
+    glance: cf
     nova: default
     horizon: default
     keystone: default
@@ -47,7 +47,7 @@ precise-neutron:
     mysql: default
     glance: default
     nova: default
-    neutron: neutron
+    neutron: quantum
     horizon: default
     keystone: default
     osops: default
@@ -85,7 +85,7 @@ precise-ha:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
+    glance: default
     nova: default
     neutron: quantum
     horizon: default
@@ -107,7 +107,7 @@ centos-ha:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
+    glance: default
     nova: default
     neutron: quantum
     horizon: default
@@ -129,7 +129,7 @@ precise-ha-nova-net:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
+    glance: default
     nova: default
     horizon: default
     keystone: default
@@ -151,7 +151,7 @@ centos-ha-nova-net:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
+    glance: default
     nova: default
     horizon: default
     keystone: default

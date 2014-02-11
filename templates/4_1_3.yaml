@@ -6,7 +6,7 @@ precise-default:
     openssh: default
     monitoring: default
     mysql: default
-    glance: default
+    glance: cf
     nova: default
     horizon: default
     keystone: default
@@ -26,7 +26,6 @@ centos-default:
     monitoring: default
     mysql: default
     glance: cf
-    cinder: local
     nova: default
     horizon: default
     keystone: default
@@ -85,7 +84,7 @@ precise-ha:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
+    glance: default
     nova: default
     neutron: quantum
     horizon: default
@@ -107,7 +106,7 @@ centos-ha:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
+    glance: default
     nova: default
     neutron: quantum
     horizon: default
@@ -129,7 +128,7 @@ precise-ha-nova-net:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
+    glance: default
     nova: default
     horizon: default
     keystone: default
@@ -140,7 +139,6 @@ precise-ha-nova-net:
     - [chefserver]
     - [controller]
     - [controller]
-    - [compute]
     - [compute]
 
 centos-ha-nova-net:
@@ -151,7 +149,7 @@ centos-ha-nova-net:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
+    glance: default
     nova: default
     horizon: default
     keystone: default
@@ -162,7 +160,6 @@ centos-ha-nova-net:
     - [chefserver]
     - [controller]
     - [controller]
-    - [compute]
     - [compute]
 
 precise-swift:
