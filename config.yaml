@@ -108,8 +108,8 @@ environments:
             libvirt:
                 virt_type: kvm
         rackspace:
-          apply_patches: false
-          networks:
+            apply_patches: false
+            networks:
               public:
                   bridge: br0
                   dns1: 8.8.8.8
@@ -118,8 +118,8 @@ environments:
                   network_size: "254"
                   ipv4_cidr: 172.31.0.0/24
                   label: public
-          libvirt:
-            virt_type: qemu
+            libvirt:
+                virt_type: qemu
     osops:
         default:
             apply_patches: true
@@ -446,16 +446,33 @@ openstack:
     network:
         private: 172.31.0.0/24
 
-neutron:
-    centos:
-        network_bridge_device: em2
-        vip: 198.101.133.159
-    precise:
-        network_bridge_device: eth1
-        vip: 198.101.133.156
-    rackspace:
-        network_bridge_device: eth3
-        vip: 192.168.3.156
+networking:
+    nova:
+        razor:
+            centos:
+                network_bridge_device: em2
+            precise:
+                network_bridge_device: eth1
+        rackspace:
+            centos:
+                network_bridge_device: eth3
+            precise:
+                network_bridge_device: eth3
+    neutron:
+        razor:
+            centos:
+                network_bridge_device: em2
+                vip: 198.101.133.159
+            precise:
+                network_bridge_device: eth1
+                vip: 198.101.133.156
+        rackspace:
+            centos:
+                network_bridge_device: eth3
+                vip: 192.168.3.156
+            precise:
+                network_bridge_device: eth3
+                vip: 192.168.3.156
 
 upgrade:
   commands:
