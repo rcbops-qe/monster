@@ -158,11 +158,8 @@ class Neutron(Deployment):
         # update the vip to correct api name and vip value
         if self.deployment.feature_in("highavailability"):
             api_name = '{0}-api'.format(self.provider)
-            if str(self.deployment.provisioner) == "razor":
-                vip = self.deployment.os_name
-            elif str(self.deployment.provisioner) == "rackspace":
-                vip = "rackspace"
-            api_vip = util.config[str(self)][vip]['vip']
+            api_vip = util.config['networking'][str(self)][
+                self.deployment.provisioner][self.deployment.os_name]['vip']
             env.override_attributes['vips'][api_name] = api_vip
 
         # Save the environment
