@@ -123,8 +123,14 @@ class Neutron(Deployment):
         Fix the network provider block in the enviornment
         """
 
-        iface = util.config[str(self)][self.deployment.os_name][
-            'network_bridge_device']
+        try:
+            iface = util.config['networking'][str(self)][
+                self.deployment.provisioner][self.deployment.os_name][
+                'network_bridge_device']
+        except KeyError:
+            util.logger.info(
+                "You must provide a network bridge in the config.yaml file")
+            raise
 
         provider_network = [
             {"label": "ph-{0}".format(iface),
@@ -522,19 +528,21 @@ class Nova(Deployment):
     def update_environment(self):
         self.deployment.environment.add_override_attr(
             str(self), self.environment)
-        bridge_dev = None
-        if str(self.deployment.provisioner) == 'openstack':
-            bridge_dev = 'eth1'
-        elif self.deployment.os_name in ['centos', 'rhel']:
-            bridge_dev = 'em1'
-        if bridge_dev:
+        try:
+            bridge_dev = util.config['networking'][str(self)][
+                str(self.deployment.provisioner)][self.deployment.os_name][
+                'network_bridge_device']
             env = self.deployment.environment
 
             util.logger.info("Setting bridge_dev to {0}".format(bridge_dev))
             env.override_attributes['nova']['networks']['public'][
                 'bridge_dev'] = bridge_dev
+        except KeyError:
+            util.logger.info("Failed to find network_bridge_device key: "
+                             "using default environment value")
+            raise
 
-            self.deployment.environment.save()
+        self.deployment.environment.save()
 
 
 class Horizon(Deployment):
