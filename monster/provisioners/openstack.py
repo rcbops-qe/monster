@@ -99,8 +99,13 @@ class Openstack(Provisioner):
         run_list_arg = ""
         if run_list:
             run_list_arg = "-r {0}".format(run_list)
-        command = 'knife bootstrap {0} -u root -P {1} -N {2} {3}'.format(
-            server.accessIPv4, password, name, run_list_arg)
+        client_version = util.config['chef']['client']['version']
+        command = ("knife bootstrap {0} -u root -P {1} -N {2} {3}"
+                   " --bootstrap-version {4}".format(server.accessIPv4,
+                                                     password,
+                                                     name,
+                                                     run_list_arg,
+                                                     client_version))
         run_cmd(command)
         node = Node(name, api=deployment.environment.local_api)
         node.chef_environment = deployment.environment.name

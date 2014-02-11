@@ -1,13 +1,15 @@
 chef:
-  server:
-    install_script: https://raw.github.com/rcbops-qa/monster/master/files/install-chef-server.sh
-    install_dir: /opt/rcbops
-    upgrade_dir: /opt/upgrade
-  run_cmd: "chef-client"
+    server:
+        install_script: https://raw.github.com/rcbops-qa/monster/master/files/install-chef-server.sh
+        install_dir: /opt/rcbops
+        upgrade_dir: /opt/upgrade
+    client:
+        version: 11.08.0
+        run_cmd: "chef-client"
 environments:
     openssh:
-      server:
-        subsystem: "sftp internal-sftp"
+        server:
+            subsystem: "sftp internal-sftp"
     package_component:
         default: grizzly
     keystone:
@@ -455,9 +457,9 @@ networking:
                 network_bridge_device: eth1
         rackspace:
             centos:
-                network_bridge_device: eth3
+                network_bridge_device: eth2
             precise:
-                network_bridge_device: eth3
+                network_bridge_device: eth2
     neutron:
         razor:
             centos:
@@ -468,10 +470,10 @@ networking:
                 vip: 198.101.133.156
         rackspace:
             centos:
-                network_bridge_device: eth3
+                network_bridge_device: eth2
                 vip: 192.168.3.156
             precise:
-                network_bridge_device: eth3
+                network_bridge_device: eth2
                 vip: 192.168.3.156
 
 upgrade:
