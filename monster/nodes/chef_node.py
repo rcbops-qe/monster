@@ -187,7 +187,7 @@ class Chef(Node):
         return crnode
 
     def run(self, times=1, debug=False):
-        cmd = util.config['chef']['run_cmd']
+        cmd = util.config['chef']['client']['run_cmd']
         for i in xrange(times):
             if debug:
                 log_file = 'client-run-{0}'.format(i)
