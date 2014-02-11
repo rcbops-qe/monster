@@ -544,7 +544,7 @@ class Remote(Node):
         client_version = util.config['chef']['client']['version']
 
         command = ("knife bootstrap {0} -u root -P {1}"
-                   " --bootstrap-version {3}".format(self.node.ipaddress,
+                   " --bootstrap-version {2}".format(self.node.ipaddress,
                                                      self.node.password,
                                                      client_version))
 
