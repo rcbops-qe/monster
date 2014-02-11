@@ -70,6 +70,10 @@ class FourOneFour(Upgrade):
             controller2.upgrade()
             controller1.upgrade()
 
+            # Codeing around issue
+            # https://github.com/rcbops/chef-cookbooks/issues/791
+            controller1.run_cmd('monit reload')
+
             # sleep for monit
             sleep(30)
 
