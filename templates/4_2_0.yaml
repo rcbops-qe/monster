@@ -27,7 +27,6 @@ centos-default:
     monitoring: default
     mysql: default
     glance: cf
-    cinder: local
     nova: default
     horizon: default
     keystone: default
@@ -56,7 +55,7 @@ precise-neutron:
   nodes:
     - [chefserver]
     - [controller, network]
-    - [compute, network]
+    - [compute]
 
 centos-neutron:
   product: compute
@@ -76,7 +75,7 @@ centos-neutron:
   nodes:
     - [chefserver]
     - [controller, network]
-    - [compute, network]
+    - [compute]
 
 precise-ha:
   product: compute
@@ -86,29 +85,7 @@ precise-ha:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
-    nova: default
-    neutron: neutron
-    horizon: default
-    keystone: default
-    osops: default
-    osopsnetworks: default
-    highavailability: default
-  nodes:
-    - [chefserver]
-    - [controller, orchestration]
-    - [controller, orchestration]
-    - [compute]
-
-precise-ha-l3:
-  product: compute
-  name: ha
-  os: precise
-  features:
-    openssh: default
-    monitoring: default
-    mysql: default
-    glance: cf
+    glance: default
     nova: default
     neutron: neutron
     horizon: default
@@ -122,7 +99,7 @@ precise-ha-l3:
     - [controller, network, orchestration]
     - [compute]
 
-centos-ha-l3:
+centos-ha:
   product: compute
   name: ha
   os: centos
@@ -130,7 +107,7 @@ centos-ha-l3:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
+    glance: default
     nova: default
     neutron: neutron
     horizon: default
@@ -164,9 +141,8 @@ precise-ha-nova-net:
     - [controller, orchestration]
     - [controller]
     - [compute]
-    - [compute]
 
-centos-ha:
+centos-ha-nova-net:
   product: compute
   name: ha
   os: centos
@@ -176,7 +152,6 @@ centos-ha:
     mysql: default
     glance: cf
     nova: default
-    neutron: neutron
     horizon: default
     keystone: default
     osops: default
@@ -184,8 +159,8 @@ centos-ha:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, network, orchestration]
-    - [controller, network, orchestration]
+    - [controller, orchestration]
+    - [controller]
     - [compute]
 
 precise-swift:

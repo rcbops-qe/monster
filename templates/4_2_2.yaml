@@ -12,10 +12,9 @@ precise-default:
     keystone: default
     osops: default
     osopsnetworks: default
-    neutron: neutron
   nodes:
     - [chefserver]
-    - [controller, network, orchestration]
+    - [controller, orchestration]
     - [compute]
 
 centos-default:
@@ -27,55 +26,54 @@ centos-default:
     monitoring: default
     mysql: default
     glance: cf
-    cinder: local
     nova: default
     horizon: default
     keystone: default
     osops: default
     osopsnetworks: default
-    neutron: neutron
   nodes:
     - [chefserver]
-    - [controller, network, orchestration]
+    - [controller, orchestration]
     - [compute]
 
-precise-nova-net:
+precise-neutron:
   product: compute
-  name: default
+  name: neutron
   os: precise
   features:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
+    glance: default
     nova: default
+    neutron: neutron
     horizon: default
     keystone: default
     osops: default
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller, orchestration]
+    - [controller, network]
     - [compute]
 
-centos-nova-net:
+centos-neutron:
   product: compute
-  name: default
+  name: neutron
   os: centos
   features:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
-    cinder: local
+    glance: default
     nova: default
+    neutron: neutron
     horizon: default
     keystone: default
     osops: default
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller, orchestration]
+    - [controller, network]
     - [compute]
 
 precise-ha:
@@ -86,7 +84,7 @@ precise-ha:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
+    glance: default
     nova: default
     neutron: neutron
     horizon: default
@@ -108,7 +106,7 @@ centos-ha:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
+    glance: default
     nova: default
     neutron: neutron
     horizon: default
@@ -130,7 +128,7 @@ precise-ha-nova-net:
     openssh: default
     monitoring: default
     mysql: default
-    glance: cf
+    glance: default
     nova: default
     horizon: default
     keystone: default
@@ -142,6 +140,26 @@ precise-ha-nova-net:
     - [controller, orchestration]
     - [controller, orchestration]
     - [compute]
+
+centos-ha-nova-net:
+  product: compute
+  name: ha
+  os: centos
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    nova: default
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, orchestration]
+    - [controller, orchestration]
     - [compute]
 
 precise-swift:
