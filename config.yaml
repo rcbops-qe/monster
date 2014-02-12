@@ -281,6 +281,12 @@ environments:
                     vrid: 16
                     network: public
 rcbops:
+    retrofit:
+        git:
+            url: https://github.com/Apsu/retrofit.git
+            branches:
+                - master
+                - dev
     compute:
         kernel:
           centos:

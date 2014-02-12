@@ -63,6 +63,19 @@ def build(name="autotest", template="precise-default", branch="master",
     util.logger.info(deployment)
 
 
+def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
+             x_bridge='lxb-mgmt', iface='eth0', config=None,
+             log=None, log_level='INFO', secret_path=None):
+
+    """
+    Retrofit a deployment
+    """
+    _set_log(log, log_level)
+    deployment = _load(name, config, secret_path)
+    util.logger.info(deployment)
+    deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface)
+
+
 def upgrade(name='autotest', upgrade_branch='v4.1.3rc',
             config=None, log=None, log_level="INFO", secret_path=None):
     """
@@ -175,6 +188,7 @@ def _set_log(log, log_level):
 
 if __name__ == "__main__":
     parser = argh.ArghParser()
-    parser.add_commands([build, destroy, openrc, horizon, show, test, upgrade,
-                         tmux])
+    parser.add_commands([build, retrofit, upgrade,
+                        destroy, openrc, horizon,
+                        show, test, tmux])
     parser.dispatch()
