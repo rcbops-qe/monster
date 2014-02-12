@@ -202,8 +202,9 @@ class Neutron(Deployment):
 
         util.logger.info("### Beginning of Networking Block ###")
 
-        network_bridge_device = util.config[str(self)][
-            self.deployment.os_name]['network_bridge_device']
+        network_bridge_device = util.config['networking'][str(self)][
+            self.deployment.provisioner][self.deployment.os_name][
+            'network_bridge_device']
 
         controllers = self.deployment.search_role('controller')
         computes = self.deployment.search_role('compute')
