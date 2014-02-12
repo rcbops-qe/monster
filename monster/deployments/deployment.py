@@ -188,3 +188,16 @@ class Deployment(object):
 
         return [feature.__class__.__name__.lower() for feature in
                 self.features]
+
+    def retrofit(self, branch, ovs_bridge, lx_bridge, iface):
+        """
+        Retrofit the deployment
+        """
+
+        if self.feature_in('neutron'):
+            for node in self.nodes:
+                if not node.feature_in("chefserver"):
+                    node.retrofit(branch, ovs_bridge, lx_bridge, iface)
+        else:
+            util.logger.info(
+                "This build doesnt have Neutron/Quantum, cannot Retrofit")
