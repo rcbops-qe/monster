@@ -25,13 +25,12 @@ class HATest(Test):
 
     def move_vips_from(self, node):
         self.keepalived_fail(node)
-        sleep(30)               # wait for vips to leave
         self.keepalived_restore(node)
-        sleep(30)               # wait for node to be ready
+        sleep(10)               # wait for node to be ready
 
     def fail_node(self, node):
         node.power_off()
-        sleep(60)
+        sleep(5)
 
     def prepare(self):
         """
