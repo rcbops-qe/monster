@@ -184,6 +184,20 @@ class Node(object):
 
         return self.run_cmd(command)
 
+    def get_vmnet_iface(self):
+        """
+        Return the iface that our neutron network will live on
+        """
+        vmnet_cidr = util.config[
+            self.deployment.provisioner]['network']['vmnet']['cidr']
+
+        vmnet_l3 = ".".join(vmnet_cidr.split(".")[:-1])
+
+        get_nbd = "ip a | grep {0} | awk \'{1}\'".format(
+            vmnet_l3, "{print $NF}")
+
+        return self.run_cmd(get_nbd)['return'].remove("\n")
+
     def destroy(self):
         util.logger.info("Destroying node:{0}".format(self.name))
         for feature in self.features:
@@ -219,9 +233,8 @@ class Node(object):
         # jwagner
 
         # Gather the current configured ovs-bridge
-        old_ovs_bridge = util.config['networking']['neutron'][
-            self.deployment.provisioner][self.deployment.os_name][
-            'network_bridge_device']
+        old_ovs_bridge = util.config[self.deployment.provisioner]['network'][
+            'vmnet']['iface']
 
         # delete the old ovs bridge
         prt_del_cmd = 'ovs-vsctl del-port {0} {1}'.format(

@@ -83,7 +83,7 @@ class Neutron(Deployment):
         self._build_bridges()
 
         # Auto add default icmp and tcp sec rules
-        self._add_security_rules()
+        #self._add_security_rules()
 
     def _add_security_rules(self):
         """
@@ -123,14 +123,16 @@ class Neutron(Deployment):
         Fix the network provider block in the enviornment
         """
 
+        controller = next(self.deployment.search_role('controller'))
+
         try:
-            iface = util.config['networking'][str(self)][
-                self.deployment.provisioner][self.deployment.os_name][
-                'network_bridge_device']
-        except KeyError:
+            iface = controller.get_vmnet_iface()
+            util.logger.info("Found iface: {0} on controller".format(iface))
+        except:
+            iface = util.config[self.deployment.provisioner][
+                'network']['vmnet']['iface']
             util.logger.info(
-                "You must provide a network bridge in the config.yaml file")
-            raise
+                "Couldnt find iface, using config {0}".format(iface))
 
         provider_networks = [
             {"label": "ph-{0}".format(iface),
@@ -158,7 +160,7 @@ class Neutron(Deployment):
         # update the vip to correct api name and vip value
         if self.deployment.feature_in("highavailability"):
             api_name = '{0}-api'.format(self.provider)
-            api_vip = util.config['networking'][str(self)][
+            api_vip = util.config[str(self)][
                 self.deployment.provisioner][self.deployment.os_name]['vip']
             env.override_attributes['vips'][api_name] = api_vip
 
@@ -202,27 +204,45 @@ class Neutron(Deployment):
 
         util.logger.info("### Beginning of Networking Block ###")
 
-        network_bridge_device = util.config['networking'][str(self)][
-            self.deployment.provisioner][self.deployment.os_name][
-            'network_bridge_device']
-
         controllers = self.deployment.search_role('controller')
         computes = self.deployment.search_role('compute')
 
-        commands = ['ip a f {0}'.format(network_bridge_device),
-                    'ovs-vsctl add-port br-{0} {0}'.format(
-                        network_bridge_device)]
-        command = "; ".join(commands)
-
         util.logger.info("### Building OVS Bridge and "
                          "Ports on network nodes ###")
-        # loop through controllers and run
+
         for controller in controllers:
+            try:
+                iface = controller.get_vmnet_iface(controller)
+                util.logger.info(
+                    "Found iface: {0} on controller".format(iface))
+            except:
+                iface = util.config[
+                    self.deployment.provisioner]['network']['vmnet']['iface']
+                util.logger.info(
+                    "Couldnt find iface, using config {0}".format(iface))
+            commands = ['ip a f {0}'.format(iface),
+                        'ovs-vsctl add-port br-{0} {0}'.format(
+                            iface)]
+            command = "; ".join(commands)
+            util.logger.debug("Running {0} on {1}".format(command, controller))
             controller.run_cmd(command)
 
         # loop through computes and run
         for compute in computes:
-            compute.run_cmd(command)
+            try:
+                iface = compute.get_vmnet_iface(compute)
+                util.logger.info("Found iface: {0} on compute".format(iface))
+            except:
+                iface = util.config[
+                    self.deployment.provisioner]['network']['vmnet']['iface']
+                util.logger.info(
+                    "Couldnt find iface, using config {0}".format(iface))
+            commands = ['ip a f {0}'.format(iface),
+                        'ovs-vsctl add-port br-{0} {0}'.format(
+                            iface)]
+            command = "; ".join(commands)
+            util.logger.debug("Running {0} on {1}".format(command, controller))
+            controller.run_cmd(command)
 
         util.logger.info("### End of Networking Block ###")
 
@@ -524,21 +544,25 @@ class Nova(Deployment):
             str(self.deployment.provisioner)]
 
     def update_environment(self):
+
         self.deployment.environment.add_override_attr(
             str(self), self.environment)
-        try:
-            bridge_dev = util.config['networking'][str(self)][
-                str(self.deployment.provisioner)][self.deployment.os_name][
-                'network_bridge_device']
-            env = self.deployment.environment
 
-            util.logger.info("Setting bridge_dev to {0}".format(bridge_dev))
-            env.override_attributes['nova']['networks']['public'][
-                'bridge_dev'] = bridge_dev
-        except KeyError:
-            util.logger.info("Failed to find network_bridge_device key: "
-                             "using default environment value")
-            raise
+        controller = next(self.deployment.search_role('controller'))
+
+        try:
+            iface = controller.get_vmnet_iface()
+            util.logger.info("Found iface: {0} on controller".format(iface))
+        except:
+            iface = util.config[self.deployment.provisioner][
+                'network']['vmnet']['iface']
+            util.logger.info(
+                "Couldnt find iface, using config {0}".format(iface))
+
+        env = self.deployment.environment
+        util.logger.info("Setting bridge_dev to {0}".format(iface))
+        env.override_attributes['nova']['networks']['public'][
+            'bridge_dev'] = iface
 
         self.deployment.environment.save()
 
