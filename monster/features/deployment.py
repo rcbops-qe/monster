@@ -132,14 +132,14 @@ class Neutron(Deployment):
                 "You must provide a network bridge in the config.yaml file")
             raise
 
-        provider_network = [
+        provider_networks = [
             {"label": "ph-{0}".format(iface),
              "bridge": "br-{0}".format(iface),
              "vlans": "1:1000"}]
 
         env = self.deployment.environment
         ovs = env.override_attributes[self.provider]['ovs']
-        ovs['provider_network'] = provider_network
+        ovs['provider_networks'] = provider_networks
         env.save()
 
     def _fix_nova_environment(self):
