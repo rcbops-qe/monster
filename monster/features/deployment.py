@@ -127,18 +127,16 @@ class Neutron(Deployment):
 
         try:
             iface = controller.get_vmnet_iface()
-            util.logger.info("Found iface: {0} on controller".format(iface))
         except:
             iface = util.config[self.deployment.provisioner][
                 'network']['vmnet']['iface']
-            util.logger.info(
-                "Couldnt find iface, using config {0}".format(iface))
+
+        util.logger.info("Using iface: {0}".format(iface))
 
         provider_networks = [
             {"label": "ph-{0}".format(iface),
              "bridge": "br-{0}".format(iface),
              "vlans": "1:1000"}]
-
         env = self.deployment.environment
         ovs = env.override_attributes[self.provider]['ovs']
         ovs['provider_networks'] = provider_networks
@@ -212,14 +210,13 @@ class Neutron(Deployment):
 
         for controller in controllers:
             try:
-                iface = controller.get_vmnet_iface(controller)
-                util.logger.info(
-                    "Found iface: {0} on controller".format(iface))
+                iface = controller.get_vmnet_iface()
             except:
-                iface = util.config[
-                    self.deployment.provisioner]['network']['vmnet']['iface']
-                util.logger.info(
-                    "Couldnt find iface, using config {0}".format(iface))
+                iface = util.config[self.deployment.provisioner][
+                    'network']['vmnet']['iface']
+
+            util.logger.info("Using iface: {0}".format(iface))
+
             commands = ['ip a f {0}'.format(iface),
                         'ovs-vsctl add-port br-{0} {0}'.format(
                             iface)]
@@ -230,13 +227,13 @@ class Neutron(Deployment):
         # loop through computes and run
         for compute in computes:
             try:
-                iface = compute.get_vmnet_iface(compute)
-                util.logger.info("Found iface: {0} on compute".format(iface))
+                iface = controller.get_vmnet_iface()
             except:
-                iface = util.config[
-                    self.deployment.provisioner]['network']['vmnet']['iface']
-                util.logger.info(
-                    "Couldnt find iface, using config {0}".format(iface))
+                iface = util.config[self.deployment.provisioner][
+                    'network']['vmnet']['iface']
+
+            util.logger.info("Using iface: {0}".format(iface))
+
             commands = ['ip a f {0}'.format(iface),
                         'ovs-vsctl add-port br-{0} {0}'.format(
                             iface)]
@@ -552,12 +549,11 @@ class Nova(Deployment):
 
         try:
             iface = controller.get_vmnet_iface()
-            util.logger.info("Found iface: {0} on controller".format(iface))
         except:
             iface = util.config[self.deployment.provisioner][
                 'network']['vmnet']['iface']
-            util.logger.info(
-                "Couldnt find iface, using config {0}".format(iface))
+
+        util.logger.info("Using iface: {0}".format(iface))
 
         env = self.deployment.environment
         util.logger.info("Setting bridge_dev to {0}".format(iface))
