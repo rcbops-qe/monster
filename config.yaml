@@ -139,9 +139,9 @@ environments:
         nova: 198.101.133.0/24
         public: 198.101.133.0/24
       rackspace:
-        management: 192.168.3.0/24
-        nova: 192.168.3.0/24
-        public: 192.168.3.0/24
+        management: 192.168.4.0/24
+        nova: 192.168.4.0/24
+        public: 192.168.4.0/24
     glance:
         default:
             image_upload: true
@@ -188,34 +188,34 @@ environments:
                     dis_key: secrete
     vips:
         rackspace:
-            mysql-db: 192.168.3.154
-            rabbitmq-queue: 192.168.3.155
-            cinder-api: 192.168.3.156
-            glance-api: 192.168.3.156
-            glance-registry: 192.168.3.156
-            horizon-dash: 192.168.3.156
-            horizon-dash_ssl: 192.168.3.156
-            keystone-admin-api: 192.168.3.156
-            keystone-internal-api: 192.168.3.156
-            keystone-service-api: 192.168.3.156
-            nova-api: 192.168.3.156
-            nova-ec2-public: 192.168.3.156
-            nova-novnc-proxy: 192.168.3.156
-            nova-xvpvnc-proxy: 192.168.3.156
-            swift-proxy: 192.168.3.156
-            ceilometer-api: 192.168.3.156
-            ceilometer-central-agent: 192.168.3.156
-            heat-api: 192.168.3.156
-            heat-api-cfn: 192.168.3.156
-            heat-api-cloudwatch: 192.168.3.156
+            mysql-db: 192.168.4.154
+            rabbitmq-queue: 192.168.4.155
+            cinder-api: 192.168.4.156
+            glance-api: 192.168.4.156
+            glance-registry: 192.168.4.156
+            horizon-dash: 192.168.4.156
+            horizon-dash_ssl: 192.168.4.156
+            keystone-admin-api: 192.168.4.156
+            keystone-internal-api: 192.168.4.156
+            keystone-service-api: 192.168.4.156
+            nova-api: 192.168.4.156
+            nova-ec2-public: 192.168.4.156
+            nova-novnc-proxy: 192.168.4.156
+            nova-xvpvnc-proxy: 192.168.4.156
+            swift-proxy: 192.168.4.156
+            ceilometer-api: 192.168.4.156
+            ceilometer-central-agent: 192.168.4.156
+            heat-api: 192.168.4.156
+            heat-api-cfn: 192.168.4.156
+            heat-api-cloudwatch: 192.168.4.156
             config:
-                192.168.3.154:
+                192.168.4.154:
                     vrid: 10
                     network: public
-                192.168.3.155:
+                192.168.4.155:
                     vrid: 11
                     network: public
-                192.168.3.156:
+                192.168.4.156:
                     vrid: 12
                     network: public
         precise:
@@ -433,9 +433,12 @@ rackspace:
     networks:
         - public
         - private
-        - test
+        - vmnet
+        - mgmt
+
     network:
-        test: 192.168.3.0/24
+        vmnet: 192.168.3.0/24
+        mgmt: 192.168.4.0/24
 
 openstack:
     run_list:
@@ -477,10 +480,10 @@ networking:
         rackspace:
             centos:
                 network_bridge_device: eth2
-                vip: 192.168.3.156
+                vip: 192.168.4.156
             precise:
                 network_bridge_device: eth2
-                vip: 192.168.3.156
+                vip: 192.168.4.156
 
 upgrade:
   commands:
