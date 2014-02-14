@@ -4,7 +4,7 @@ from monster import util
 from monster.nodes.node import Node
 from monster.features import node as node_features
 from monster.provisioners.util import get_provisioner
-from monster.server_helper import run_cmd
+
 
 class Chef(Node):
     """
