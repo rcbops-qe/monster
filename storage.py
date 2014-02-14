@@ -93,7 +93,7 @@ def _load(name="autotest", config=None, provisioner="razor"):
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    return Chef.from_chef_environment(name, provisioner=cprovisioner)
+    return Chef.from_chef_environment(environment=cprovisioner)
 
 
 def _set_log(log, log_level):
