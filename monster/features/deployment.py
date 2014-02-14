@@ -227,7 +227,7 @@ class Neutron(Deployment):
         # loop through computes and run
         for compute in computes:
             try:
-                iface = controller.get_vmnet_iface()
+                iface = compute.get_vmnet_iface()
             except:
                 iface = util.config[self.deployment.provisioner][
                     'network']['vmnet']['iface']
@@ -238,8 +238,8 @@ class Neutron(Deployment):
                         'ovs-vsctl add-port br-{0} {0}'.format(
                             iface)]
             command = "; ".join(commands)
-            util.logger.debug("Running {0} on {1}".format(command, controller))
-            controller.run_cmd(command)
+            util.logger.debug("Running {0} on {1}".format(command, compute))
+            compute.run_cmd(command)
 
         util.logger.info("### End of Networking Block ###")
 
