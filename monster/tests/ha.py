@@ -30,7 +30,7 @@ class HATest(Test):
 
     def fail_node(self, node):
         node.power_off()
-        sleep(5)
+        sleep(60)
 
     def prepare(self):
         """
