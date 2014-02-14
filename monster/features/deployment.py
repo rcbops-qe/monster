@@ -125,9 +125,8 @@ class Neutron(Deployment):
 
         controller = next(self.deployment.search_role('controller'))
 
-        try:
-            iface = controller.get_vmnet_iface()
-        except:
+        iface = controller.get_vmnet_iface()
+        if not iface:
             iface = util.config[self.deployment.provisioner][
                 'network']['vmnet']['iface']
 
@@ -209,9 +208,8 @@ class Neutron(Deployment):
                          "Ports on network nodes ###")
 
         for controller in controllers:
-            try:
-                iface = controller.get_vmnet_iface()
-            except:
+            iface = controller.get_vmnet_iface()
+            if not iface:
                 iface = util.config[self.deployment.provisioner][
                     'network']['vmnet']['iface']
 
@@ -226,9 +224,8 @@ class Neutron(Deployment):
 
         # loop through computes and run
         for compute in computes:
-            try:
-                iface = compute.get_vmnet_iface()
-            except:
+            iface = compute.get_vmnet_iface()
+            if not iface:
                 iface = util.config[self.deployment.provisioner][
                     'network']['vmnet']['iface']
 
@@ -547,9 +544,8 @@ class Nova(Deployment):
 
         controller = next(self.deployment.search_role('controller'))
 
-        try:
-            iface = controller.get_vmnet_iface()
-        except:
+        iface = controller.get_vmnet_iface()
+        if not iface:
             iface = util.config[self.deployment.provisioner][
                 'network']['vmnet']['iface']
 
