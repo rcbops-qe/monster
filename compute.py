@@ -3,7 +3,6 @@
 """
 Command Line interface for Building Openstack clusters
 """
-import sys
 import argh
 import traceback
 import webbrowser
@@ -39,29 +38,25 @@ def build(name="autotest", template="precise-default", branch="master",
     cprovisioner = get_provisioner(provisioner)
     deployment = MonsterChefDeployment.fromfile(
         name, template, branch, cprovisioner, template_file)
+
     if dry:
-        # build environment
         try:
             deployment.update_environment()
         except Exception:
-            util.logger.error(traceback.print_exc())
-            if destroy:
-                deployment.destroy()
-            sys.exit(1)
+            error = traceback.print_exc()
+            util.logger.error(error)
+            raise
 
     else:
         util.logger.info(deployment)
-        # build deployment
         try:
             deployment.build()
         except Exception:
-            util.logger.error(traceback.print_exc())
-            if destroy:
-                deployment.destroy()
-            sys.exit(1)
+            error = traceback.print_exc()
+            util.logger.error(error)
+            raise
 
     util.logger.info(deployment)
-
 
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
              x_bridge='lxb-mgmt', iface='eth0', config=None,
