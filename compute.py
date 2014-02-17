@@ -58,6 +58,7 @@ def build(name="autotest", template="precise-default", branch="master",
 
     util.logger.info(deployment)
 
+
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
              x_bridge='lxb-mgmt', iface='eth0', config=None,
              log=None, log_level='INFO', secret_path=None):

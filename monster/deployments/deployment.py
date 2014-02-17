@@ -5,6 +5,7 @@ OpenStack deployments
 import types
 import tmuxp
 from monster import util
+from monster.tools.retrofit import Retrofit
 
 
 class Deployment(object):
@@ -194,4 +195,10 @@ class Deployment(object):
         Retrofit the deployment
         """
 
-        raise NotImplementedError()
+        retrofit = Retrofit(self)
+
+        # Install
+        retrofit.install(branch)
+
+        # Bootstrap
+        retrofit.bootstrap(iface, lx_bridge, ovs_bridge)

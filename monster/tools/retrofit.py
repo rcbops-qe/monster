@@ -9,8 +9,10 @@ class Retrofit(object):
 
     def __init__(self, deployment):
         self.deployment = deployment
+        self.controllers = self.deployment.search_role('controller')
+        self.computes = self.deployment.search_role('compute')
 
-    def install(self, branch='master'):
+    def install(self, branch):
         """
         Installs the retrofit tool on the nodes
         """
@@ -19,41 +21,37 @@ class Retrofit(object):
         self._check_os()
         self._check_neutron()
 
-        # Load Nodes
-        controllers = self.deployment.search_role('controller')
-        computes = self.deployment.search_role('compute')
-
-        # Retrofit Controllers
-        for controller in controllers:
+        for controller in self.controllers:
             self._install_repo(controller, branch)
-            self.bootstrap(controller)
 
-        # Retrofit Computes
-        for compute in computes:
+        for compute in self.computes:
             self._install_repo(compute, branch)
-            self.bootstrap(compute)
 
-    def bootstrap(self, node, iface, lx_bridge, ovs_bridge):
+    def bootstrap(self, iface, lx_bridge, ovs_bridge):
         """
         Bootstraps a node with retrofit
         """
 
-        # run bootstrap retrofit
-        retro_cmds = ['cd /opt/retrofit',
-                      './retrofit.py bootstrap -i {0} -l {1} -o {2}'.format(
-                          iface, lx_bridge, ovs_bridge)]
+        # bootstrap cmd
+        bstrap_cmds = ['cd /opt/retrofit',
+                       './retrofit.py bootstrap -i {0} -l {1} -o {2}'.format(
+                           iface, lx_bridge, ovs_bridge)]
 
-        retro_cmd = "; ".join(retro_cmds)
-        util.logger.debug("Running {0} on {1}".format(retro_cmd, self.name))
-        node.run_cmd(retro_cmd)
+        bstrap_cmd = "; ".join(bstrap_cmds)
 
-    def convert(self, node):
+        for controller in self.controllers:
+            controller.run_cmd(bstrap_cmd)
+
+        for compute in self.computes:
+            compute.run_cmd(bstrap_cmd)
+
+    def convert(self, iface, lx_bridge, ovs_bridge):
         raise NotImplementedError()
 
-    def revert(self, node):
+    def revert(self, iface, lx_bridge, ovs_bridge):
         raise NotImplementedError()
 
-    def _install_repo(self, node, branch):
+    def _install_repo(self, node, branch='master'):
         """
         Installs the retrofit repository
         """
