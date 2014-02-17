@@ -194,6 +194,12 @@ class Deployment(object):
         Retrofit the deployment
         """
 
+        if self.os_name in ['centos', 'rhel']:
+            util.logger.info(
+                "Retrofit tool does not support Centos/Rhel Installs")
+            raise NotImplementedError(
+                "Retrofit tool does not support Centos/Rhel Installs")
+
         if self.feature_in('neutron'):
             for node in self.nodes:
                 if not node.feature_in("chefserver"):

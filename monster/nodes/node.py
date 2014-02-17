@@ -218,6 +218,9 @@ class Node(object):
         # BOOTSTRAP / CONVERT and REVERT
         # jwagner
 
+        # install bridge_utils
+        self.install_package("bridge-utils")
+
         # Gather the current configured ovs-bridge
         old_ovs_bridge = util.config['networking']['neutron'][
             self.deployment.provisioner][self.deployment.os_name][
@@ -243,9 +246,6 @@ class Node(object):
         install_cmd = "; ".join(install_cmds)
         util.logger.debug("Running {0} on {1}".format(install_cmd, self.name))
         self.run_cmd(install_cmd)
-
-        # install bridge_utils
-        self.install_package("bridge-utils")
 
         # run bootstrap retrofit
         retro_cmds = ['cd /opt/retrofit',
