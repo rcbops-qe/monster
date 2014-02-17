@@ -285,6 +285,9 @@ environments:
                     network: public
 rcbops:
     retrofit:
+        supported:
+            os:
+                - precise
         git:
             url: https://github.com/Apsu/retrofit.git
             branches:
