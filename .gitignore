@@ -1,7 +1,7 @@
 *.py[cod]
 clean.py
 secret.yaml
-tools/
+ipython_tools/
 
 # C extensions
 *.so
