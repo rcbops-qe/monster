@@ -723,7 +723,7 @@ class OpenLDAP(RPCS):
         env.override_attributes['keystone']['ldap']['password'] = password
 
         # Save the Environment
-        self.node.deployment.environment.save()
+        self.deployment.environment.save()
 
 
 class Openssh(RPCS):
