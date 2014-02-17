@@ -188,8 +188,8 @@ class Node(object):
         """
         Return the iface that our neutron network will live on
         """
-        vmnet_cidr = util.config[
-            self.deployment.provisioner]['network']['vmnet']['cidr']
+        vmnet_cidr = util.config[self.deployment.provisioner]['network'][
+            self.deployment.os_name]['vmnet']['cidr']
         vmnet_l3 = ".".join(vmnet_cidr.split(".")[:-1])
         get_nbd = "ip a | grep {0} | awk \'{1}\'".format(
             vmnet_l3, "{print $NF}")
@@ -236,7 +236,7 @@ class Node(object):
 
         # Gather the current configured ovs-bridge
         old_ovs_bridge = util.config[self.deployment.provisioner]['network'][
-            'vmnet']['iface']
+            self.deployment.os_name]['vmnet']['iface']
 
         # delete the old ovs bridge
         prt_del_cmd = 'ovs-vsctl del-port {0} {1}'.format(

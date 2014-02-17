@@ -383,7 +383,6 @@ tests:
         - volume
       swift:
         - object_storage
-
 swift:
     master_env_key: swift-private-cloud
     auto_build_rings: False
@@ -401,19 +400,24 @@ swift:
             port: 6001
         account:
             port: 6002
-
 cinder:
     vg_name: vg_storage
-
 razor:
     network:
-        vmnet:
-            cidr: 172.31.0.0/24
-            iface: eth1
-        mgmt:
-            cidr: 198.101.133.0/24
-            iface: eth0
-
+        centos:
+            vmnet:
+                cidr: 172.31.0.0/24
+                iface: em2
+            mgmt:
+                cidr: 198.101.133.0/24
+                iface: em1
+        precise:
+            vmnet:
+                cidr: 172.31.0.0/24
+                iface: eth1
+            mgmt:
+                cidr: 198.101.133.0/24
+                iface: eth0
 rackspace:
     run_list:
         - recipe[rcbops-qa]
@@ -441,21 +445,26 @@ rackspace:
       chefserver: 1GBP
       controller: 2GBP
       compute: 8GBP
-
     networks:
         - public
         - private
         - vmnet
         - mgmt
-
     network:
-        vmnet:
-            cidr: 192.168.3.0/24
-            iface: eth2
-        mgmt:
-            cidr: 192.168.4.0/24
-            iface: eth3
-
+        centos:
+            vmnet:
+                cidr: 192.168.3.0/24
+                iface: eth2
+            mgmt:
+                cidr: 192.168.4.0/24
+                iface: eth3
+        precise:
+            vmnet:
+                cidr: 192.168.3.0/24
+                iface: eth2
+            mgmt:
+                cidr: 192.168.4.0/24
+                iface: eth3
 openstack:
     run_list:
         - recipe[rcbops-qa]
@@ -471,13 +480,20 @@ openstack:
         - public
         - private
     network:
-        vmnet:
-            cidr: 192.168.3.0/24
-            iface: eth2
-        mgmt:
-            cidr: 192.168.4.0/24
-            iface: eth3
-
+        centos:
+            vmnet:
+                cidr: 192.168.3.0/24
+                iface: eth2
+            mgmt:
+                cidr: 192.168.4.0/24
+                iface: eth3
+        precise:
+            vmnet:
+                cidr: 192.168.3.0/24
+                iface: eth2
+            mgmt:
+                cidr: 192.168.4.0/24
+                iface: eth3
 neutron:
     razor:
         centos:
@@ -489,7 +505,6 @@ neutron:
             vip: 192.168.4.156
         precise:
             vip: 192.168.4.156
-
 upgrade:
   commands:
     backup-db: bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/database_backup.sh)

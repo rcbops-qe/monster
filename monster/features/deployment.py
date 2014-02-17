@@ -127,8 +127,8 @@ class Neutron(Deployment):
 
         iface = controller.get_vmnet_iface()
         if not iface:
-            iface = util.config[self.deployment.provisioner][
-                'network']['vmnet']['iface']
+            iface = util.config[self.deployment.provisioner]['network'][
+                self.deployment.os_name]['vmnet']['iface']
 
         util.logger.info("Using iface: {0}".format(iface))
 
@@ -210,8 +210,8 @@ class Neutron(Deployment):
         for controller in controllers:
             iface = controller.get_vmnet_iface()
             if not iface:
-                iface = util.config[self.deployment.provisioner][
-                    'network']['vmnet']['iface']
+                iface = util.config[self.deployment.provisioner]['network'][
+                    self.deployment.os_name]['vmnet']['iface']
 
             util.logger.info("Using iface: {0}".format(iface))
 
@@ -226,8 +226,8 @@ class Neutron(Deployment):
         for compute in computes:
             iface = compute.get_vmnet_iface()
             if not iface:
-                iface = util.config[self.deployment.provisioner][
-                    'network']['vmnet']['iface']
+                iface = util.config[self.deployment.provisioner]['network'][
+                    self.deployment.os_name]['vmnet']['iface']
 
             util.logger.info("Using iface: {0}".format(iface))
 
@@ -546,8 +546,8 @@ class Nova(Deployment):
 
         iface = controller.get_vmnet_iface()
         if not iface:
-            iface = util.config[self.deployment.provisioner][
-                'network']['vmnet']['iface']
+            iface = util.config[self.deployment.provisioner]['network'][
+                self.deployment.os_name]['vmnet']['iface']
 
         util.logger.info("Using iface: {0}".format(iface))
 
