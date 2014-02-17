@@ -445,13 +445,11 @@ rackspace:
       chefserver: 1GBP
       controller: 2GBP
       compute: 8GBP
-
     networks:
         - public
         - private
         - vmnet
         - mgmt
-
     network:
         centos:
             vmnet:
@@ -481,7 +479,7 @@ openstack:
     networks:
         - public
         - private
-        network:
+    network:
         centos:
             vmnet:
                 cidr: 192.168.3.0/24
