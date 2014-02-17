@@ -139,9 +139,9 @@ environments:
         nova: 198.101.133.0/24
         public: 198.101.133.0/24
       rackspace:
-        management: 192.168.3.0/24
-        nova: 192.168.3.0/24
-        public: 192.168.3.0/24
+        management: 192.168.4.0/24
+        nova: 192.168.4.0/24
+        public: 192.168.4.0/24
     glance:
         default:
             image_upload: true
@@ -188,34 +188,35 @@ environments:
                     dis_key: secrete
     vips:
         rackspace:
-            mysql-db: 192.168.3.154
-            rabbitmq-queue: 192.168.3.155
-            cinder-api: 192.168.3.156
-            glance-api: 192.168.3.156
-            glance-registry: 192.168.3.156
-            horizon-dash: 192.168.3.156
-            horizon-dash_ssl: 192.168.3.156
-            keystone-admin-api: 192.168.3.156
-            keystone-internal-api: 192.168.3.156
-            keystone-service-api: 192.168.3.156
-            nova-api: 192.168.3.156
-            nova-ec2-public: 192.168.3.156
-            nova-novnc-proxy: 192.168.3.156
-            nova-xvpvnc-proxy: 192.168.3.156
-            swift-proxy: 192.168.3.156
-            ceilometer-api: 192.168.3.156
-            ceilometer-central-agent: 192.168.3.156
-            heat-api: 192.168.3.156
-            heat-api-cfn: 192.168.3.156
-            heat-api-cloudwatch: 192.168.3.156
+            mysql-db: 192.168.4.154
+            rabbitmq-queue: 192.168.4.155
+            cinder-api: 192.168.4.156
+            glance-api: 192.168.4.156
+            glance-registry: 192.168.4.156
+            horizon-dash: 192.168.4.156
+            horizon-dash_ssl: 192.168.4.156
+            keystone-admin-api: 192.168.4.156
+            keystone-internal-api: 192.168.4.156
+            keystone-service-api: 192.168.4.156
+            nova-api: 192.168.4.156
+            nova-ec2-public: 192.168.4.156
+            nova-api-metadata: 192.168.4.156
+            nova-novnc-proxy: 192.168.4.156
+            nova-xvpvnc-proxy: 192.168.4.156
+            swift-proxy: 192.168.4.156
+            ceilometer-api: 192.168.4.156
+            ceilometer-central-agent: 192.168.4.156
+            heat-api: 192.168.4.156
+            heat-api-cfn: 192.168.4.156
+            heat-api-cloudwatch: 192.168.4.156
             config:
-                192.168.3.154:
+                192.168.4.154:
                     vrid: 10
                     network: public
-                192.168.3.155:
+                192.168.4.155:
                     vrid: 11
                     network: public
-                192.168.3.156:
+                192.168.4.156:
                     vrid: 12
                     network: public
         precise:
@@ -231,6 +232,7 @@ environments:
             keystone-service-api: 198.101.133.156
             nova-api: 198.101.133.156
             nova-ec2-public: 198.101.133.156
+            nova-api-metadata: 198.101.133.156
             nova-novnc-proxy: 198.101.133.156
             nova-xvpvnc-proxy: 198.101.133.156
             swift-proxy: 198.101.133.156
@@ -262,6 +264,7 @@ environments:
             keystone-service-api: 198.101.133.159
             nova-api: 198.101.133.159
             nova-ec2-public: 198.101.133.159
+            nova-api-metadata: 198.101.133.159
             nova-novnc-proxy: 198.101.133.159
             nova-xvpvnc-proxy: 198.101.133.159
             swift-proxy: 198.101.133.159
@@ -380,7 +383,6 @@ tests:
         - volume
       swift:
         - object_storage
-
 swift:
     master_env_key: swift-private-cloud
     auto_build_rings: False
@@ -398,10 +400,24 @@ swift:
             port: 6001
         account:
             port: 6002
-
 cinder:
     vg_name: vg_storage
-
+razor:
+    network:
+        centos:
+            vmnet:
+                cidr: 172.31.0.0/24
+                iface: em2
+            mgmt:
+                cidr: 198.101.133.0/24
+                iface: em1
+        precise:
+            vmnet:
+                cidr: 172.31.0.0/24
+                iface: eth1
+            mgmt:
+                cidr: 198.101.133.0/24
+                iface: eth0
 rackspace:
     run_list:
         - recipe[rcbops-qa]
@@ -429,14 +445,26 @@ rackspace:
       chefserver: 1GBP
       controller: 2GBP
       compute: 8GBP
-
     networks:
         - public
         - private
-        - test
+        - vmnet
+        - mgmt
     network:
-        test: 192.168.3.0/24
-
+        centos:
+            vmnet:
+                cidr: 192.168.3.0/24
+                iface: eth2
+            mgmt:
+                cidr: 192.168.4.0/24
+                iface: eth3
+        precise:
+            vmnet:
+                cidr: 192.168.3.0/24
+                iface: eth2
+            mgmt:
+                cidr: 192.168.4.0/24
+                iface: eth3
 openstack:
     run_list:
         - recipe[rcbops-qa]
@@ -452,36 +480,31 @@ openstack:
         - public
         - private
     network:
-        private: 172.31.0.0/24
-
-networking:
-    nova:
-        razor:
-            centos:
-                network_bridge_device: em2
-            precise:
-                network_bridge_device: eth1
-        rackspace:
-            centos:
-                network_bridge_device: eth2
-            precise:
-                network_bridge_device: eth2
-    neutron:
-        razor:
-            centos:
-                network_bridge_device: em2
-                vip: 198.101.133.159
-            precise:
-                network_bridge_device: eth1
-                vip: 198.101.133.156
-        rackspace:
-            centos:
-                network_bridge_device: eth2
-                vip: 192.168.3.156
-            precise:
-                network_bridge_device: eth2
-                vip: 192.168.3.156
-
+        centos:
+            vmnet:
+                cidr: 192.168.3.0/24
+                iface: eth2
+            mgmt:
+                cidr: 192.168.4.0/24
+                iface: eth3
+        precise:
+            vmnet:
+                cidr: 192.168.3.0/24
+                iface: eth2
+            mgmt:
+                cidr: 192.168.4.0/24
+                iface: eth3
+neutron:
+    razor:
+        centos:
+            vip: 198.101.133.159
+        precise:
+            vip: 198.101.133.156
+    rackspace:
+        centos:
+            vip: 192.168.4.156
+        precise:
+            vip: 192.168.4.156
 upgrade:
   commands:
     backup-db: bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/database_backup.sh)
