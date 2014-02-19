@@ -184,6 +184,21 @@ class Node(object):
 
         return self.run_cmd(command)
 
+    def check_package(self, package):
+        """
+        Checks to see if a package is installed
+        """
+
+        if self.os_name == "precise":
+            chk_cmd = "dpkg -l | grep {0}".format(package)
+        if self.os_name in ["centos", "rhel"]:
+            chk_cmd = "rpm -a | grep {0}".format(package)
+        else:
+            util.logger.info(
+                "Operating system not supported at this time")
+
+        return self.run_cmd(chk_cmd)
+
     def get_vmnet_iface(self):
         """
         Return the iface that our neutron network will live on
@@ -225,48 +240,3 @@ class Node(object):
     def power_on(self):
 
         self.provisioner.power_up(self)
-
-    def retrofit(self, branch, ovs_bridge, lx_bridge, iface):
-        """
-        Runs RPCS retrofit tool on the node
-        """
-        # TODO: MAKE THIS A CLASS IN TOOLS OR SOMETHING SO WE CAN
-        # BOOTSTRAP / CONVERT and REVERT
-        # jwagner
-
-        # Gather the current configured ovs-bridge
-        old_ovs_bridge = util.config[self.deployment.provisioner]['network'][
-            self.deployment.os_name]['vmnet']['iface']
-
-        # delete the old ovs bridge
-        prt_del_cmd = 'ovs-vsctl del-port {0} {1}'.format(
-            ovs_bridge, old_ovs_bridge)
-        util.logger.debug("Running {0} on {1}".format(prt_del_cmd, self.name))
-        self.run_cmd(prt_del_cmd)
-
-        # install retrofit
-        retro_git = util.config['rcbops']['retrofit']['git']['url']
-        if branch not in util.config['rcbops']['retrofit']['git']['branches']:
-            error = "{0} is not a valid retrofit branch".format(branch)
-            util.logger.info(error)
-            raise Exception(error)
-
-        install_cmds = ['cd /opt',
-                        'rm -rf retrofit',
-                        'git clone -b {0} {1}'.format(branch, retro_git)]
-
-        install_cmd = "; ".join(install_cmds)
-        util.logger.debug("Running {0} on {1}".format(install_cmd, self.name))
-        self.run_cmd(install_cmd)
-
-        # install bridge_utils
-        self.install_package("bridge-utils")
-
-        # run bootstrap retrofit
-        retro_cmds = ['cd /opt/retrofit',
-                      './retrofit.py bootstrap -i {0} -l {1} -o {2}'.format(
-                          iface, lx_bridge, ovs_bridge)]
-
-        retro_cmd = "; ".join(retro_cmds)
-        util.logger.debug("Running {0} on {1}".format(retro_cmd, self.name))
-        self.run_cmd(retro_cmd)

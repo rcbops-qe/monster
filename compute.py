@@ -58,8 +58,9 @@ def build(name="autotest", template="precise-default", branch="master",
 
     util.logger.info(deployment)
 
+
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
-             x_bridge='lxb-mgmt', iface='eth0', config=None,
+             x_bridge='lxb-mgmt', iface='eth0', del_port=None, config=None,
              log=None, log_level='INFO', secret_path=None):
 
     """
@@ -68,7 +69,7 @@ def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
     _set_log(log, log_level)
     deployment = _load(name, config, secret_path)
     util.logger.info(deployment)
-    deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface)
+    deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
 
 
 def upgrade(name='autotest', upgrade_branch='v4.1.3rc',

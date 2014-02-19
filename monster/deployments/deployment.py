@@ -5,6 +5,7 @@ OpenStack deployments
 import types
 import tmuxp
 from monster import util
+from monster.tools.retrofit import Retrofit
 
 
 class Deployment(object):
@@ -189,15 +190,21 @@ class Deployment(object):
         return [feature.__class__.__name__.lower() for feature in
                 self.features]
 
-    def retrofit(self, branch, ovs_bridge, lx_bridge, iface):
+    def retrofit(self, branch, ovs_bridge, lx_bridge, iface, del_port=None):
         """
         Retrofit the deployment
         """
 
-        if self.feature_in('neutron'):
-            for node in self.nodes:
-                if not node.feature_in("chefserver"):
-                    node.retrofit(branch, ovs_bridge, lx_bridge, iface)
-        else:
-            util.logger.info(
-                "This build doesnt have Neutron/Quantum, cannot Retrofit")
+        util.logger.info("Retrofit Deployment: {0}".format(self.name))
+
+        retrofit = Retrofit(self)
+
+        # if old port exists, remove it
+        if del_port:
+            retrofit.remove_port_from_bridge(ovs_bridge, del_port)
+
+        # Install
+        retrofit.install(branch)
+
+        # Bootstrap
+        retrofit.bootstrap(iface, lx_bridge, ovs_bridge)
