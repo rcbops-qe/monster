@@ -190,12 +190,18 @@ class Deployment(object):
         return [feature.__class__.__name__.lower() for feature in
                 self.features]
 
-    def retrofit(self, branch, ovs_bridge, lx_bridge, iface):
+    def retrofit(self, branch, ovs_bridge, lx_bridge, iface, del_port=None):
         """
         Retrofit the deployment
         """
 
+        util.logger.info("Retrofit Deployment: {0}".format(self.name))
+
         retrofit = Retrofit(self)
+
+        # if old port exists, remove it
+        if del_port:
+            retrofit.remove_port_from_bridge(ovs_bridge, del_port)
 
         # Install
         retrofit.install(branch)

@@ -184,6 +184,21 @@ class Node(object):
 
         return self.run_cmd(command)
 
+    def check_package(self, package):
+        """
+        Checks to see if a package is installed
+        """
+
+        if self.os_name == "precise":
+            chk_cmd = "dpkg -l | grep {0}".format(package)
+        if self.os_name in ["centos", "rhel"]:
+            chk_cmd = "rpm -a | grep {0}".format(package)
+        else:
+            util.logger.info(
+                "Operating system not supported at this time")
+
+        return self.run_cmd(chk_cmd)
+
     def get_vmnet_iface(self):
         """
         Return the iface that our neutron network will live on
