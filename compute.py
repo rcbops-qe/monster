@@ -4,6 +4,7 @@
 Command Line interface for Building Openstack clusters
 """
 import argh
+import subprocess
 import traceback
 import webbrowser
 from monster import util
@@ -95,7 +96,8 @@ def destroy(name="autotest", config=None, log=None, log_level="INFO",
 
 
 def test(name="autotest", config=None, log=None, log_level="INFO",
-         tempest=False, ha=False, secret_path=None, deployment=None):
+         tempest=False, ha=False, secret_path=None, deployment=None,
+         iterations=1):
     """
     Tests an openstack deployment
     """
@@ -107,16 +109,41 @@ def test(name="autotest", config=None, log=None, log_level="INFO",
         ha = True
     if not deployment.feature_in("highavailability"):
         ha = False
-    if ha:
-        ha = HATest(deployment)
-        ha.test()
-    if tempest:
-        branch = TempestQuantum.tempest_branch(deployment.branch)
-        if "grizzly" in branch:
-            tempest = TempestQuantum(deployment)
-        else:
-            tempest = TempestNeutron(deployment)
-        tempest.test()
+
+    for i in range(iterations):
+        print ('\033[1;41mRunning iteration {0} of {1}!'
+               '\033[1;m'.format(i+1,iterations))
+
+        if ha:
+            print ('\033[1;41mRunning High Availability test!'
+                   '\033[1;m')
+            ha = HATest(deployment)
+            ha.test()
+        if tempest:
+            print ('\033[1;41mRunning Tempest test!'
+                   '\033[1;m')
+            branch = TempestQuantum.tempest_branch(deployment.branch)
+            if "grizzly" in branch:
+                tempest = TempestQuantum(deployment)
+            else:
+                tempest = TempestNeutron(deployment)
+            tempest.test()
+
+        controllers = deployment.search_role('controller')
+        for controller in controllers:
+            usrpass = controller.get_creds()
+            ip = usrpass.get('ip')
+            user = usrpass.get('user')
+            password = usrpass.get('password')
+            time_cmd = subprocess.Popen(['date', '+%F_%T'], stdout=subprocess.PIPE)
+            time = time_cmd.stdout.read().rstrip()
+            subprocess.call(['mkdir', '-p', 'test_results/{0}/'.format(time)])
+            cm1 = 'sshpass -p {0} scp root@{1}:~/*.xml "./test_results/{2}/"'.format(password, ip, time)
+            subprocess.call(cm1, shell=True)
+
+    print ('\033[1;41mTests have been completed with '
+           '{0} iterations!\033[1;m'.format(iterations))
+
 
 
 def artifact(name="autotest", config=None, log=None, secret_path=None,
