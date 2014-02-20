@@ -121,6 +121,10 @@ def test(name="autotest", config=None, log=None, log_level="INFO",
 
 def artifact(name="autotest", config=None, log=None, secret_path=None,
              log_level="INFO"):
+    """
+    Artifacts a deployment (configs / running services)
+    """
+
     _set_log(log, log_level)
     deployment = _load(name, config, secret_path)
     deployment.artifact()

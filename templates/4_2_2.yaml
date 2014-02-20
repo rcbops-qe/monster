@@ -26,6 +26,7 @@ centos-default:
     monitoring: default
     mysql: default
     glance: cf
+    cinder: local
     nova: default
     horizon: default
     keystone: default
@@ -84,7 +85,7 @@ precise-ha:
     openssh: default
     monitoring: default
     mysql: default
-    glance: default
+    glance: cf
     nova: default
     neutron: neutron
     horizon: default
@@ -106,7 +107,8 @@ centos-ha:
     openssh: default
     monitoring: default
     mysql: default
-    glance: default
+    glance: cf
+    cinder: local
     nova: default
     neutron: neutron
     horizon: default
