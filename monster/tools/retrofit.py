@@ -85,7 +85,7 @@ class Retrofit(object):
         util.logger.info("Reverting to a single plane")
 
         revt_cmds = ["cd '/opt/retrofit",
-                     "./retrofit.py convert -i {0} -l {1} -o {2}".format(
+                     "./retrofit.py revert -i {0} -l {1} -o {2}".format(
                          iface, lx_bridge, ovs_bridge)]
         revt_cmd = "; ".join(revt_cmds)
 
