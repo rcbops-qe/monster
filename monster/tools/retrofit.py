@@ -27,6 +27,8 @@ class Retrofit(object):
         Installs the retrofit tool on the nodes
         """
 
+        util.logger.info("Installing Retrofit")
+
         # Check for support
         self._check_os()
         self._check_neutron()
@@ -43,26 +45,55 @@ class Retrofit(object):
         Bootstraps a node with retrofit
         """
 
+        util.logger.info("Bootstraping to seperate plane")
+
         # bootstrap cmd
         bstrap_cmds = ['cd /opt/retrofit',
                        './retrofit.py bootstrap -i {0} -l {1} -o {2}'.format(
                            iface, lx_bridge, ovs_bridge)]
         bstrap_cmd = "; ".join(bstrap_cmds)
-        print bstrap_cmd
 
         for controller in self.controllers:
-            print controller.name
             controller.run_cmd(bstrap_cmd)
 
         for compute in self.computes:
-            print compute.name
             compute.run_cmd(bstrap_cmd)
 
     def convert(self, iface, lx_bridge, ovs_bridge):
-        raise NotImplementedError()
+        """
+        Converts a deployment to a seperate plane
+        """
+
+        util.logger.info("Converting to seperate plane")
+
+        conv_cmds = ["cd '/opt/retrofit",
+                     "./retrofit.py convert -i {0} -l {1} -o {2}".format(
+                         iface, lx_bridge, ovs_bridge)]
+        conv_cmd = "; ".join(conv_cmds)
+
+        for controller in self.controllers:
+            controller.run_cmd(conv_cmd)
+
+        for compute in self.computes:
+            compute.run_cmd(conv_cmd)
 
     def revert(self, iface, lx_bridge, ovs_bridge):
-        raise NotImplementedError()
+        """
+        Reverts a deployment to a single plane
+        """
+
+        util.logger.info("Reverting to a single plane")
+
+        revt_cmds = ["cd '/opt/retrofit",
+                     "./retrofit.py revert -i {0} -l {1} -o {2}".format(
+                         iface, lx_bridge, ovs_bridge)]
+        revt_cmd = "; ".join(revt_cmds)
+
+        for controller in self.controllers:
+            controller.run_cmd(revt_cmd)
+
+        for compute in self.computes:
+            compute.run_cmd(revt_cmd)
 
     def remove_port_from_bridge(self, ovs_bridge, del_port):
         """
@@ -70,8 +101,9 @@ class Retrofit(object):
         """
 
         util.logger.info(
-            "Removing old OVS ports on deployment".format(
-                self.deployment.name))
+            ("Removing old OVS port:{0} from OVS bridge: "
+             "{1} on deployment: {2}".format(
+                 del_port, ovs_bridge, self.deployment.name)))
 
         remove_cmd = "ovs-vsctl del-port {0} {1}".format(ovs_bridge, del_port)
 
