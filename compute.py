@@ -112,7 +112,7 @@ def test(name="autotest", config=None, log=None, log_level="INFO",
 
     for i in range(iterations):
         print ('\033[1;41mRunning iteration {0} of {1}!'
-               '\033[1;m'.format(i+1,iterations))
+               '\033[1;m'.format(i + 1, iterations))
 
         if ha:
             print ('\033[1;41mRunning High Availability test!'
@@ -133,17 +133,17 @@ def test(name="autotest", config=None, log=None, log_level="INFO",
         for controller in controllers:
             usrpass = controller.get_creds()
             ip = usrpass.get('ip')
-            user = usrpass.get('user')
             password = usrpass.get('password')
-            time_cmd = subprocess.Popen(['date', '+%F_%T'], stdout=subprocess.PIPE)
+            time_cmd = subprocess.Popen(['date', '+%F_%T'],
+                                        stdout=subprocess.PIPE)
             time = time_cmd.stdout.read().rstrip()
             subprocess.call(['mkdir', '-p', 'test_results/{0}/'.format(time)])
-            cm1 = 'sshpass -p {0} scp root@{1}:~/*.xml "./test_results/{2}/"'.format(password, ip, time)
+            cm1 = ('sshpass -p {0} scp root@{1}:~/*.xml '
+                   '"./test_results/{2}/"'.format(password, ip, time))
             subprocess.call(cm1, shell=True)
 
     print ('\033[1;41mTests have been completed with '
            '{0} iterations!\033[1;m'.format(iterations))
-
 
 
 def artifact(name="autotest", config=None, log=None, secret_path=None,
