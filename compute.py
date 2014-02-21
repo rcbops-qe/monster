@@ -115,10 +115,7 @@ def test(name="autotest", config=None, log=None, log_level="INFO",
                '\033[1;m'.format(i + 1, iterations))
 
         env = deployment.environment.name
-        #Get and format time
-        time_cmd = subprocess.Popen(['date', '+%F_%T'],
-                                    stdout=subprocess.PIPE)
-        time = time_cmd.stdout.read().rstrip()
+
         local = "./results/{0}/".format(env)
         #Prepares directory for xml files to be SCPed over
         subprocess.call(['mkdir', '-p', '{0}'.format(local)])
@@ -154,8 +151,8 @@ def getFile(ip, user, password, remote, local, remote_delete=False):
     subprocess.call(cmd1, shell=True)
     if remote_delete:
         cmd2 = ("sshpass -p {0} ssh -o UserKnownHostsFile=/dev/null "
-               "-o StrictHostKeyChecking=no -o LogLevel=quiet -l {1} {2}"
-               " 'rm *.xml;exit'".format(password, user, ip))
+                "-o StrictHostKeyChecking=no -o LogLevel=quiet -l {1} {2}"
+                " 'rm *.xml;exit'".format(password, user, ip))
         subprocess.call(cmd2, shell=True)
 
 
