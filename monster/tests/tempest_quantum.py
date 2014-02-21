@@ -325,7 +325,6 @@ class TempestQuantum(Test):
         Collects tempest report as xunit report
         """
         self.wait_for_results()  # tests are run in screen
-
         self.xunit_file = self.test_node.name + "-" + self.time + ".xml"
         self.test_node.run_cmd("mv {0} {1}".format(self.test_node.name +
                                                    ".xml",
