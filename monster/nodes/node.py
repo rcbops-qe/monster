@@ -46,9 +46,7 @@ class Node(object):
         return "\n".join([outl, features])
 
     def get_creds(self):
-        usrpass = {'ip': self.ipaddress, 'user': self.user,
-                   'password': self.password}
-        return usrpass
+        return self.ipaddress, self.user, self.password
 
     def run_cmd(self, remote_cmd, user=None, password=None, attempts=None):
         """

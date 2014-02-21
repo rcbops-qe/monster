@@ -2,7 +2,7 @@
 clean.py
 secret.yaml
 ipython_tools/
-test_results/
+results/
 
 # C extensions
 *.so

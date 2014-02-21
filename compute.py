@@ -114,6 +114,15 @@ def test(name="autotest", config=None, log=None, log_level="INFO",
         print ('\033[1;41mRunning iteration {0} of {1}!'
                '\033[1;m'.format(i + 1, iterations))
 
+        env = deployment.environment.name
+        #Get and format time
+        time_cmd = subprocess.Popen(['date', '+%F_%T'],
+                                    stdout=subprocess.PIPE)
+        time = time_cmd.stdout.read().rstrip()
+        local = "./results/{0}/".format(env)
+        #Prepares directory for xml files to be SCPed over
+        subprocess.call(['mkdir', '-p', '{0}'.format(local)])
+
         if ha:
             print ('\033[1;41mRunning High Availability test!'
                    '\033[1;m')
@@ -131,19 +140,23 @@ def test(name="autotest", config=None, log=None, log_level="INFO",
 
         controllers = deployment.search_role('controller')
         for controller in controllers:
-            usrpass = controller.get_creds()
-            ip = usrpass.get('ip')
-            password = usrpass.get('password')
-            time_cmd = subprocess.Popen(['date', '+%F_%T'],
-                                        stdout=subprocess.PIPE)
-            time = time_cmd.stdout.read().rstrip()
-            subprocess.call(['mkdir', '-p', 'test_results/{0}/'.format(time)])
-            cm1 = ('sshpass -p {0} scp root@{1}:~/*.xml '
-                   '"./test_results/{2}/"'.format(password, ip, time))
-            subprocess.call(cm1, shell=True)
+            ip, user, password = controller.get_creds()
+            remote = "{0}@{1}:~/*.xml".format(user, ip)
+
+            getFile(ip, user, password, remote, local)
 
     print ('\033[1;41mTests have been completed with '
            '{0} iterations!\033[1;m'.format(iterations))
+
+
+def getFile(ip, user, password, remote, local, remote_delete=False):
+    cmd1 = 'sshpass -p {0} scp -q {1} {2}'.format(password, remote, local)
+    subprocess.call(cmd1, shell=True)
+    if remote_delete:
+        cmd2 = ("sshpass -p {0} ssh -o UserKnownHostsFile=/dev/null "
+               "-o StrictHostKeyChecking=no -o LogLevel=quiet -l {1} {2}"
+               " 'rm *.xml;exit'".format(password, user, ip))
+        subprocess.call(cmd2, shell=True)
 
 
 def artifact(name="autotest", config=None, log=None, secret_path=None,
