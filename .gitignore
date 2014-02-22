@@ -2,6 +2,7 @@
 clean.py
 secret.yaml
 ipython_tools/
+results/
 
 # C extensions
 *.so
@@ -44,3 +45,4 @@ nosetests.xml
 # monster
 *.json
 *.log
+*.xunit

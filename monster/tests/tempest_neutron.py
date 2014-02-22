@@ -4,6 +4,7 @@ Module to test OpenStack deployments with Tempest
 
 import os
 import json
+import subprocess
 from string import Template
 from time import sleep
 from itertools import ifilter, chain
@@ -22,6 +23,9 @@ class TempestNeutron(Test):
         super(TempestNeutron, self).__init__(deployment)
         self.path = "/tmp/%s.conf" % self.deployment.name
         self.test_node = next(self.deployment.search_role("controller"))
+        time_cmd = subprocess.Popen(['date', '+%F_%T'],
+                                    stdout=subprocess.PIPE)
+        self.time = time_cmd.stdout.read().rstrip()
         self.tempest_config = dict(
             identity="", user1_user="", user1_password="", user1_tenant="",
             user2_user="", user2_password="", user2_tenant="", admin_user="",
@@ -318,7 +322,10 @@ class TempestNeutron(Test):
         Collects tempest report as xunit report
         """
         self.wait_for_results()  # tests are run in screen
-        self.xunit_file = self.test_node.name + ".xml"
+        self.xunit_file = self.test_node.name + "-" + self.time + ".xml"
+        self.test_node.run_cmd("mv {0} {1}".format(self.test_node.name +
+                                                   ".xml",
+                                                   self.xunit_file))
         self.test_node.scp_from(self.xunit_file, local_path=self.xunit_file)
         self.test_node.run_cmd("killall screen")
         xunit_merge()

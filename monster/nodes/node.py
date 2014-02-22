@@ -45,6 +45,9 @@ class Node(object):
                     outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
         return "\n".join([outl, features])
 
+    def get_creds(self):
+        return self.ipaddress, self.user, self.password
+
     def run_cmd(self, remote_cmd, user=None, password=None, attempts=None):
         """
         Runs a command on the node

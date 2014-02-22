@@ -4,6 +4,7 @@
 Command Line interface for Building Openstack clusters
 """
 import argh
+import subprocess
 import traceback
 import webbrowser
 from monster import util
@@ -95,7 +96,8 @@ def destroy(name="autotest", config=None, log=None, log_level="INFO",
 
 
 def test(name="autotest", config=None, log=None, log_level="INFO",
-         tempest=False, ha=False, secret_path=None, deployment=None):
+         tempest=False, ha=False, secret_path=None, deployment=None,
+         iterations=1):
     """
     Tests an openstack deployment
     """
@@ -107,16 +109,51 @@ def test(name="autotest", config=None, log=None, log_level="INFO",
         ha = True
     if not deployment.feature_in("highavailability"):
         ha = False
-    if ha:
-        ha = HATest(deployment)
-        ha.test()
-    if tempest:
-        branch = TempestQuantum.tempest_branch(deployment.branch)
-        if "grizzly" in branch:
-            tempest = TempestQuantum(deployment)
-        else:
-            tempest = TempestNeutron(deployment)
-        tempest.test()
+
+    for i in range(iterations):
+        print ('\033[1;41mRunning iteration {0} of {1}!'
+               '\033[1;m'.format(i + 1, iterations))
+
+        env = deployment.environment.name
+
+        local = "./results/{0}/".format(env)
+        #Prepares directory for xml files to be SCPed over
+        subprocess.call(['mkdir', '-p', '{0}'.format(local)])
+
+        if ha:
+            print ('\033[1;41mRunning High Availability test!'
+                   '\033[1;m')
+            ha = HATest(deployment)
+            ha.test()
+        if tempest:
+            print ('\033[1;41mRunning Tempest test!'
+                   '\033[1;m')
+            branch = TempestQuantum.tempest_branch(deployment.branch)
+            if "grizzly" in branch:
+                tempest = TempestQuantum(deployment)
+            else:
+                tempest = TempestNeutron(deployment)
+            tempest.test()
+
+        controllers = deployment.search_role('controller')
+        for controller in controllers:
+            ip, user, password = controller.get_creds()
+            remote = "{0}@{1}:~/*.xml".format(user, ip)
+
+            getFile(ip, user, password, remote, local)
+
+    print ('\033[1;41mTests have been completed with '
+           '{0} iterations!\033[1;m'.format(iterations))
+
+
+def getFile(ip, user, password, remote, local, remote_delete=False):
+    cmd1 = 'sshpass -p {0} scp -q {1} {2}'.format(password, remote, local)
+    subprocess.call(cmd1, shell=True)
+    if remote_delete:
+        cmd2 = ("sshpass -p {0} ssh -o UserKnownHostsFile=/dev/null "
+                "-o StrictHostKeyChecking=no -o LogLevel=quiet -l {1} {2}"
+                " 'rm *.xml;exit'".format(password, user, ip))
+        subprocess.call(cmd2, shell=True)
 
 
 def artifact(name="autotest", config=None, log=None, secret_path=None,
