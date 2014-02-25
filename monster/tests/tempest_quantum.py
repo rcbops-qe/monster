@@ -317,7 +317,7 @@ class TempestQuantum(Test):
         """
         Runs tempest
         """
-        exclude = ['volume', 'resize', 'floating']
+        exclude = None
         self.test_from(self.test_node, xunit=True, exclude=exclude)
 
     def collect_results(self):
