@@ -1,7 +1,7 @@
 import json
 from subprocess import check_call
 from novaclient.v1_1 import client as nova_client
-from quantumclient import client as quantum_client
+from quantumclient.v2_0 import client
 
 user = "${USER}"
 password = "${PASSWORD}"
@@ -10,8 +10,8 @@ is_quantum = $IS_QUANTUM
 
 # Setup clients
 nova = nova_client.Client(user, password, user, auth_url=url)
-quantum = quantum_client.utils.env(auth_url=url, username=user, password=password,
-                         tenant_name=user)
+quantum = client.Client(username=user, password=password, tenant_name=user,
+                        auth_url=url)
 
 
 def run_cmd(command):
@@ -103,8 +103,10 @@ def prepare_tempest():
     data['image_id2'] = image_id2
     if is_quantum:
         network_id = create_network()
+        data['network_id'] = network_id
         # subnet_id = create_subnet(network_id)
         router_id = create_router()
+        data['router_id'] = router_id
         # attach_router(router_id, subnet_id)
     print json.dumps(data)
 
