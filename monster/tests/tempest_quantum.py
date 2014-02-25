@@ -100,7 +100,7 @@ class TempestQuantum(Test):
             tempest['storage_protocol'] = override['cinder']['storage'][
                 'provider']
             tempest['vendor_name'] = "Open Source"
-        tempest['quantum_enabled'] = True if featured('quantum') else False
+        tempest['quantum_enabled'] = True if featured('neutron') else False
         tempest['glance_enabled'] = True if featured('glance') else False
         tempest['swift_enabled'] = True if featured('swift') else False
         tempest['heat_enabled'] = True if featured('orchestration') else False
@@ -118,7 +118,7 @@ class TempestQuantum(Test):
         """
 
         # template values
-        is_quantum = self.deployment.feature_in("quantum")
+        is_quantum = self.deployment.feature_in("neutron")
         creds = {
             "USER": user,
             "PASSWORD": password,
