@@ -8,7 +8,7 @@ from monster.tests.test import Test
 
 class HATest(Test):
     """
-    Parent class to test OpenStack deployments
+    HA Openstack tests
     """
 
     def __init__(self, deployment):
