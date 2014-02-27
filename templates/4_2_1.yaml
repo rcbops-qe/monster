@@ -217,7 +217,7 @@ qe-precise:
     - [compute]
     - [compute]
 
-qe-centos
+qe-centos:
   product: compute
   name: neutron
   os: centos
