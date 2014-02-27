@@ -221,3 +221,27 @@ pubcloud-precise-ha:
     - [controller, network]
     - [compute]
     - [compute]
+
+pubcloud-centos-ha:
+  product: compute
+  name: neutron
+  os: centos
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    cinder: local
+    nova: default
+    neutron: neutron
+    horizon: default
+    osops: default
+    keystone: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, network]
+    - [controller, network]
+    - [compute]
+    - [compute]
