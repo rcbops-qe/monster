@@ -195,3 +195,46 @@ centos-swift:
     - [storage]
     - [storage]
     - [storage]
+
+qe-precise:
+  product: compute
+  name: neutron
+  os: precise
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    nova: default
+    neutron: neutron
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+  nodes:
+    - [chefserver]
+    - [controller, network]
+    - [compute]
+    - [compute]
+
+qe-centos
+  product: compute
+  name: neutron
+  os: centos
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    nova: default
+    neutron: neutron
+    horizon: default
+    keystone: default
+    osops: default
+    osopsnetworks: default
+    cinder: local
+  nodes:
+    - [chefserver]
+    - [controller, network]
+    - [compute]
+    - [compute]
