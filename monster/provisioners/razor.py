@@ -54,6 +54,17 @@ class Razor(Provisioner):
         deployment.destroy()
         raise Exception("No more nodes!!")
 
+    def power_down(self, node):
+        if node.feature_in('controller'):
+            # rabbit can cause the node to not actually reboot
+            kill = ("for i in `ps -U rabbitmq | tail -n +2 | "
+                    "awk '{print $1}' `; do kill -9 $i; done")
+            node.run_cmd(kill)
+        node.run_cmd("shutdown -r now")
+
+    def power_up(self, node):
+        pass
+
     def destroy_node(self, node):
         """
         Destroys a node provisioned by razor
