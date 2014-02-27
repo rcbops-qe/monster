@@ -37,6 +37,8 @@ def build(name="autotest", template="precise-default", branch="master",
     # provisiong deployment
     util.config = Config(config, secret_path=secret_path)
     cprovisioner = get_provisioner(provisioner)
+
+    util.logger.info("Building deployment object for {0}".format(name))
     deployment = MonsterChefDeployment.fromfile(
         name, template, branch, cprovisioner, template_file)
 
