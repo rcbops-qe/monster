@@ -60,6 +60,7 @@ class Deployment(object):
         Pre configures node for each feature
         """
 
+        util.logger.info("Building Configured Environment")
         self.status = "loading environment"
         for feature in self.features:
             log = "Deployment feature: update environment: {0}"\
