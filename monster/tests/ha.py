@@ -108,6 +108,30 @@ class HATest(Test):
         tempest.test_node.run_cmd(";".join(["source openrc", "nova delete testbuild", "neutron net-delete {0}".format(neutron_net_create_value)]))
         print "RETVALUE DESTROYING INSTANCE AND NETWORK"
 
+
+        rabbit_value=tempest.test_node.run_cmd("rabbitmqctl list_queues 2>&1 >/dev/null | grep Error")['return'].rstrip()
+        print "RabbitMQ should be running!"
+        if rabbit_value:
+            print "RabbitMQ is not functioning properly!: {0}".format(rabbit_value)
+        else:
+            print "RabbitMQ is functioning properly!"
+
+        tempest.test_node.run_cmd("service rabbitmq-server stop")
+        rabbit_value=tempest.test_node.run_cmd("rabbitmqctl list_queues 2>&1 >/dev/null | grep Error")['return'].rstrip()
+        print "RabbitMQ should NOT be running now!"
+        if rabbit_value:
+            print "RabbitMQ test is working as expected. RabbitMQ is down!: {0}".format(rabbit_value)
+        else:
+            print "RabbitMQ test has failed to identify a down issue!"
+
+        tempest.test_node.run_cmd("service rabbitmq-server start")
+        rabbit_value=tempest.test_node.run_cmd("rabbitmqctl list_queues 2>&1 >/dev/null | grep Error")['return'].rstrip()
+        print "RabbitMQ should be running!"
+        if rabbit_value:
+            print "RabbitMQ is not functioning properly!: {0}".format(rabbit_value)
+        else:
+            print "RabbitMQ is functioning properly!"
+
         #tempest.test()
 
         self.controller1.power_on()
