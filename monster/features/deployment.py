@@ -68,6 +68,7 @@ class Neutron(Deployment):
         """
         self.deployment.environment.add_override_attr(self.provider,
                                                       self.environment)
+
         # Fix the nova network block in the env
         self._fix_nova_environment()
 
@@ -132,12 +133,18 @@ class Neutron(Deployment):
 
         util.logger.info("Using iface: {0}".format(iface))
 
+        env = self.deployment.environment
+        ovs = env.override_attributes[self.provider]['ovs']
+        try:
+            vlans = ovs['provider_networks']['vlans']
+        except Exception:
+            vlans = '1:1000'
+            pass
+
         provider_networks = [
             {"label": "ph-{0}".format(iface),
              "bridge": "br-{0}".format(iface),
-             "vlans": "1:1000"}]
-        env = self.deployment.environment
-        ovs = env.override_attributes[self.provider]['ovs']
+             "vlans": "{0}".format(vlans)}]
         ovs['provider_networks'] = provider_networks
         env.save()
 
@@ -239,6 +246,34 @@ class Neutron(Deployment):
             compute.run_cmd(command)
 
         util.logger.info("### End of Networking Block ###")
+
+    def clear_bridge_iface(self):
+        """
+        Clear the configured iface for neutron use
+        """
+
+        controllers = self.deployment.search_role('controller')
+        computes = self.deployment.search_role('compute')
+
+        for controller in controllers:
+            iface = controller.get_vmnet_iface()
+            if not iface:
+                iface = util.config[self.deployment.provisioner]['network'][
+                    self.deployment.os_name]['vmnet']['iface']
+
+            util.logger.info("Using iface: {0}".format(iface))
+            cmd = "ip a f {0}".format(iface)
+            controller.run_cmd(cmd)
+
+        for compute in computes:
+            iface = compute.get_vmnet_iface()
+            if not iface:
+                iface = util.config[self.deployment.provisioner]['network'][
+                    self.deployment.os_name]['vmnet']['iface']
+
+            util.logger.info("Using iface: {0}".format(iface))
+            cmd = "ip a f {0}".format(iface)
+            compute.run_cmd(cmd)
 
 
 class Swift(Deployment):
