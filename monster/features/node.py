@@ -291,30 +291,11 @@ class Cinder(Node):
     """
 
     def pre_configure(self):
-        self.prepare_cinder()
         self.set_run_list()
 
     def archive(self):
         self.archive = {"log": [""],
                         "configs": [""]}
-
-    def prepare_cinder(self):
-        """
-        Prepares the node for use with cinder
-        """
-
-        # Update our environment
-        env = self.node.environment
-        vol_group = util.config['cinder']['vg_name']
-        cinder = {
-            "storage": {
-                "lvm": {
-                    "volume_group": vol_group
-                }
-            }
-        }
-        util.logging.info("Setting cinder volume to {0}".format(vol_group))
-        env.add_override_attr("cinder", cinder)
 
 
 class Compute(Node):
