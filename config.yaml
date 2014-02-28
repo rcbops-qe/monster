@@ -328,7 +328,7 @@ rcbops:
         controller2:
             run_list: ['role[ha-controller2]']
         cinder:
-            run_list: ['role[cinder-all]']
+            run_list: ['role[cinder-volume]']
         network:
             run_list: ['role[single-network-node]']
         tempest:
