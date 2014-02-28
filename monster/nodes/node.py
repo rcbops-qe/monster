@@ -13,12 +13,13 @@ class Node(object):
     A individual computation entity to deploy a part OpenStack onto
     Provides server related functions
     """
-    def __init__(self, ip, user, password, os, product, environment,
-                 deployment, provisioner, status=None):
+    def __init__(self, ip, user, password, os, platform, product,
+                 environment, deployment, provisioner, status=None):
         self.ipaddress = ip
         self.user = user
         self.password = password
         self.os_name = os
+        self.platform = platform
         self.product = product
         self.environment = environment
         self.deployment = deployment
@@ -116,6 +117,10 @@ class Node(object):
     def pre_configure(self):
         """Pre configures node for each feature"""
         self.status = "pre-configure"
+
+        util.logger.info("Updating node dist / packages")
+        self.update_packages(True)
+
         for feature in self.features:
             log = "Node feature: pre-configure: {0}".format(str(feature))
             util.logger.debug(log)
@@ -157,18 +162,23 @@ class Node(object):
         Updates installed packages
         """
 
-        if 'precise' in self.os_name:
-            update_cmds = ['apt-get update',
-                           'apt-get upgrade -y']
-            if dist_upgrade:
-                update_cmds.append('apt-get dist-upgrade -y')
-        else:
-            update_cmds = ['yum update -y']
+        upgrade_cmds = []
 
-        update_cmd = ';'.join(update_cmds)
+        if 'ubuntu' in self.platform:
+            upgrade_cmds.append('apt-get update')
+            if dist_upgrade:
+                upgrade_cmds.append('apt-get dist-upgrade -y')
+            else:
+                upgrade_cmds.append('apt-get upgrade -y')
+        elif self.platform in ['centos', 'redhat']:
+            upgrade_cmds.append('yum update -y')
+        else:
+            raise NotImplementedError(
+                "{0} is a non supported platform".format(self.platform))
+        upgrade_cmd = '; '.join(upgrade_cmds)
 
         util.logger.info('Updating Distribution Packages')
-        self.run_cmd(update_cmd)
+        self.run_cmd(upgrade_cmd)
 
     def install_package(self, package):
         """
