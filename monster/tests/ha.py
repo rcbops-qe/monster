@@ -43,7 +43,7 @@ class HATest(Test):
     def gather_creds(self, deployment):
         keystone = deployment.environment.override_attributes['keystone']
         user = keystone['admin_user']
-        users = keystone
+        users = keystone['users']
         admin_password = users[admin_user]['password']
         url = self.controller1['keystone']['adminURL']
         creds = Creds(user, password, url)
