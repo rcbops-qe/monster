@@ -37,8 +37,8 @@ class HATest(Test):
         self.nova = nova_client.Client(creds.user, creds.password, creds.user,
                                        auth_url=creds.url)
         self.neutron = neutron_client(auth_url=creds.url, username=creds.user,
-                                 password=creds.password,
-                                 tenant_name=creds.user)
+                                      password=creds.password,
+                                      tenant_name=creds.user)
 
     def gather_creds(self, deployment):
         keystone = deployment.environment.override_attributes['keystone']
