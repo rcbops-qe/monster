@@ -75,13 +75,11 @@ class HATest(Test):
             image_id2 = image_id1
         return (image_id1, image_id2)
 
-    @classmethod
     def create_network(self, network_name):
         new_net = {"network": {"name": network_name, "shared": True}}
         net = self.neutron.create_network(new_net)
         return net['network']['id']
 
-    @classmethod
     def create_subnet(self, subnet_name, network_id, subnet_cidr):
         new_subnet = {"subnet": {
             "name": subnet_name, "network_id": network_id,
@@ -139,7 +137,7 @@ class HATest(Test):
 
         networks = [{"net-id": network_id}]
 
-        server = self.nova.servers.create(self, server_name, server_image,
+        server = self.nova.servers.create(server_name, server_image,
                                  server_flavor, nics=networks)
         build_status = "BUILD"
         while build_status == "BUILD":
@@ -159,10 +157,13 @@ class HATest(Test):
 
 
         dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(network_id)
-        assert (dhcp_status['admin_state_up'] and dhcp_status['alive']),\
+        print "DHCP STATUS!!!!!!!!: {0}".format(dhcp_status)
+        assert (dhcp_status['agents'][0]['admin_state_up'] and
+                dhcp_status['agents'][0]['alive']),\
             "dhcp is NOT working properly"
 
         self.nova.servers.delete(server)
+        sleep(10)
         self.neutron.delete_subnet(subnet_id)
         self.neutron.delete_network(network_id)
 
