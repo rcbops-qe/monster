@@ -1,4 +1,8 @@
 from time import sleep
+import json
+from subprocess import check_call
+from novaclient.v1_1 import client as nova_client
+from neutronclient.v2_0.client import Client as neutron_client
 
 from monster.util import xunit_merge
 from monster.tests.tempest_neutron import TempestNeutron
@@ -6,16 +10,83 @@ from monster.tests.tempest_quantum import TempestQuantum
 from monster.tests.test import Test
 
 
+class Creds(object):
+
+    def __init__(self, user, password, url):
+        self.user = user
+        self.password = password
+        self.url = url
+
+
 class HATest(Test):
     """
-    Parent class to test OpenStack deployments
+    HA Openstack tests
     """
 
     def __init__(self, deployment):
         super(HATest, self).__init__(deployment)
+
         controllers = list(self.deployment.search_role("controller"))
         self.controller1 = controllers[0]
         self.controller2 = controllers[1]
+
+        # get creds
+        creds = gather_creds(deployment)
+
+        # Setup clients
+        self.nova = nova_client.Client(creds.user, creds.password, creds.user,
+                                       auth_url=creds.url)
+        self.neutron = neutron_client(auth_url=creds.url, username=creds.user,
+                                      password=creds.password,
+                                      tenant_name=creds.user)
+
+    def gather_creds(self, deployment):
+        keystone = deployment.environment.override_attributes['keystone']
+        user = keystone['admin_user']
+        users = keystone['users']
+        password = users[user]['password']
+        url = self.controller1['keystone']['adminURL']
+        creds = Creds(user, password, url)
+        return creds
+
+    def instance_cmd(server_id, net_id, cmd):
+        namespace = "qdhcpd-{0}".format(net_id)
+        server = nova.servers.get(server_id)
+        server_ip = server['server']['ipaddress']
+        icmd = ("ip netns exec {0} bash; "
+                "ssh -o UseprKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/testkey {1}; "
+                "{2}").format(namespace, server_ip, cmd)
+        run_cmd(icmd)
+
+
+    def get_images():
+        image_ids = (i.id for i in nova.images.list())
+        try:
+            image_id1 = next(image_ids)
+        except StopIteration:
+            # No images
+            exit(1)
+        try:
+            image_id2 = next(image_ids)
+        except StopIteration:
+            # Only one image
+            image_id2 = image_id1
+        return (image_id1, image_id2)
+
+
+    def create_network():
+        new_net = {"network": {"name": "test_net", "shared": True}}
+        net = neutron.create_network(new_net)
+        return net['network']['id']
+
+
+    def create_subnet(network_id):
+        new_subnet = {"subnet": {
+            "name": "test_subnet", "network_id": network_id,
+            "cidr": "172.0.100.0/24", "ip_version": "4"}}
+        subnet = neutron.create_subnet(new_subnet)
+        return subnet['subnet']['id']
+
 
     def keepalived_fail(self, node):
         node.run_cmd("service keepalived stop")
