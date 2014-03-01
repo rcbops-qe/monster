@@ -46,6 +46,7 @@ precise-neutron:
     monitoring: default
     mysql: default
     glance: default
+    cinder: local
     nova: default
     neutron: neutron
     horizon: default
@@ -54,7 +55,7 @@ precise-neutron:
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller, network]
+    - [controller, cinder, network]
     - [compute]
 
 centos-neutron:
@@ -197,3 +198,51 @@ centos-swift:
     - [storage]
     - [storage]
     - [storage]
+
+pubcloud-precise-ha:
+  product: compute
+  name: neutron
+  os: precise
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    cinder: local
+    nova: default
+    neutron: neutron
+    horizon: default
+    osops: default
+    keystone: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, network]
+    - [controller, network]
+    - [compute]
+    - [compute]
+
+pubcloud-centos-ha:
+  product: compute
+  name: neutron
+  os: centos
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    cinder: local
+    nova: default
+    neutron: neutron
+    horizon: default
+    osops: default
+    keystone: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, network]
+    - [controller, network]
+    - [compute]
+    - [compute]

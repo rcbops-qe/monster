@@ -32,7 +32,7 @@ environments:
                     roles:
                         admin:
                             - admin
-                            - demo
+                    default_tenant: admin
                     password: secrete
             tenants:
                 - admin
@@ -174,7 +174,7 @@ environments:
             storage:
                 provider: lvm
                 lvm:
-                    volume_group: vgubuntu01
+                    volume_group: vg_storage
     swift:
         rpcs:
             swift-private-cloud:
@@ -220,38 +220,6 @@ environments:
                     vrid: 12
                     network: public
         precise:
-            mysql-db: 198.101.133.154
-            rabbitmq-queue: 198.101.133.155
-            cinder-api: 198.101.133.156
-            glance-api: 198.101.133.156
-            glance-registry: 198.101.133.156
-            horizon-dash: 198.101.133.156
-            horizon-dash_ssl: 198.101.133.156
-            keystone-admin-api: 198.101.133.156
-            keystone-internal-api: 198.101.133.156
-            keystone-service-api: 198.101.133.156
-            nova-api: 198.101.133.156
-            nova-ec2-public: 198.101.133.156
-            nova-api-metadata: 198.101.133.156
-            nova-novnc-proxy: 198.101.133.156
-            nova-xvpvnc-proxy: 198.101.133.156
-            swift-proxy: 198.101.133.156
-            ceilometer-api: 198.101.133.156
-            ceilometer-central-agent: 198.101.133.156
-            heat-api: 198.101.133.156
-            heat-api-cfn: 198.101.133.156
-            heat-api-cloudwatch: 198.101.133.156
-            config:
-                198.101.133.154:
-                    vrid: 10
-                    network: public
-                198.101.133.155:
-                    vrid: 11
-                    network: public
-                198.101.133.156:
-                    vrid: 12
-                    network: public
-        centos:
             mysql-db: 198.101.133.157
             rabbitmq-queue: 198.101.133.158
             cinder-api: 198.101.133.159
@@ -282,6 +250,38 @@ environments:
                     network: public
                 198.101.133.159:
                     vrid: 16
+                    network: public
+        centos:
+            mysql-db: 198.101.133.154
+            rabbitmq-queue: 198.101.133.155
+            cinder-api: 198.101.133.156
+            glance-api: 198.101.133.156
+            glance-registry: 198.101.133.156
+            horizon-dash: 198.101.133.156
+            horizon-dash_ssl: 198.101.133.156
+            keystone-admin-api: 198.101.133.156
+            keystone-internal-api: 198.101.133.156
+            keystone-service-api: 198.101.133.156
+            nova-api: 198.101.133.156
+            nova-ec2-public: 198.101.133.156
+            nova-api-metadata: 198.101.133.156
+            nova-novnc-proxy: 198.101.133.156
+            nova-xvpvnc-proxy: 198.101.133.156
+            swift-proxy: 198.101.133.156
+            ceilometer-api: 198.101.133.156
+            ceilometer-central-agent: 198.101.133.156
+            heat-api: 198.101.133.156
+            heat-api-cfn: 198.101.133.156
+            heat-api-cloudwatch: 198.101.133.156
+            config:
+                198.101.133.154:
+                    vrid: 11
+                    network: public
+                198.101.133.155:
+                    vrid: 12
+                    network: public
+                198.101.133.156:
+                    vrid: 13
                     network: public
 rcbops:
     retrofit:
@@ -328,7 +328,7 @@ rcbops:
         controller2:
             run_list: ['role[ha-controller2]']
         cinder:
-            run_list: ['role[cinder-all]']
+            run_list: ['role[cinder-volume]']
         network:
             run_list: ['role[single-network-node]']
         tempest:
@@ -410,17 +410,17 @@ razor:
         centos:
             vmnet:
                 cidr: 172.31.0.0/24
-                iface: em2
+                iface: vmnet
             mgmt:
                 cidr: 198.101.133.0/24
-                iface: em1
+                iface: mgmt
         precise:
             vmnet:
                 cidr: 172.31.0.0/24
-                iface: eth1
+                iface: vmnet
             mgmt:
                 cidr: 198.101.133.0/24
-                iface: eth0
+                iface: mgmt
 rackspace:
     run_list:
         - recipe[rcbops-qa]
@@ -500,9 +500,9 @@ openstack:
 neutron:
     razor:
         centos:
-            vip: 198.101.133.159
-        precise:
             vip: 198.101.133.156
+        precise:
+            vip: 198.101.133.159
     rackspace:
         centos:
             vip: 192.168.4.156

@@ -191,7 +191,7 @@ class Chef(Node):
         cmd = util.config['chef']['client']['run_cmd']
         for i in xrange(times):
             if debug:
-                time = self.run_cmd("date +%F_%X")['return'].rstrip()
+                time = self.run_cmd("date +%F_%T")['return'].rstrip()
                 log_file = '{0}-client-run.log'.format(time)
                 cmd = '{0} -l debug -L "/opt/chef/{1}"'.format(cmd, log_file)
             chef_run = self.run_cmd(cmd)

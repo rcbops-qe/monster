@@ -196,7 +196,7 @@ centos-swift:
     - [storage]
     - [storage]
 
-qe-precise:
+pubcloud-precise-ha:
   product: compute
   name: neutron
   os: precise
@@ -205,36 +205,17 @@ qe-precise:
     monitoring: default
     mysql: default
     glance: default
+    cinder: local
     nova: default
     neutron: neutron
     horizon: default
-    keystone: default
     osops: default
+    keystone: default
     osopsnetworks: default
+    highavailability: default
   nodes:
     - [chefserver]
     - [controller, network]
-    - [compute]
-    - [compute]
-
-qe-centos:
-  product: compute
-  name: neutron
-  os: centos
-  features:
-    openssh: default
-    monitoring: default
-    mysql: default
-    glance: default
-    nova: default
-    neutron: neutron
-    horizon: default
-    keystone: default
-    osops: default
-    osopsnetworks: default
-    cinder: local
-  nodes:
-    - [chefserver]
     - [controller, network]
     - [compute]
     - [compute]
