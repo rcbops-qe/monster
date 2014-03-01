@@ -10,3 +10,4 @@ python-neutronclient
 python-keystoneclient
 pyrax
 tmuxp
+pyrabbit
