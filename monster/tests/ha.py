@@ -44,7 +44,7 @@ class HATest(Test):
         keystone = deployment.environment.override_attributes['keystone']
         user = keystone['admin_user']
         users = keystone['users']
-        admin_password = users[admin_user]['password']
+        password = users[user]['password']
         url = self.controller1['keystone']['adminURL']
         creds = Creds(user, password, url)
         return creds
