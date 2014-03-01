@@ -39,6 +39,7 @@ class HATest(Test):
         self.neutron = neutron_client(auth_url=creds.url, username=creds.user,
                                       password=creds.password,
                                       tenant_name=creds.user)
+        self.rabbit = deployment.rabbitmq_mgmt_client
 
     def gather_creds(self, deployment):
         keystone = deployment.environment.override_attributes['keystone']
@@ -58,7 +59,6 @@ class HATest(Test):
                 "{2}").format(namespace, server_ip, cmd)
         run_cmd(icmd)
 
-
     def get_images():
         image_ids = (i.id for i in nova.images.list())
         try:
@@ -73,12 +73,10 @@ class HATest(Test):
             image_id2 = image_id1
         return (image_id1, image_id2)
 
-
     def create_network():
         new_net = {"network": {"name": "test_net", "shared": True}}
         net = neutron.create_network(new_net)
         return net['network']['id']
-
 
     def create_subnet(network_id):
         new_subnet = {"subnet": {
@@ -86,7 +84,6 @@ class HATest(Test):
             "cidr": "172.0.100.0/24", "ip_version": "4"}}
         subnet = neutron.create_subnet(new_subnet)
         return subnet['subnet']['id']
-
 
     def keepalived_fail(self, node):
         node.run_cmd("service keepalived stop")
@@ -202,39 +199,19 @@ class HATest(Test):
         tempest.test_node.run_cmd(";".join([srcmd, cmd1, cmd2]))
         print "RETVALUE DESTROYING INSTANCE AND NETWORK"
 
-        cmd1 = "rabbitmqctl list_queues 2>&1 >/dev/null | grep Error"
-        rabbit_value = tempest.test_node.run_cmd(cmd1)['return'].rstrip()
-        print "RabbitMQ should be running!"
-        if rabbit_value:
-            print ("RabbitMQ is not functioning properly!: "
-                   "{0}".format(rabbit_value))
-        else:
-            print "RabbitMQ is functioning properly!"
-
-        tempest.test_node.run_cmd("service rabbitmq-server stop")
-        cmd1 = "rabbitmqctl list_queues 2>&1 >/dev/null | grep Error"
-        rabbit_value = tempest.test_node.run_cmd(cmd1)['return'].rstrip()
-        print "RabbitMQ should NOT be running now!"
-        if rabbit_value:
-            print ("RabbitMQ test is working as expected. RabbitMQ is down!: "
-                   "{0}".format(rabbit_value))
-        else:
-            print "RabbitMQ test has failed to identify a down issue!"
-
-        tempest.test_node.run_cmd("service rabbitmq-server start")
-        cmd1 = "rabbitmqctl list_queues 2>&1 >/dev/null | grep Error"
-        rabbit_value = tempest.test_node.run_cmd(cmd1)['return'].rstrip()
-        print "RabbitMQ should be running!"
-        if rabbit_value:
-            print ("RabbitMQ is not functioning properly!: "
-                   "{0}".format(rabbit_value))
-        else:
-            print "RabbitMQ is functioning properly!"
-
         #tempest.test()
 
         self.controller1.power_on()
         sleep(5)
+
+    def test_rabbit_status(self):
+        status = self.rabbit.is_alive()
+        assert status is True, "rabbit is dead"
+
+    def test_list_queues(self):
+        queues = self.rabbit.list_queues()
+        assert queues is not None, "queues empty"
+
 
     def collect_results(self):
         """
