@@ -31,7 +31,7 @@ class HATest(Test):
         self.controller2 = controllers[1]
 
         # get creds
-        creds = gather_creds(deployment)
+        creds = self.gather_creds(deployment)
 
         # Setup clients
         self.nova = nova_client.Client(creds.user, creds.password, creds.user,
@@ -49,18 +49,18 @@ class HATest(Test):
         creds = Creds(user, password, url)
         return creds
 
-    def instance_cmd(server_id, net_id, cmd):
+    def instance_cmd(self, server_id, net_id, cmd):
         namespace = "qdhcpd-{0}".format(net_id)
-        server = nova.servers.get(server_id)
+        server = self.nova.servers.get(server_id)
         server_ip = server['server']['ipaddress']
         icmd = ("ip netns exec {0} bash; "
                 "ssh -o UseprKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/testkey {1}; "
                 "{2}").format(namespace, server_ip, cmd)
-        run_cmd(icmd)
+        server.run_cmd(icmd)
 
 
-    def get_images():
-        image_ids = (i.id for i in nova.images.list())
+    def get_images(self):
+        image_ids = (i.id for i in self.nova.images.list())
         try:
             image_id1 = next(image_ids)
         except StopIteration:
@@ -73,20 +73,19 @@ class HATest(Test):
             image_id2 = image_id1
         return (image_id1, image_id2)
 
-
-    def create_network():
-        new_net = {"network": {"name": "test_net", "shared": True}}
-        net = neutron.create_network(new_net)
+    @classmethod
+    def create_network(self, network_name):
+        new_net = {"network": {"name": network_name, "shared": True}}
+        net = self.neutron.create_network(new_net)
         return net['network']['id']
 
-
-    def create_subnet(network_id):
+    @classmethod
+    def create_subnet(self, subnet_name, network_id, subnet_cidr):
         new_subnet = {"subnet": {
-            "name": "test_subnet", "network_id": network_id,
-            "cidr": "172.0.100.0/24", "ip_version": "4"}}
-        subnet = neutron.create_subnet(new_subnet)
+            "name": subnet_name, "network_id": network_id,
+            "cidr": subnet_cidr, "ip_version": "4"}}
+        subnet = self.neutron.create_subnet(new_subnet)
         return subnet['subnet']['id']
-
 
     def keepalived_fail(self, node):
         node.run_cmd("service keepalived stop")
@@ -126,53 +125,23 @@ class HATest(Test):
         netns_value = netns_value['return']
         print "RETVALUE ip netns exec vips ip a: {0}".format(netns_value)
 
-        srcmd = "source openrc"
-        cmd1 = ("neutron net-create testnet | sed '/^| id/!d' | "
-                "awk '{{ print $4 }}'")
-        neutron_net_create_value = tempest.test_node.run_cmd(";".join([srcmd,
-                                                                       cmd1]))
-        neutron_net_create_value = neutron_net_create_value['return'].rstrip()
-        print ("RETVALUE neutron net-create testnet: "
-               "{0}".format(neutron_net_create_value))
 
-        cmd1 = ("neutron subnet-create --name testsubnet {0} 172.32.0.0/24 "
-                "--no-gateway | sed '/^| id/!d' | "
-                "awk '{{ print $4 }}'".format(neutron_net_create_value))
-        neutron_subnet_create_value = tempest.test_node.run_cmd(";".join(
-                                                                [srcmd,
-                                                                 cmd1]))
-        neutron_subnet_create_value = neutron_subnet_create_value['return']
-        neutron_subnet_create_value = neutron_subnet_create_value.rstrip()
-        print ("RETVALUE neutron subnet-create subtestnet: "
-               "{0}".format(neutron_subnet_create_value))
+        server_name = "testbuild"
+        server_image = self.nova.images.list()[1] # [0] precise [1] cirros
+        server_flavor = self.nova.flavors.list()[0] # [0] m1.tiny[1] m1. small [2] m1.medium [3] m1.large [4]m1.xlarge
+        network_name = "testnetwork"
+        subnet_name = "testsubnet"
+        network_id = self.create_network(network_name)
+        subnet_id = self.create_subnet(subnet_name, network_id,
+                                       "172.32.0.0/24")
 
-        cmd1 = ("neutron net-list | grep {0} | "
-                "grep {1}".format(neutron_net_create_value,
-                                  neutron_subnet_create_value))
-        neutron_net_list_value = tempest.test_node.run_cmd(";".join([srcmd,
-                                                                     cmd1]))
-        neutron_net_list_value = neutron_net_list_value['return'].rstrip()
-        print "RETVALUE neutron net-list: {0}".format(neutron_net_list_value)
-        if not neutron_net_list_value:
-            print "Network or Subnet FAILED TO INITIALIZE!"
-            #pass
+        networks = [{"net-id": network_id}]
 
-#--nic requires the Value for the field "id" from neutron net-create testnet
-        cmd1 = ("nova boot --image cirros-image --flavor 1 --nic net-id={0} "
-                "testbuild | sed '/^| id/!d' | "
-                "awk '{{ print $4 }}'".format(neutron_net_create_value))
-        nova_boot_value = tempest.test_node.run_cmd(";".join([srcmd,
-                                                              cmd1]))
-        nova_boot_value = nova_boot_value['return'].rstrip()
-        print "RETVALUE nova boot: {0}".format(nova_boot_value)
-
-        cmd1 = ("nova list | grep {0} | "
-                "awk '{{ print $6 }}'".format(nova_boot_value))
+        server = self.nova.servers.create(self, server_name, server_image,
+                                 server_flavor, nics=networks)
         build_status = "BUILD"
         while build_status == "BUILD":
-            build_status = tempest.test_node.run_cmd(";".join([srcmd,
-                                                               cmd1]))
-            build_status = build_status['return'].rstrip()
+            build_status = self.nova.servers.list()[0].status
 
         if build_status == "ERROR":
             print "Build FAILED TO INITIALIZE!"
@@ -186,21 +155,14 @@ class HATest(Test):
         current_host = current_host['return'].rstrip()
         print "RETVALUE hostname: {0}".format(current_host)
 
-        cmd1 = ("neutron dhcp-agent-list-hosting-net testnet | "
-                "grep {0} | awk '{{ print $6 }}'".format(current_host))
-        neutron_dhcp_value = tempest.test_node.run_cmd(";".join([srcmd,
-                                                                 cmd1]))
-        neutron_dhcp_value = neutron_dhcp_value['return'].rstrip()
-        print ("RETVALUE neutron dhcp-agent-list-hosting-net testnet: "
-               "{0}".format(neutron_dhcp_value))
-        if neutron_dhcp_value == "False":
-            print "DHCP is NOT WORKING PROPERLY ON THE CURRENT HOST!"
-            #pass
 
-        cmd1 = "nova delete testbuild"
-        cmd2 = "neutron net-delete {0}".format(neutron_net_create_value)
-        tempest.test_node.run_cmd(";".join([srcmd, cmd1, cmd2]))
-        print "RETVALUE DESTROYING INSTANCE AND NETWORK"
+        dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(network_id)
+        assert (dhcp_status['admin_state_up'] and dhcp_status['alive']),\
+            "dhcp is NOT working properly"
+
+        self.nova.servers.delete(server)
+        self.neutron.delete_subnet(subnet_id)
+        self.neutron.delete_network(network_id)
 
         cmd1 = "rabbitmqctl list_queues 2>&1 >/dev/null | grep Error"
         rabbit_value = tempest.test_node.run_cmd(cmd1)['return'].rstrip()
