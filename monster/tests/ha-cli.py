@@ -1,6 +1,4 @@
 from time import sleep
-import json
-from subprocess import check_call
 from novaclient.v1_1 import client as nova_client
 from neutronclient.v2_0.client import Client as neutron_client
 
@@ -54,10 +52,10 @@ class HATest(Test):
         server = self.nova.servers.get(server_id)
         server_ip = server['server']['ipaddress']
         icmd = ("ip netns exec {0} bash; "
-                "ssh -o UseprKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -i ~/.ssh/testkey {1}; "
+                "ssh -o UseprKnownHostsFile=/dev/null"
+                "-o StrictHostKeyChecking=no -i ~/.ssh/testkey {1}; "
                 "{2}").format(namespace, server_ip, cmd)
         server.run_cmd(icmd)
-
 
     def get_images(self):
         image_ids = (i.id for i in self.nova.images.list())
@@ -73,12 +71,10 @@ class HATest(Test):
             image_id2 = image_id1
         return (image_id1, image_id2)
 
-
     def create_network(self, network_name):
         new_net = {"network": {"name": network_name, "shared": True}}
         net = self.neutron.create_network(new_net)
         return net['network']['id']
-
 
     def create_subnet(self, subnet_name, network_id, subnet_cidr):
         new_subnet = {"subnet": {
@@ -86,7 +82,6 @@ class HATest(Test):
             "cidr": subnet_cidr, "ip_version": "4"}}
         subnet = self.neutron.create_subnet(new_subnet)
         return subnet['subnet']['id']
-
 
     def keepalived_fail(self, node):
         node.run_cmd("service keepalived stop")
@@ -126,15 +121,10 @@ class HATest(Test):
         netns_value = netns_value['return']
         print "RETVALUE ip netns exec vips ip a: {0}".format(netns_value)
 
-
-
         network_name = "testnetwork"
         subnet_name = "testsubnet"
         network_id = self.create_network(network_name)
-        subnet_id = self.create_subnet(subnet_name, network_id, "172.32.0.0/24")
-
-
-
+        self.create_subnet(subnet_name, network_id, "172.32.0.0/24")
         srcmd = "source openrc"
         cmd1 = ("neutron net-create testnet | sed '/^| id/!d' | "
                 "awk '{{ print $4 }}'")
