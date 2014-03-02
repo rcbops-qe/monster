@@ -129,22 +129,22 @@ def test(name="autotest", config=None, log=None, log_level="INFO",
         getFile(ip, user, password, remote, local)
 
     for i in range(iterations):
-        print ('\033[1;41mRunning iteration {0} of {1}!'
+        print ('\033[1;36mRunning iteration {0} of {1}!'
                '\033[1;m'.format(i + 1, iterations))
 
         #Prepares directory for xml files to be SCPed over
         subprocess.call(['mkdir', '-p', '{0}'.format(local)])
 
         if ha:
-            print ('\033[1;41mRunning High Availability test!'
+            print ('\033[1;36mRunning High Availability test!'
                    '\033[1;m')
             ha.test()
         if tempest:
-            print ('\033[1;41mRunning Tempest test!'
+            print ('\033[1;36mRunning Tempest test!'
                    '\033[1;m')
             tempest.test()
 
-    print ('\033[1;41mTests have been completed with '
+    print ('\033[1;36mTests have been completed with '
            '{0} iterations!\033[1;m'.format(iterations))
 
 

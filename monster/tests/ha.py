@@ -96,11 +96,10 @@ class HATest(Test):
     def move_vips_from(self, node):
         self.keepalived_fail(node)
         self.keepalived_restore(node)
-        sleep(10)               # wait for node to be ready
+        #sleep(10)               # wait for node to be ready
 
     def fail_node(self, node):
         node.power_off()
-        sleep(60)
 
     def prepare(self):
         """
@@ -109,6 +108,7 @@ class HATest(Test):
         self.move_vips_from(self.controller2)
 
         #self.fail_node(self.controller1)
+        #sleep(60)
 
     def run_tests(self):
         """
@@ -123,7 +123,7 @@ class HATest(Test):
 
         netns_value = tempest.test_node.run_cmd("ip netns exec vips ip a")
         netns_value = netns_value['return']
-        print "RETVALUE ip netns exec vips ip a: {0}".format(netns_value)
+        #print "RETVALUE ip netns exec vips ip a: {0}".format(netns_value)
 
 
         server_name = "testbuild"
@@ -144,27 +144,30 @@ class HATest(Test):
             build_status = self.nova.servers.list()[0].status
 
         if build_status == "ERROR":
-            print "Build FAILED TO INITIALIZE!"
+            print "\033[1;41mBuild FAILED TO INITIALIZE!\033[1;m"
             #pass
 
         ip_netns_value = tempest.test_node.run_cmd("ip netns")
         ip_netns_value = ip_netns_value['return'].rstrip()
-        print "RETVALUE ip netns: {0}".format(ip_netns_value)
+        #print "RETVALUE ip netns: {0}".format(ip_netns_value)
 
         current_host = tempest.test_node.run_cmd("hostname")
         current_host = current_host['return'].rstrip()
-        print "RETVALUE hostname: {0}".format(current_host)
+        print "hostname: {0}".format(current_host)
 
 
         dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(network_id)
-        print "DHCP STATUS!!!!!!!!: {0}".format(dhcp_status)
+        #print "DHCP STATUS!!!!!!!!: {0}".format(dhcp_status)
         assert (dhcp_status['agents'][0]['admin_state_up'] and
                 dhcp_status['agents'][0]['alive']),\
             "dhcp is NOT working properly"
 
+        print "Deleting server..."
         self.nova.servers.delete(server)
-        sleep(10)
+        sleep(5)
+        print "Deleting subnet..."
         self.neutron.delete_subnet(subnet_id)
+        print "Deleting network..."
         self.neutron.delete_network(network_id)
 
         #tempest.test()
