@@ -111,38 +111,38 @@ def test(name="autotest", config=None, log=None, log_level="INFO",
         ha = True
     if not deployment.feature_in("highavailability"):
         ha = False
+    if ha:
+        ha = HATest(deployment)
+    if tempest:
+        branch = TempestQuantum.tempest_branch(deployment.branch)
+        if "grizzly" in branch:
+            tempest = TempestQuantum(deployment)
+        else:
+            tempest = TempestNeutron(deployment)
+
+    env = deployment.environment.name
+    local = "./results/{0}/".format(env)
+    controllers = deployment.search_role('controller')
+    for controller in controllers:
+        ip, user, password = controller.get_creds()
+        remote = "{0}@{1}:~/*.xml".format(user, ip)
+        getFile(ip, user, password, remote, local)
 
     for i in range(iterations):
         print ('\033[1;41mRunning iteration {0} of {1}!'
                '\033[1;m'.format(i + 1, iterations))
 
-        env = deployment.environment.name
-
-        local = "./results/{0}/".format(env)
         #Prepares directory for xml files to be SCPed over
         subprocess.call(['mkdir', '-p', '{0}'.format(local)])
 
         if ha:
             print ('\033[1;41mRunning High Availability test!'
                    '\033[1;m')
-            ha = HATest(deployment)
             ha.test()
         if tempest:
             print ('\033[1;41mRunning Tempest test!'
                    '\033[1;m')
-            branch = TempestQuantum.tempest_branch(deployment.branch)
-            if "grizzly" in branch:
-                tempest = TempestQuantum(deployment)
-            else:
-                tempest = TempestNeutron(deployment)
             tempest.test()
-
-        controllers = deployment.search_role('controller')
-        for controller in controllers:
-            ip, user, password = controller.get_creds()
-            remote = "{0}@{1}:~/*.xml".format(user, ip)
-
-            getFile(ip, user, password, remote, local)
 
     print ('\033[1;41mTests have been completed with '
            '{0} iterations!\033[1;m'.format(iterations))
