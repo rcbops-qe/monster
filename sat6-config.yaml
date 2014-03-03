@@ -80,6 +80,7 @@ environments:
                 - admin
                 - service
                 - demo
+                - demo2
         swift:
            swift_admin_url: ""
            swift_public_url: ""
@@ -99,15 +100,28 @@ environments:
             apply_patches: false
             networks:
                 public:
-                    bridge: vmnet
+                    bridge: br0
                     dns1: 8.8.8.8
                     dns2: 8.8.4.4
-                    bridge_dev: vmnet
-                    network_size: "30"
-                    ipv4_cidr: 10.127.102.0/27
+                    bridge_dev: eth1
+                    network_size: "254"
+                    ipv4_cidr: 172.31.0.0/24
                     label: public
             libvirt:
                 virt_type: kvm
+        rackspace:
+            apply_patches: false
+            networks:
+              public:
+                  bridge: br0
+                  dns1: 8.8.8.8
+                  dns2: 8.8.4.4
+                  bridge_dev: eth2
+                  network_size: "254"
+                  ipv4_cidr: 172.31.0.0/24
+                  label: public
+            libvirt:
+                virt_type: qemu
     osops:
         default:
             apply_patches: true
@@ -121,9 +135,13 @@ environments:
             default: false
     osops_networks:
       razor:
-        management: 10.127.101.0/24
-        nova: 10.127.101.0/24
-        public: 10.127.101.0/24
+        management: 198.101.133.0/24
+        nova: 198.101.133.0/24
+        public: 198.101.133.0/24
+      rackspace:
+        management: 192.168.4.0/24
+        nova: 192.168.4.0/24
+        public: 192.168.4.0/24
     glance:
         default:
             image_upload: true
@@ -161,14 +179,46 @@ environments:
         rpcs:
             swift-private-cloud:
                 network:
-                    management: 10.127.101.0/24
-                    exnet: 10.127.101.0/24
+                    management: 198.101.133.0/24
+                    exnet: 198.101.133.0/24
                 swift_common:
                    swift_hash_prefix: secretesecretestring
                    swift_hash_suffix: ""
                 dispersion:
                     dis_key: secrete
     vips:
+        rackspace:
+            mysql-db: 192.168.4.154
+            rabbitmq-queue: 192.168.4.155
+            cinder-api: 192.168.4.156
+            glance-api: 192.168.4.156
+            glance-registry: 192.168.4.156
+            horizon-dash: 192.168.4.156
+            horizon-dash_ssl: 192.168.4.156
+            keystone-admin-api: 192.168.4.156
+            keystone-internal-api: 192.168.4.156
+            keystone-service-api: 192.168.4.156
+            nova-api: 192.168.4.156
+            nova-ec2-public: 192.168.4.156
+            nova-api-metadata: 192.168.4.156
+            nova-novnc-proxy: 192.168.4.156
+            nova-xvpvnc-proxy: 192.168.4.156
+            swift-proxy: 192.168.4.156
+            ceilometer-api: 192.168.4.156
+            ceilometer-central-agent: 192.168.4.156
+            heat-api: 192.168.4.156
+            heat-api-cfn: 192.168.4.156
+            heat-api-cloudwatch: 192.168.4.156
+            config:
+                192.168.4.154:
+                    vrid: 10
+                    network: public
+                192.168.4.155:
+                    vrid: 11
+                    network: public
+                192.168.4.156:
+                    vrid: 12
+                    network: public
         precise:
             mysql-db: 198.101.133.157
             rabbitmq-queue: 198.101.133.158
