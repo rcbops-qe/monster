@@ -9,50 +9,35 @@ sat6-precise-ha:
     glance: default
     cinder: local
     nova: default
-    neutron:
-      rcps_feature: neutron
-      networks:
-        public:
-            bridge_dev: vmnet
-            ipv4_cidr: 10.127.102.0/27
-            addresses:
-                start: 10.127.102.1
-                end: 10.127.102.31
-            type: vlan
-            gateway:
-                enabled: true
-                addr: 10.127.100.1
-        private:
-            bridge_dev: vmnet
-            ipv4_cidr: 10.127.102.32/27
-            addresses:
-                start: 10.127.102.32
-                end: 10.127.102.63
-            type: gre
-            gateway:
-                enabled: false
+    neutron: neutron
     horizon: default
     osops: default
     keystone: default
     osopsnetworks: default
-    highavailability:
-        rpcs_feature: default
-        vips:
-            mysql:
-               vrid: 10
-               ipv4_addr: 10.127.101.32
-               network: public
-            rabbit:
-               vrid: 11
-               ipv4_addr: 10.127.101.33
-               network: public
-            haproxy:
-               vrid: 12
-               ipv4_addr: 10.127.101.34
-               network: public
+    highavailability: default
   nodes:
-    - [chefserver]
     - [controller, network]
+    - [controller, network]
+    - [compute]
+    - [compute]
+
+sat6-precise-nonha:
+  product: compute
+  name: nonha
+  os: precise
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    cinder: local
+    nova: default
+    neutron: neutron
+    horizon: default
+    osops: default
+    keystone: default
+    osopsnetworks: default
+  nodes:
     - [controller, network]
     - [compute]
     - [compute]
