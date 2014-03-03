@@ -136,7 +136,7 @@ class Neutron(Deployment):
         env = self.deployment.environment
         ovs = env.override_attributes[self.provider]['ovs']
         try:
-            vlans = ovs['provider_networks']['vlans']
+            vlans = ovs['vlans']
         except Exception:
             vlans = '1:1000'
             pass
@@ -146,6 +146,7 @@ class Neutron(Deployment):
              "bridge": "br-{0}".format(iface),
              "vlans": "{0}".format(vlans)}]
         ovs['provider_networks'] = provider_networks
+        del ovs['vlans']
         env.save()
 
     def _fix_nova_environment(self):

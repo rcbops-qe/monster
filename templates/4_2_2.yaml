@@ -16,7 +16,7 @@ sat6-precise-ha:
     osopsnetworks: default
     highavailability: default
   nodes:
-    - [controller, network]
+    - [controller, cinder, network]
     - [controller, network]
     - [compute]
     - [compute]
@@ -38,6 +38,6 @@ sat6-precise-nonha:
     keystone: default
     osopsnetworks: default
   nodes:
-    - [controller, network]
+    - [controller, cinder, network]
     - [compute]
     - [compute]

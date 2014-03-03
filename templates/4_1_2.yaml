@@ -14,6 +14,6 @@ sat6-precise-nonha:
     keystone: default
     osopsnetworks: default
   nodes:
-    - [controller]
+    - [controller, cinder]
     - [compute]
     - [compute]
