@@ -313,7 +313,7 @@ class Compute(Node):
         self.save_node_running_services()
         self._set_node_archive()
 
-    def apply_feature(self):
+    def post_configure(self):
         """
         Run chef-client a second time to lay down host keys
         """
