@@ -210,3 +210,17 @@ An OpenStack Orchestration Engine
      - secret-path: path to secret config file
      - log: path to log file
      - log-level: level to log - INFO, DEBUG
+
+** Development
+
+*** iPython
+
+    To make development of monster easier you can load deployments using iPython and mess around with them:
+
+    1. Start ~ipython~ in top monster directory
+    2. Run
+       #+BEGIN_SRC python
+       from tools.ipython import load
+       deployment = load("yourdep")
+       #+END_SRC
+    4. profit???
