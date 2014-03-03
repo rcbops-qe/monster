@@ -88,6 +88,7 @@ environments:
                 enabled: true
             ovs:
                 network_type: gre
+                vlans: 864
     cinder:
         local:
             storage:
@@ -110,6 +111,7 @@ environments:
         nova-api-metadata: 10.127.101.34
         nova-novnc-proxy: 10.127.101.34
         nova-xvpvnc-proxy: 10.127.101.34
+        neutron-api: 10.127.101.34
         swift-proxy: 10.127.101.34
         ceilometer-api: 10.127.101.34
         ceilometer-central-agent: 10.127.101.34
@@ -239,11 +241,6 @@ razor:
         mgmt:
             cidr: 10.127.101.32/27
             iface: mgmt
-
-neutron:
-    razor:
-        precise:
-            vip: 10.127.101.34
 
 upgrade:
   commands:

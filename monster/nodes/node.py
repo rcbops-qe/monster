@@ -217,7 +217,7 @@ class Node(object):
         Return the iface that our neutron network will live on
         """
         vmnet_cidr = util.config[self.deployment.provisioner]['network'][
-            self.deployment.os_name]['vmnet']['cidr']
+            'vmnet']['cidr']
         vmnet_l3 = ".".join(vmnet_cidr.split(".")[:-1])
         get_nbd = "ip a | grep {0} | awk \'{1}\'".format(
             vmnet_l3, "{print $NF}")
