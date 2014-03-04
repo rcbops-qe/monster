@@ -177,7 +177,8 @@ class Deployment(object):
         server = tmuxp.Server()
         session = server.new_session(session_name=self.name)
         cmd = ("sshpass -p {1} ssh -o UserKnownHostsFile=/dev/null "
-               "-o StrictHostKeyChecking=no -o LogLevel=quiet -l root {0}")
+               "-o StrictHostKeyChecking=no -o LogLevel=quiet "
+               "-o ServerAliveInterval=5 -o ServerAliveCountMax=1 -l root {0}")
         for node in self.nodes:
             name = node.name[len(self.name) + 1:]
             window = session.new_window(window_name=name)
