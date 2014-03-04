@@ -1,4 +1,4 @@
-sat6-precise-nonha:
+sat6-precise-ha-nova-net:
   product: compute
   name: nonha
   os: precise

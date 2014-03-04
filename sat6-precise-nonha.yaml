@@ -88,12 +88,14 @@ environments:
                 enabled: true
             ovs:
                 network_type: gre
+                vlans: 864
     cinder:
         local:
             storage:
                 provider: lvm
                 lvm:
                     volume_group: vg_storage
+
 rcbops:
     retrofit:
         supported:
