@@ -123,15 +123,26 @@ class HATest(Test):
         return True
 
     def build(self, server_name, server_image, server_flavor, network_name, subnet_name, cidr):
-        print "\033[1;41mACTION: Build\033[1;m"
+        print "\033[1;44mACTION: Build\033[1;m"
+        print "\033[1;44m{0}\033[1;m".format(server_name)
+        print "\033[1;44m{0}\033[1;m".format(server_image)
+        print "\033[1;44m{0}\033[1;m".format(server_flavor)
+        print "\033[1;44m{0}\033[1;m".format(network_name)
+        print "\033[1;44m{0}\033[1;m".format(subnet_name)
+        print "\033[1;44m{0}\033[1;m".format(cidr)
         network_id = self.create_network(network_name)
+        print "\033[1;44mNETWORK ID!!!: {0}\033[1;m".format(network_id)
         subnet_id = self.create_subnet(subnet_name, network_id, cidr)
+        print "\033[1;44m{0}\033[1;m".format(subnet_id)
         networks = [{"net-id": network_id}]
+        print "\033[1;44m{0}\033[1;m".format(networks)
         server = self.nova.servers.create(server_name, server_image,
                                           server_flavor, nics=networks)
+        print "\033[1;44m{0}\033[1;m".format(server)
         build_status = "BUILD"
         while build_status == "BUILD":
-            build_status = self.nova.servers.list()[0].status #NEEDS TO BE CHANGED!!!!
+            build_status = self.nova.servers.get(server.id).status
+        print "BUILD STATUS: {0}".format(build_status)
         if build_status == "ERROR":
             print "\033[1;41mBuild FAILED TO INITIALIZE!\033[1;m"
             #pass
@@ -142,44 +153,62 @@ class HATest(Test):
         """
         Move vips on to first controller and fail it
         """
-        print "\033[1;41mACTION: Failover\033[1;m"
+        print "\033[1;44mACTION: Failover\033[1;m"
+        sleep(60)
         self.move_vips_from(node_up)
         self.fail_node(node_down)
-        sleep(60)
+        sleep(30)
     def verify(self, build, node_up, node_down=None):
-        print "\033[1;41mACTION: Verify\033[1;m"
+        print "\033[1;44mACTION: Verify\033[1;m"
         rabbitmq_status = False
         while not rabbitmq_status and node_down:
             rabbitmq_status = node_down.run_cmd("pgrep -fl rabbitmq-server")
 
         # Check RPCS services (ha_proxy, keepalived, rpc daemon) are functional.
-        haproxy = None
-        keepalived = None
-        rpcdaemon = None
+        haproxy = node_up.run_cmd("pgrep -fl haproxy")['return'].rstrip()
+        keepalived = node_up.run_cmd("pgrep -fl keepalived")['return'].rstrip()
+        rpcdaemon = node_up.run_cmd("pgrep -fl rpcdaemon")['return'].rstrip()
 
-        print "Checking for haproxy status on {0}".format(node_up)
         while not haproxy:
+            print "Checking for haproxy status on {0}".format(node_up.name)
+            sleep(10)
             haproxy = node_up.run_cmd("pgrep -fl haproxy")['return'].rstrip()
-        print "Checking for keepalived status on {0}".format(node_up)
+        print "haproxy is up on {0}!".format(node_up.name)
         while not keepalived:
+            print "Checking for keepalived status on {0}".format(node_up.name)
+            sleep(10)
             keepalived = node_up.run_cmd("pgrep -fl keepalived")['return'].rstrip()
-        print "Checkiong for rpcdaemon status on {0}".format(node_up)
+        print "keepalived is up on {0}!".format(node_up.name)
         while not rpcdaemon:
+            print "Checkiong for rpcdaemon status on {0}".format(node_up.name)
+            sleep(10)
             rpcdaemon = node_up.run_cmd("pgrep -fl rpcdaemon")['return'].rstrip()
-        
+        print "rpcdaemon is up on {0}!".format(node_up.name)
+
+        if node_down:
+            haproxy = node_down.run_cmd("pgrep -fl haproxy")['return'].rstrip()
+            while not haproxy:
+                print "Checking for haproxy status on {0}".format(node_down.name)
+                sleep(10)
+                haproxy = node_down.run_cmd("pgrep -fl haproxy")['return'].rstrip()
+            print "haproxy is up on {0}!".format(node_down.name)
+            keepalived = node_down.run_cmd("pgrep -fl keepalived")['return'].rstrip()
+            while not keepalived:
+                print "Checking for keepalived status on {0}".format(node_down.name)
+                sleep(10)
+                keepalived = node_down.run_cmd("pgrep -fl keepalived")['return'].rstrip()
+            print "keepalived is up on {0}!".format(node_down.name)
+            rpcdaemon = node_down.run_cmd("pgrep -fl rpcdaemon")['return'].rstrip()
+            while not rpcdaemon:
+                print "Checkiong for rpcdaemon status on {0}".format(node_down.name)
+                sleep(10)
+                rpcdaemon = node_down.run_cmd("pgrep -fl rpcdaemon")['return'].rstrip()
+            print "rpcdaemon is up on {0}!".format(node_down.name)
+
         # Check that the VIPS moved over to node_up
         exec_vips = node_up.run_cmd("ip netns exec vips ip a")['return']
         exec_vips_down = " "
         if node_down:
-            print "Checking for haproxy status on {0}".format(node_down)
-            while not haproxy:
-                haproxy = node_down.run_cmd("pgrep -fl haproxy")['return'].rstrip()
-            print "Checking for keepalived status on {0}".format(node_down)
-            while not keepalived:
-                keepalived = node_down.run_cmd("pgrep -fl keepalived")['return'].rstrip()
-            print "Checkiong for rpcdaemon status on {0}".format(node_down)
-            while not rpcdaemon:
-                rpcdaemon = node_down.run_cmd("pgrep -fl rpcdaemon")['return'].rstrip()
             exec_vips_down = node_down.run_cmd("ip netns exec vips ip a")['return']
         #print "RETVALUE ip netns exec vips ip a: {0}".format(exec_vips)
 
@@ -191,8 +220,6 @@ class HATest(Test):
             # Checks if the vips are absent from both controllers
             if (vip not in exec_vips) and (vip not in exec_vips_down):
                 print "{0} is not found in the vips namespace!!!".format(vip)
-                #print "EXEC_VIPS-----------------------{0}".format(exec_vips)
-                #print "EXEC_VIPS_DOWN------------------{0}".format(exec_vips_down)
             # Verifies that the vips do not reside on both servers simultaneously
             elif (vip in exec_vips) and (vip in exec_vips_down):
                 print "{0} has been found in the vips namespace of both controllers!!!".format(vip)
@@ -214,6 +241,12 @@ class HATest(Test):
         dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(build.network_id)
         util.logger.debug("DHCP_STATUS: {0}".format(dhcp_status))
         #print "DHCP STATUS!!!!!!!!: {0}".format(dhcp_status)
+        while not dhcp_status['agents']:
+            print "BUILD.Network_ID: {0}".format(build.network_id)
+            print "DHCP Status: {0}".format(dhcp_status)
+            print "DHCP down. Waiting 5 seconds..."
+            sleep(5)
+            dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(build.network_id)
         assert dhcp_status['agents'][0]['admin_state_up'],\
             "dhcp is NOT working properly"
         assert dhcp_status['agents'][0]['alive'],\
@@ -232,7 +265,7 @@ class HATest(Test):
         #SELECTIVE TEMPEST RUN
 
     def failback(self, node_down):
-        print "\033[1;41mACTION: Failback\033[1;m"
+        print "\033[1;44mACTION: Failback\033[1;m"
         node_down.power_on()
         while not self.is_online(node_down):
             print "Waiting for {0} to boot...".format(node_down.name)
