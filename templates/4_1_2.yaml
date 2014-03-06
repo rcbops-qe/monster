@@ -1,6 +1,6 @@
 sat6-precise-ha-nova-net:
   product: compute
-  name: nonha
+  name: ha
   os: precise
   features:
     openssh: default
@@ -13,7 +13,9 @@ sat6-precise-ha-nova-net:
     osops: default
     keystone: default
     osopsnetworks: default
+    highavailability: default
   nodes:
     - [controller, cinder]
+    - [controller]
     - [compute]
     - [compute]
