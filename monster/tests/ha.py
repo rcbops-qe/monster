@@ -24,6 +24,16 @@ class Build(object):
         self.network_id = network_id
         self.subnet_id = subnet_id
 
+    def destroy(self, nova, neutron):
+        print "Deleting server..."
+        nova.servers.delete(self.server)
+        sleep(5)
+        print "Deleting subnet..."
+        neutron.delete_subnet(self.subnet_id)
+        print "Deleting network..."
+        neutron.delete_network(self.network_id)
+
+
 class HATest(Test):
     """
     HA Openstack tests
@@ -157,7 +167,8 @@ class HATest(Test):
         sleep(60)
         self.move_vips_from(node_up)
         self.fail_node(node_down)
-        sleep(30)
+        sleep(120)
+
     def verify(self, build, node_up, node_down=None):
         print "\033[1;44mACTION: Verify\033[1;m"
         rabbitmq_status = False
@@ -237,6 +248,8 @@ class HATest(Test):
         current_host = node_up.run_cmd("hostname")['return'].rstrip()
         print "hostname: {0}".format(current_host)
         
+        # --------------------------------------review
+        
         # Check that the RPC Daemon rescheduled the DHCP/L3 agents to node_up and they are functioning.
         dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(build.network_id)
         util.logger.debug("DHCP_STATUS: {0}".format(dhcp_status))
@@ -264,6 +277,27 @@ class HATest(Test):
         # Run tempest based on the features enabled.
         #SELECTIVE TEMPEST RUN
 
+    def dhcp_agent_alive(self, net, wait=240):
+        count = 1
+        dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(build.network_id)
+        in_time = lambda x: wait > x
+
+        while not dhcp_status['agents'] and in_time(count):
+            util.logger.debug("waiting for agents to populate:{0}".format(dhcp_status))
+            sleep(1)
+            count += 1
+            dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(build.network_id)
+
+        assert in_time(count), "agents failed to populate in time"
+
+        while not dhcp_status['agents'][0]['alive'] and in_time(count):
+            logger.debug("waiting for agents to be alive:{0}".format(dhcp_status))
+            sleep(1)
+            count += 1
+            dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(build.network_id)
+            
+        assert in_time(count), "agents failed to rise in time"
+
     def failback(self, node_down):
         print "\033[1;44mACTION: Failback\033[1;m"
         node_down.power_on()
@@ -272,33 +306,6 @@ class HATest(Test):
             sleep(10)
         sleep(90)
 
-    def destroy(self, build1, build2, build3, build4):
-        print "Deleting server..."
-        self.nova.servers.delete(build1.server)
-        print "Deleting server..."
-        self.nova.servers.delete(build2.server)
-        print "Deleting server..."
-        self.nova.servers.delete(build3.server)
-        print "Deleting server..."
-        self.nova.servers.delete(build4.server)
-        sleep(5)
-        print "Deleting subnet..."
-        self.neutron.delete_subnet(build1.subnet_id)
-        print "Deleting network..."
-        self.neutron.delete_network(build1.network_id)
-        print "Deleting subnet..."
-        self.neutron.delete_subnet(build2.subnet_id)
-        print "Deleting network..."
-        self.neutron.delete_network(build2.network_id)
-        print "Deleting subnet..."
-        self.neutron.delete_subnet(build3.subnet_id)
-        print "Deleting network..."
-        self.neutron.delete_network(build3.network_id)
-        print "Deleting subnet..."
-        self.neutron.delete_subnet(build4.subnet_id)
-        print "Deleting network..."
-        self.neutron.delete_network(build4.network_id)
-        
     def run_tests(self):
         """
         Run tempest on second controller
@@ -324,11 +331,13 @@ class HATest(Test):
         node_up = self.controller1
         node_down = self.controller2
         run = 0
+        builds = []
         build1 = self.build("testbuild{0}".format(run),
                        server_image, server_flavor,
                        "testnetwork{0}".format(run),
                        "testsubnet{0}".format(run),
                        "172.32.{0}.0/24".format(run))
+        builds.append(build1)
         self.verify(build1, node_up, node_down)
         self.failover(node_up, node_down)
         self.verify(build1, node_up)
@@ -338,8 +347,10 @@ class HATest(Test):
                        "testnetwork{0}".format(run),
                        "testsubnet{0}".format(run),
                        "172.32.{0}.0/24".format(run))
+        builds.append(build2)
         self.failback(node_down)
-        self.verify(build2, node_up, node_down) #NEED TO FIGURE OUT WHICH NODE TO PASS
+        for build in builds:
+            self.verify(build, node_up, node_down)
 
         node_up = self.controller2
         node_down = self.controller1
@@ -349,18 +360,22 @@ class HATest(Test):
                        "testnetwork{0}".format(run),
                        "testsubnet{0}".format(run),
                        "172.32.{0}.0/24".format(run))
+        builds.append(build3)
         self.failover(node_up, node_down)
-        self.verify(build3, node_up)
+        for build in builds:
+            self.verify(build, node_up)
         run = 3
         build4 = self.build("testbuild{0}".format(run),
                        server_image, server_flavor,
                        "testnetwork{0}".format(run),
                        "testsubnet{0}".format(run),
                        "172.32.{0}.0/24".format(run))
+        builds.append(build4)
         self.failback(node_down)
-        self.verify(build4, node_up, node_down) #NEED TO FIGURE OUT WHICH NODE TO PASS
-
-        self.destroy(build1, build2, build3, build4)
+        for build in builds:
+            self.verify(build, node_up, node_down)
+        (build.destroy(self.nova, self.neutron) for build in builds)
+        
         #tempest.test_node = node_up
         #tempest.test()
 
