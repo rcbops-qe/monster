@@ -1,15 +1,15 @@
 chef:
-  server:
-    install_script: https://raw.github.com/rcbops-qa/monster/master/files/install-chef-server.sh
-    install_dir: /opt/rcbops
-    upgrade_dir: /opt/upgrade
-  run_cmd: "chef-client"
-razor:
-  ip: 198.101.133.3
+    server:
+        install_script: https://raw.github.com/rcbops-qa/monster/master/files/install-chef-server.sh
+        install_dir: /opt/rcbops
+        upgrade_dir: /opt/upgrade
+    client:
+        version: 11.08.0
+        run_cmd: "chef-client"
 environments:
     openssh:
-      server:
-        subsystem: "sftp internal-sftp"
+        server:
+            subsystem: "sftp internal-sftp"
     package_component:
         default: grizzly
     keystone:
@@ -32,7 +32,7 @@ environments:
                     roles:
                         admin:
                             - admin
-                            - demo
+                    default_tenant: admin
                     password: secrete
             tenants:
                 - admin
@@ -110,8 +110,8 @@ environments:
             libvirt:
                 virt_type: kvm
         rackspace:
-          apply_patches: false
-          networks:
+            apply_patches: false
+            networks:
               public:
                   bridge: br0
                   dns1: 8.8.8.8
@@ -120,8 +120,8 @@ environments:
                   network_size: "254"
                   ipv4_cidr: 172.31.0.0/24
                   label: public
-          libvirt:
-            virt_type: qemu
+            libvirt:
+                virt_type: qemu
     osops:
         default:
             apply_patches: true
@@ -139,9 +139,9 @@ environments:
         nova: 198.101.133.0/24
         public: 198.101.133.0/24
       rackspace:
-        management: 192.168.3.0/24
-        nova: 192.168.3.0/24
-        public: 192.168.3.0/24
+        management: 192.168.4.0/24
+        nova: 192.168.4.0/24
+        public: 192.168.4.0/24
     glance:
         default:
             image_upload: true
@@ -174,7 +174,7 @@ environments:
             storage:
                 provider: lvm
                 lvm:
-                    volume_group: vgubuntu01
+                    volume_group: vg_storage
     swift:
         rpcs:
             swift-private-cloud:
@@ -188,68 +188,38 @@ environments:
                     dis_key: secrete
     vips:
         rackspace:
-            mysql-db: 192.168.3.154
-            rabbitmq-queue: 192.168.3.155
-            cinder-api: 192.168.3.156
-            glance-api: 192.168.3.156
-            glance-registry: 192.168.3.156
-            horizon-dash: 192.168.3.156
-            horizon-dash_ssl: 192.168.3.156
-            keystone-admin-api: 192.168.3.156
-            keystone-internal-api: 192.168.3.156
-            keystone-service-api: 192.168.3.156
-            nova-api: 192.168.3.156
-            nova-ec2-public: 192.168.3.156
-            nova-novnc-proxy: 192.168.3.156
-            nova-xvpvnc-proxy: 192.168.3.156
-            swift-proxy: 192.168.3.156
-            ceilometer-api: 192.168.3.156
-            ceilometer-central-agent: 192.168.3.156
-            heat-api: 192.168.3.156
-            heat-api-cfn: 192.168.3.156
-            heat-api-cloudwatch: 192.168.3.156
+            mysql-db: 192.168.4.154
+            rabbitmq-queue: 192.168.4.155
+            cinder-api: 192.168.4.156
+            glance-api: 192.168.4.156
+            glance-registry: 192.168.4.156
+            horizon-dash: 192.168.4.156
+            horizon-dash_ssl: 192.168.4.156
+            keystone-admin-api: 192.168.4.156
+            keystone-internal-api: 192.168.4.156
+            keystone-service-api: 192.168.4.156
+            nova-api: 192.168.4.156
+            nova-ec2-public: 192.168.4.156
+            nova-api-metadata: 192.168.4.156
+            nova-novnc-proxy: 192.168.4.156
+            nova-xvpvnc-proxy: 192.168.4.156
+            swift-proxy: 192.168.4.156
+            ceilometer-api: 192.168.4.156
+            ceilometer-central-agent: 192.168.4.156
+            heat-api: 192.168.4.156
+            heat-api-cfn: 192.168.4.156
+            heat-api-cloudwatch: 192.168.4.156
             config:
-                192.168.3.154:
+                192.168.4.154:
                     vrid: 10
                     network: public
-                192.168.3.155:
+                192.168.4.155:
                     vrid: 11
                     network: public
-                192.168.3.156:
+                192.168.4.156:
                     vrid: 12
                     network: public
         precise:
-            mysql-db: 198.101.133.154
-            rabbitmq-queue: 198.101.133.155
-            cinder-api: 198.101.133.156
-            glance-api: 198.101.133.156
-            glance-registry: 198.101.133.156
-            horizon-dash: 198.101.133.156
-            horizon-dash_ssl: 198.101.133.156
-            keystone-admin-api: 198.101.133.156
-            keystone-internal-api: 198.101.133.156
-            keystone-service-api: 198.101.133.156
-            nova-api: 198.101.133.156
-            nova-ec2-public: 198.101.133.156
-            nova-novnc-proxy: 198.101.133.156
-            nova-xvpvnc-proxy: 198.101.133.156
-            swift-proxy: 198.101.133.156
-            ceilometer-api: 198.101.133.156
-            ceilometer-central-agent: 198.101.133.156
-            heat-api: 198.101.133.156
-            heat-api-cfn: 198.101.133.156
-            heat-api-cloudwatch: 198.101.133.156
-            config:
-                198.101.133.154:
-                    vrid: 10
-                    network: public
-                198.101.133.155:
-                    vrid: 11
-                    network: public
-                198.101.133.156:
-                    vrid: 12
-                    network: public
-        centos:
             mysql-db: 198.101.133.157
             rabbitmq-queue: 198.101.133.158
             cinder-api: 198.101.133.159
@@ -262,6 +232,7 @@ environments:
             keystone-service-api: 198.101.133.159
             nova-api: 198.101.133.159
             nova-ec2-public: 198.101.133.159
+            nova-api-metadata: 198.101.133.159
             nova-novnc-proxy: 198.101.133.159
             nova-xvpvnc-proxy: 198.101.133.159
             swift-proxy: 198.101.133.159
@@ -280,7 +251,48 @@ environments:
                 198.101.133.159:
                     vrid: 16
                     network: public
+        centos:
+            mysql-db: 198.101.133.154
+            rabbitmq-queue: 198.101.133.155
+            cinder-api: 198.101.133.156
+            glance-api: 198.101.133.156
+            glance-registry: 198.101.133.156
+            horizon-dash: 198.101.133.156
+            horizon-dash_ssl: 198.101.133.156
+            keystone-admin-api: 198.101.133.156
+            keystone-internal-api: 198.101.133.156
+            keystone-service-api: 198.101.133.156
+            nova-api: 198.101.133.156
+            nova-ec2-public: 198.101.133.156
+            nova-api-metadata: 198.101.133.156
+            nova-novnc-proxy: 198.101.133.156
+            nova-xvpvnc-proxy: 198.101.133.156
+            swift-proxy: 198.101.133.156
+            ceilometer-api: 198.101.133.156
+            ceilometer-central-agent: 198.101.133.156
+            heat-api: 198.101.133.156
+            heat-api-cfn: 198.101.133.156
+            heat-api-cloudwatch: 198.101.133.156
+            config:
+                198.101.133.154:
+                    vrid: 11
+                    network: public
+                198.101.133.155:
+                    vrid: 12
+                    network: public
+                198.101.133.156:
+                    vrid: 13
+                    network: public
 rcbops:
+    retrofit:
+        supported:
+            os:
+                - precise
+        git:
+            url: https://github.com/Apsu/retrofit.git
+            branches:
+                - master
+                - dev
     compute:
         kernel:
           centos:
@@ -291,9 +303,11 @@ rcbops:
             url: https://github.com/rcbops/chef-cookbooks.git
             branches:
                 havana:
-                    - v4.2.0
+                    - v4.2.2
                     - v4.2.1
+                    - v4.2.0
                 grizzly:
+                    - v4.1.4rc
                     - v4.1.3
                     - v4.1.2
                     - v4.1.1
@@ -314,7 +328,7 @@ rcbops:
         controller2:
             run_list: ['role[ha-controller2]']
         cinder:
-            run_list: ['role[cinder-all]']
+            run_list: ['role[cinder-volume]']
         network:
             run_list: ['role[single-network-node]']
         tempest:
@@ -372,7 +386,6 @@ tests:
         - volume
       swift:
         - object_storage
-
 swift:
     master_env_key: swift-private-cloud
     auto_build_rings: False
@@ -390,10 +403,24 @@ swift:
             port: 6001
         account:
             port: 6002
-
 cinder:
     vg_name: vg_storage
-
+razor:
+    network:
+        centos:
+            vmnet:
+                cidr: 172.31.0.0/24
+                iface: vmnet
+            mgmt:
+                cidr: 198.101.133.0/24
+                iface: mgmt
+        precise:
+            vmnet:
+                cidr: 172.31.0.0/24
+                iface: vmnet
+            mgmt:
+                cidr: 198.101.133.0/24
+                iface: mgmt
 rackspace:
     run_list:
         - recipe[rcbops-qa]
@@ -421,14 +448,26 @@ rackspace:
       chefserver: 1GBP
       controller: 2GBP
       compute: 8GBP
-
     networks:
         - public
         - private
-        - test
+        - vmnet
+        - mgmt
     network:
-        test: 192.168.3.0/24
-
+        centos:
+            vmnet:
+                cidr: 192.168.3.0/24
+                iface: eth2
+            mgmt:
+                cidr: 192.168.4.0/24
+                iface: eth3
+        precise:
+            vmnet:
+                cidr: 192.168.3.0/24
+                iface: eth2
+            mgmt:
+                cidr: 192.168.4.0/24
+                iface: eth3
 openstack:
     run_list:
         - recipe[rcbops-qa]
@@ -444,19 +483,31 @@ openstack:
         - public
         - private
     network:
-        private: 172.31.0.0/24
-
+        centos:
+            vmnet:
+                cidr: 192.168.3.0/24
+                iface: eth2
+            mgmt:
+                cidr: 192.168.4.0/24
+                iface: eth3
+        precise:
+            vmnet:
+                cidr: 192.168.3.0/24
+                iface: eth2
+            mgmt:
+                cidr: 192.168.4.0/24
+                iface: eth3
 neutron:
-    centos:
-        network_bridge_device: em2
-        vip: 198.101.133.159
-    precise:
-        network_bridge_device: eth1
-        vip: 198.101.133.156
+    razor:
+        centos:
+            vip: 198.101.133.156
+        precise:
+            vip: 198.101.133.159
     rackspace:
-        network_bridge_device: eth3
-        vip: 192.168.3.156
-
+        centos:
+            vip: 192.168.4.156
+        precise:
+            vip: 192.168.4.156
 upgrade:
   commands:
     backup-db: bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/database_backup.sh)
@@ -467,6 +518,20 @@ upgrade:
     v4.1.2:
       - v4.1.3rc
       - v4.1.3
+      - v4.1.4rc
+      - v4.1.4
     v4.1.3:
+      - v4.1.4rc
+      - v4.1.4
       - v4.2.1rc
       - v4.2.1
+      - v4.2.2rc
+      - v4.2.2
+    v4.1.4:
+      - v4.2.1rc
+      - v4.2.1
+      - v4.2.2rc
+      - v4.2.2
+    v4.2.1:
+      - v4.2.2rc
+      - v4.2.2

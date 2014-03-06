@@ -99,8 +99,13 @@ class Openstack(Provisioner):
         run_list_arg = ""
         if run_list:
             run_list_arg = "-r {0}".format(run_list)
-        command = 'knife bootstrap {0} -u root -P {1} -N {2} {3}'.format(
-            server.accessIPv4, password, name, run_list_arg)
+        client_version = util.config['chef']['client']['version']
+        command = ("knife bootstrap {0} -u root -P {1} -N {2} {3}"
+                   " --bootstrap-version {4}".format(server.accessIPv4,
+                                                     password,
+                                                     name,
+                                                     run_list_arg,
+                                                     client_version))
         run_cmd(command)
         node = Node(name, api=deployment.environment.local_api)
         node.chef_environment = deployment.environment.name
@@ -223,19 +228,18 @@ class Openstack(Provisioner):
         attempt = 0
         in_attempt = lambda x: not attempts or attempts > x
         while getattr(obj, attr) not in desired and in_attempt(attempt):
-            util.logger.info("Wating:{0} {1}:{2}".format(obj, attr,
-                                                         getattr(obj, attr)))
+            util.logger.info("Waiting:{0} {1}:{2}".format(obj, attr,
+                                                          getattr(obj, attr)))
             sleep(interval)
             obj = fun(obj.id)
             attempt = attempt + 1
         return obj
 
-    def power_off(self, node):
-        id = node['uuid']
-        server = self.compute_client.servers.get(id)
-        server.shutdown()
+    def power_down(self, node):
+        node.run_cmd("echo 1 > /proc/sys/kernel/sysrq; "
+                     "echo o > /proc/sysrq-trigger")
 
-    def power_on(self, node):
+    def power_up(self, node):
         id = node['uuid']
         server = self.compute_client.servers.get(id)
-        server.startup()
+        server.reboot("hard")

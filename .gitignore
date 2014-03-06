@@ -1,7 +1,8 @@
 *.py[cod]
 clean.py
 secret.yaml
-tools/
+ipython_tools/
+results/
 
 # C extensions
 *.so
@@ -40,3 +41,8 @@ nosetests.xml
 # Emacs
 *~
 .ropeproject
+
+# monster
+*.json
+*.log
+*.xunit

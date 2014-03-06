@@ -11,10 +11,10 @@ class Chef(Node):
     A chef entity
     Provides chef related server fuctions
     """
-    def __init__(self, ip, user, password, os, product, environment,
-                 deployment, name, provisioner, branch, status=None,
-                 run_list=None):
-        super(Chef, self).__init__(ip, user, password, os, product,
+    def __init__(self, ip, user, password, os, platform, product,
+                 environment, deployment, name, provisioner, branch,
+                 status=None, run_list=None):
+        super(Chef, self).__init__(ip, user, password, os, platform, product,
                                    environment, deployment, provisioner,
                                    status)
         self.name = name
@@ -173,6 +173,7 @@ class Chef(Node):
         ipaddress = node['ipaddress']
         user = node['current_user']
         password = node['password']
+        platform = node['platform']
         name = node.name
         archive = node.get('archive', {})
         status = archive.get('status', "provisioning")
@@ -180,15 +181,19 @@ class Chef(Node):
             provisioner_name = archive.get('provisioner', "razor")
             provisioner = get_provisioner(provisioner_name)
         run_list = node.run_list
-        crnode = cls(ipaddress, user, password, os, product, environment,
-                     deployment, name, provisioner, branch, status=status,
-                     run_list=run_list)
+        crnode = cls(ipaddress, user, password, os, platform, product,
+                     environment, deployment, name, provisioner, branch,
+                     status=status, run_list=run_list)
         crnode.add_features(archive.get('features', []))
         return crnode
 
-    def run(self, times=1):
-        cmd = util.config['chef']['run_cmd']
-        for _ in xrange(times):
+    def run(self, times=1, debug=True):
+        cmd = util.config['chef']['client']['run_cmd']
+        for i in xrange(times):
+            if debug:
+                time = self.run_cmd("date +%F_%T")['return'].rstrip()
+                log_file = '{0}-client-run.log'.format(time)
+                cmd = '{0} -l debug -L "/opt/chef/{1}"'.format(cmd, log_file)
             chef_run = self.run_cmd(cmd)
             self.save_locally()
             if not chef_run['success']:

@@ -68,6 +68,7 @@ class Neutron(Deployment):
         """
         self.deployment.environment.add_override_attr(self.provider,
                                                       self.environment)
+
         # Fix the nova network block in the env
         self._fix_nova_environment()
 
@@ -83,7 +84,7 @@ class Neutron(Deployment):
         self._build_bridges()
 
         # Auto add default icmp and tcp sec rules
-        self._add_security_rules()
+        #self._add_security_rules()
 
     def _add_security_rules(self):
         """
@@ -123,17 +124,28 @@ class Neutron(Deployment):
         Fix the network provider block in the enviornment
         """
 
-        iface = util.config[str(self)][self.deployment.os_name][
-            'network_bridge_device']
+        controller = next(self.deployment.search_role('controller'))
 
-        provider_network = [
-            {"label": "ph-{0}".format(iface),
-             "bridge": "br-{0}".format(iface),
-             "vlans": "1:1000"}]
+        iface = controller.get_vmnet_iface()
+        if not iface:
+            iface = util.config[self.deployment.provisioner]['network'][
+                self.deployment.os_name]['vmnet']['iface']
+
+        util.logger.info("Using iface: {0}".format(iface))
 
         env = self.deployment.environment
         ovs = env.override_attributes[self.provider]['ovs']
-        ovs['provider_network'] = provider_network
+        try:
+            vlans = ovs['provider_networks']['vlans']
+        except Exception:
+            vlans = '1:1000'
+            pass
+
+        provider_networks = [
+            {"label": "ph-{0}".format(iface),
+             "bridge": "br-{0}".format(iface),
+             "vlans": "{0}".format(vlans)}]
+        ovs['provider_networks'] = provider_networks
         env.save()
 
     def _fix_nova_environment(self):
@@ -152,11 +164,8 @@ class Neutron(Deployment):
         # update the vip to correct api name and vip value
         if self.deployment.feature_in("highavailability"):
             api_name = '{0}-api'.format(self.provider)
-            if str(self.deployment.provisioner) == "razor":
-                vip = self.deployment.os_name
-            elif str(self.deployment.provisioner) == "rackspace":
-                vip = "rackspace"
-            api_vip = util.config[str(self)][vip]['vip']
+            api_vip = util.config[str(self)][
+                self.deployment.provisioner][self.deployment.os_name]['vip']
             env.override_attributes['vips'][api_name] = api_vip
 
         # Save the environment
@@ -199,28 +208,72 @@ class Neutron(Deployment):
 
         util.logger.info("### Beginning of Networking Block ###")
 
-        network_bridge_device = util.config[str(self)][
-            self.deployment.os_name]['network_bridge_device']
-
         controllers = self.deployment.search_role('controller')
         computes = self.deployment.search_role('compute')
 
-        commands = ['ip a f {0}'.format(network_bridge_device),
-                    'ovs-vsctl add-port br-{0} {0}'.format(
-                        network_bridge_device)]
-        command = "; ".join(commands)
-
         util.logger.info("### Building OVS Bridge and "
                          "Ports on network nodes ###")
-        # loop through controllers and run
+
         for controller in controllers:
+            iface = controller.get_vmnet_iface()
+            if not iface:
+                iface = util.config[self.deployment.provisioner]['network'][
+                    self.deployment.os_name]['vmnet']['iface']
+
+            util.logger.info("Using iface: {0}".format(iface))
+
+            commands = ['ip a f {0}'.format(iface),
+                        'ovs-vsctl add-port br-{0} {0}'.format(
+                            iface)]
+            command = "; ".join(commands)
+            util.logger.debug("Running {0} on {1}".format(command, controller))
             controller.run_cmd(command)
 
         # loop through computes and run
         for compute in computes:
+            iface = compute.get_vmnet_iface()
+            if not iface:
+                iface = util.config[self.deployment.provisioner]['network'][
+                    self.deployment.os_name]['vmnet']['iface']
+
+            util.logger.info("Using iface: {0}".format(iface))
+
+            commands = ['ip a f {0}'.format(iface),
+                        'ovs-vsctl add-port br-{0} {0}'.format(
+                            iface)]
+            command = "; ".join(commands)
+            util.logger.debug("Running {0} on {1}".format(command, compute))
             compute.run_cmd(command)
 
         util.logger.info("### End of Networking Block ###")
+
+    def clear_bridge_iface(self):
+        """
+        Clear the configured iface for neutron use
+        """
+
+        controllers = self.deployment.search_role('controller')
+        computes = self.deployment.search_role('compute')
+
+        for controller in controllers:
+            iface = controller.get_vmnet_iface()
+            if not iface:
+                iface = util.config[self.deployment.provisioner]['network'][
+                    self.deployment.os_name]['vmnet']['iface']
+
+            util.logger.info("Using iface: {0}".format(iface))
+            cmd = "ip a f {0}".format(iface)
+            controller.run_cmd(cmd)
+
+        for compute in computes:
+            iface = compute.get_vmnet_iface()
+            if not iface:
+                iface = util.config[self.deployment.provisioner]['network'][
+                    self.deployment.os_name]['vmnet']['iface']
+
+            util.logger.info("Using iface: {0}".format(iface))
+            cmd = "ip a f {0}".format(iface)
+            compute.run_cmd(cmd)
 
 
 class Swift(Deployment):
@@ -520,21 +573,25 @@ class Nova(Deployment):
             str(self.deployment.provisioner)]
 
     def update_environment(self):
+
         self.deployment.environment.add_override_attr(
             str(self), self.environment)
-        bridge_dev = None
-        if str(self.deployment.provisioner) == 'openstack':
-            bridge_dev = 'eth1'
-        elif self.deployment.os_name in ['centos', 'rhel']:
-            bridge_dev = 'em1'
-        if bridge_dev:
-            env = self.deployment.environment
 
-            util.logger.info("Setting bridge_dev to {0}".format(bridge_dev))
-            env.override_attributes['nova']['networks']['public'][
-                'bridge_dev'] = bridge_dev
+        controller = next(self.deployment.search_role('controller'))
 
-            self.deployment.environment.save()
+        iface = controller.get_vmnet_iface()
+        if not iface:
+            iface = util.config[self.deployment.provisioner]['network'][
+                self.deployment.os_name]['vmnet']['iface']
+
+        util.logger.info("Using iface: {0}".format(iface))
+
+        env = self.deployment.environment
+        util.logger.info("Setting bridge_dev to {0}".format(iface))
+        env.override_attributes['nova']['networks']['public'][
+            'bridge_dev'] = iface
+
+        self.deployment.environment.save()
 
 
 class Horizon(Deployment):
@@ -701,7 +758,7 @@ class OpenLDAP(RPCS):
         env.override_attributes['keystone']['ldap']['password'] = password
 
         # Save the Environment
-        self.node.deployment.environment.save()
+        self.deployment.environment.save()
 
 
 class Openssh(RPCS):

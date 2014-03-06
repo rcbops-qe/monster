@@ -3,17 +3,16 @@
 """ Command Line interface for Building Openstack Swift clusters
 """
 import sys
+import argh
 import traceback
 
-import argh
-
 from monster import util
-from monster.provisioners import provisioner as provisioners
 from monster.config import Config
-from monster.deployments.chef_deployment import ChefDeployment
+from monster.deployments.chef_deployment import Chef
+from monster.provisioners import provisioner as provisioners
 
 
-def build(name="precise-swift", branch="master", provisioner="razor",
+def build(name="autotest", branch="master", provisioner="rackspace",
           template_path=None, config=None, destroy=False,
           dry=False, log=None, log_level="INFO"):
 
@@ -26,8 +25,7 @@ def build(name="precise-swift", branch="master", provisioner="razor",
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    deployment = ChefDeployment.fromfile(name, branch, cprovisioner,
-                                         template_path)
+    deployment = Chef.fromfile(name, branch, cprovisioner, template_path)
     if dry:
         # build environment
         try:
@@ -52,7 +50,7 @@ def build(name="precise-swift", branch="master", provisioner="razor",
         deployment.destroy()
 
 
-def destroy(name="precise-swift", config=None, log=None, log_level="INFO"):
+def destroy(name="autotest", config=None, log=None, log_level="INFO"):
     """ Tears down a OpenStack Storage cluster
     """
 
@@ -62,7 +60,7 @@ def destroy(name="precise-swift", config=None, log=None, log_level="INFO"):
     deployment.destroy()
 
 
-def test(name="precise-swift", config=None, log=None, log_level="INFO"):
+def test(name="autotest", config=None, log=None, log_level="INFO"):
     """ Tests a OpenStack Storage cluster
     """
 
@@ -71,7 +69,7 @@ def test(name="precise-swift", config=None, log=None, log_level="INFO"):
     deployment.test()
 
 
-def openrc(name="precise-swift", config=None, log=None, log_level="INFO"):
+def openrc(name="autotest", config=None, log=None, log_level="INFO"):
     """ Loads the admin environment locally for a OpenStack Storage cluster
     """
 
@@ -80,7 +78,7 @@ def openrc(name="precise-swift", config=None, log=None, log_level="INFO"):
     deployment.openrc()
 
 
-def load(name="precise-swift", config=None, log=None, log_level="INFO"):
+def load(name="autotest", config=None, log=None, log_level="INFO"):
     """ Loads a preconfigured OpenStack Storage cluster
     """
 
@@ -90,12 +88,12 @@ def load(name="precise-swift", config=None, log=None, log_level="INFO"):
     util.logger.info(str(deployment))
 
 
-def _load(name="precise-swift", config=None, provisioner="razor"):
+def _load(name="autotest", config=None, provisioner="razor"):
     # load deployment and source openrc
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    return ChefDeployment.from_chef_environment(name, provisioner=cprovisioner)
+    return Chef.from_chef_environment(environment=cprovisioner)
 
 
 def _set_log(log, log_level):

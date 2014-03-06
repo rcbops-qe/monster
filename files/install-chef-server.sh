@@ -45,7 +45,7 @@ function install_chef_client {
 OS_TYPE="undef"
 id_OS
 
-CHEF_SERVER_VERSION=${CHEF_SERVER_VERSION:-11.0.8-1}
+CHEF_SERVER_VERSION=${CHEF_SERVER_VERSION:-11.0.10-1}
 
 if [[ $OS_TYPE = "debian"  ]] || [[ $OS_TYPE = "ubuntu" ]]; then
     locale-gen en_US.UTF-8
@@ -95,6 +95,7 @@ if (node['memory']['total'].to_i / 4) > ((node['chef_server']['postgresql']['shm
 else
   node.override['chef_server']['postgresql']['shared_buffers'] = "#{(node['memory']['total'].to_i / 4) / (1024)}MB"
 end
+node.override["erchef"]["s3_url_ttl"] = 3600
 EOF
 
     HOMEDIR=$(getent passwd ${CHEF_UNIX_USER} | cut -d: -f6)

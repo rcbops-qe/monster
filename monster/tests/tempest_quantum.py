@@ -1,9 +1,10 @@
 """
-Module to test OpenStack deployments with Tempest
+Module to test OpenStack deployments with Tempest in Grizzly
 """
 
 import os
 import json
+import subprocess
 from string import Template
 from time import sleep
 from itertools import ifilter, chain
@@ -13,22 +14,25 @@ from monster.tests.test import Test
 from monster.util import xunit_merge
 
 
-class Tempest(Test):
+class TempestQuantum(Test):
     """
     Tests a deployment with tempest
     """
 
     def __init__(self, deployment):
-        super(Tempest, self).__init__(deployment)
+        super(TempestQuantum, self).__init__(deployment)
         self.path = "/tmp/%s.conf" % self.deployment.name
         self.test_node = next(self.deployment.search_role("controller"))
+        time_cmd = subprocess.Popen(['date', '+%F_%T'],
+                                    stdout=subprocess.PIPE)
+        self.time = time_cmd.stdout.read().rstrip()
         self.tempest_config = dict(
             identity="", user1_user="", user1_password="", user1_tenant="",
             user2_user="", user2_password="", user2_tenant="", admin_user="",
             admin_password="", admin_tenant="", image_id1="", image_id2="",
             public_network_id="", public_router_id="", storage_protocol="",
             vendor_name="", glance_ip="", aws_access="", aws_secret="",
-            horizon="", cinder_enabled="", neutron_enabled="",
+            horizon="", cinder_enabled="", quantum_enabled="",
             glance_enabled="", swift_enabled="", heat_enabled="", nova_ip=""
         )
         self.xunit_file = ""
@@ -42,7 +46,7 @@ class Tempest(Test):
         controller = next(self.deployment.search_role("controller"))
         ip = controller['rabbitmq']['address']
 
-        if "highavailability" in self.deployment.feature_names:
+        if "highavailability" in self.deployment.feature_names():
             #use vips
             vips = override['vips']
             tempest['identity'] = vips['keystone-service-api']
@@ -96,7 +100,7 @@ class Tempest(Test):
             tempest['storage_protocol'] = override['cinder']['storage'][
                 'provider']
             tempest['vendor_name'] = "Open Source"
-        tempest['neutron_enabled'] = True if featured('neutron') else False
+        tempest['quantum_enabled'] = True if featured('neutron') else False
         tempest['glance_enabled'] = True if featured('glance') else False
         tempest['swift_enabled'] = True if featured('swift') else False
         tempest['heat_enabled'] = True if featured('orchestration') else False
@@ -114,22 +118,22 @@ class Tempest(Test):
         """
 
         # template values
-        is_neutron = self.deployment.feature_in("neutron")
+        is_quantum = self.deployment.feature_in("neutron")
         creds = {
             "USER": user,
             "PASSWORD": password,
             "URL": url,
-            "IS_NEUTRON": is_neutron}
+            "IS_QUANTUM": is_quantum}
         template_path = os.path.join(os.path.dirname(
             os.path.abspath(__file__)), os.pardir, os.pardir,
-            "files/testing_setup.py.template")
+            "files/testing_setup_quantum.py.template")
 
         # apply values
         with open(template_path) as f:
             template = Template(f.read()).substitute(creds)
 
         # save script
-        name = "{0}-testing_setup.py".format(self.deployment.name)
+        name = "{0}-testing_setup_quantum.py".format(self.deployment.name)
         path = "/tmp/{0}".format(name)
         with open(path, 'w') as w:
             util.logger.info("Writing test setup:{0}". format(self.path))
@@ -149,7 +153,7 @@ class Tempest(Test):
     def feature_test_paths(self, paths=None):
         test_map = util.config['tests']['tempest']['test_map']
         if not paths:
-            features = self.deployment.feature_names
+            features = self.deployment.feature_names()
             paths = ifilter(None, set(
                 chain(*ifilter(None, (
                     test_map.get(feature, None) for feature in features)))))
@@ -171,7 +175,7 @@ class Tempest(Test):
 
         # clone tempest
         tempest_dir = util.config['tests']['tempest']['dir']
-        checkout = "cd {0}; git checkout stable/havana".format(tempest_dir)
+        checkout = "cd {0}; git checkout stable/grizzly".format(tempest_dir)
         node.run_cmd(checkout)
 
         # format flags
@@ -193,7 +197,7 @@ class Tempest(Test):
         # build commands
         tempest_command = (
             "python -u `which nosetests` -w "
-            "{0}/tempest/api {5} "
+            "{0}/tempest/tests {5} "
             "{1} {2} {3} {4}".format(tempest_dir, xunit_flag,
                                      tag_flag, path_args,
                                      exclude_flag, config_arg))
@@ -219,6 +223,7 @@ class Tempest(Test):
             sleep(30)
             result = self.test_node.run_cmd(cmd)['return'].rstrip()
 
+    @classmethod
     def tempest_branch(self, branch):
         """
         Given rcbops branch, returns tempest branch
@@ -234,6 +239,7 @@ class Tempest(Test):
             for branch_name, tags in branches.items():
                 if branch in tags:
                     tag_branch = branch_name
+                    break
                 else:
                     tag_branch = "master"
         return branch_format.format(tag_branch)
@@ -262,7 +268,8 @@ class Tempest(Test):
 
         # install python requirements for tempest
         tempest_dir = util.config['tests']['tempest']['dir']
-        install_cmd = "pip install -r {0}/requirements.txt".format(tempest_dir)
+        install_cmd = ("pip install -r "
+                       "{0}/tools/pip-requires").format(tempest_dir)
         self.test_node.run_cmd(install_cmd)
 
     def build_config(self):
@@ -273,7 +280,7 @@ class Tempest(Test):
         # find template
         template_path = os.path.join(os.path.dirname(
             os.path.abspath(__file__)), os.pardir, os.pardir,
-            "files/tempest.conf")
+            "files/tempest_quantum.conf")
 
         # open template and add values
         with open(template_path) as f:
@@ -310,7 +317,7 @@ class Tempest(Test):
         """
         Runs tempest
         """
-        exclude = ['volume', 'resize', 'floating']
+        exclude = None
         self.test_from(self.test_node, xunit=True, exclude=exclude)
 
     def collect_results(self):
@@ -318,7 +325,10 @@ class Tempest(Test):
         Collects tempest report as xunit report
         """
         self.wait_for_results()  # tests are run in screen
-        self.xunit_file = self.test_node.name + ".xml"
+        self.xunit_file = self.test_node.name + "-" + self.time + ".xml"
+        self.test_node.run_cmd("mv {0} {1}".format(self.test_node.name +
+                                                   ".xml",
+                                                   self.xunit_file))
         self.test_node.scp_from(self.xunit_file, local_path=self.xunit_file)
         self.test_node.run_cmd("killall screen")
         xunit_merge()

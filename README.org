@@ -1,6 +1,6 @@
 * Monster
 
-[[https://travis-ci.org/rcbops-qa/monster.png?branch=master]]
+[[https://travis-ci.org/rcbops-qa/monster][https://travis-ci.org/rcbops-qa/monster.png?branch=master]]
 
 An OpenStack Orchestration Engine
 
@@ -64,6 +64,14 @@ An OpenStack Orchestration Engine
        cloudfiles:
          user: YOUR_USER
          password: YOUR_PASSWORD
+     #+END_EXAMPLE
+
+     If you use razor to provision servers add it's api endpoint
+     support clean up
+
+     #+BEGIN_EXAMPLE
+       razor:
+         ip: RAZOR_IP
      #+END_EXAMPLE
 
 ** CLI
@@ -190,7 +198,7 @@ An OpenStack Orchestration Engine
 
     Opens an new tmux session with each node in a different window
 
-    *Requires tmux to be installed*
+    *Requires tmux version >= 1.8*
 
     #+BEGIN_SRC sh
       compute.py tmux -n precise-default
@@ -202,3 +210,17 @@ An OpenStack Orchestration Engine
      - secret-path: path to secret config file
      - log: path to log file
      - log-level: level to log - INFO, DEBUG
+
+** Development
+
+*** iPython
+
+    To make development of monster easier you can load deployments using iPython and mess around with them:
+
+    1. Start ~ipython~ in top monster directory
+    2. Run
+       #+BEGIN_SRC python
+       from tools.ipython import load
+       deployment = load("yourdep")
+       #+END_SRC
+    4. profit???

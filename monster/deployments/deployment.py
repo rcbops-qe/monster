@@ -4,7 +4,10 @@ OpenStack deployments
 
 import types
 import tmuxp
+from pyrabbit.api import Client
+
 from monster import util
+from monster.tools.retrofit import Retrofit
 
 
 class Deployment(object):
@@ -59,6 +62,7 @@ class Deployment(object):
         Pre configures node for each feature
         """
 
+        util.logger.info("Building Configured Environment")
         self.status = "loading environment"
         for feature in self.features:
             log = "Deployment feature: update environment: {0}"\
@@ -189,3 +193,43 @@ class Deployment(object):
 
         return [feature.__class__.__name__.lower() for feature in
                 self.features]
+
+    def retrofit(self, branch, ovs_bridge, lx_bridge, iface, del_port=None):
+        """
+        Retrofit the deployment
+        """
+
+        util.logger.info("Retrofit Deployment: {0}".format(self.name))
+
+        retrofit = Retrofit(self)
+
+        # if old port exists, remove it
+        if del_port:
+            retrofit.remove_port_from_bridge(ovs_bridge, del_port)
+
+        # Install
+        retrofit.install(branch)
+
+        # Bootstrap
+        retrofit.bootstrap(iface, lx_bridge, ovs_bridge)
+
+    @property
+    def rabbitmq_mgmt_client(self):
+        """
+        Return rabbitmq mgmt client
+        """
+
+        if 'vips' in self.environment:
+            # HA
+            ip = self.environment['vips']['rabbitmq_queues']
+        else:
+            # Non HA
+            controller = next(self.search_role("controller"))
+            ip = controller.ipaddress
+        url = "{ip}:15672".format(ip=ip)
+
+        user = "guest"
+        password = "guest"
+
+        client = Client(url, user, password)
+        return client

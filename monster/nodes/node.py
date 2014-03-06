@@ -3,6 +3,7 @@ Provides classes of nodes (server entities)
 """
 
 import types
+from time import sleep
 from monster import util
 from monster.server_helper import ssh_cmd, scp_to, scp_from
 
@@ -12,12 +13,13 @@ class Node(object):
     A individual computation entity to deploy a part OpenStack onto
     Provides server related functions
     """
-    def __init__(self, ip, user, password, os, product, environment,
-                 deployment, provisioner, status=None):
+    def __init__(self, ip, user, password, os, platform, product,
+                 environment, deployment, provisioner, status=None):
         self.ipaddress = ip
         self.user = user
         self.password = password
         self.os_name = os
+        self.platform = platform
         self.product = product
         self.environment = environment
         self.deployment = deployment
@@ -44,6 +46,9 @@ class Node(object):
                     outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
         return "\n".join([outl, features])
 
+    def get_creds(self):
+        return self.ipaddress, self.user, self.password
+
     def run_cmd(self, remote_cmd, user=None, password=None, attempts=None):
         """
         Runs a command on the node
@@ -67,6 +72,9 @@ class Node(object):
             ret = ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
                           user=user, password=password)
             count -= 1
+            if not ret['success']:
+                # sleep for a few seconds, allows services time to do things
+                sleep(5)
 
         if not ret['success'] and attempts:
             raise Exception("Failed to run {0} after {1} attempts".format(
@@ -109,6 +117,10 @@ class Node(object):
     def pre_configure(self):
         """Pre configures node for each feature"""
         self.status = "pre-configure"
+
+        util.logger.info("Updating node dist / packages")
+        self.update_packages(True)
+
         for feature in self.features:
             log = "Node feature: pre-configure: {0}".format(str(feature))
             util.logger.debug(log)
@@ -145,6 +157,77 @@ class Node(object):
             util.logger.info(log)
             feature.upgrade()
 
+    def update_packages(self, dist_upgrade=False):
+        """
+        Updates installed packages
+        """
+
+        upgrade_cmds = []
+
+        if 'ubuntu' in self.platform:
+            upgrade_cmds.append('apt-get update')
+            if dist_upgrade:
+                upgrade_cmds.append('apt-get dist-upgrade -y')
+            else:
+                upgrade_cmds.append('apt-get upgrade -y')
+        elif self.platform in ['centos', 'redhat']:
+            upgrade_cmds.append('yum update -y')
+        else:
+            raise NotImplementedError(
+                "{0} is a non supported platform".format(self.platform))
+        upgrade_cmd = '; '.join(upgrade_cmds)
+
+        util.logger.info('Updating Distribution Packages')
+        self.run_cmd(upgrade_cmd)
+
+    def install_package(self, package):
+        """
+        Installs given package
+
+        :param package: package to install
+        :type package: String
+        :rtype: function
+        """
+
+        # Need to make this more machine agnostic (jwagner)
+        if self.os_name == "precise":
+            command = 'apt-get install -y {0}'.format(package)
+        if self.os_name in ["centos", "rhel"]:
+            command = 'yum install -y {0}'.format(package)
+
+        return self.run_cmd(command)
+
+    def check_package(self, package):
+        """
+        Checks to see if a package is installed
+        """
+
+        if self.os_name == "precise":
+            chk_cmd = "dpkg -l | grep {0}".format(package)
+        if self.os_name in ["centos", "rhel"]:
+            chk_cmd = "rpm -a | grep {0}".format(package)
+        else:
+            util.logger.info(
+                "Operating system not supported at this time")
+
+        return self.run_cmd(chk_cmd)
+
+    def get_vmnet_iface(self):
+        """
+        Return the iface that our neutron network will live on
+        """
+        vmnet_cidr = util.config[self.deployment.provisioner]['network'][
+            self.deployment.os_name]['vmnet']['cidr']
+        vmnet_l3 = ".".join(vmnet_cidr.split(".")[:-1])
+        get_nbd = "ip a | grep {0} | awk \'{1}\'".format(
+            vmnet_l3, "{print $NF}")
+
+        ret = self.run_cmd(get_nbd)['return'].rstrip()
+
+        if ret is "":
+            return None
+        return ret
+
     def destroy(self):
         util.logger.info("Destroying node:{0}".format(self.name))
         for feature in self.features:
@@ -166,7 +249,8 @@ class Node(object):
                 self.features]
 
     def power_off(self):
-        self.provisioner(self).power_off()
+        self.provisioner.power_down(self)
 
     def power_on(self):
-        self.provisioner(self).power_on()
+
+        self.provisioner.power_up(self)
