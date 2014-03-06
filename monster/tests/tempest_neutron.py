@@ -46,7 +46,7 @@ class TempestNeutron(Test):
         controller = next(self.deployment.search_role("controller"))
         ip = controller['rabbitmq']['address']
 
-        if "highavailability" in self.deployment.feature_names():
+        if "highavailability" in self.deployment.feature_names:
             #use vips
             vips = override['vips']
             tempest['identity'] = vips['keystone-service-api']
@@ -153,7 +153,7 @@ class TempestNeutron(Test):
     def feature_test_paths(self, paths=None):
         test_map = util.config['tests']['tempest']['test_map']
         if not paths:
-            features = self.deployment.feature_names()
+            features = self.deployment.feature_names
             paths = ifilter(None, set(
                 chain(*ifilter(None, (
                     test_map.get(feature, None) for feature in features)))))

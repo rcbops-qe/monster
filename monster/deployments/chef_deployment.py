@@ -37,7 +37,7 @@ class Chef(Deployment):
 
     def __str__(self):
         nodes = "\n\t".join(str(node) for node in self.nodes)
-        features = ", ".join(self.feature_names())
+        features = ", ".join(self.feature_names)
         deployment = ("Deployment - name:{0}, os:{1}, branch:{2}, status:{3}\n"
                       "{4}\nFeatures: \n\t{5}\n"
                       "Nodes: \n\t{6}".format(self.name, self.os_name,

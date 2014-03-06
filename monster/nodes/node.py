@@ -243,6 +243,7 @@ class Node(object):
             return True
         return False
 
+    @property
     def feature_names(self):
         return [feature.__class__.__name__.lower() for feature in
                 self.features]

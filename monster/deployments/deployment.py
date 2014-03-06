@@ -185,6 +185,7 @@ class Deployment(object):
             pane = window.panes[0]
             pane.send_keys(cmd.format(node.ipaddress, node.password))
 
+    @property
     def feature_names(self):
         """
         Returns list features as strings

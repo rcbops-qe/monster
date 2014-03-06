@@ -1,19 +1,49 @@
+"""
+Module to test High Availability in RPC
+"""
+
+import socket
 from time import sleep
 from novaclient.v1_1 import client as nova_client
 from neutronclient.v2_0.client import Client as neutron_client
 
+from monster import util
 from monster.util import xunit_merge
-from monster.tests.tempest_neutron import TempestNeutron
-from monster.tests.tempest_quantum import TempestQuantum
 from monster.tests.test import Test
 
 
 class Creds(object):
+    """
+    Openstack cred object
+    """
 
     def __init__(self, user, password, url):
         self.user = user
         self.password = password
         self.url = url
+
+
+class Build(object):
+    """
+    Build state to be verified after failover
+    """
+
+    def __init__(self, server, network_id, subnet_id):
+        self.server = server
+        self.network_id = network_id
+        self.subnet_id = subnet_id
+
+    def destroy(self, nova, neutron):
+        """
+        Cleans up build state from OpenStack
+        """
+        print "Deleting server..."
+        nova.servers.delete(self.server)
+        sleep(5)
+        print "Deleting subnet..."
+        neutron.delete_subnet(self.subnet_id)
+        print "Deleting network..."
+        neutron.delete_network(self.network_id)
 
 
 class HATest(Test):
@@ -40,6 +70,9 @@ class HATest(Test):
         self.rabbit = deployment.rabbitmq_mgmt_client
 
     def gather_creds(self, deployment):
+        """
+        Creates cred object based off deployment
+        """
         keystone = deployment.environment.override_attributes['keystone']
         user = keystone['admin_user']
         users = keystone['users']
@@ -49,6 +82,9 @@ class HATest(Test):
         return creds
 
     def instance_cmd(self, server_id, net_id, cmd):
+        """
+        Logs into instance using net namespace
+        """
         namespace = "qdhcpd-{0}".format(net_id)
         server = self.nova.servers.get(server_id)
         server_ip = server['server']['ipaddress']
@@ -59,27 +95,20 @@ class HATest(Test):
                 "{2}").format(namespace, server_ip, cmd)
         server.run_cmd(icmd)
 
-    def get_images(self):
-        image_ids = (i.id for i in self.nova.images.list())
-
-        try:
-            image_id1 = next(image_ids)
-        except StopIteration:
-            # No images
-            exit(1)
-        try:
-            image_id2 = next(image_ids)
-        except StopIteration:
-            # Only one image
-            image_id2 = image_id1
-        return (image_id1, image_id2)
-
     def create_network(self, network_name):
+        """
+        Creates a neutron network
+        """
+
         new_net = {"network": {"name": network_name, "shared": True}}
         net = self.neutron.create_network(new_net)
         return net['network']['id']
 
     def create_subnet(self, subnet_name, network_id, subnet_cidr):
+        """
+        Creates a neutron subnet
+        """
+
         new_subnet = {"subnet": {
             "name": subnet_name, "network_id": network_id,
             "cidr": subnet_cidr, "ip_version": "4"}}
@@ -87,98 +116,339 @@ class HATest(Test):
         return subnet['subnet']['id']
 
     def keepalived_fail(self, node):
+        """
+        Simulates failure with keepalived
+        """
         node.run_cmd("service keepalived stop")
 
     def keepalived_restore(self, node):
+        """
+        Simulates failback with keepalived
+        """
         node.run_cmd("service keepalived start")
 
-    def move_vips_from(self, node):
-        self.keepalived_fail(node)
-        self.keepalived_restore(node)
-        #sleep(10)               # wait for node to be ready
+    def move_vips_from(self, node_up):
+        """
+        Moves vips from controller using keepalived
+        """
+        self.keepalived_fail(node_up)
+        self.keepalived_restore(node_up)
+        # NEED TO WAIT UNTIL node_down PICKS UP VIPS!!!!!!!!
+        sleep(10)
 
     def fail_node(self, node):
+        """
+        Failover a node
+        """
         node.power_off()
 
     def prepare(self):
         """
+        Prepares to run tests
+        """
+
+        print "Placeholder for prepare()"
+
+    def is_online(self, node):
+        """
+        Returns true if a connection can be made with ssh
+        """
+        ip = node.ipaddress
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        try:
+            s.settimeout(2)
+            s.connect((ip, 22))
+            s.close()
+        except socket.error:
+            return False
+        return True
+
+    def build(self, server_name, server_image, server_flavor, network_name,
+              subnet_name, cidr):
+        """
+        Builds state in OpenStack (net, server)
+        """
+        print "\033[1;44mACTION: Build\033[1;m"
+        print "\033[1;44m{0}\033[1;m".format(server_name)
+        print "\033[1;44m{0}\033[1;m".format(server_image)
+        print "\033[1;44m{0}\033[1;m".format(server_flavor)
+        print "\033[1;44m{0}\033[1;m".format(network_name)
+        print "\033[1;44m{0}\033[1;m".format(subnet_name)
+        print "\033[1;44m{0}\033[1;m".format(cidr)
+        network_id = self.create_network(network_name)
+        print "\033[1;44mNETWORK ID!!!: {0}\033[1;m".format(network_id)
+        subnet_id = self.create_subnet(subnet_name, network_id, cidr)
+        print "\033[1;44m{0}\033[1;m".format(subnet_id)
+        networks = [{"net-id": network_id}]
+        print "\033[1;44m{0}\033[1;m".format(networks)
+        server = self.nova.servers.create(server_name, server_image,
+                                          server_flavor, nics=networks)
+        print "\033[1;44m{0}\033[1;m".format(server)
+        build_status = "BUILD"
+        while build_status == "BUILD":
+            build_status = self.nova.servers.get(server.id).status
+        print "BUILD STATUS: {0}".format(build_status)
+        if build_status == "ERROR":
+            print "\033[1;41mBuild FAILED TO INITIALIZE!\033[1;m"
+            #pass
+        build = Build(server, network_id, subnet_id)
+        return build
+
+    def failover(self, node_up, node_down):
+        """
         Move vips on to first controller and fail it
         """
-        self.move_vips_from(self.controller2)
+        print "\033[1;44mACTION: Failover\033[1;m"
+        sleep(60)
+        self.move_vips_from(node_up)
+        self.fail_node(node_down)
+        sleep(120)
 
-        #self.fail_node(self.controller1)
-        #sleep(60)
+    def verify(self, build, node_up, node_down=None):
+        """
+        Verifies state persistence
+        """
+
+        print "\033[1;44mACTION: Verify\033[1;m"
+        rabbitmq_status = False
+        while not rabbitmq_status and node_down:
+            rabbitmq_status = node_down.run_cmd("pgrep -fl rabbitmq-server")
+
+        # Check RPCS services (ha_proxy, keepalived, rpc daemon)
+        haproxy = node_up.run_cmd("pgrep -fl haproxy")['return'].rstrip()
+        keepalived = node_up.run_cmd("pgrep -fl keepalived")['return'].rstrip()
+        rpcdaemon = node_up.run_cmd("pgrep -fl rpcdaemon")['return'].rstrip()
+
+        while not haproxy:
+            print "Checking for haproxy status on {0}".format(node_up.name)
+            sleep(10)
+            haproxy = node_up.run_cmd("pgrep -fl haproxy")['return'].rstrip()
+        print "haproxy is up on {0}!".format(node_up.name)
+        while not keepalived:
+            print "Checking for keepalived status on {0}".format(node_up.name)
+            sleep(10)
+            keepalived = node_up.run_cmd("pgrep -fl keepalived")[
+                'return'].rstrip()
+        print "keepalived is up on {0}!".format(node_up.name)
+        while not rpcdaemon:
+            print "Checkiong for rpcdaemon status on {0}".format(node_up.name)
+            sleep(10)
+            rpcdaemon = node_up.run_cmd("pgrep -fl rpcdaemon")[
+                'return'].rstrip()
+        print "rpcdaemon is up on {0}!".format(node_up.name)
+
+        if node_down:
+            haproxy = node_down.run_cmd("pgrep -fl haproxy")['return'].rstrip()
+            while not haproxy:
+                print "Checking for haproxy status on {0}".format(
+                    node_down.name)
+                sleep(10)
+                haproxy = node_down.run_cmd("pgrep -fl haproxy")[
+                    'return'].rstrip()
+            print "haproxy is up on {0}!".format(node_down.name)
+            keepalived = node_down.run_cmd("pgrep -fl keepalived")[
+                'return'].rstrip()
+            while not keepalived:
+                print "Checking for keepalived status on {0}".format(
+                    node_down.name)
+                sleep(10)
+                keepalived = node_down.run_cmd("pgrep -fl keepalived")[
+                    'return'].rstrip()
+            print "keepalived is up on {0}!".format(node_down.name)
+            rpcdaemon = node_down.run_cmd("pgrep -fl rpcdaemon")[
+                'return'].rstrip()
+            while not rpcdaemon:
+                print "Checkiong for rpcdaemon status on {0}".format(
+                    node_down.name)
+                sleep(10)
+                rpcdaemon = node_down.run_cmd("pgrep -fl rpcdaemon")[
+                    'return'].rstrip()
+            print "rpcdaemon is up on {0}!".format(node_down.name)
+
+        # Check that the VIPS moved over to node_up
+        exec_vips = node_up.run_cmd("ip netns exec vips ip a")['return']
+        exec_vips_down = " "
+        if node_down:
+            exec_vips_down = node_down.run_cmd("ip netns exec vips ip a")[
+                'return']
+        #print "RETVALUE ip netns exec vips ip a: {0}".format(exec_vips)
+
+        vips = self.deployment.environment.override_attributes[
+            'vips']['config'].keys()
+        for vip in vips:
+            print "VIP: {0}".format(vip)
+        for vip in vips:
+            print "Verifying that {0} is in the vips namespace...".format(vip)
+            # Checks if the vips are absent from both controllers
+            if (vip not in exec_vips) and (vip not in exec_vips_down):
+                print "{0} is not found in the vips namespace!!!".format(vip)
+            # Verifies that the vips do not reside on both servers
+            elif (vip in exec_vips) and (vip in exec_vips_down):
+                print "{0} vip found on both controllers!!!".format(vip)
+            # Checks for the vips on node_up controller
+            elif vip in exec_vips:
+                print "{0} vip found in {1}...".format(vip, node_up.name)
+            # Checks for the vips on the node_down controller
+            else:
+                print "{0} vip found on {1}...".format(vip, node_down.name)
+
+        #IP NETNS NEEDS TO CONTAIN NEUTRON NET-LIST
+
+        ip_netns_value = node_up.run_cmd("ip netns")['return'].rstrip()
+        util.logger.debug("ip netns: {0}".format(ip_netns_value))
+        current_host = node_up.run_cmd("hostname")['return'].rstrip()
+        print "hostname: {0}".format(current_host)
+
+        # --------------------------------------review
+
+        # Check networks rescheduled
+        dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(
+            build.network_id)
+        util.logger.debug("DHCP_STATUS: {0}".format(dhcp_status))
+        #print "DHCP STATUS!!!!!!!!: {0}".format(dhcp_status)
+        while not dhcp_status['agents']:
+            print "BUILD.Network_ID: {0}".format(build.network_id)
+            print "DHCP Status: {0}".format(dhcp_status)
+            print "DHCP down. Waiting 5 seconds..."
+            sleep(5)
+            dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(
+                build.network_id)
+        assert dhcp_status['agents'][0]['admin_state_up'],\
+            "dhcp is NOT working properly"
+        assert dhcp_status['agents'][0]['alive'],\
+            "dhcp is NOT working properly"
+        print "DHCP status checked..."
+
+        # Check MySQL replication isn't broken and Controller2 is master.
+        #CAMERON
+
+        # Check rabbitmq
+        #CAMERON
+
+        # Check if all the configured Openstack Services are functional.
+        # Run tempest based on the features enabled.
+        #SELECTIVE TEMPEST RUN
+
+    def dhcp_agent_alive(self, net, wait=240):
+        """
+        Waits until dhcp agent for net is alive
+        """
+        count = 1
+        dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(net)
+        in_time = lambda x: wait > x
+
+        while not dhcp_status['agents'] and in_time(count):
+            util.logger.debug("waiting for agents to populate:{0}".format(
+                dhcp_status))
+            sleep(1)
+            count += 1
+            dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(net)
+
+        assert in_time(count), "agents failed to populate in time"
+
+        while not dhcp_status['agents'][0]['alive'] and in_time(count):
+            util.logger.debug("waiting for agents to be alive:{0}".format(
+                dhcp_status))
+            sleep(1)
+            count += 1
+            dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(net)
+
+        assert in_time(count), "agents failed to rise in time"
+
+    def failback(self, node_down):
+        """
+        Unfails a node
+        """
+        print "\033[1;44mACTION: Failback\033[1;m"
+        node_down.power_on()
+        while not self.is_online(node_down):
+            print "Waiting for {0} to boot...".format(node_down.name)
+            sleep(10)
+        sleep(90)
 
     def run_tests(self):
         """
-        Run tempest on second controller
+        Run ha tests
         """
-        branch = TempestQuantum.tempest_branch(self.deployment.branch)
-        if "grizzly" in branch:
-            tempest = TempestQuantum(self.deployment)
-        else:
-            tempest = TempestNeutron(self.deployment)
-        tempest.test_node = self.controller2
-
-        netns_value = tempest.test_node.run_cmd("ip netns exec vips ip a")
-        netns_value = netns_value['return']
-        #print "RETVALUE ip netns exec vips ip a: {0}".format(netns_value)
-
-        server_name = "testbuild"
+        #-------------------#
+        # Preparation Begin #
+        #-------------------#
+        #branch = TempestQuantum.tempest_branch(self.deployment.branch)
+        #if "grizzly" in branch:
+        #    tempest = TempestQuantum(self.deployment)
+        #else:
+        #    tempest = TempestNeutron(self.deployment)
         images = self.nova.images.list()
         server_image = next(i for i in images if "cirros" in i.name)
         flavors = self.nova.flavors.list()
         server_flavor = next(f for f in flavors if "tiny" in f.name)
-        network_name = "testnetwork"
-        subnet_name = "testsubnet"
-        network_id = self.create_network(network_name)
-        subnet_id = self.create_subnet(subnet_name, network_id,
-                                       "172.32.0.0/24")
+        #-----------------#
+        # Preparation End #
+        #-----------------#
 
-        networks = [{"net-id": network_id}]
+        node_up = self.controller1
+        node_down = self.controller2
+        run = 0
+        builds = []
+        build1 = self.build("testbuild{0}".format(run),
+                            server_image, server_flavor,
+                            "testnetwork{0}".format(run),
+                            "testsubnet{0}".format(run),
+                            "172.32.{0}.0/24".format(run))
+        builds.append(build1)
+        self.verify(build1, node_up, node_down)
+        self.failover(node_up, node_down)
+        self.verify(build1, node_up)
+        run = 1
+        build2 = self.build("testbuild{0}".format(run),
+                            server_image, server_flavor,
+                            "testnetwork{0}".format(run),
+                            "testsubnet{0}".format(run),
+                            "172.32.{0}.0/24".format(run))
+        builds.append(build2)
+        self.failback(node_down)
+        for build in builds:
+            self.verify(build, node_up, node_down)
 
-        server = self.nova.servers.create(server_name, server_image,
-                                          server_flavor, nics=networks)
-        build_status = "BUILD"
-        while build_status == "BUILD":
-            build_status = self.nova.servers.list()[0].status
+        node_up = self.controller2
+        node_down = self.controller1
+        run = 2
+        build3 = self.build("testbuild{0}".format(run),
+                            server_image, server_flavor,
+                            "testnetwork{0}".format(run),
+                            "testsubnet{0}".format(run),
+                            "172.32.{0}.0/24".format(run))
+        builds.append(build3)
+        self.failover(node_up, node_down)
+        for build in builds:
+            self.verify(build, node_up)
+        run = 3
+        build4 = self.build("testbuild{0}".format(run),
+                            server_image, server_flavor,
+                            "testnetwork{0}".format(run),
+                            "testsubnet{0}".format(run),
+                            "172.32.{0}.0/24".format(run))
+        builds.append(build4)
+        self.failback(node_down)
+        for build in builds:
+            self.verify(build, node_up, node_down)
+        for build in builds:
+            build.destroy(self.nova, self.neutron)
 
-        if build_status == "ERROR":
-            print "\033[1;41mBuild FAILED TO INITIALIZE!\033[1;m"
-            #pass
-
-        ip_netns_value = tempest.test_node.run_cmd("ip netns")
-        ip_netns_value = ip_netns_value['return'].rstrip()
-        #print "RETVALUE ip netns: {0}".format(ip_netns_value)
-
-        current_host = tempest.test_node.run_cmd("hostname")
-        current_host = current_host['return'].rstrip()
-        print "hostname: {0}".format(current_host)
-
-        dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(network_id)
-        #print "DHCP STATUS!!!!!!!!: {0}".format(dhcp_status)
-        assert (dhcp_status['agents'][0]['admin_state_up'] and
-                dhcp_status['agents'][0]['alive']),\
-            "dhcp is NOT working properly"
-
-        print "Deleting server..."
-        self.nova.servers.delete(server)
-        sleep(5)
-        print "Deleting subnet..."
-        self.neutron.delete_subnet(subnet_id)
-        print "Deleting network..."
-        self.neutron.delete_network(network_id)
-
+        #tempest.test_node = node_up
         #tempest.test()
 
-        self.controller1.power_on()
-        sleep(5)
-
     def test_rabbit_status(self):
+        """
+        Assures rabbit is alive
+        """
         status = self.rabbit.is_alive()
         assert status is True, "rabbit is dead"
 
     def test_list_queues(self):
+        """
+        Assures rabbit can list queues
+        """
         queues = self.rabbit.list_queues()
         assert queues is not None, "queues empty"
 
@@ -189,6 +459,5 @@ class HATest(Test):
         xunit_merge()
 
     def test(self):
-        self.prepare()
         self.run_tests()
         self.collect_results()
