@@ -619,6 +619,11 @@ class Cinder(Deployment):
         self.deployment.environment.add_override_attr(
             str(self), self.environment)
 
+    def post_configure(self):
+        computes = self.deployment.search_role("compute")
+        for compute in computes:
+            compute.run()
+
 
 #############################################################################
 ############### Rackspace Private Cloud Software Features ###################
