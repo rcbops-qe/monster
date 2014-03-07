@@ -179,7 +179,7 @@ class Chef(Node):
         archive = node.get('archive', {})
         status = archive.get('status', "provisioning")
         if not provisioner:
-            provisioner_name = archive.get('provisioner', "razor")
+            provisioner_name = archive.get('provisioner', "razor2")
             provisioner = get_provisioner(provisioner_name)
         run_list = node.run_list
         crnode = cls(ipaddress, user, password, platform, product,
