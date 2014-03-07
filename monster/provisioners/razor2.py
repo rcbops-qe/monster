@@ -14,7 +14,7 @@ class Razor2(Provisioner):
     """
 
     def __init__(self, url=None):
-        self.ipaddress = url or util.config['secrets']['razor']['url']
+        self.url = url or util.config['secrets']['razor']['url']
         self.api = RazorAPI2(self.url)
 
     def provision(self, template, deployment):
