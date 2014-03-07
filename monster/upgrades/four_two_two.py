@@ -40,7 +40,7 @@ class FourTwoTwo(Upgrade):
 
         # prepare the upgrade
         if "4.1" in current_branch:
-            if self.deployment.os_name == "precise":
+            if self.deployment.os_name == "ubuntu":
                 self.pre_upgrade()
             self.mungerate()
 
@@ -106,5 +106,5 @@ class FourTwoTwo(Upgrade):
 
         # post upgrade
         if "4.1" in current_branch:
-            if self.deployment.os_name == "precise":
+            if self.deployment.os_name == "ubuntu":
                 self.post_upgrade()

@@ -169,7 +169,7 @@ environments:
                 dispersion:
                     dis_key: secrete
     vips:
-        precise:
+        ubuntu:
             mysql-db: 198.101.133.157
             rabbitmq-queue: 198.101.133.158
             cinder-api: 198.101.133.159
@@ -237,7 +237,7 @@ rcbops:
     retrofit:
         supported:
             os:
-                - precise
+                - ubuntu
         git:
             url: https://github.com/Apsu/retrofit.git
             branches:
@@ -364,7 +364,7 @@ razor:
             mgmt:
                 cidr: 198.101.133.0/24
                 iface: mgmt
-        precise:
+        ubuntu:
             vmnet:
                 cidr: 172.31.0.0/24
                 iface: vmnet
@@ -375,7 +375,7 @@ rackspace:
     run_list:
         - recipe[rcbops-qa]
     images:
-        precise: Ubuntu 12.04 LTS (Precise Pangolin)
+        ubuntu: Ubuntu 12.04 LTS (Precise Pangolin)
         centos: centos-rdo
     flavors:
         512MB: 512MB Standard Instance
@@ -411,7 +411,7 @@ rackspace:
             mgmt:
                 cidr: 192.168.4.0/24
                 iface: eth3
-        precise:
+        ubuntu:
             vmnet:
                 cidr: 192.168.3.0/24
                 iface: eth2
@@ -422,7 +422,7 @@ openstack:
     run_list:
         - recipe[rcbops-qa]
     images:
-        precise: precise-image
+        ubuntu: precise-image
     flavors:
         512MB: m1.tiny
         1GB: m1.small
@@ -440,7 +440,7 @@ openstack:
             mgmt:
                 cidr: 192.168.4.0/24
                 iface: eth3
-        precise:
+        ubuntu:
             vmnet:
                 cidr: 192.168.3.0/24
                 iface: eth2
@@ -451,12 +451,12 @@ neutron:
     razor:
         centos:
             vip: 198.101.133.156
-        precise:
+        ubuntu:
             vip: 198.101.133.159
     rackspace:
         centos:
             vip: 192.168.4.156
-        precise:
+        ubuntu:
             vip: 192.168.4.156
 upgrade:
   commands:

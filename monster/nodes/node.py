@@ -13,12 +13,11 @@ class Node(object):
     A individual computation entity to deploy a part OpenStack onto
     Provides server related functions
     """
-    def __init__(self, ip, user, password, os, platform, product,
-                 environment, deployment, provisioner, status=None):
+    def __init__(self, ip, user, password, platform, product, environment,
+                 deployment, provisioner, status=None):
         self.ipaddress = ip
         self.user = user
         self.password = password
-        self.os_name = os
         self.platform = platform
         self.product = product
         self.environment = environment
@@ -45,6 +44,10 @@ class Node(object):
                 else:
                     outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
         return "\n".join([outl, features])
+
+    @property
+    def os_name(self):
+        return self['platform']
 
     def get_creds(self):
         return self.ipaddress, self.user, self.password
@@ -190,7 +193,7 @@ class Node(object):
         """
 
         # Need to make this more machine agnostic (jwagner)
-        if self.os_name == "precise":
+        if self.os_name == "ubuntu":
             command = 'apt-get install -y {0}'.format(package)
         if self.os_name in ["centos", "rhel"]:
             command = 'yum install -y {0}'.format(package)
@@ -202,7 +205,7 @@ class Node(object):
         Checks to see if a package is installed
         """
 
-        if self.os_name == "precise":
+        if self.os_name == "ubuntu":
             chk_cmd = "dpkg -l | grep {0}".format(package)
         if self.os_name in ["centos", "rhel"]:
             chk_cmd = "rpm -a | grep {0}".format(package)

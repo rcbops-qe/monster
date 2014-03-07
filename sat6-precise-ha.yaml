@@ -132,7 +132,7 @@ rcbops:
     retrofit:
         supported:
             os:
-                - precise
+                - ubuntu
         git:
             url: https://github.com/Apsu/retrofit.git
             branches:

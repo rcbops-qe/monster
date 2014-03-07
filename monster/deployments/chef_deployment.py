@@ -173,9 +173,9 @@ class Chef(Deployment):
         # provision nodes
         chef_nodes = provisioner.provision(template, deployment)
         for node in chef_nodes:
-            cnode = MonsterChefNode.from_chef_node(node, os_name, product,
-                                                   environment, deployment,
-                                                   provisioner, branch)
+            cnode = MonsterChefNode.from_chef_node(node, product, environment,
+                                                   deployment, provisioner,
+                                                   branch)
             provisioner.post_provision(cnode)
             deployment.nodes.append(cnode)
 
@@ -229,9 +229,7 @@ class Chef(Deployment):
                 util.logger.error("Non existant chef node:{0}".
                                   format(node.name))
                 continue
-            cnode = MonsterChefNode.from_chef_node(node,
-                                                   deployment_args['os_name'],
-                                                   product, environment,
+            cnode = MonsterChefNode.from_chef_node(node, product, environment,
                                                    deployment, provisioner,
                                                    deployment_args['branch'])
             deployment.nodes.append(cnode)

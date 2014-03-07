@@ -117,7 +117,7 @@ class Openstack(Provisioner):
         node.save()
         return node
 
-    def build_instance(self, name="server", image="precise",
+    def build_instance(self, name="server", image="ubuntu",
                        flavor="2GBP"):
         """
         Builds an instance with desired specs
