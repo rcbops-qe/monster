@@ -47,7 +47,7 @@ environments:
             root_network_acl: "%"
             allow_remote_root: true
     nova:
-        razor:
+        razor2:
             apply_patches: false
             networks:
                 public:
@@ -233,7 +233,7 @@ tests:
       swift:
         - object_storage
 
-razor:
+razor2:
     network:
         vmnet:
             cidr: 10.127.102.0/27
