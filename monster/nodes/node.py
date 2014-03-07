@@ -51,7 +51,7 @@ class Node(object):
     def get_creds(self):
         return self.ipaddress, self.user, self.password
 
-    def run_cmd(self, remote_cmd, user=None, password=None, attempts=None):
+    def run_cmd(self, remote_cmd, user='root', password=None, attempts=None):
         """
         Runs a command on the node
         :param remote_cmd: command to run on the node
