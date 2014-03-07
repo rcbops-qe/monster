@@ -13,12 +13,11 @@ class Node(object):
     A individual computation entity to deploy a part OpenStack onto
     Provides server related functions
     """
-    def __init__(self, ip, user, password, platform, product, environment,
+    def __init__(self, ip, user, password,  product, environment,
                  deployment, provisioner, status=None):
         self.ipaddress = ip
         self.user = user
         self.password = password
-        self.platform = platform
         self.product = product
         self.environment = environment
         self.deployment = deployment
@@ -167,17 +166,17 @@ class Node(object):
 
         upgrade_cmds = []
 
-        if 'ubuntu' in self.platform:
+        if 'ubuntu' in self.os_name:
             upgrade_cmds.append('apt-get update')
             if dist_upgrade:
                 upgrade_cmds.append('apt-get dist-upgrade -y')
             else:
                 upgrade_cmds.append('apt-get upgrade -y')
-        elif self.platform in ['centos', 'redhat']:
+        elif self.os_name in ['centos', 'redhat']:
             upgrade_cmds.append('yum update -y')
         else:
             raise NotImplementedError(
-                "{0} is a non supported platform".format(self.platform))
+                "{0} is a non supported platform".format(self.os_name))
         upgrade_cmd = '; '.join(upgrade_cmds)
 
         util.logger.info('Updating Distribution Packages')

@@ -11,12 +11,10 @@ class Chef(Node):
     A chef entity
     Provides chef related server fuctions
     """
-    def __init__(self, ip, user, password, platform, product,
-                 environment, deployment, name, provisioner, branch,
-                 status=None, run_list=None):
-        super(Chef, self).__init__(ip, user, password, os, platform, product,
-                                   environment, deployment, provisioner,
-                                   status)
+    def __init__(self, ip, user, password, product, environment, deployment,
+                 name, provisioner, branch, status=None, run_list=None):
+        super(Chef, self).__init__(ip, user, password, product, environment,
+                                   deployment, provisioner, status)
         self.name = name
         self.branch = branch
         self.run_list = run_list or []
@@ -174,7 +172,6 @@ class Chef(Node):
         user = node['current_user']
         default_pass = util.config['secrets']['default_pass']
         password = node.get('password', default_pass)
-        platform = node['platform']
         name = node.name
         archive = node.get('archive', {})
         status = archive.get('status', "provisioning")
@@ -183,7 +180,7 @@ class Chef(Node):
             provisioner = get_provisioner(provisioner_name)
         run_list = node.run_list
         crnode = cls(ipaddress, user, password, product, environment,
-                     deployment, name, provisioner, branch,
+                     deployment, provisioner, branch,
                      status=status, run_list=run_list)
         crnode.add_features(archive.get('features', []))
         return crnode
