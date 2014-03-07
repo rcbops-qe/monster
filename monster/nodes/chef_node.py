@@ -11,7 +11,7 @@ class Chef(Node):
     A chef entity
     Provides chef related server fuctions
     """
-    def __init__(self, ip, user, password, os, platform, product,
+    def __init__(self, ip, user, password, platform, product,
                  environment, deployment, name, provisioner, branch,
                  status=None, run_list=None):
         super(Chef, self).__init__(ip, user, password, os, platform, product,
