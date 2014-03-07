@@ -182,8 +182,8 @@ class Chef(Node):
             provisioner_name = archive.get('provisioner', "razor2")
             provisioner = get_provisioner(provisioner_name)
         run_list = node.run_list
-        crnode = cls(ipaddress, user, password, platform, product,
-                     environment, deployment, name, provisioner, branch,
+        crnode = cls(ipaddress, user, password, product, environment,
+                     deployment, name, provisioner, branch,
                      status=status, run_list=run_list)
         crnode.add_features(archive.get('features', []))
         return crnode
