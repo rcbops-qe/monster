@@ -172,7 +172,8 @@ class Chef(Node):
                 node = rnode
         ipaddress = node['ipaddress']
         user = node['current_user']
-        password = node['password']
+        default_pass = util.config['secrets']['default_pass']
+        password = node.get('password', default_pass)
         platform = node['platform']
         name = node.name
         archive = node.get('archive', {})
