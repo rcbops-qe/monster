@@ -1,7 +1,7 @@
-sat6-precise-ha-nova-net:
+sat6-ubuntu-ha-nova-net:
   product: compute
   name: ha
-  os: precise
+  os: ubuntu
   features:
     openssh: default
     monitoring: default
@@ -15,7 +15,8 @@ sat6-precise-ha-nova-net:
     osopsnetworks: default
     highavailability: default
   nodes:
-    - [controller, cinder]
     - [controller]
+    - [controller]
+    - [cinder]
     - [compute]
     - [compute]
