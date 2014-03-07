@@ -216,7 +216,7 @@ class Chef(Deployment):
         branch = deployment_args.get('branch', None)
         status = deployment_args.get('status', "provisioning")
         product = deployment_args.get('product', None)
-        provisioner_name = deployment_args.get('provisioner', "razor")
+        provisioner_name = deployment_args.get('provisioner', "razor2")
         provisioner = get_provisioner(provisioner_name)
 
         deployment = cls.deployment_config(features, name, os_name, branch,
