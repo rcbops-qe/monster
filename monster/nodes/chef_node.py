@@ -158,7 +158,7 @@ class Chef(Node):
         self.save_to_node()
 
     @classmethod
-    def from_chef_node(cls, node, os=None, product=None, environment=None,
+    def from_chef_node(cls, node, product=None, environment=None,
                        deployment=None, provisioner=None, branch=None):
         """
         Restores node from chef node
@@ -181,7 +181,7 @@ class Chef(Node):
             provisioner_name = archive.get('provisioner', "razor")
             provisioner = get_provisioner(provisioner_name)
         run_list = node.run_list
-        crnode = cls(ipaddress, user, password, os, platform, product,
+        crnode = cls(ipaddress, user, password, platform, product,
                      environment, deployment, name, provisioner, branch,
                      status=status, run_list=run_list)
         crnode.add_features(archive.get('features', []))
