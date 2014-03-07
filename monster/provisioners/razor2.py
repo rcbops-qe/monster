@@ -83,7 +83,7 @@ class Razor2(Provisioner):
             cnode.save()
         else:
             # Remove active model if the node is dirty
-            active_model = cnode['razor_metadata']['razor_active_model_uuid']
+            razor_node = cnode.name.split(".")[0]
             try:
                 if node.feature_in('controller'):
                     # rabbit can cause the node to not actually reboot
@@ -91,7 +91,7 @@ class Razor2(Provisioner):
                             "awk '{print $1}' `; do kill -9 $i; done")
                     node.run_cmd(kill)
                 node.run_cmd("shutdown -r now")
-                self.api.remove_active_model(active_model)
+                self.api.delete_node(razor_node)
                 Client(node.name).delete()
                 cnode.delete()
                 sleep(15)
@@ -175,6 +175,8 @@ class RazorAPI2(object):
     def delete_node(self, node):
         """
         Deletes a given node
+        :param node: Razor node name to destroy
+        :type node: string
         """
 
         # Call the Razor RESTful API to get a node
