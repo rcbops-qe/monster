@@ -180,7 +180,7 @@ class Chef(Node):
             provisioner = get_provisioner(provisioner_name)
         run_list = node.run_list
         crnode = cls(ipaddress, user, password, product, environment,
-                     deployment, provisioner, branch,
+                     deployment, name, provisioner, branch,
                      status=status, run_list=run_list)
         crnode.add_features(archive.get('features', []))
         return crnode
