@@ -56,7 +56,7 @@ environments:
                     dns2: 8.8.4.4
                     bridge_dev: vmnet
                     network_size: "30"
-                    ipv4_cidr: 10.127.102.0/28
+                    ipv4_cidr: 10.127.102.0/27
                     label: public
             libvirt:
                 virt_type: kvm
