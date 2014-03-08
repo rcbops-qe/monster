@@ -74,9 +74,12 @@ class HATest(Test):
         """
         keystone = deployment.environment.override_attributes['keystone']
         user = keystone['admin_user']
+        print "User: {0}".format(user)
         users = keystone['users']
         password = users[user]['password']
+        print "Pass: {0}".format(password)
         url = self.controller1['keystone']['adminURL']
+        print "URL: {0}".format(url)
         creds = Creds(user, password, url)
         return creds
 
@@ -131,6 +134,7 @@ class HATest(Test):
         Moves vips from controller using keepalived
         """
         self.keepalived_fail(node_up)
+        sleep(5)
         self.keepalived_restore(node_up)
         # NEED TO WAIT UNTIL node_down PICKS UP VIPS!!!!!!!!
         sleep(10)
@@ -168,16 +172,30 @@ class HATest(Test):
         Builds state in OpenStack (net, server)
         """
         util.logger.debug("\033[1;44mACTION: Build\033[1;m")
-        util.logger.debug("\033[1;44mBuild Name: {0}\033[1;m".format(server_name))
+        util.logger.debug("\033[1;44mBuild Name: {0}\033[1;m".format(
+                          server_name))
         network_id = self.create_network(network_name)
-        util.logger.debug("\033[1;44mNetwork ID: {0}\033[1;m".format(network_id))
+        util.logger.debug("\033[1;44mNetwork ID: {0}\033[1;m".format(
+                          network_id))
         subnet_id = self.create_subnet(subnet_name, network_id, cidr)
-        util.logger.debug("\033[1;44mSubnet ID: {0}\033[1;m".format(subnet_id))
+        util.logger.debug("\033[1;44mSubnet ID: {0}\033[1;m".format(
+                          subnet_id))
         networks = [{"net-id": network_id}]
         util.logger.debug("Building server with above parameters...")
-        #print self.nova.services.list(binary="nova-compute", host="cam-compute") #NEEDS TO MATCH ENVIRONMENT!!!
-        server = self.nova.servers.create(server_name, server_image,
-                                          server_flavor, nics=networks)
+        server = False
+        while not server:
+            try:
+                util.logger.debug("Attempting server creation...")
+                server = self.nova.servers.create(server_name, server_image,
+                                                  server_flavor, nics=networks)
+                util.logger.debug("Server creation command executed!")
+            except:
+                server = False
+                util.logger.debug("Server creation command failed epicly!")
+                util.logger.debug("The epicness of its failure was truly a "
+                                  "sight to behold...")
+                sleep(1)
+
         util.logger.debug("Executed build command...")
         build_status = "BUILD"
         while build_status == "BUILD":
@@ -197,7 +215,8 @@ class HATest(Test):
         Move vips on to first controller and fail it
         """
         print "\033[1;44mACTION: Failover\033[1;m"
-        #sleep(60)
+        print "Sleeping for 10 seconds..."
+        sleep(10)
         self.move_vips_from(node_up)
         self.fail_node(node_down)
         #sleep(120)
@@ -211,22 +230,28 @@ class HATest(Test):
         haproxy = node_up.run_cmd("pgrep -fl haproxy")['return'].rstrip()
         while not haproxy:
             print "Checking for haproxy status on {0}".format(node_up.name)
-            sleep(10)
+            sleep(1)
             haproxy = node_up.run_cmd("pgrep -fl haproxy")['return'].rstrip()
         print "haproxy is up on {0}!".format(node_up.name)
 
         keepalived = node_up.run_cmd("pgrep -fl keepalived")['return'].rstrip()
         while not keepalived:
             print "Checking for keepalived status on {0}".format(node_up.name)
-            sleep(10)
+            sleep(1)
             keepalived = node_up.run_cmd("pgrep -fl keepalived")[
                 'return'].rstrip()
         print "keepalived is up on {0}!".format(node_up.name)
 
         rpcdaemon = node_up.run_cmd("pgrep -fl rpcdaemon")['return'].rstrip()
+        retry = 10
         while not rpcdaemon:
             print "Checkiong for rpcdaemon status on {0}".format(node_up.name)
-            sleep(10)
+            sleep(1)
+            retry -= 1
+            if retry == 0:
+                node_up.run_cmd("service rpcdaemon start")
+                sleep(1)
+                print "\033[1;41mSTARTING RPCDAEMON!\033[1;m"
             rpcdaemon = node_up.run_cmd("pgrep -fl rpcdaemon")[
                 'return'].rstrip()
         print "rpcdaemon is up on {0}!".format(node_up.name)
@@ -236,7 +261,7 @@ class HATest(Test):
             while not haproxy:
                 print "Checking for haproxy status on {0}".format(
                     node_down.name)
-                sleep(10)
+                sleep(1)
                 haproxy = node_down.run_cmd("pgrep -fl haproxy")[
                     'return'].rstrip()
             print "haproxy is up on {0}!".format(node_down.name)
@@ -246,17 +271,23 @@ class HATest(Test):
             while not keepalived:
                 print "Checking for keepalived status on {0}".format(
                     node_down.name)
-                sleep(10)
+                sleep(1)
                 keepalived = node_down.run_cmd("pgrep -fl keepalived")[
                     'return'].rstrip()
             print "keepalived is up on {0}!".format(node_down.name)
 
             rpcdaemon = node_down.run_cmd("pgrep -fl rpcdaemon")[
                 'return'].rstrip()
+            retry = 10
             while not rpcdaemon:
                 print "Checkiong for rpcdaemon status on {0}".format(
                     node_down.name)
-                sleep(10)
+                sleep(1)
+                retry -= 1
+                if retry == 0:
+                    node_down.run_cmd("service rpcdaemon start")
+                    sleep(1)
+                    print "\033[1;41mSTARTING RPCDAEMON!\033[1;m"
                 rpcdaemon = node_down.run_cmd("pgrep -fl rpcdaemon")[
                     'return'].rstrip()
             print "rpcdaemon is up on {0}!".format(node_down.name)
@@ -279,12 +310,15 @@ class HATest(Test):
             while (vip not in exec_vips) and (vip not in exec_vips_down):
                 print "{0} is not found in the vips namespace!!!".format(vip)
                 sleep(1)
-                exec_vips = node_up.run_cmd("ip netns exec vips ip a")['return']
+                exec_vips = node_up.run_cmd("ip netns exec vips "
+                                            "ip a")['return']
                 if node_down:
-                    exec_vips_down = node_down.run_cmd("ip netns exec vips ip a")['return']
+                    exec_vips_down = node_down.run_cmd("ip netns exec vips "
+                                                       "ip a")['return']
             # Verifies that the vips do not reside on both servers
             if (vip in exec_vips) and (vip in exec_vips_down):
-                assert vip not in exec_vips, "{0} vip found on both controllers!!!".format(vip)
+                assert vip not in exec_vips, ("{0} vip found on both "
+                                              "controllers!!!").format(vip)
             # Checks for the vips on node_up controller
             elif vip in exec_vips:
                 print "{0} vip found in {1}...".format(vip, node_up.name)
@@ -302,29 +336,32 @@ class HATest(Test):
         # --------------------------------------review
         # Check networks rescheduled
         for build in builds:
-            print "\033[1;44mChecking DHCP for build {0}\033[1;m".format(build.name)
+            print "\033[1;44mChecking DHCP for build {0}\033[1;m".format(
+                  build.name)
             self.wait_dhcp_agent_alive(build.network_id)
-        print "DHCP status checked..."
 
         # Check MySQL replication isn't broken and Controller2 is master.
         #CAMERON
 
         # Check rabbitmq
-        print "HADFLSKJHSADLKGJ"
-        print "HADFLSKJHSADLKGJ"
         self.test_rabbit_status()
-        print "HADFLSKJHSADLKGJ"
-
 
         # Check if all the configured Openstack Services are functional.
         # Run tempest based on the features enabled.
         #SELECTIVE TEMPEST RUN
-        nova_status = node_up.run_cmd(";".join(["source openrc", "nova service-list | grep compute | awk '{print $10}'"]))['return'].rstrip()
+        nova_status = node_up.run_cmd(";".join(["source openrc",
+                                                "nova service-list | grep "
+                                                "compute | awk '{print "
+                                                "$10}'"]))['return'].rstrip()
         print "NOVA STATUS: {0}".format(nova_status)
         while nova_status == "down":
             print "Waiting for nova to come up on compute..."
             sleep(1)
-            nova_status = node_up.run_cmd(";".join(["source openrc", "nova service-list | grep compute | awk '{print $10}'"]))['return'].rstrip()
+            nova_status = node_up.run_cmd(";".join(["source openrc", "nova "
+                                                    "service-list | grep "
+                                                    "compute | awk '{print "
+                                                    "$10}'"
+                                                    ""]))['return'].rstrip()
             print "NOVA STATUS: {0}".format(nova_status)
 
     def wait_dhcp_agent_alive(self, net, wait=240):
@@ -341,6 +378,8 @@ class HATest(Test):
             sleep(1)
             count += 1
             dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(net)
+            #from IPython import embed
+            #embed()
 
         assert in_time(count), "agents failed to populate in time"
 
@@ -352,6 +391,7 @@ class HATest(Test):
             dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(net)
 
         assert in_time(count), "agents failed to rise in time"
+        print "DHCP status checked..."
 
     def failback(self, node_down):
         """
@@ -361,7 +401,8 @@ class HATest(Test):
         node_down.power_on()
         count = 1
         while not self.is_online(node_down):
-            util.logger.debug("Waiting for {0} to boot:{1}".format(node_down.name, count))
+            util.logger.debug("Waiting for {0} to boot:{1}".format(
+                              node_down.name, count))
             sleep(1)
             count += 1
 
@@ -377,6 +418,8 @@ class HATest(Test):
         #    tempest = TempestQuantum(self.deployment)
         #else:
         #    tempest = TempestNeutron(self.deployment)
+        #from IPython import embed
+        #embed()
         images = self.nova.images.list()
         server_image = next(i for i in images if "cirros" in i.name)
         flavors = self.nova.flavors.list()
@@ -439,19 +482,19 @@ class HATest(Test):
         """
         Assures rabbit is alive
         """
-        #rabbit_status = node_up.run_cmd(";".join(["pgrep -fl rabbitmq-server"]))['return'].rstrip()
-        #print "RABBIT STATUS: {0}:".format(rabbit_status)
+        util.logger.debug("\033[1;44mTesting if RabbitMQ is alive...\033[1;m")
         try:
             status = self.rabbit.is_alive()
         except:
-            status = None
+            status = False
         while not status:
             util.logger.debug("Waiting for rabbit resurrection...")
             sleep(1)
             try:
                 status = self.rabbit.is_alive()
+                util.logger.debug("\033[1;44mRabbitMQ is alive!\033[1;m")
             except:
-                status = None
+                status = False
 
     def test_list_queues(self):
         """
