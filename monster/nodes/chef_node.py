@@ -185,7 +185,7 @@ class Chef(Node):
         crnode.add_features(archive.get('features', []))
         return crnode
 
-    def run(self, times=1, debug=True):
+    def run(self, times=1, debug=True, accept_failure=True):
         cmd = util.config['chef']['client']['run_cmd']
         for i in xrange(times):
             if debug:
@@ -194,5 +194,5 @@ class Chef(Node):
                 cmd = '{0} -l debug -L "/opt/chef/{1}"'.format(cmd, log_file)
             chef_run = self.run_cmd(cmd)
             self.save_locally()
-            if not chef_run['success']:
+            if not chef_run['success'] and not accept_failure:
                 raise Exception("Chef client failure")

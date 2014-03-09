@@ -15,6 +15,7 @@ sat6-ubuntu-ha-nova-net:
     osopsnetworks: default
     highavailability: default
   nodes:
+    - [chefserver]
     - [controller]
     - [controller]
     - [cinder]

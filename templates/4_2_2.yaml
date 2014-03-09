@@ -1,7 +1,7 @@
-sat6-precise-ha:
+sat6-ubuntu-ha:
   product: compute
   name: ha
-  os: precise
+  os: ubuntu
   features:
     openssh: default
     monitoring: default
@@ -16,15 +16,16 @@ sat6-precise-ha:
     osopsnetworks: default
     highavailability: default
   nodes:
-    - [controller, cinder, network]
     - [controller, network]
+    - [controller, network]
+    - [cinder]
     - [compute]
     - [compute]
 
-sat6-precise-nonha:
+sat6-ubuntu-nonha:
   product: compute
   name: nonha
-  os: precise
+  os: ubuntu
   features:
     openssh: default
     monitoring: default
@@ -38,6 +39,7 @@ sat6-precise-nonha:
     keystone: default
     osopsnetworks: default
   nodes:
-    - [controller, cinder, network]
+    - [controller, network]
+    - [cinder]
     - [compute]
     - [compute]

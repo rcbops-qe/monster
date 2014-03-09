@@ -181,11 +181,12 @@ class RazorAPI2(object):
 
         # Call the Razor RESTful API to get a node
         headers = {'content-type': 'application/json'}
-        r = requests.delete('{0}/nodes/{1}'.format(
-            self.url, node), headers=headers)
+        data = '{{"name": "{0}"}}'.format(node)
+        r = requests.post('{0}/commands/delete-nodes'.format(self.url),
+                          headers=headers, data=data)
 
         # Check the status code and return appropriately
-        if r.status_code == 200:
+        if r.status_code == 202 and 'no changes' not in r.content
             return json.loads(r.content)
         else:
             return 'Error: exited with status code: {0}'.format(
