@@ -48,10 +48,13 @@ environments:
             allow_remote_root: true
     nova:
         razor2:
+            network:
+              provider: nova
+              public_interface: br-vmnet
             apply_patches: false
             networks:
                 public:
-                    bridge: br0
+                    bridge: br-vmnet
                     dns1: 8.8.8.8
                     dns2: 8.8.4.4
                     bridge_dev: vmnet
