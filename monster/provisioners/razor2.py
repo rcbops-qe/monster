@@ -186,7 +186,7 @@ class RazorAPI2(object):
                           headers=headers, data=data)
 
         # Check the status code and return appropriately
-        if r.status_code == 202 and 'no changes' not in r.content
+        if r.status_code == 202 and 'no changes' not in r.content:
             return json.loads(r.content)
         else:
             return 'Error: exited with status code: {0}'.format(
