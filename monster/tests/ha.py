@@ -38,12 +38,31 @@ class Build(object):
         Cleans up build state from OpenStack
         """
         util.logger.debug("Deleting server...")
-        nova.servers.delete(self.server)
-        sleep(5)
+        deleted = False
+        while not deleted:
+            try:
+                nova.servers.delete(self.server)
+                deleted = True
+            except:
+                deleted = False
+
         util.logger.debug("Deleting subnet...")
-        neutron.delete_subnet(self.subnet_id)
+        deleted = False
+        while not deleted:
+            try:
+                neutron.delete_subnet(self.subnet_id)
+                deleted = True
+            except:
+                deleted = False
+
         util.logger.debug("Deleting network...")
-        neutron.delete_network(self.network_id)
+        deleted = False
+        while not deleted:
+            try:
+                neutron.delete_network(self.network_id)
+                deleted = True
+            except:
+                deleted = False
 
 
 class HATest(Test):
