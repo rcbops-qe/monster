@@ -9,7 +9,7 @@ class Upgrade(object):
     def __init__(self, deployment):
         self.deployment = deployment
 
-        if self.deployment.os_name == "precise":
+        if self.deployment.os_name == "ubuntu":
             self.pkg_up_cmd = "apt-get"
 
         if self.deployment.os_name == "centos":
@@ -113,7 +113,7 @@ class Upgrade(object):
         munge = []
 
         # For mungerator
-        if self.deployment.os_name == "precise":
+        if self.deployment.os_name == "ubuntu":
             munge.extend([
                 "{0} -y install python-dev".format(self.pkg_up_cmd),
                 "{0} -y install python-setuptools".format(self.pkg_up_cmd)

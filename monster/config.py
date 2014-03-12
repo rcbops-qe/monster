@@ -2,6 +2,7 @@
 
 import os
 from yaml import load
+from collections import defaultdict
 
 
 class Config(object):
@@ -15,7 +16,7 @@ class Config(object):
                                                       "secret.yaml")
 
         f = open(file)
-        self.config = load(f)
+        self.config = defaultdict(None, load(f))
 
         if secret_path:
             secret_file = open(secret_path)

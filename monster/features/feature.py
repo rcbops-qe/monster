@@ -52,7 +52,7 @@ def remove_chef(node):
     :rtype: function
     """
 
-    if node.os_name == "precise":
+    if node.os_name == "ubuntu":
         commands = ["apt-get remove --purge -y chef",
                     "rm -rf /etc/chef"]
     if node.os_name in ["centos", "rhel"]:

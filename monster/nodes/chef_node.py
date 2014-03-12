@@ -11,12 +11,10 @@ class Chef(Node):
     A chef entity
     Provides chef related server fuctions
     """
-    def __init__(self, ip, user, password, os, platform, product,
-                 environment, deployment, name, provisioner, branch,
-                 status=None, run_list=None):
-        super(Chef, self).__init__(ip, user, password, os, platform, product,
-                                   environment, deployment, provisioner,
-                                   status)
+    def __init__(self, ip, user, password, product, environment, deployment,
+                 name, provisioner, branch, status=None, run_list=None):
+        super(Chef, self).__init__(ip, user, password, product, environment,
+                                   deployment, provisioner, status)
         self.name = name
         self.branch = branch
         self.run_list = run_list or []
@@ -158,7 +156,7 @@ class Chef(Node):
         self.save_to_node()
 
     @classmethod
-    def from_chef_node(cls, node, os=None, product=None, environment=None,
+    def from_chef_node(cls, node, product=None, environment=None,
                        deployment=None, provisioner=None, branch=None):
         """
         Restores node from chef node
@@ -172,22 +170,22 @@ class Chef(Node):
                 node = rnode
         ipaddress = node['ipaddress']
         user = node['current_user']
-        password = node['password']
-        platform = node['platform']
+        default_pass = util.config['secrets']['default_pass']
+        password = node.get('password', default_pass)
         name = node.name
         archive = node.get('archive', {})
         status = archive.get('status', "provisioning")
         if not provisioner:
-            provisioner_name = archive.get('provisioner', "razor")
+            provisioner_name = archive.get('provisioner', "razor2")
             provisioner = get_provisioner(provisioner_name)
         run_list = node.run_list
-        crnode = cls(ipaddress, user, password, os, platform, product,
-                     environment, deployment, name, provisioner, branch,
+        crnode = cls(ipaddress, user, password, product, environment,
+                     deployment, name, provisioner, branch,
                      status=status, run_list=run_list)
         crnode.add_features(archive.get('features', []))
         return crnode
 
-    def run(self, times=1, debug=True):
+    def run(self, times=1, debug=True, accept_failure=True):
         cmd = util.config['chef']['client']['run_cmd']
         for i in xrange(times):
             if debug:
@@ -196,5 +194,5 @@ class Chef(Node):
                 cmd = '{0} -l debug -L "/opt/chef/{1}"'.format(cmd, log_file)
             chef_run = self.run_cmd(cmd)
             self.save_locally()
-            if not chef_run['success']:
+            if not chef_run['success'] and not accept_failure:
                 raise Exception("Chef client failure")

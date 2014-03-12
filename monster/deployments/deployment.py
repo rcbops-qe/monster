@@ -131,7 +131,7 @@ class Deployment(object):
         self.etc_path = "/etc/"
         self.misc_path = "misc/"
 
-        if self.deployment.os_name == 'precise':
+        if self.deployment.os_name == 'ubuntu':
             self.list_packages_cmd = ["dpkg -l"]
         else:
             self.list_packages_cmd = ["rpm -qa"]

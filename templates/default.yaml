@@ -1,7 +1,7 @@
-precise-default:
+ubuntu-default:
   product: compute
   name: default
-  os: precise
+  os: ubuntu
   features:
     openssh: default
     monitoring: default
@@ -39,10 +39,10 @@ centos-default:
     - [controller, network, orchestration]
     - [compute]
 
-precise-nova-net:
+ubuntu-nova-net:
   product: compute
   name: default
-  os: precise
+  os: ubuntu
   features:
     openssh: default
     monitoring: default
@@ -78,10 +78,10 @@ centos-nova-net:
     - [controller, orchestration]
     - [compute]
 
-precise-ha:
+ubuntu-ha:
   product: compute
   name: ha
-  os: precise
+  os: ubuntu
   features:
     openssh: default
     monitoring: default
@@ -122,10 +122,10 @@ centos-ha:
     - [controller, network]
     - [compute]
 
-precise-ha-nova-net:
+ubuntu-ha-nova-net:
   product: compute
   name: ha
-  os: precise
+  os: ubuntu
   features:
     openssh: default
     monitoring: default
@@ -166,10 +166,10 @@ centos-ha:
     - [controller, network]
     - [compute]
 
-precise-swift:
+ubuntu-swift:
   product: storage
   name: swift
-  os: precise
+  os: ubuntu
   features:
     openssh: default
     keystone: swift

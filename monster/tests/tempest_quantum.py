@@ -262,7 +262,7 @@ class TempestQuantum(Test):
         if self.deployment.os_name == "centos":
             self.test_node.run_cmd("yum install -y screen libxslt-devel "
                                    "postgresql-devel python-pip python-devel")
-        if self.deployment.os_name == "precise":
+        if self.deployment.os_name == "ubuntu":
             self.test_node.run_cmd("apt-get install -y screen python-dev "
                                    "libxml2 libxslt1-dev libpq-dev python-pip")
 

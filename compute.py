@@ -16,7 +16,7 @@ from monster.tests.tempest_quantum import TempestQuantum
 from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
 
 
-def build(name="autotest", template="precise-default", branch="master",
+def build(name="autotest", template="ubuntu-default", branch="master",
           config=None, dry=False, log=None, log_level="INFO",
           provisioner="rackspace", secret_path=None):
     """

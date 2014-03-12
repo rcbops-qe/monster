@@ -88,7 +88,9 @@ environments:
                 enabled: true
             ovs:
                 network_type: gre
-                vlans: 864
+                provider_networks:
+                  - {bridge: "br-vmnet", vlans: "867:867", label: "ph-vmnet"}
+                vlans: "867:867"
     cinder:
         local:
             storage:
@@ -96,37 +98,37 @@ environments:
                 lvm:
                     volume_group: vg_storage
     vips:
-        mysql-db: 10.127.101.68
-        rabbitmq-queue: 10.127.101.69
-        cinder-api: 10.127.101.70
-        glance-api: 10.127.101.70
-        glance-registry: 10.127.101.70
-        horizon-dash: 10.127.101.70
-        horizon-dash_ssl: 10.127.101.70
-        keystone-admin-api: 10.127.101.70
-        keystone-internal-api: 10.127.101.70
-        keystone-service-api: 10.127.101.70
-        nova-api: 10.127.101.70
-        nova-ec2-public: 10.127.101.70
-        nova-api-metadata: 10.127.101.70
-        nova-novnc-proxy: 10.127.101.70
-        nova-xvpvnc-proxy: 10.127.101.70
-        neutron-api: 10.127.101.70
-        swift-proxy: 10.127.101.70
-        ceilometer-api: 10.127.101.70
-        ceilometer-central-agent: 10.127.101.70
-        heat-api: 10.127.101.70
-        heat-api-cfn: 10.127.101.70
-        heat-api-cloudwatch: 10.127.101.70
+        mysql-db: 10.127.101.65
+        rabbitmq-queue: 10.127.101.66
+        cinder-api: 10.127.101.67
+        glance-api: 10.127.101.67
+        glance-registry: 10.127.101.67
+        horizon-dash: 10.127.101.67
+        horizon-dash_ssl: 10.127.101.67
+        keystone-admin-api: 10.127.101.67
+        keystone-internal-api: 10.127.101.67
+        keystone-service-api: 10.127.101.67
+        nova-api: 10.127.101.67
+        nova-ec2-public: 10.127.101.67
+        nova-api-metadata: 10.127.101.67
+        nova-novnc-proxy: 10.127.101.67
+        nova-xvpvnc-proxy: 10.127.101.67
+        neutron-api: 10.127.101.67
+        swift-proxy: 10.127.101.67
+        ceilometer-api: 10.127.101.67
+        ceilometer-central-agent: 10.127.101.67
+        heat-api: 10.127.101.67
+        heat-api-cfn: 10.127.101.67
+        heat-api-cloudwatch: 10.127.101.67
         config:
-            10.127.101.68:
-                vrid: 14
+            10.127.101.65:
+                vrid: 10
                 network: public
-            10.127.101.69:
-                vrid: 15
+            10.127.101.66:
+                vrid: 11
                 network: public
-            10.127.101.70:
-                vrid: 16
+            10.127.101.67:
+                vrid: 12
                 network: public
 rcbops:
     retrofit:
