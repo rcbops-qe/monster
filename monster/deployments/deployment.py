@@ -219,10 +219,10 @@ class Deployment(object):
         """
         Return rabbitmq mgmt client
         """
-
-        if 'vips' in self.environment:
+        overrides = self.environment.override_attributes
+        if 'vips' in overrides:
             # HA
-            ip = self.environment['vips']['rabbitmq_queues']
+            ip = overrides['vips']['rabbitmq-queue']
         else:
             # Non HA
             controller = next(self.search_role("controller"))

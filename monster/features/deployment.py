@@ -216,36 +216,29 @@ class Neutron(Deployment):
 
         for controller in controllers:
             iface = controller.get_vmnet_iface()
-            if not iface:
-                iface = util.config[self.deployment.provisioner]['network'][
-                    self.deployment.os_name]['vmnet']['iface']
-
-            util.logger.info("Using iface: {0}".format(iface))
-
-            commands = ['ip a f {0}'.format(iface),
-                        'ovs-vsctl add-port br-{0} {0}'.format(
-                            iface)]
-            command = "; ".join(commands)
+            command = self.iface_bb_cmd(iface)
             util.logger.debug("Running {0} on {1}".format(command, controller))
             controller.run_cmd(command)
 
         # loop through computes and run
         for compute in computes:
             iface = compute.get_vmnet_iface()
-            if not iface:
-                iface = util.config[self.deployment.provisioner]['network'][
-                    self.deployment.os_name]['vmnet']['iface']
-
-            util.logger.info("Using iface: {0}".format(iface))
-
-            commands = ['ip a f {0}'.format(iface),
-                        'ovs-vsctl add-port br-{0} {0}'.format(
-                            iface)]
-            command = "; ".join(commands)
+            command = self.iface_bb_cmd(iface)
             util.logger.debug("Running {0} on {1}".format(command, compute))
             compute.run_cmd(command)
 
         util.logger.info("### End of Networking Block ###")
+
+    def iface_bb_cmd(self, iface):
+        if not iface:
+            iface = util.config[self.deployment.provisioner]['network'][
+                self.deployment.os_name]['vmnet']['iface']
+        util.logger.info("Using iface: {0}".format(iface))
+        commands = ['ip a f {0}'.format(iface),
+                    'ovs-vsctl add-port br-{0} {0}'.format(
+                        iface)]
+        command = "; ".join(commands)
+        return command
 
     def clear_bridge_iface(self):
         """
@@ -257,23 +250,22 @@ class Neutron(Deployment):
 
         for controller in controllers:
             iface = controller.get_vmnet_iface()
-            if not iface:
-                iface = util.config[self.deployment.provisioner]['network'][
-                    self.deployment.os_name]['vmnet']['iface']
-
-            util.logger.info("Using iface: {0}".format(iface))
-            cmd = "ip a f {0}".format(iface)
+            cmd = self.iface_cb_cmd(iface)
             controller.run_cmd(cmd)
 
         for compute in computes:
             iface = compute.get_vmnet_iface()
-            if not iface:
-                iface = util.config[self.deployment.provisioner]['network'][
-                    self.deployment.os_name]['vmnet']['iface']
-
-            util.logger.info("Using iface: {0}".format(iface))
-            cmd = "ip a f {0}".format(iface)
+            cmd = self.iface_cb_cmd(iface)
             compute.run_cmd(cmd)
+
+    def iface_cb_cmd(self, iface):
+        if not iface:
+            iface = util.config[self.deployment.provisioner]['network'][
+                self.deployment.os_name]['vmnet']['iface']
+
+        util.logger.info("Using iface: {0}".format(iface))
+        cmd = "ip a f {0}".format(iface)
+        return cmd
 
 
 class Swift(Deployment):
@@ -534,7 +526,7 @@ class Glance(Deployment):
         if not response.ok:
             raise Exception(
                 "Unable to authorize your cloudfiles credentials, "
-                "please check secretes.yaml file")
+                "please check secrete.yaml file")
             #response.raise_for_status()
         try:
             services = response.json()['access']['serviceCatalog']

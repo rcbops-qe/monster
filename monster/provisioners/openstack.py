@@ -1,3 +1,5 @@
+import socket
+
 from chef import Node, Client
 from provisioner import Provisioner
 from gevent import spawn, joinall, sleep
@@ -169,7 +171,19 @@ class Openstack(Provisioner):
             util.logger.error("Instance entered error state. Retrying...")
             server.delete()
             return self.build_instance(name=name, image=image, flavor=flavor)
-
+        ip = server.accessIPv4
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        sshup = False
+        while not sshup:
+            try:
+                s.settimeout(2)
+                s.connect((ip, 22))
+                s.close()
+                sshup = True
+            except socket.error:
+                sshup = False
+                util.logger.debug("Waiting for ssh connection...")
+                sleep(1)
         return (server, password)
 
     def _client_search(self, collection_fun, attr, desired, attempts=None,
