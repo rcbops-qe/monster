@@ -171,8 +171,6 @@ class Openstack(Provisioner):
             util.logger.error("Instance entered error state. Retrying...")
             server.delete()
             return self.build_instance(name=name, image=image, flavor=flavor)
-        #from IPython import embed
-        #embed()
         ip = server.accessIPv4
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         sshup = False

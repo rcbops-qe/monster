@@ -397,8 +397,6 @@ class HATest(Test):
             sleep(1)
             count += 1
             dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(net)
-            #from IPython import embed
-            #embed()
 
         assert in_time(count), "agents failed to populate in time"
 
@@ -437,8 +435,6 @@ class HATest(Test):
         #    tempest = TempestQuantum(self.deployment)
         #else:
         #    tempest = TempestNeutron(self.deployment)
-        #from IPython import embed
-        #embed()
         images = self.nova.images.list()
         server_image = next(i for i in images if "cirros" in i.name)
         flavors = self.nova.flavors.list()
