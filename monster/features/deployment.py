@@ -250,12 +250,12 @@ class Neutron(Deployment):
 
         for controller in controllers:
             iface = controller.get_vmnet_iface()
-            cmd = iface_cb_cmd(iface)
+            cmd = self.iface_cb_cmd(iface)
             controller.run_cmd(cmd)
 
         for compute in computes:
             iface = compute.get_vmnet_iface()
-            cmd = iface_cb_cmd(iface)
+            cmd = self.iface_cb_cmd(iface)
             compute.run_cmd(cmd)
 
     def iface_cb_cmd(self, iface):

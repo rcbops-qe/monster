@@ -183,7 +183,7 @@ class Openstack(Provisioner):
             except socket.error:
                 sshup = False
                 util.logger.debug("Waiting for ssh connection...")
-                wait(1)
+                sleep(1)
         return (server, password)
 
     def _client_search(self, collection_fun, attr, desired, attempts=None,
