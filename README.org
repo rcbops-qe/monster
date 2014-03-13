@@ -82,7 +82,7 @@ An OpenStack Orchestration Engine
     Deploys an OpenStack cluster
 
     #+BEGIN_SRC sh
-      compute.py build -n precise-default --branch master --template precise-default --config config.yaml --secret-path secret.yaml --destroy --log log.txt --log-level DEBUG --provisioner rackspace --test
+      compute.py build -n ubuntu-default --branch master --template ubuntu-default --config config.yaml --secret-path secret.yaml --destroy --log log.txt --log-level DEBUG --provisioner rackspace --test
     #+END_SRC
 
 **** Arguments
@@ -103,7 +103,7 @@ An OpenStack Orchestration Engine
     Shows details about an OpenStack deployment
 
     #+BEGIN_SRC sh
-      compute.py show -n precise-default
+      compute.py show -n ubuntu-default
     #+END_SRC
 
 **** Arguments
@@ -118,7 +118,7 @@ An OpenStack Orchestration Engine
     Destroys an OpenStack deployment
 
     #+BEGIN_SRC sh
-      compute.py destroy -n precise-default --config config.yaml --log log.txt --log-level DEBUG
+      compute.py destroy -n ubuntu-default --config config.yaml --log log.txt --log-level DEBUG
     #+END_SRC
 
 **** Arguments
@@ -153,7 +153,7 @@ An OpenStack Orchestration Engine
     Attempts to open Horizon in browser
 
     #+BEGIN_SRC sh
-      compute.py horizon -n precise-default
+      compute.py horizon -n ubuntu-default
     #+END_SRC
 
 **** Arguments
@@ -168,7 +168,7 @@ An OpenStack Orchestration Engine
     Runs tests on a running OpenStack cluster
 
     #+BEGIN_SRC sh
-      compute.py test -n precise-default --config config.yaml --log log.txt --log-level DEBUG
+      compute.py test -n ubuntu-default --config config.yaml --log log.txt --log-level DEBUG
     #+END_SRC
 
 **** Arguments
@@ -183,7 +183,7 @@ An OpenStack Orchestration Engine
     Upgrades the deployment to the specified branch
 
     #+BEGIN_SRC sh
-      compute.py upgrade -n precise-default -u v4.2.1 --log-level DEBUG
+      compute.py upgrade -n ubuntu-default -u v4.2.1 --log-level DEBUG
     #+END_SRC
 
 **** Arguments
@@ -201,7 +201,7 @@ An OpenStack Orchestration Engine
     *Requires tmux version >= 1.8*
 
     #+BEGIN_SRC sh
-      compute.py tmux -n precise-default
+      compute.py tmux -n ubuntu-default
     #+END_SRC
 
 **** Arguments

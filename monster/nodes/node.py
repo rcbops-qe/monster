@@ -13,13 +13,11 @@ class Node(object):
     A individual computation entity to deploy a part OpenStack onto
     Provides server related functions
     """
-    def __init__(self, ip, user, password, os, platform, product,
-                 environment, deployment, provisioner, status=None):
+    def __init__(self, ip, user, password, product, environment,
+                 deployment, provisioner, status=None):
         self.ipaddress = ip
         self.user = user
         self.password = password
-        self.os_name = os
-        self.platform = platform
         self.product = product
         self.environment = environment
         self.deployment = deployment
@@ -46,10 +44,14 @@ class Node(object):
                     outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
         return "\n".join([outl, features])
 
+    @property
+    def os_name(self):
+        return self['platform']
+
     def get_creds(self):
         return self.ipaddress, self.user, self.password
 
-    def run_cmd(self, remote_cmd, user=None, password=None, attempts=None):
+    def run_cmd(self, remote_cmd, user='root', password=None, attempts=None):
         """
         Runs a command on the node
         :param remote_cmd: command to run on the node
@@ -164,17 +166,17 @@ class Node(object):
 
         upgrade_cmds = []
 
-        if 'ubuntu' in self.platform:
+        if 'ubuntu' in self.os_name:
             upgrade_cmds.append('apt-get update')
             if dist_upgrade:
                 upgrade_cmds.append('apt-get dist-upgrade -y')
             else:
                 upgrade_cmds.append('apt-get upgrade -y')
-        elif self.platform in ['centos', 'redhat']:
+        elif self.os_name in ['centos', 'redhat']:
             upgrade_cmds.append('yum update -y')
         else:
             raise NotImplementedError(
-                "{0} is a non supported platform".format(self.platform))
+                "{0} is a non supported platform".format(self.os_name))
         upgrade_cmd = '; '.join(upgrade_cmds)
 
         util.logger.info('Updating Distribution Packages')
@@ -190,7 +192,7 @@ class Node(object):
         """
 
         # Need to make this more machine agnostic (jwagner)
-        if self.os_name == "precise":
+        if self.os_name == "ubuntu":
             command = 'apt-get install -y {0}'.format(package)
         if self.os_name in ["centos", "rhel"]:
             command = 'yum install -y {0}'.format(package)
@@ -202,7 +204,7 @@ class Node(object):
         Checks to see if a package is installed
         """
 
-        if self.os_name == "precise":
+        if self.os_name == "ubuntu":
             chk_cmd = "dpkg -l | grep {0}".format(package)
         if self.os_name in ["centos", "rhel"]:
             chk_cmd = "rpm -a | grep {0}".format(package)
@@ -217,7 +219,7 @@ class Node(object):
         Return the iface that our neutron network will live on
         """
         vmnet_cidr = util.config[self.deployment.provisioner]['network'][
-            self.deployment.os_name]['vmnet']['cidr']
+            'vmnet']['cidr']
         vmnet_l3 = ".".join(vmnet_cidr.split(".")[:-1])
         get_nbd = "ip a | grep {0} | awk \'{1}\'".format(
             vmnet_l3, "{print $NF}")

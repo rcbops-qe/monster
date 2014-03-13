@@ -129,14 +129,14 @@ class Neutron(Deployment):
         iface = controller.get_vmnet_iface()
         if not iface:
             iface = util.config[self.deployment.provisioner]['network'][
-                self.deployment.os_name]['vmnet']['iface']
+                'vmnet']['iface']
 
         util.logger.info("Using iface: {0}".format(iface))
 
         env = self.deployment.environment
         ovs = env.override_attributes[self.provider]['ovs']
         try:
-            vlans = ovs['provider_networks']['vlans']
+            vlans = ovs['vlans']
         except Exception:
             vlans = '1:1000'
             pass
@@ -146,6 +146,7 @@ class Neutron(Deployment):
              "bridge": "br-{0}".format(iface),
              "vlans": "{0}".format(vlans)}]
         ovs['provider_networks'] = provider_networks
+        ovs.pop('vlans', None)
         env.save()
 
     def _fix_nova_environment(self):
@@ -161,12 +162,14 @@ class Neutron(Deployment):
             del env.override_attributes['nova']['networks']
             env.override_attributes['nova']['network'] = neutron_network
 
+        """
         # update the vip to correct api name and vip value
         if self.deployment.feature_in("highavailability"):
             api_name = '{0}-api'.format(self.provider)
             api_vip = util.config[str(self)][
                 self.deployment.provisioner][self.deployment.os_name]['vip']
             env.override_attributes['vips'][api_name] = api_vip
+        """
 
         # Save the environment
         env.save()
@@ -574,7 +577,7 @@ class Nova(Deployment):
         iface = controller.get_vmnet_iface()
         if not iface:
             iface = util.config[self.deployment.provisioner]['network'][
-                self.deployment.os_name]['vmnet']['iface']
+                'vmnet']['iface']
 
         util.logger.info("Using iface: {0}".format(iface))
 
@@ -697,8 +700,7 @@ class OsOpsNetworks(RPCS):
     def __init__(self, deployment, rpcs_feature='default'):
         super(OsOpsNetworks, self).__init__(deployment, rpcs_feature,
                                             'osops_networks')
-        self.environment = util.config['environments'][self.name][
-            self.deployment.provisioner]
+        self.environment = util.config['environments'][self.name]
 
     def update_environment(self):
         # provisioner = str(self.deployment.provisioner)
@@ -720,11 +722,13 @@ class HighAvailability(RPCS):
     def __init__(self, deployment, rpcs_feature):
         super(HighAvailability, self).__init__(deployment, rpcs_feature,
                                                'vips')
+        """
         if str(self.deployment.provisioner) == "rackspace":
             vips = "rackspace"
         else:
             vips = deployment.os_name
-        self.environment = util.config['environments'][self.name][vips]
+        """
+        self.environment = util.config['environments'][self.name]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(self.name,
