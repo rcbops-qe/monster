@@ -146,7 +146,7 @@ class Neutron(Deployment):
              "bridge": "br-{0}".format(iface),
              "vlans": "{0}".format(vlans)}]
         ovs['provider_networks'] = provider_networks
-        del ovs['vlans']
+        ovs.pop('vlans', None)
         env.save()
 
     def _fix_nova_environment(self):

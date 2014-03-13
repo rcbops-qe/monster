@@ -97,7 +97,9 @@ class Openstack(Provisioner):
         image = deployment.os_name
         server, password = self.build_instance(name=name, image=image,
                                                flavor=flavor)
-        run_list = ",".join(util.config[str(self)]['run_list'])
+        run_list = ""
+        if util.config[str(self)]['run_list']:
+            run_list = ",".join(util.config[str(self)]['run_list'])
         run_list_arg = ""
         if run_list:
             run_list_arg = "-r {0}".format(run_list)
@@ -108,7 +110,9 @@ class Openstack(Provisioner):
                                                      name,
                                                      run_list_arg,
                                                      client_version))
-        run_cmd(command)
+        while not run_cmd(command)['success']:
+            util.logger.warning("Epic failure. Retrying...")
+            sleep(1)
         node = Node(name, api=deployment.environment.local_api)
         node.chef_environment = deployment.environment.name
         node['in_use'] = "provisioning"

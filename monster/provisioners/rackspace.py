@@ -90,8 +90,20 @@ class Rackspace(Openstack):
         """
         util.logger.info("Updating node:{0}".format(node.name))
         cmds = ["apt-get update -y",
-                "apt-get upgrade -y"]
+                "apt-get upgrade -y",
+                "apt-get install openssh-client git curl -y"]
+        #from IPython import embed
+        #embed()
         if node.os_name == "centos":
             cmds = ["yum update -y",
-                    "yum upgrade -y"]
+                    "yum upgrade -y",
+                    "yum install openssh-clients git curl -y",
+                    ("wget http://dl.fedoraproject.org/pub/epel/6/x86_64/",
+                     "epel-release-6-8.noarch.rpm"),
+                    ("wget http://rpms.famillecollet.com/enterprise/remi-",
+                     "release-6.rpm"),
+                    "sudo rpm -Uvh remi-release-6*.rpm epel-release-6*.rpm",
+                    "/sbin/iptables -F",
+                    "/etc/init.d/iptables save",
+                    "/sbin/iptables -L"]
         node.run_cmd("; ".join(cmds))
