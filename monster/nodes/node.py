@@ -13,7 +13,7 @@ class Node(object):
     A individual computation entity to deploy a part OpenStack onto
     Provides server related functions
     """
-    def __init__(self, ip, user, password,  product, environment,
+    def __init__(self, ip, user, password, product, environment,
                  deployment, provisioner, status=None):
         self.ipaddress = ip
         self.user = user
