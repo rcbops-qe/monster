@@ -32,16 +32,53 @@ class Build(object):
         self.flavor = flavor
         self.network_id = network_id
         self.subnet_id = subnet_id
+        self.ip_info = None
+        self.router_id = None
 
     def destroy(self, nova, neutron):
         """
         Cleans up build state from OpenStack
         """
+#float     neutron floatingip-delete [floatingip-id]
+#instance  nova delete [instance-id]
+#iface     neutron router-interface-delete [router-id] [subnet-id]
+#router    neutron router-delete [router-id]
+#subnet    neutron subnet-delete [subnet-id]
+#network   neutron net-delete [network-id]
+        #from IPython import embed
+        #embed()
+        util.logger.debug("Deleting floating IP...")
+        deleted = False
+        while not deleted:
+            try:
+                neutron.delete_floatingip(self.ip_info['id'])
+                deleted = True
+            except:
+                deleted = False
+
         util.logger.debug("Deleting server...")
         deleted = False
         while not deleted:
             try:
                 nova.servers.delete(self.server)
+                deleted = True
+            except:
+                deleted = False
+
+        util.logger.debug("Deleting router interface...")
+        deleted = False
+        while not deleted:
+            try:
+                neutron.remove_interface_router(self.router_id, {"subnet_id": self.subnet_id})
+                deleted = True
+            except:
+                deleted = False
+
+        util.logger.debug("Deleting router...")
+        deleted = False
+        while not deleted:
+            try:
+                neutron.delete_router(self.router_id)
                 deleted = True
             except:
                 deleted = False
@@ -80,6 +117,7 @@ class HATest(Test):
         creds = self.gather_creds(deployment)
 
         # Setup clients
+        self.provider_net = None
         self.nova = nova_client.Client(creds.user, creds.password, creds.user,
                                        auth_url=creds.url)
         self.neutron = neutron_client(auth_url=creds.url, username=creds.user,
@@ -187,17 +225,11 @@ class HATest(Test):
 
         print "Placeholder for prepare()"
 
-    def is_online(self, node):
+    def is_online(self, ip):
         """
         Returns true if a connection can be made with ssh
         """
-        ip = ""
-        try:
-            ip = getattr(node, 'ipaddress')
-            print "IP ADDRESS: {0}".format(ip)
-        except:
-            ip = getattr(node, 'accessIPv4')
-            print "ACCESS IPv4: {0}".format(ip)
+        print "IP ADDRESS: {0}".format(ip)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             s.settimeout(2)
@@ -233,7 +265,7 @@ class HATest(Test):
                           iface_port))
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
-        provider_net_id = "0c612a51-a0f7-4a29-9ef1-50375300aedb"
+        provider_net_id = self.provider_net
 
         self.neutron.add_gateway_router(router_id, body={"network_id":provider_net_id})
 #-----------------------------------------------------------------------------
@@ -271,7 +303,8 @@ class HATest(Test):
 #-----------------------------------------------------------------------------
         port_id = next(port['id'] for port in self.neutron.list_ports()['ports'] if port['device_id'] == build.server.id)
         floating_ip = self.neutron.create_floatingip({"floatingip":{"floating_network_id":provider_net_id, "port_id":port_id}})
-        
+        build.ip_info = floating_ip['floatingip']
+        build.router_id = router_id
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
         return build
@@ -285,7 +318,6 @@ class HATest(Test):
         sleep(10)
         self.move_vips_from(node_up)
         self.fail_node(node_down)
-        #sleep(120)
 
     def verify(self, builds, node_up, node_down=None):
         """
@@ -311,7 +343,7 @@ class HATest(Test):
         rpcdaemon = node_up.run_cmd("pgrep -fl rpcdaemon")['return'].rstrip()
         retry = 10
         while not rpcdaemon:
-            print "Checkiong for rpcdaemon status on {0}".format(node_up.name)
+            print "Checking for rpcdaemon status on {0}".format(node_up.name)
             sleep(1)
             retry -= 1
             if retry == 0:
@@ -346,7 +378,7 @@ class HATest(Test):
                 'return'].rstrip()
             retry = 10
             while not rpcdaemon:
-                print "Checkiong for rpcdaemon status on {0}".format(
+                print "Checking for rpcdaemon status on {0}".format(
                     node_down.name)
                 sleep(1)
                 retry -= 1
@@ -405,15 +437,14 @@ class HATest(Test):
             print "\033[1;44mChecking DHCP for build {0}\033[1;m".format(
                   build.name)
             self.wait_dhcp_agent_alive(build.network_id)
-
+#-----------------------------------------------------------------
         # Check connectivity to builds
-        print "Checking connectivity to builds..."
-        for build in builds:
-            from IPython import embed
-            embed()
-            while not self.is_online(build.server):
-                print "Build {0} with IP {1} IS NOT responding...".format(build.name, build.server.accessIPv4)
-            print "Build {0} with IP {1} IS responding...".format(build.name, build.server.accessIPv4)
+        #print "Checking connectivity to builds..."
+        #for build in builds:
+        #    while not self.is_online(build.ipaddress):
+        #        print "Build {0} with IP {1} IS NOT responding...".format(build.name, build.ipaddress)
+        #    print "Build {0} with IP {1} IS responding...".format(build.name, build.ipaddress)
+#-----------------------------------------------------------------
 
         # Check MySQL replication isn't broken and Controller2 is master.
         #CAM
@@ -473,7 +504,7 @@ class HATest(Test):
         print "\033[1;44mACTION: Failback\033[1;m"
         node_down.power_on()
         count = 1
-        while not self.is_online(node_down):
+        while not self.is_online(node_down.ipaddress):
             util.logger.debug("Waiting for {0} to boot:{1}".format(
                               node_down.name, count))
             sleep(1)
@@ -508,6 +539,7 @@ class HATest(Test):
                             server_image, server_flavor,
                             "testnetwork{0}".format(run),
                             "testsubnet{0}".format(run),
+                            "testrouter{0}".format(run),
                             "172.32.{0}.0/24".format(run))
         builds.append(build1)
         self.verify(builds, node_up, node_down)
@@ -518,6 +550,7 @@ class HATest(Test):
                             server_image, server_flavor,
                             "testnetwork{0}".format(run),
                             "testsubnet{0}".format(run),
+                            "testrouter{0}".format(run),
                             "172.32.{0}.0/24".format(run))
         builds.append(build2)
         self.failback(node_down)
@@ -530,6 +563,7 @@ class HATest(Test):
                             server_image, server_flavor,
                             "testnetwork{0}".format(run),
                             "testsubnet{0}".format(run),
+                            "testrouter{0}".format(run),
                             "172.32.{0}.0/24".format(run))
         builds.append(build3)
         self.failover(node_up, node_down)
@@ -539,6 +573,7 @@ class HATest(Test):
                             server_image, server_flavor,
                             "testnetwork{0}".format(run),
                             "testsubnet{0}".format(run),
+                            "testrouter{0}".format(run),
                             "172.32.{0}.0/24".format(run))
         builds.append(build4)
         self.failback(node_down)
@@ -580,6 +615,7 @@ class HATest(Test):
         """
         xunit_merge()
 
-    def test(self):
+    def test(self, provider_net):
+        self.provider_net = provider_net
         self.run_tests()
         self.collect_results()

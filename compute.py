@@ -99,7 +99,7 @@ def destroy(name="autotest", config=None, log=None, log_level="INFO",
 
 def test(name="autotest", config=None, log=None, log_level="INFO",
          tempest=False, ha=False, secret_path=None, deployment=None,
-         iterations=1):
+         iterations=1, provider_net="05c4f205-d6e4-42d4-aeb1-c9f92131b166"):
     """
     Tests an openstack deployment
     """
@@ -138,7 +138,7 @@ def test(name="autotest", config=None, log=None, log_level="INFO",
         if ha:
             print ('\033[1;36mRunning High Availability test!'
                    '\033[1;m')
-            ha.test()
+            ha.test(provider_net)
         if tempest:
             print ('\033[1;36mRunning Tempest test!'
                    '\033[1;m')
