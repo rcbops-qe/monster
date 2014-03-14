@@ -234,7 +234,11 @@ class HATest(Test):
         """
         Returns true if a connection can be made with ssh
         """
+<<<<<<< HEAD
         util.logger.debug("IP ADDRESS: {0}".format(ip))
+=======
+        print "IP ADDRESS: {0}".format(ip)
+>>>>>>> More ha stuff...
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             s.settimeout(2)
@@ -309,6 +313,7 @@ class HATest(Test):
                       server_image, server_flavor)
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
+<<<<<<< HEAD
         port_id = ""
         for port in self.neutron.list_ports()['ports']:
             if port['device_id'] == build.server.id:
@@ -319,6 +324,10 @@ class HATest(Test):
                                                      {"floating_network_id":
                                                       provider_net_id,
                                                       "port_id": port_id}})
+=======
+        port_id = next(port['id'] for port in self.neutron.list_ports()['ports'] if port['device_id'] == build.server.id)
+        floating_ip = self.neutron.create_floatingip({"floatingip":{"floating_network_id":provider_net_id, "port_id":port_id}})
+>>>>>>> More ha stuff...
         build.ip_info = floating_ip['floatingip']
         build.router_id = router_id
 #-----------------------------------------------------------------------------
@@ -361,8 +370,12 @@ class HATest(Test):
         rpcdaemon = node_up.run_cmd("pgrep -fl rpcdaemon")['return'].rstrip()
         retry = 10
         while not rpcdaemon:
+<<<<<<< HEAD
             util.logger.debug("Checking for rpcdaemon status on {0}".format(
                               node_up.name))
+=======
+            print "Checking for rpcdaemon status on {0}".format(node_up.name)
+>>>>>>> More ha stuff...
             sleep(1)
             retry -= 1
             if retry == 0:
@@ -398,8 +411,13 @@ class HATest(Test):
                 'return'].rstrip()
             retry = 10
             while not rpcdaemon:
+<<<<<<< HEAD
                 util.logger.debug("Checking for rpcdaemon status on {0}".
                                   format(node_down.name))
+=======
+                print "Checking for rpcdaemon status on {0}".format(
+                    node_down.name)
+>>>>>>> More ha stuff...
                 sleep(1)
                 retry -= 1
                 if retry == 0:
@@ -466,11 +484,16 @@ class HATest(Test):
         #print "Checking connectivity to builds..."
         #for build in builds:
         #    while not self.is_online(build.ipaddress):
+<<<<<<< HEAD
         #        util.logger.debug(("Build {0} with IP {1} IS NOT "
         #                           "responding...").format(build.name,
         #                                                   build.ipaddress)
         #    util.logger.debug("Build {0} with IP {1} IS responding...".
         #                      format(build.name, build.ipaddress)
+=======
+        #        print "Build {0} with IP {1} IS NOT responding...".format(build.name, build.ipaddress)
+        #    print "Build {0} with IP {1} IS responding...".format(build.name, build.ipaddress)
+>>>>>>> More ha stuff...
 #-----------------------------------------------------------------
 
         # Check MySQL replication isn't broken and Controller2 is master.
@@ -707,9 +730,14 @@ class HATest(Test):
         """
         xunit_merge()
 
+<<<<<<< HEAD
     def test(self, iterations, provider_net):
         self.provider_net = provider_net
         self.iterations = iterations
+=======
+    def test(self, provider_net):
+        self.provider_net = provider_net
+>>>>>>> More ha stuff...
         self.run_tests()
         self.collect_results()
 
