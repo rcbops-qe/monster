@@ -116,11 +116,20 @@ class HATest(Test):
                 "{2}").format(namespace, server_ip, cmd)
         server.run_cmd(icmd)
 
+    def create_router(self, router_name, admin_state_up=True):
+        """
+        Creates a neutron router
+        """
+        new_router = {"router":{
+                      "name":router_name,
+                      "admin_state_up":admin_state_up}}
+        router = self.neutron.create_router(new_router)
+        return router['router']['id']
+
     def create_network(self, network_name):
         """
         Creates a neutron network
         """
-
         new_net = {"network": {"name": network_name, "shared": True}}
         net = self.neutron.create_network(new_net)
         return net['network']['id']
@@ -129,12 +138,19 @@ class HATest(Test):
         """
         Creates a neutron subnet
         """
-
         new_subnet = {"subnet": {
             "name": subnet_name, "network_id": network_id,
             "cidr": subnet_cidr, "ip_version": "4"}}
         subnet = self.neutron.create_subnet(new_subnet)
         return subnet['subnet']['id']
+
+    def add_router_interface(self, router_id, subnet_id):
+        """
+        Adds an interface to a given router
+        """
+        subnet_iface = {"subnet_id": subnet_id}
+        iface = self.neutron.add_interface_router(router_id, subnet_iface)
+        return iface['port_id']
 
     def keepalived_fail(self, node):
         """
@@ -175,7 +191,13 @@ class HATest(Test):
         """
         Returns true if a connection can be made with ssh
         """
-        ip = node.ipaddress
+        ip = ""
+        try:
+            ip = getattr(node, 'ipaddress')
+            print "IP ADDRESS: {0}".format(ip)
+        except:
+            ip = getattr(node, 'accessIPv4')
+            print "ACCESS IPv4: {0}".format(ip)
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             s.settimeout(2)
@@ -186,19 +208,37 @@ class HATest(Test):
         return True
 
     def build(self, server_name, server_image, server_flavor, network_name,
-              subnet_name, cidr):
+              subnet_name, router_name, cidr):
         """
         Builds state in OpenStack (net, server)
         """
         util.logger.debug("\033[1;44mACTION: Build\033[1;m")
         util.logger.debug("\033[1;44mBuild Name: {0}\033[1;m".format(
                           server_name))
+
         network_id = self.create_network(network_name)
         util.logger.debug("\033[1;44mNetwork ID: {0}\033[1;m".format(
                           network_id))
+
         subnet_id = self.create_subnet(subnet_name, network_id, cidr)
         util.logger.debug("\033[1;44mSubnet ID: {0}\033[1;m".format(
                           subnet_id))
+
+        router_id = self.create_router(router_name)
+        util.logger.debug("\033[1;44mRouter ID: {0}\033[1;m".format(
+                          router_id))
+
+        iface_port = self.add_router_interface(router_id, subnet_id)
+        util.logger.debug("\033[1;44mInterface Port: {0}\033[1;m".format(
+                          iface_port))
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+        provider_net_id = "0c612a51-a0f7-4a29-9ef1-50375300aedb"
+
+        self.neutron.add_gateway_router(router_id, body={"network_id":provider_net_id})
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+
         networks = [{"net-id": network_id}]
         util.logger.debug("Building server with above parameters...")
         server = False
@@ -227,6 +267,13 @@ class HATest(Test):
             util.logger.debug("Build status: {0}".format(build_status))
         build = Build(server, network_id, subnet_id, server_name,
                       server_image, server_flavor)
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
+        port_id = next(port['id'] for port in self.neutron.list_ports()['ports'] if port['device_id'] == build.server.id)
+        floating_ip = self.neutron.create_floatingip({"floatingip":{"floating_network_id":provider_net_id, "port_id":port_id}})
+        
+#-----------------------------------------------------------------------------
+#-----------------------------------------------------------------------------
         return build
 
     def failover(self, node_up, node_down):
@@ -359,8 +406,17 @@ class HATest(Test):
                   build.name)
             self.wait_dhcp_agent_alive(build.network_id)
 
+        # Check connectivity to builds
+        print "Checking connectivity to builds..."
+        for build in builds:
+            from IPython import embed
+            embed()
+            while not self.is_online(build.server):
+                print "Build {0} with IP {1} IS NOT responding...".format(build.name, build.server.accessIPv4)
+            print "Build {0} with IP {1} IS responding...".format(build.name, build.server.accessIPv4)
+
         # Check MySQL replication isn't broken and Controller2 is master.
-        #CAMERON
+        #CAM
 
         # Check rabbitmq
         self.test_rabbit_status()
