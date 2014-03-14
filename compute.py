@@ -100,11 +100,11 @@ def build(deployment, dry):
 
 @__log
 @__load_deployment
-def test(deployment, tempest=False, ha=False, iterations=1):
+def test(deployment, args):
     """
     Tests an openstack deployment
     """
-    if not tempest and not ha:
+    if not args.tempest and not args.ha:
         tempest = True
         ha = True
     if not deployment.feature_in("highavailability"):
@@ -126,7 +126,7 @@ def test(deployment, tempest=False, ha=False, iterations=1):
         remote = "{0}@{1}:~/*.xml".format(user, ip)
         getFile(ip, user, password, remote, local)
 
-    for i in range(iterations):
+    for i in range(args.iterations):
         #print ('\033[1;36mRunning iteration {0} of {1}!'
         #       '\033[1;m'.format(i + 1, iterations))
 
@@ -136,14 +136,14 @@ def test(deployment, tempest=False, ha=False, iterations=1):
         if ha:
             #print ('\033[1;36mRunning High Availability test!'
             #       '\033[1;m')
-            ha.test(iterations, provider_net)
+            ha.test(args.iterations, args.provider_net)
         if tempest:
             #print ('\033[1;36mRunning Tempest test!'
             #       '\033[1;m')
             tempest.test()
 
     print ('\033[1;36mTests have been completed with '
-           '{0} iterations!\033[1;m'.format(iterations))
+           '{0} iterations!\033[1;m'.format(args.iterations))
 
 
 def getFile(ip, user, password, remote, local, remote_delete=False):
