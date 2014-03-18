@@ -71,7 +71,8 @@ class Build(object):
         deleted = False
         while not deleted:
             try:
-                neutron.remove_interface_router(self.router_id, {"subnet_id": self.subnet_id})
+                neutron.remove_interface_router(self.router_id,
+                                                {"subnet_id": self.subnet_id})
                 deleted = True
             except:
                 deleted = False
@@ -162,9 +163,9 @@ class HATest(Test):
         """
         Creates a neutron router
         """
-        new_router = {"router":{
-                      "name":router_name,
-                      "admin_state_up":admin_state_up}}
+        new_router = {"router": {
+                      "name": router_name,
+                      "admin_state_up": admin_state_up}}
         router = self.neutron.create_router(new_router)
         return router['router']['id']
 
@@ -271,7 +272,8 @@ class HATest(Test):
 #-----------------------------------------------------------------------------
         provider_net_id = self.provider_net
 
-        self.neutron.add_gateway_router(router_id, body={"network_id":provider_net_id})
+        self.neutron.add_gateway_router(router_id,
+                                        body={"network_id": provider_net_id})
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
 
@@ -307,8 +309,16 @@ class HATest(Test):
                       server_image, server_flavor)
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
-        port_id = next(port['id'] for port in self.neutron.list_ports()['ports'] if port['device_id'] == build.server.id)
-        floating_ip = self.neutron.create_floatingip({"floatingip":{"floating_network_id":provider_net_id, "port_id":port_id}})
+        port_id = ""
+        for port in self.neutron.list_ports()['ports']:
+            if port['device_id'] == build.server.id:
+                port_id = port['id']
+                break
+
+        floating_ip = self.neutron.create_floatingip({"floatingip":
+                                                     {"floating_network_id":
+                                                      provider_net_id,
+                                                      "port_id": port_id}})
         build.ip_info = floating_ip['floatingip']
         build.router_id = router_id
 #-----------------------------------------------------------------------------
@@ -333,14 +343,16 @@ class HATest(Test):
         # Check RPCS services (ha_proxy, keepalived, rpc daemon)
         haproxy = node_up.run_cmd("pgrep -fl haproxy")['return'].rstrip()
         while not haproxy:
-            util.logger.debug("Checking for haproxy status on {0}".format(node_up.name))
+            util.logger.debug("Checking for haproxy status on {0}".format(
+                              node_up.name))
             sleep(1)
             haproxy = node_up.run_cmd("pgrep -fl haproxy")['return'].rstrip()
         util.logger.debug("haproxy is up on {0}!".format(node_up.name))
 
         keepalived = node_up.run_cmd("pgrep -fl keepalived")['return'].rstrip()
         while not keepalived:
-            util.logger.debug("Checking for keepalived status on {0}".format(node_up.name))
+            util.logger.debug("Checking for keepalived status on {0}".format(
+                              node_up.name))
             sleep(1)
             keepalived = node_up.run_cmd("pgrep -fl keepalived")[
                 'return'].rstrip()
@@ -349,7 +361,8 @@ class HATest(Test):
         rpcdaemon = node_up.run_cmd("pgrep -fl rpcdaemon")['return'].rstrip()
         retry = 10
         while not rpcdaemon:
-            util.logger.debug("Checking for rpcdaemon status on {0}".format(node_up.name))
+            util.logger.debug("Checking for rpcdaemon status on {0}".format(
+                              node_up.name))
             sleep(1)
             retry -= 1
             if retry == 0:
@@ -373,19 +386,20 @@ class HATest(Test):
             keepalived = node_down.run_cmd("pgrep -fl keepalived")[
                 'return'].rstrip()
             while not keepalived:
-                util.logger.debug("Checking for keepalived status on {0}".format(
-                    node_down.name))
+                util.logger.debug("Checking for keepalived status on {0}".
+                                  format(node_down.name))
                 sleep(1)
                 keepalived = node_down.run_cmd("pgrep -fl keepalived")[
                     'return'].rstrip()
-            util.logger.debug("keepalived is up on {0}!".format(node_down.name))
+            util.logger.debug("keepalived is up on {0}!".format(
+                              node_down.name))
 
             rpcdaemon = node_down.run_cmd("pgrep -fl rpcdaemon")[
                 'return'].rstrip()
             retry = 10
             while not rpcdaemon:
-                util.logger.debug("Checking for rpcdaemon status on {0}".format(
-                    node_down.name))
+                util.logger.debug("Checking for rpcdaemon status on {0}".
+                                  format(node_down.name))
                 sleep(1)
                 retry -= 1
                 if retry == 0:
@@ -409,10 +423,12 @@ class HATest(Test):
         for vip in vips:
             util.logger.debug("VIP: {0}".format(vip))
         for vip in vips:
-            util.logger.debug("Verifying that {0} is in the vips namespace...".format(vip))
+            util.logger.debug(("Verifying that {0} is in the vips "
+                               "namespace...").format(vip))
             # Checks if the vips are absent from both controllers
             while (vip not in exec_vips) and (vip not in exec_vips_down):
-                util.logger.debug("{0} is not found in the vips namespace!!!".format(vip))
+                util.logger.debug(("{0} is not found in the vips "
+                                   "namespace!!!").format(vip))
                 sleep(1)
                 exec_vips = node_up.run_cmd("ip netns exec vips "
                                             "ip a")['return']
@@ -425,10 +441,12 @@ class HATest(Test):
                                               "controllers!!!").format(vip)
             # Checks for the vips on node_up controller
             elif vip in exec_vips:
-                util.logger.debug("{0} vip found in {1}...".format(vip, node_up.name))
+                util.logger.debug("{0} vip found in {1}...".format(
+                                  vip, node_up.name))
             # Checks for the vips on the node_down controller
             else:
-                util.logger.debug("{0} vip found on {1}...".format(vip, node_down.name))
+                util.logger.debug("{0} vip found on {1}...".format(
+                                  vip, node_down.name))
 
         #IP NETNS NEEDS TO CONTAIN NEUTRON NET-LIST
 
@@ -440,16 +458,19 @@ class HATest(Test):
         # --------------------------------------review
         # Check networks rescheduled
         for build in builds:
-            util.logger.debug("\033[1;44mChecking DHCP for build {0}\033[0m".format(
-                  build.name))
+            util.logger.debug("\033[1;44mChecking DHCP for build {0}\033[0m".
+                              format(build.name))
             self.wait_dhcp_agent_alive(build.network_id)
 #-----------------------------------------------------------------
         # Check connectivity to builds
         #print "Checking connectivity to builds..."
         #for build in builds:
         #    while not self.is_online(build.ipaddress):
-        #        util.logger.debug("Build {0} with IP {1} IS NOT responding...".format(build.name, build.ipaddress)
-        #    util.logger.debug("Build {0} with IP {1} IS responding...".format(build.name, build.ipaddress)
+        #        util.logger.debug(("Build {0} with IP {1} IS NOT "
+        #                           "responding...").format(build.name,
+        #                                                   build.ipaddress)
+        #    util.logger.debug("Build {0} with IP {1} IS responding...".
+        #                      format(build.name, build.ipaddress)
 #-----------------------------------------------------------------
 
         # Check MySQL replication isn't broken and Controller2 is master.
@@ -516,8 +537,6 @@ class HATest(Test):
             sleep(1)
             count += 1
 
-        
-
     def run_tests(self):
         """
         Run ha tests
@@ -544,11 +563,12 @@ class HATest(Test):
         failover_stages = 2
         failback_stages = 2
 
-        bars = [{'name':'Iteration', 'current':self.current_iteration, 'total':iterations},
-                {'name':'Build', 'current':0, 'total':build_stages},
-                {'name':'Verify', 'current':0, 'total':verify_stages},
-                {'name':'Failover', 'current':0, 'total':failover_stages},
-                {'name':'Failback', 'current':0, 'total':failback_stages}]
+        bars = [{'name': 'Iteration', 'current': self.current_iteration,
+                 'total': iterations},
+                {'name': 'Build', 'current': 0, 'total': build_stages},
+                {'name': 'Verify', 'current': 0, 'total': verify_stages},
+                {'name': 'Failover', 'current': 0, 'total': failover_stages},
+                {'name': 'Failback', 'current': 0, 'total': failback_stages}]
         progress = Progress(bars)
 
         node_up = self.controller1
@@ -708,37 +728,42 @@ class Progress(object):
         self.set_color("bold")
         self.set_color("blue")
         complete = (float(bar['current']) / bar['total']) * size
-        for i in range (int(complete)):
+        for i in range(int(complete)):
             sys.stdout.write("|")
-        
+
         self.set_color("yellow")
         self.set_color("blink")
         work_on = 0
         if curr == 1:
             work_on = (float(1) / bar['total']) * size
-            for i in range (int(work_on)):
+            for i in range(int(work_on)):
                 if (size - complete) > 0:
                     sys.stdout.write("|")
 
         self.set_color("default")
         self.set_color("gray")
         remain = (size - int(complete) - int(work_on))
-        for i in range (remain):
+        for i in range(remain):
             sys.stdout.write("|")
         self.set_color("default")
         sys.stdout.write("]   ")
 
-
     def set_color(self, style):
-        if style == "default": sys.stdout.write("\033[0m")
-        elif style == "bold": sys.stdout.write("\033[1m")
-        elif style == "blue": sys.stdout.write("\033[34m")
-        elif style == "yellow": sys.stdout.write("\033[33m")
-        elif style == "gray": sys.stdout.write("\033[90m")
-        elif style == "blink": sys.stdout.write("\033[5m")
+        if style == "default":
+            sys.stdout.write("\033[0m")
+        elif style == "bold":
+            sys.stdout.write("\033[1m")
+        elif style == "blue":
+            sys.stdout.write("\033[34m")
+        elif style == "yellow":
+            sys.stdout.write("\033[33m")
+        elif style == "gray":
+            sys.stdout.write("\033[90m")
+        elif style == "blink":
+            sys.stdout.write("\033[5m")
 
     def display(self, current_bar_name):
-        for i in range (210):
+        for i in range(210):
             sys.stdout.write("\b")
 
         for bar in self.bars:
@@ -750,8 +775,3 @@ class Progress(object):
                 self.print_bar(bar, 20, 0)
 
         sys.stdout.flush()
-#---------------------------------------
-#---------------------------------------
-#---------------------------------------
-#---------------------------------------
-        #sys.stdout.write("\rIterations:[\033[1;34m||||||||||||||\033[5;33m|\033[0;90m|||||\033[0m]")
