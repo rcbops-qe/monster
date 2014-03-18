@@ -33,7 +33,7 @@ def module_classes(module):
 
 
 def xunit_merge(path="."):
-    print "Merging xunit files"
+    #print "Merging xunit files"
     files = glob(path + "/*.xml")
     tree = None
     attrs = ["failures", "tests", "errors", "skip"]
