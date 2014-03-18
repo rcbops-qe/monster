@@ -4,6 +4,7 @@ Module to test High Availability in RPC
 import os
 import sys
 import socket
+import logging
 from time import sleep
 from novaclient.v1_1 import client as nova_client
 from neutronclient.v2_0.client import Client as neutron_client
@@ -36,6 +37,8 @@ class Build(object):
         self.subnet_id = subnet_id
         self.ip_info = None
         self.router_id = None
+        logging.basicConfig(level=logging.ERROR)
+        self.logger = logging.getLogger(__name__)
 
     def destroy(self, nova, neutron):
         """
@@ -47,9 +50,9 @@ class Build(object):
 #router    neutron router-delete [router-id]
 #subnet    neutron subnet-delete [subnet-id]
 #network   neutron net-delete [network-id]
-        #from IPython import embed
-        #embed()
-        util.logger.debug("Deleting floating IP...")
+        self.logger.info('Cleaning up instance and network clutter...')
+
+        self.logger.debug('Deleting floating IP')
         deleted = False
         while not deleted:
             try:
@@ -58,7 +61,7 @@ class Build(object):
             except:
                 deleted = False
 
-        util.logger.debug("Deleting server...")
+        self.logger.debug('Deleting server')
         deleted = False
         while not deleted:
             try:
@@ -67,7 +70,7 @@ class Build(object):
             except:
                 deleted = False
 
-        util.logger.debug("Deleting router interface...")
+        self.logger.debug('Deleting router interface')
         deleted = False
         while not deleted:
             try:
@@ -77,7 +80,7 @@ class Build(object):
             except:
                 deleted = False
 
-        util.logger.debug("Deleting router...")
+        self.logger.debug("Deleting router")
         deleted = False
         while not deleted:
             try:
@@ -86,7 +89,7 @@ class Build(object):
             except:
                 deleted = False
 
-        util.logger.debug("Deleting subnet...")
+        self.logger.debug("Deleting subnet")
         deleted = False
         while not deleted:
             try:
@@ -95,7 +98,7 @@ class Build(object):
             except:
                 deleted = False
 
-        util.logger.debug("Deleting network...")
+        self.logger.debug("Deleting network")
         deleted = False
         while not deleted:
             try:
@@ -130,18 +133,18 @@ class HATest(Test):
                                       tenant_name=creds.user)
         self.rabbit = deployment.rabbitmq_mgmt_client
 
+        logging.basicConfig(level=logging.ERROR)
+        self.logger = logging.getLogger(__name__)
+
     def gather_creds(self, deployment):
         """
         Creates cred object based off deployment
         """
         keystone = deployment.environment.override_attributes['keystone']
         user = keystone['admin_user']
-        util.logger.debug("User: {0}".format(user))
         users = keystone['users']
         password = users[user]['password']
-        util.logger.debug("Pass: {0}".format(password))
         url = self.controller1['keystone']['adminURL']
-        util.logger.debug("URL: {0}".format(url))
         creds = Creds(user, password, url)
         return creds
 
@@ -211,37 +214,33 @@ class HATest(Test):
         """
         Moves vips from controller using keepalived
         """
+        self.logger.info('Restarting keepalived...')
         self.keepalived_fail(node_up)
         sleep(5)
         self.keepalived_restore(node_up)
-        # NEED TO WAIT UNTIL node_down PICKS UP VIPS!!!!!!!!
         sleep(10)
 
     def fail_node(self, node):
         """
         Failover a node
         """
+        self.logger.info('Powering off node...')
         node.power_off()
-
-    def prepare(self):
-        """
-        Prepares to run tests
-        """
-
-        util.logger.debug("Placeholder for prepare()")
 
     def is_online(self, ip):
         """
         Returns true if a connection can be made with ssh
         """
-        util.logger.debug("IP ADDRESS: {0}".format(ip))
+        self.logger.info("Checking if {0} is online".format(ip))
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             s.settimeout(2)
             s.connect((ip, 22))
             s.close()
         except socket.error:
+            self.logger.debug('There was a socket error')
             return False
+        self.logger.debug("{0} is online".format(ip))
         return True
 
     def build(self, server_name, server_image, server_flavor, network_name,
@@ -249,62 +248,57 @@ class HATest(Test):
         """
         Builds state in OpenStack (net, server)
         """
-        util.logger.debug("\033[1;44mACTION: Build\033[0m")
-        util.logger.debug("\033[1;44mBuild Name: {0}\033[0m".format(
-                          server_name))
+        self.logger.info("Configuring network and building instance...")
 
+        self.logger.debug("Creating network: {0}".format(network_name))
         network_id = self.create_network(network_name)
-        util.logger.debug("\033[1;44mNetwork ID: {0}\033[0m".format(
-                          network_id))
+        self.logger.debug("Network ({0}) created".format(network_id))
 
+        self.logger.debug("Creating subnetwork: {0}".format(subnet_name))
         subnet_id = self.create_subnet(subnet_name, network_id, cidr)
-        util.logger.debug("\033[1;44mSubnet ID: {0}\033[0m".format(
-                          subnet_id))
+        self.logger.debug("Subnet ({0}) created".format(subnet_id))
 
+        self.logger.debug("Creating router: {0}".format(router_name))
         router_id = self.create_router(router_name)
-        util.logger.debug("\033[1;44mRouter ID: {0}\033[0m".format(
-                          router_id))
+        self.logger.debug("Router ({0}) created".format(router_id))
 
+        self.logger.debug('Creating router interface')
         iface_port = self.add_router_interface(router_id, subnet_id)
-        util.logger.debug("\033[1;44mInterface Port: {0}\033[0m".format(
-                          iface_port))
-#-----------------------------------------------------------------------------
+        self.logger.debug("Interface port: {0}".format(iface_port))
 #-----------------------------------------------------------------------------
         provider_net_id = self.provider_net
 
         self.neutron.add_gateway_router(router_id,
                                         body={"network_id": provider_net_id})
 #-----------------------------------------------------------------------------
-#-----------------------------------------------------------------------------
-
         networks = [{"net-id": network_id}]
-        util.logger.debug("Building server with above parameters...")
+        self.logger.debug("Building server with above network configuration")
         server = False
         while not server:
             try:
-                util.logger.debug("Attempting server creation...")
+                self.logger.debug("Executing server creation command")
                 server = self.nova.servers.create(server_name, server_image,
                                                   server_flavor, nics=networks)
-                util.logger.debug("Server creation command executed!")
+                self.logger.debug("Server creation command executed")
             except:
                 server = False
-                util.logger.debug("Server creation command failed epicly!")
-                util.logger.debug("The epicness of its failure was truly a "
+                self.logger.debug("Server creation command failed epicly!")
+                self.logger.debug("The epicness of its failure was truly a "
                                   "sight to behold...")
                 sleep(1)
 
-        util.logger.debug("Executed build command...")
         build_status = "BUILD"
         #from IPython import embed
         #embed()
         while build_status == "BUILD":
             build_status = self.nova.servers.get(server.id).status
         if build_status == "ERROR":
-            util.logger.error("\033[1;41mBuild failed to initialize!\033[0m")
-            assert (build_status == "ERROR"), "Build failed to initialize!"
-            #pass
+            self.logger.error("Server ({0}) entered ERROR status!".format(
+                              server_name))
+            assert (build_status == "ERROR"), "Server failed to initialize!"
         else:
-            util.logger.debug("Build status: {0}".format(build_status))
+            self.logger.debug("Server ({0}) status: {1}".format(server_name,
+                                                                build_status))
         build = Build(server, network_id, subnet_id, server_name,
                       server_image, server_flavor)
 #-----------------------------------------------------------------------------
@@ -329,106 +323,65 @@ class HATest(Test):
         """
         Move vips on to first controller and fail it
         """
-        util.logger.debug("\033[1;44mACTION: Failover\033[0m")
-        util.logger.debug("Sleeping for 10 seconds...")
+        self.logger.info("Failing {0}...".format(node_down.name))
+        self.logger.debug('Sleeping for 10 seconds...')
         sleep(10)
         self.move_vips_from(node_up)
+        self.logger.debug('Powering down node')
         self.fail_node(node_down)
+
+    def wait_service(self, service, node, retry=10):
+        service_up = False
+        while not service_up:
+            self.logger.debug("Checking {0} on {1}".format(service, node.name))
+            service_up = node.run_cmd("pgrep -fl {0}".format(service))['return'].rstrip()
+            if not service_up:
+                self.logger.debug("{0} is not running on {1}".format(
+                                  service, node.name))
+                retry -= 1
+                if retry == 0:
+                    self.logger.warning("Manually starting {0}".format(
+                                        service))
+                    node.run_cmd("service {0} start".format(service))
+                sleep(1)
+        self.logger.debug("{0} is up on {1}!".format(service, node.name))
 
     def verify(self, builds, node_up, node_down=None):
         """
         Verifies state persistence
         """
-        util.logger.debug("\033[1;44mACTION: Verify\033[0m")
+        self.logger.info("Verifying cluster integrity...")
+
         # Check RPCS services (ha_proxy, keepalived, rpc daemon)
-        haproxy = node_up.run_cmd("pgrep -fl haproxy")['return'].rstrip()
-        while not haproxy:
-            util.logger.debug("Checking for haproxy status on {0}".format(
-                              node_up.name))
-            sleep(1)
-            haproxy = node_up.run_cmd("pgrep -fl haproxy")['return'].rstrip()
-        util.logger.debug("haproxy is up on {0}!".format(node_up.name))
-
-        keepalived = node_up.run_cmd("pgrep -fl keepalived")['return'].rstrip()
-        while not keepalived:
-            util.logger.debug("Checking for keepalived status on {0}".format(
-                              node_up.name))
-            sleep(1)
-            keepalived = node_up.run_cmd("pgrep -fl keepalived")[
-                'return'].rstrip()
-        util.logger.debug("keepalived is up on {0}!".format(node_up.name))
-
-        rpcdaemon = node_up.run_cmd("pgrep -fl rpcdaemon")['return'].rstrip()
-        retry = 10
-        while not rpcdaemon:
-            util.logger.debug("Checking for rpcdaemon status on {0}".format(
-                              node_up.name))
-            sleep(1)
-            retry -= 1
-            if retry == 0:
-                node_up.run_cmd("service rpcdaemon start")
-                sleep(1)
-                util.logger.debug("\033[1;41mSTARTING RPCDAEMON!\033[0m")
-            rpcdaemon = node_up.run_cmd("pgrep -fl rpcdaemon")[
-                'return'].rstrip()
-        util.logger.debug("rpcdaemon is up on {0}!".format(node_up.name))
+        services = ['haproxy', 'keepalived', 'rpcdaemon']
+        for service in services:
+            self.wait_service(service, node_up)
 
         if node_down:
-            haproxy = node_down.run_cmd("pgrep -fl haproxy")['return'].rstrip()
-            while not haproxy:
-                util.logger.debug("Checking for haproxy status on {0}".format(
-                    node_down.name))
-                sleep(1)
-                haproxy = node_down.run_cmd("pgrep -fl haproxy")[
-                    'return'].rstrip()
-            util.logger.debug("haproxy is up on {0}!".format(node_down.name))
-
-            keepalived = node_down.run_cmd("pgrep -fl keepalived")[
-                'return'].rstrip()
-            while not keepalived:
-                util.logger.debug("Checking for keepalived status on {0}".
-                                  format(node_down.name))
-                sleep(1)
-                keepalived = node_down.run_cmd("pgrep -fl keepalived")[
-                    'return'].rstrip()
-            util.logger.debug("keepalived is up on {0}!".format(
-                              node_down.name))
-
-            rpcdaemon = node_down.run_cmd("pgrep -fl rpcdaemon")[
-                'return'].rstrip()
-            retry = 10
-            while not rpcdaemon:
-                util.logger.debug("Checking for rpcdaemon status on {0}".
-                                  format(node_down.name))
-                sleep(1)
-                retry -= 1
-                if retry == 0:
-                    node_down.run_cmd("service rpcdaemon start")
-                    sleep(1)
-                    util.logger.debug("\033[1;41mSTARTING RPCDAEMON!\033[0m")
-                rpcdaemon = node_down.run_cmd("pgrep -fl rpcdaemon")[
-                    'return'].rstrip()
-            util.logger.debug("rpcdaemon is up on {0}!".format(node_down.name))
+            for service in services:
+                self.wait_service(service, node_down)
 
         # Check that the VIPS moved over to node_up
+        self.logger.debug("Checking for vips on {0}".format(node_up.name))
         exec_vips = node_up.run_cmd("ip netns exec vips ip a")['return']
         exec_vips_down = " "
         if node_down:
+            self.logger.debug("Checking for vips on {0}".format(
+                              node_down.name))
             exec_vips_down = node_down.run_cmd("ip netns exec vips ip a")[
                 'return']
-        #print "RETVALUE ip netns exec vips ip a: {0}".format(exec_vips)
 
         vips = self.deployment.environment.override_attributes[
             'vips']['config'].keys()
         for vip in vips:
-            util.logger.debug("VIP: {0}".format(vip))
+            self.logger.debug("VIP: {0}".format(vip))
         for vip in vips:
-            util.logger.debug(("Verifying that {0} is in the vips "
+            self.logger.debug(("Verifying that {0} is in the vips "
                                "namespace...").format(vip))
             # Checks if the vips are absent from both controllers
             while (vip not in exec_vips) and (vip not in exec_vips_down):
-                util.logger.debug(("{0} is not found in the vips "
-                                   "namespace!!!").format(vip))
+                self.logger.debug(("{0} is not found in the vips "
+                                   "namespace").format(vip))
                 sleep(1)
                 exec_vips = node_up.run_cmd("ip netns exec vips "
                                             "ip a")['return']
@@ -438,101 +391,98 @@ class HATest(Test):
             # Verifies that the vips do not reside on both servers
             if (vip in exec_vips) and (vip in exec_vips_down):
                 assert vip not in exec_vips, ("{0} vip found on both "
-                                              "controllers!!!").format(vip)
+                                              "controllers").format(vip)
             # Checks for the vips on node_up controller
             elif vip in exec_vips:
-                util.logger.debug("{0} vip found in {1}...".format(
+                self.logger.debug("{0} vip found in {1}...".format(
                                   vip, node_up.name))
             # Checks for the vips on the node_down controller
             else:
-                util.logger.debug("{0} vip found on {1}...".format(
+                self.logger.debug("{0} vip found on {1}...".format(
                                   vip, node_down.name))
 
-        #IP NETNS NEEDS TO CONTAIN NEUTRON NET-LIST
+###########################################################################
+#       IP NETNS NEEDS TO CONTAIN NEUTRON NET-LIST?
+#       ip_netns_value = node_up.run_cmd("ip netns")['return'].rstrip()
+###########################################################################
 
-        ip_netns_value = node_up.run_cmd("ip netns")['return'].rstrip()
-        util.logger.debug("ip netns: {0}".format(ip_netns_value))
-        current_host = node_up.run_cmd("hostname")['return'].rstrip()
-        util.logger.debug("hostname: {0}".format(current_host))
-
-        # --------------------------------------review
         # Check networks rescheduled
         for build in builds:
-            util.logger.debug("\033[1;44mChecking DHCP for build {0}\033[0m".
-                              format(build.name))
+            self.logger.debug("Checking DHCP on {0}".format(build.name))
             self.wait_dhcp_agent_alive(build.network_id)
 #-----------------------------------------------------------------
         # Check connectivity to builds
         #print "Checking connectivity to builds..."
         #for build in builds:
         #    while not self.is_online(build.ipaddress):
-        #        util.logger.debug(("Build {0} with IP {1} IS NOT "
+        #        self.logger.debug(("Build {0} with IP {1} IS NOT "
         #                           "responding...").format(build.name,
         #                                                   build.ipaddress)
-        #    util.logger.debug("Build {0} with IP {1} IS responding...".
+        #    self.logger.debug("Build {0} with IP {1} IS responding...".
         #                      format(build.name, build.ipaddress)
 #-----------------------------------------------------------------
 
+###########################################################################
         # Check MySQL replication isn't broken and Controller2 is master.
         #CAM
+###########################################################################
 
         # Check rabbitmq
         self.test_rabbit_status()
 
+###########################################################################
         # Check if all the configured Openstack Services are functional.
         # Run tempest based on the features enabled.
         #SELECTIVE TEMPEST RUN
-        nova_status = node_up.run_cmd(";".join(["source openrc",
-                                                "nova service-list | grep "
-                                                "compute | awk '{print "
-                                                "$10}'"]))['return'].rstrip()
-        util.logger.debug("NOVA STATUS: {0}".format(nova_status))
+###########################################################################
+
+###########################################################################
+#       NEED TO DETERMINE NUMBER OF COMPUTE NODES TO VERIFY!!!
+###########################################################################
+        nova_status = "down"
         while nova_status == "down":
-            util.logger.debug("Waiting for nova to come up on compute...")
-            sleep(1)
+            self.logger.debug("Checking if nova is up on compute")
             nova_status = node_up.run_cmd(";".join(["source openrc", "nova "
                                                     "service-list | grep "
                                                     "compute | awk '{print "
                                                     "$10}'"
                                                     ""]))['return'].rstrip()
-            util.logger.debug("NOVA STATUS: {0}".format(nova_status))
+            self.logger.debug("Nova has a state of {0}".format(nova_status))
 
     def wait_dhcp_agent_alive(self, net, wait=240):
         """
         Waits until dhcp agent for net is alive
         """
-        count = 1
+        count = 0
         dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(net)
         in_time = lambda x: wait > x
 
         while not dhcp_status['agents'] and in_time(count):
-            util.logger.debug("waiting for agents to populate:{0}".format(
+            self.logger.debug("Waiting for agents to populate".format(
                 dhcp_status))
             sleep(1)
             count += 1
             dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(net)
-
-        assert in_time(count), "agents failed to populate in time"
+        assert in_time(count), "Agents failed to populate in time"
 
         while not dhcp_status['agents'][0]['alive'] and in_time(count):
-            util.logger.debug("waiting for agents to be alive:{0}".format(
+            self.logger.debug("Waiting for agents to be rise".format(
                 dhcp_status))
             sleep(1)
             count += 1
             dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(net)
-
-        assert in_time(count), "agents failed to rise in time"
-        util.logger.debug("DHCP status checked...")
+        assert in_time(count), "Agents failed to rise in time"
+        self.logger.debug("DHCP is alive")
 
     def failback(self, node_down):
         """
         Unfails a node
         """
-        util.logger.debug("\033[1;44mACTION: Failback\033[1;0m")
+        self.logger.info("Performing Failback operation...")
         node_down.power_on()
         count = 1
         while not self.is_online(node_down.ipaddress):
-            util.logger.debug("Waiting for {0} to boot:{1}".format(
+            self.logger.debug("Waiting for {0} to boot - s:{1}".format(
                               node_down.name, count))
             sleep(1)
             count += 1
@@ -559,7 +509,7 @@ class HATest(Test):
 
         iterations = self.iterations
         build_stages = 4
-        verify_stages = 6
+        verify_stages = 5
         failover_stages = 2
         failback_stages = 2
 
@@ -571,95 +521,56 @@ class HATest(Test):
                 {'name': 'Failback', 'current': 0, 'total': failback_stages}]
         progress = Progress(bars)
 
+        builds = []
+
         node_up = self.controller1
         node_down = self.controller2
 
-        builds = []
+        stage = 0
+        while stage < 3:
+            os.system('clear')
+            progress.display("Verify")
+            self.verify(builds, node_up, node_down)
+            progress.advance("Verify")
+            os.system('clear')
+    
+            progress.display("Build")
+            build = self.build("testbuild{0}".format(stage),
+                               server_image, server_flavor,
+                               "testnetwork{0}".format(stage),
+                               "testsubnet{0}".format(stage),
+                               "testrouter{0}".format(stage),
+                               "172.32.{0}.0/24".format(stage))
+            stage += 1
+            builds.append(build)
+            progress.advance("Build")
+    
+            progress.display("Failover")
+            self.failover(node_up, node_down)
+            progress.advance("Failover")
+    
+            progress.display("Verify")
+            self.verify(builds, node_up)
+            progress.advance("Verify")
+    
+            progress.display("Build")
+            build = self.build("testbuild{0}".format(stage),
+                               server_image, server_flavor,
+                               "testnetwork{0}".format(stage),
+                               "testsubnet{0}".format(stage),
+                               "testrouter{0}".format(stage),
+                               "172.32.{0}.0/24".format(stage))
+            stage += 1
+            builds.append(build)
+            progress.advance("Build")
+    
+            progress.display("Failback")
+            self.failback(node_down)
+            progress.advance("Failback")
 
-        os.system('clear')
-        progress.display("Verify")
-        self.verify(builds, node_up, node_down)
-        progress.advance("Verify")
-        os.system('clear')
-
-        run = 0
-        progress.display("Build")
-        build1 = self.build("testbuild{0}".format(run),
-                            server_image, server_flavor,
-                            "testnetwork{0}".format(run),
-                            "testsubnet{0}".format(run),
-                            "testrouter{0}".format(run),
-                            "172.32.{0}.0/24".format(run))
-        builds.append(build1)
-        progress.advance("Build")
-
-        progress.display("Verify")
-        self.verify(builds, node_up, node_down)
-        progress.advance("Verify")
-
-        progress.display("Failover")
-        self.failover(node_up, node_down)
-        progress.advance("Failover")
-
-        progress.display("Verify")
-        self.verify(builds, node_up)
-        progress.advance("Verify")
-
-        run = 1
-        progress.display("Build")
-        build2 = self.build("testbuild{0}".format(run),
-                            server_image, server_flavor,
-                            "testnetwork{0}".format(run),
-                            "testsubnet{0}".format(run),
-                            "testrouter{0}".format(run),
-                            "172.32.{0}.0/24".format(run))
-        builds.append(build2)
-        progress.advance("Build")
-
-        progress.display("Failback")
-        self.failback(node_down)
-        progress.advance("Failback")
-
-        progress.display("Verify")
-        self.verify(builds, node_up, node_down)
-        progress.advance("Verify")
-
-        node_up = self.controller2
-        node_down = self.controller1
-
-        run = 2
-        progress.display("Build")
-        build3 = self.build("testbuild{0}".format(run),
-                            server_image, server_flavor,
-                            "testnetwork{0}".format(run),
-                            "testsubnet{0}".format(run),
-                            "testrouter{0}".format(run),
-                            "172.32.{0}.0/24".format(run))
-        builds.append(build3)
-        progress.advance("Build")
-
-        progress.display("Failover")
-        self.failover(node_up, node_down)
-        progress.advance("Failover")
-
-        progress.display("Verify")
-        self.verify(builds, node_up)
-        progress.advance("Verify")
-
-        run = 3
-        progress.display("Build")
-        build4 = self.build("testbuild{0}".format(run),
-                            server_image, server_flavor,
-                            "testnetwork{0}".format(run),
-                            "testsubnet{0}".format(run),
-                            "testrouter{0}".format(run),
-                            "172.32.{0}.0/24".format(run))
-        builds.append(build4)
-        progress.advance("Build")
-
-        progress.display("Failback")
-        self.failback(node_down)
-        progress.advance("Failback")
+            node_temp = node_up
+            node_up = node_down
+            node_down = node_temp
 
         progress.display("Verify")
         self.verify(builds, node_up, node_down)
@@ -671,7 +582,7 @@ class HATest(Test):
             build.destroy(self.nova, self.neutron)
 
         progress.advance("Iteration")
-
+        progress.display("Iteration")
         self.current_iteration += 1
         #tempest.test_node = node_up
         #tempest.test()
@@ -680,17 +591,12 @@ class HATest(Test):
         """
         Assures rabbit is alive
         """
-        util.logger.debug("\033[1;44mTesting if RabbitMQ is alive...\033[0m")
-        try:
-            status = self.rabbit.is_alive()
-        except:
-            status = False
+        status = False
         while not status:
-            util.logger.debug("Waiting for rabbit resurrection...")
-            sleep(1)
+            self.logger.debug("Testing if RabbitMQ is alive")
             try:
                 status = self.rabbit.is_alive()
-                util.logger.debug("\033[1;44mRabbitMQ is alive!\033[0m")
+                self.logger.debug("RabbitMQ is alive")
             except:
                 status = False
 
@@ -717,13 +623,17 @@ class HATest(Test):
 class Progress(object):
     def __init__(self, bars):
         self.bars = bars
+        logging.basicConfig(level=logging.ERROR)
+        self.logger = logging.getLogger(__name__)
 
     def advance(self, bar_name):
+        self.logger.debug("Advancing {0}...".format(bar_name))
         for bar in self.bars:
             if bar['name'] == bar_name:
                 bar['current'] += 1
 
     def print_bar(self, bar, size, curr):
+        self.logger.debug("Printing bar {0}...".format(bar['name']))
         sys.stdout.write("   {0}:[".format(bar['name']))
         self.set_color("bold")
         self.set_color("blue")
@@ -749,6 +659,7 @@ class Progress(object):
         sys.stdout.write("]   ")
 
     def set_color(self, style):
+        self.logger.debug("Changing output color to {0}...".format(style))
         if style == "default":
             sys.stdout.write("\033[0m")
         elif style == "bold":
@@ -763,6 +674,7 @@ class Progress(object):
             sys.stdout.write("\033[5m")
 
     def display(self, current_bar_name):
+        self.logger.debug('Flushing print buffer for status bar...')
         for i in range(210):
             sys.stdout.write("\b")
 
@@ -773,5 +685,4 @@ class Progress(object):
                 self.print_bar(bar, 20, 1)
             else:
                 self.print_bar(bar, 20, 0)
-
         sys.stdout.flush()
