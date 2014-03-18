@@ -9,7 +9,6 @@ from time import sleep
 from novaclient.v1_1 import client as nova_client
 from neutronclient.v2_0.client import Client as neutron_client
 
-from monster import util
 from monster.util import xunit_merge
 from monster.tests.test import Test
 
@@ -334,7 +333,8 @@ class HATest(Test):
         service_up = False
         while not service_up:
             self.logger.debug("Checking {0} on {1}".format(service, node.name))
-            service_up = node.run_cmd("pgrep -fl {0}".format(service))['return'].rstrip()
+            service_up = node.run_cmd("pgrep -fl {0}".format(
+                                      service))['return'].rstrip()
             if not service_up:
                 self.logger.debug("{0} is not running on {1}".format(
                                   service, node.name))
@@ -533,7 +533,7 @@ class HATest(Test):
             self.verify(builds, node_up, node_down)
             progress.advance("Verify")
             os.system('clear')
-    
+
             progress.display("Build")
             build = self.build("testbuild{0}".format(stage),
                                server_image, server_flavor,
@@ -544,15 +544,15 @@ class HATest(Test):
             stage += 1
             builds.append(build)
             progress.advance("Build")
-    
+
             progress.display("Failover")
             self.failover(node_up, node_down)
             progress.advance("Failover")
-    
+
             progress.display("Verify")
             self.verify(builds, node_up)
             progress.advance("Verify")
-    
+
             progress.display("Build")
             build = self.build("testbuild{0}".format(stage),
                                server_image, server_flavor,
@@ -563,7 +563,7 @@ class HATest(Test):
             stage += 1
             builds.append(build)
             progress.advance("Build")
-    
+
             progress.display("Failback")
             self.failback(node_down)
             progress.advance("Failback")
