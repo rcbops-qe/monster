@@ -196,6 +196,10 @@ class Chef(Deployment):
 
         local_api = autoconfigure()
         env = ChefEnvironment(environment, api=local_api)
+        if not env.exists:
+            util.logger.error("The specified environment, {0}, does not"
+                              "exist.".format(environment))
+            exit(1)
         override = env.override_attributes
         default = env.default_attributes
         chef_auth = override.get('remote_chef', None)
