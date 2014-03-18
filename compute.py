@@ -43,6 +43,7 @@ def __load_deployment(function):
         util.config = Config(args.config, args.secret_path)
         deployment = ChefDeployment.from_chef_environment(args.name)
         util.logger.debug("Loading deployment {0}".format(deployment))
+        embed()
         return function(deployment, args)
     return wrap_function
 
@@ -85,7 +86,6 @@ def build(deployment, dry):
             error = traceback.print_exc()
             util.logger.error(error)
             exit(1)
-
     else:
         util.logger.info(deployment)
         try:
@@ -96,7 +96,6 @@ def build(deployment, dry):
             exit(1)
 
     util.logger.info(deployment)
-
 
 
 @__log

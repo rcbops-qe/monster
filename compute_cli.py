@@ -69,8 +69,4 @@ class CLI:
                                          'ERROR', 'CRITICAL'],
                                 default='DEBUG')
         map(add_common_arguments, subparsers.choices.values())
-<<<<<<< HEAD
         return parser
-=======
-        return parser
->>>>>>> james | moving things around...
