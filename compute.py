@@ -36,7 +36,7 @@ def build(deployment, dry):
         deployment.build()
 
     util.logger.info(deployment)
-
+    
 
 @__log
 @__load_deployment
@@ -51,7 +51,6 @@ def test(deployment, args):
     if args.all or args.tempest:
         test_util.runTempest()
     test_util.report()
-
 
 @__log
 @__load_deployment
