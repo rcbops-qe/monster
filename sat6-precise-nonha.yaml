@@ -47,7 +47,7 @@ environments:
             root_network_acl: "%"
             allow_remote_root: true
     nova:
-        razor:
+        razor2:
             apply_patches: false
             networks:
                 public:
@@ -89,6 +89,12 @@ environments:
             ovs:
                 network_type: gre
                 vlans: 864
+        quantum:
+          lbaas:
+            enabled: true
+          ovs:
+            network_type: gre
+            vlans: 864
     cinder:
         local:
             storage:

@@ -1,0 +1,20 @@
+ubuntu-nonha-neutron:
+  product: compute
+  name: nonha
+  os: ubuntu
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    cinder: local
+    nova: default
+    neutron: quantum
+    horizon: default
+    osops: default
+    keystone: default
+    osopsnetworks: default
+  nodes:
+    - [chefserver]
+    - [controller, network, orchestration]
+    - [compute]
