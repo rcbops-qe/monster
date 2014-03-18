@@ -5,7 +5,6 @@ Command Line interface for Building Openstack clusters
 """
 
 from monster import util
-from IPython import embed
 try:
     import subprocess
     import traceback
@@ -43,7 +42,6 @@ def __load_deployment(function):
         util.config = Config(args.config, args.secret_path)
         deployment = ChefDeployment.from_chef_environment(args.name)
         util.logger.debug("Loading deployment {0}".format(deployment))
-        embed()
         return function(deployment, args)
     return wrap_function
 
@@ -67,9 +65,7 @@ def __build_deployment(function):
 def __provision_for_deployment(function):
     def wrap_function(args):
         util.config = Config(args.config, args.secret_path)
-        embed()
         args.provisioner=get_provisioner(args.provisioner)
-        embed()
         return function(args)
     return wrap_function
 

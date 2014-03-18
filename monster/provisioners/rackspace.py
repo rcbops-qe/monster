@@ -92,8 +92,6 @@ class Rackspace(Openstack):
         cmds = ["apt-get update -y",
                 "apt-get upgrade -y",
                 "apt-get install openssh-client git curl -y"]
-        #from IPython import embed
-        #embed()
         if node.os_name == "centos":
             cmds = ["yum update -y",
                     "yum upgrade -y",

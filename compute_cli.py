@@ -1,6 +1,5 @@
 #! /usr/bin/env python
 
-from IPython import embed
 import argparse
 class CLI:
     @classmethod
