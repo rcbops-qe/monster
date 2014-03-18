@@ -4,11 +4,11 @@ Module to test High Availability in RPC
 import os
 import sys
 import socket
-import logging
 from time import sleep
 from novaclient.v1_1 import client as nova_client
 from neutronclient.v2_0.client import Client as neutron_client
 
+from monster.logger import Logger
 from monster.util import xunit_merge
 from monster.tests.test import Test
 
@@ -36,8 +36,7 @@ class Build(object):
         self.subnet_id = subnet_id
         self.ip_info = None
         self.router_id = None
-        logging.basicConfig(level=logging.ERROR)
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(__name__)
 
     def destroy(self, nova, neutron):
         """
@@ -132,8 +131,7 @@ class HATest(Test):
                                       tenant_name=creds.user)
         self.rabbit = deployment.rabbitmq_mgmt_client
 
-        logging.basicConfig(level=logging.ERROR)
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(__name__)
 
     def gather_creds(self, deployment):
         """
@@ -623,8 +621,7 @@ class HATest(Test):
 class Progress(object):
     def __init__(self, bars):
         self.bars = bars
-        logging.basicConfig(level=logging.ERROR)
-        self.logger = logging.getLogger(__name__)
+        self.logger = Logger(__name__)
 
     def advance(self, bar_name):
         self.logger.debug("Advancing {0}...".format(bar_name))
