@@ -67,7 +67,9 @@ def __build_deployment(function):
 def __provision_for_deployment(function):
     def wrap_function(args):
         util.config = Config(args.config, args.secret_path)
+        embed()
         args.provisioner=get_provisioner(args.provisioner)
+        embed()
         return function(args)
     return wrap_function
 

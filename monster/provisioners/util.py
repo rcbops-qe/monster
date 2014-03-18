@@ -1,8 +1,8 @@
 import sys
 import traceback
 from monster.util import module_classes
+from monster.provisioners import *
 from monster import util
-
 
 
 def get_provisioner(provisioner):
