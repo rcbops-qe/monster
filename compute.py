@@ -96,7 +96,7 @@ def build(deployment, dry):
             exit(1)
 
     util.logger.info(deployment)
-
+    
 
 @__log
 @__load_deployment
@@ -144,7 +144,6 @@ def test(deployment, args):
 
     print ('\033[1;36mTests have been completed with '
            '{0} iterations!\033[1;m'.format(args.iterations))
-
 
 def getFile(ip, user, password, remote, local, remote_delete=False):
     cmd1 = 'sshpass -p {0} scp -q {1} {2}'.format(password, remote, local)
