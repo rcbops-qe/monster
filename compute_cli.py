@@ -52,6 +52,8 @@ class CLI:
         test_to_run.add_argument('--HA', '--ha')
         test_to_run.add_argument('--tp', '--tempest')
         test_to_run.add_argument('--oc', '--opencafe')
+        test_parser.add_argument('--pn', 'provider_net',
+                default='6241dfe9-11fe-45e7-b39d-45ef88f5d9cb')
         test_parser.set_defaults(func=commands['test'])
 
         tmux_parser=subparsers.add_parser('tmux')
@@ -67,4 +69,8 @@ class CLI:
                                          'ERROR', 'CRITICAL'],
                                 default='DEBUG')
         map(add_common_arguments, subparsers.choices.values())
+<<<<<<< HEAD
         return parser
+=======
+        return parser
+>>>>>>> james | moving things around...
