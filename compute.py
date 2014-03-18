@@ -3,17 +3,25 @@
 """
 Command Line interface for Building Openstack clusters
 """
-import argh
-import subprocess
-import traceback
-import webbrowser
-from monster import util
-from monster.config import Config
-from monster.tests.ha import HATest
-from monster.provisioners.util import get_provisioner
-from monster.tests.tempest_neutron import TempestNeutron
-from monster.tests.tempest_quantum import TempestQuantum
-from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
+
+try:
+    import argh
+    import subprocess
+    import traceback
+    import webbrowser
+    from monster import util
+    from monster.config import Config
+    from monster.tests.ha import HATest
+    from monster.provisioners.util import get_provisioner
+    from monster.tests.tempest_neutron import TempestNeutron
+    from monster.tests.tempest_quantum import TempestQuantum
+    from monster.deployments.chef_deployment import Chef as ChefDeployment
+except ImportError as error:
+    print("ERROR: There was an import error when trying to load '{0}'. This "
+          "may be resolved if you load the monster virtual environment with "
+          "the command \"source .venv/bin/activate\""
+          .format(error.message[16:]))
+    exit(1)
 
 
 def build(name="autotest", template="ubuntu-default", branch="master",
@@ -34,12 +42,12 @@ def build(name="autotest", template="ubuntu-default", branch="master",
         else:
             template_file = temp_branch.replace('.', '_')
 
-    # provisiong deployment
+    # provision deployment
     util.config = Config(config, secret_path=secret_path)
     cprovisioner = get_provisioner(provisioner)
 
     util.logger.info("Building deployment object for {0}".format(name))
-    deployment = MonsterChefDeployment.fromfile(
+    deployment = ChefDeployment.fromfile(
         name, template, branch, cprovisioner, template_file)
 
     if dry:
@@ -215,7 +223,7 @@ def show(name="autotest", config=None, log=None, secret_path=None,
 def _load(name="autotest", config=None, secret_path=None):
     # load deployment and source openrc
     util.config = Config(config, secret_path=secret_path)
-    return MonsterChefDeployment.from_chef_environment(name)
+    return ChefDeployment.from_chef_environment(name)
 
 
 def _set_log(log, log_level):
