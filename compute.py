@@ -107,7 +107,7 @@ def destroy(name="autotest", config=None, log=None, log_level="INFO",
 
 def test(name="autotest", config=None, log=None, log_level="INFO",
          tempest=False, ha=False, secret_path=None, deployment=None,
-         iterations=1):
+         iterations=1, provider_net="6241dfe9-11fe-45e7-b39d-45ef88f5d9cb"):
     """
     Tests an openstack deployment
     """
@@ -137,19 +137,19 @@ def test(name="autotest", config=None, log=None, log_level="INFO",
         getFile(ip, user, password, remote, local)
 
     for i in range(iterations):
-        print ('\033[1;36mRunning iteration {0} of {1}!'
-               '\033[1;m'.format(i + 1, iterations))
+        #print ('\033[1;36mRunning iteration {0} of {1}!'
+        #       '\033[1;m'.format(i + 1, iterations))
 
         #Prepares directory for xml files to be SCPed over
         subprocess.call(['mkdir', '-p', '{0}'.format(local)])
 
         if ha:
-            print ('\033[1;36mRunning High Availability test!'
-                   '\033[1;m')
-            ha.test()
+            #print ('\033[1;36mRunning High Availability test!'
+            #       '\033[1;m')
+            ha.test(iterations, provider_net)
         if tempest:
-            print ('\033[1;36mRunning Tempest test!'
-                   '\033[1;m')
+            #print ('\033[1;36mRunning Tempest test!'
+            #       '\033[1;m')
             tempest.test()
 
     print ('\033[1;36mTests have been completed with '
