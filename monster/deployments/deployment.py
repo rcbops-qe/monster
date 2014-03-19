@@ -7,7 +7,6 @@ import tmuxp
 from pyrabbit.api import Client
 
 from monster import util
-from monster.logger import Logger
 from monster.tools.retrofit import Retrofit
 
 
@@ -22,11 +21,10 @@ class Deployment(object):
         self.branch = branch
         self.features = []
         self.nodes = []
-        self.status = status or "provisioning"
+        self.status = status or "Provisioning..."  # i don't like this default
         self.provisioner = str(provisioner)
         self.product = product
         self.clients = clients
-        self.logger = Logger(__name__).get_logger()
 
     def __repr__(self):
         """
@@ -53,37 +51,35 @@ class Deployment(object):
         Destroys an OpenStack deployment
         """
 
-        self.status = "destroying"
-        self.logger.info("Destroying deployment:{0}".format(self.name))
+        self.status = "Destroying..."
+        util.logger.info("Destroying deployment: {0}".format(self.name))
         for node in self.nodes:
             node.destroy()
-        self.status = "destroyed"
+        self.status = "Destroyed!"
 
     def update_environment(self):
         """
-        Pre configures node for each feature
+        Preconfigures node for each feature
         """
 
-        self.logger.info("Building Configured Environment")
-        self.status = "loading environment"
+        util.logger.info("Building Configured Environment")
+        self.status = "Loading environment..."
         for feature in self.features:
-            log = "Deployment feature: update environment: {0}"\
-                .format(str(feature))
-            self.logger.debug(log)
+            util.logger.debug("Deployment feature {0}: updating environment!"
+                              .format(str(feature)))
             feature.update_environment()
-        self.logger.debug(self.environment)
-        self.status = "environment ready"
+        util.logger.debug(self.environment)
+        self.status = "Environment ready!"
 
     def pre_configure(self):
         """
-        Pre configures node for each feature
+        Preconfigures node for each feature
         """
 
-        self.status = "pre-configure"
+        self.status = "Pre-configuring nodes for features..."
         for feature in self.features:
-            log = "Deployment feature: pre-configure: {0}"\
-                .format(str(feature))
-            self.logger.debug(log)
+            util.logger.debug("Deployment feature: pre-configure: {0}"
+                .format(str(feature)))
             feature.pre_configure()
 
     def build_nodes(self):
@@ -91,21 +87,22 @@ class Deployment(object):
         Builds each node
         """
 
-        self.status = "building nodes"
+        self.status = "Building nodes..."
         for node in self.nodes:
+            util.logger.debug("Building node {0}!".format(str(node)))
             node.build()
-        self.status = "nodes built"
+        self.status = "Nodes built!"
 
     def post_configure(self):
         """
         Post configures node for each feature
         """
 
-        self.status = "post-configure"
+        self.status = "Post-configuration..."
         for feature in self.features:
             log = "Deployment feature: post-configure: {0}"\
                 .format(str(feature))
-            self.logger.debug(log)
+            util.logger.debug(log)
             feature.post_configure()
 
     def build(self):
@@ -113,16 +110,16 @@ class Deployment(object):
         Runs build steps for node's features
         """
 
-        self.logger.debug("Deployment step: update environment")
+        util.logger.debug("Deployment step: update environment")
         self.update_environment()
-        self.logger.debug("Deployment step: pre-configure")
+        util.logger.debug("Deployment step: pre-configure")
         self.pre_configure()
-        self.logger.debug("Deployment step: build nodes")
+        util.logger.debug("Deployment step: build nodes")
         self.build_nodes()
-        self.logger.debug("Deployment step: post-configure")
+        util.logger.debug("Deployment step: post-configure")
         self.post_configure()
         self.status = "post-build"
-        self.logger.info(self)
+        util.logger.info(self)
 
     def artifact(self):
         """
@@ -202,7 +199,7 @@ class Deployment(object):
         Retrofit the deployment
         """
 
-        self.logger.info("Retrofit Deployment: {0}".format(self.name))
+        util.logger.info("Retrofit Deployment: {0}".format(self.name))
 
         retrofit = Retrofit(self)
 

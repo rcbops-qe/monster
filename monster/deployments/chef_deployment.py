@@ -128,7 +128,7 @@ class Chef(Deployment):
 
     @classmethod
     def fromfile(cls, name, template_name, branch, provisioner, template_file,
-                 template_path=None):
+                 template_path=None, **args):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment
@@ -159,7 +159,13 @@ class Chef(Deployment):
         else:
             path = template_path
 
-        template = Config(path)[template_name]
+        try:
+            template = Config(path)[template_name]
+        except KeyError:
+            util.logger.critical("Looking for the template {0} in the file: "
+                                 "\n{1}\n The key was not found!"
+                                 .format(template_name, path))
+            exit(1)
 
         environment = MonsterChefEnvironment(name, local_api, description=name)
 
@@ -196,6 +202,10 @@ class Chef(Deployment):
 
         local_api = autoconfigure()
         env = ChefEnvironment(environment, api=local_api)
+        if not env.exists:
+            util.logger.error("The specified environment, {0}, does not"
+                              "exist.".format(environment))
+            exit(1)
         override = env.override_attributes
         default = env.default_attributes
         chef_auth = override.get('remote_chef', None)

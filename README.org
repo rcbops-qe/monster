@@ -1,36 +1,9 @@
 * Monster
 
-[[https://travis-ci.org/rcbops-qa/monster][https://travis-ci.org/rcbops-qa/monster.png?branch=master]]
-
 An OpenStack Orchestration Engine
 
-** Requirements
-
-   - Must have a chef server installed
-
-     #+BEGIN_SRC sh
-       source <(curl -s https://raw.github.com/rcbops/support-tools/master/chef-install/install-chef-server.sh)
-     #+END_SRC
-
-     - Must have knife.rb configured for chef server (the above command
-       will take care of this)
-
-       http://docs.opscode.com/chef/install_workstation.html
-
-     - Once the script is done running you will have to logout and back in to use knife
-
-   - Install packages
-
-     #+BEGIN_SRC sh
-       apt-get install -y git python-pip virtualenvwrapper python-dev libevent-dev
-     #+END_SRC
-
-   - Chef server must have rcbops-qa cookbook installed
-     #+BEGIN_SRC sh
-       git clone https://github.com/rcbops-qa/rcbops-qa.git /opt/cookbooks/rcbops-qa
-       git clone https://github.com/opscode-cookbooks/yum.git /opt/cookbooks/yum
-       knife cookbook upload -a -o /opt/cookbooks/
-     #+END_SRC
+** To install
+   - Use the monster installer at [[https://github.com/rcbops-qa/monster-installer.git]]
 
 ** Installation
 
@@ -66,7 +39,7 @@ An OpenStack Orchestration Engine
          password: YOUR_PASSWORD
      #+END_EXAMPLE
 
-     If you use razor to provision servers add it's api endpoint
+     If you use razor to provision servers add its API endpoint
      support clean up
 
      #+BEGIN_EXAMPLE

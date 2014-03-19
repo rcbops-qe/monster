@@ -42,7 +42,11 @@ nosetests.xml
 *~
 .ropeproject
 
+# PyCharm
+.idea
+
 # monster
 *.json
 *.log
 *.xunit
+log

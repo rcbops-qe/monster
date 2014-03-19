@@ -1,53 +1,4 @@
-rackspace-ubuntu-ha:
-  product: compute
-  name: ha
-  os: ubuntu
-  features:
-    openssh: default
-    monitoring: default
-    mysql: default
-    glance: default
-    cinder: local
-    nova: default
-    neutron: neutron
-    horizon: default
-    osops: default
-    keystone: default
-    osopsnetworks: default
-    highavailability: default
-  nodes:
-    - [chefserver]
-    - [controller, network]
-    - [controller, network]
-    - [cinder]
-    - [compute]
-    - [compute]
-
-sat6-ubuntu-ha:
-  product: compute
-  name: ha
-  os: ubuntu
-  features:
-    openssh: default
-    monitoring: default
-    mysql: default
-    glance: default
-    cinder: local
-    nova: default
-    neutron: neutron
-    horizon: default
-    osops: default
-    keystone: default
-    osopsnetworks: default
-    highavailability: default
-  nodes:
-    - [controller, network]
-    - [controller, network]
-    - [cinder]
-    - [compute]
-    - [compute]
-
-sat6-ubuntu-nonha:
+ubuntu-nonha-neutron:
   product: compute
   name: nonha
   os: ubuntu
@@ -58,13 +9,12 @@ sat6-ubuntu-nonha:
     glance: default
     cinder: local
     nova: default
-    neutron: neutron
+    neutron: quantum
     horizon: default
     osops: default
     keystone: default
     osopsnetworks: default
   nodes:
-    - [controller, network]
-    - [cinder]
-    - [compute]
+    - [chefserver]
+    - [controller, network, orchestration]
     - [compute]

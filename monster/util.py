@@ -1,7 +1,10 @@
 import os
+import sys
 import logging
+import traceback
 from glob import glob
 from xml.etree import ElementTree
+
 
 from inspect import getmembers, isclass
 
@@ -28,6 +31,17 @@ def log_to_file(logger, path):
     log_file.setFormatter(console_handler.formatter)
     log_file.setLevel(logging.DEBUG)
     logger.addHandler(log_file)
+
+
+def error_exit(error_message=None):
+    """
+    Prints a stack track to the logger and exits gracefully.
+    Takes an optional message parameter.
+    """
+    if error_message:
+        logger.error(error_message)
+    logger.error(traceback.print_exc())
+    sys.exit(1)
 
 
 def module_classes(module):

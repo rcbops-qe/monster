@@ -1,233 +1,137 @@
 #! /usr/bin/env python
 
 """
-Command Line interface for Building Openstack clusters
+Command-line interface for building OpenStack clusters
 """
-import argh
-import logging
-import subprocess
-import traceback
-import webbrowser
+
+import os
 from monster import util
-from monster.config import Config
-from monster.tests.ha import HATest
-from monster.provisioners.util import get_provisioner
-from monster.tests.tempest_neutron import TempestNeutron
-from monster.tests.tempest_quantum import TempestQuantum
-from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
+
+if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
+    util.logger.warning("You are not using the virtual environment! We "
+                        "cannot guarantee that your monster will be well"
+                        "-behaved.  To load the virtual environment, use "
+                        "the command \"source .venv/bin/activate\"")
 
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger(__name__)
-def build(name="autotest", template="ubuntu-default", branch="master",
-          config=None, dry=False, log=None, log_level="INFO",
-          provisioner="rackspace", secret_path=None):
+import webbrowser
+from compute_cli import CLI
+from monster.tests.utils import TestUtil
+from tools.compute_decorators import __log
+from tools.compute_decorators import __load_deployment
+from tools.compute_decorators import __build_deployment
+from tools.compute_decorators import __provision_for_deployment
+
+
+@__log
+@__provision_for_deployment
+@__build_deployment
+def build(deployment, dry):
     """
     Builds an OpenStack Cluster
     """
-    #logs = Logger(__name__)
-    #logger = logs.get_logger()
-    #_set_log(logs, log, log_level)
-
-    # Magic to get the template location from the branch
-    if branch == "master":
-        template_file = "default"
-    else:
-        temp_branch = branch.lstrip('v')
-        if "rc" in temp_branch:
-            template_file = temp_branch.rstrip("rc").replace('.', '_')
-        else:
-            template_file = temp_branch.replace('.', '_')
-
-    # provisiong deployment
-    util.config = Config(config, secret_path=secret_path)
-    cprovisioner = get_provisioner(provisioner)
-
-    logger.info("Building deployment object for {0}".format(name))
-    deployment = MonsterChefDeployment.fromfile(
-        name, template, branch, cprovisioner, template_file)
-
     if dry:
-        try:
-            deployment.update_environment()
-        except Exception:
-            error = traceback.print_exc()
-            logger.error(error)
-            raise
-
+        deployment.update_environment()
     else:
-        logger.info(deployment)
-        try:
-            deployment.build()
-        except Exception:
-            error = traceback.print_exc()
-            logger.error(error)
-            raise
+        deployment.build()
 
-    logger.info(deployment)
+    util.logger.info(deployment)
 
 
-def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
-             x_bridge='lxb-mgmt', iface='eth0', del_port=None, config=None,
-             log=None, log_level='INFO', secret_path=None):
-
+@__log
+@__load_deployment
+def test(deployment, args):
     """
-    Retrofit a deployment
+    Tests an OpenStack deployment
     """
-    deployment = _load(name, config, secret_path)
-    logger.info(deployment)
+    test_util = TestUtil(deployment, args)
+
+    if args.all or args.ha:
+        test_util.runHA()
+    if args.all or args.tempest:
+        test_util.runTempest()
+    test_util.report()
+
+
+@__log
+@__load_deployment
+def retrofit(deployment, retro_branch='dev', ovs_bridge='br-eth1',
+             x_bridge='lxb-mgmt', iface='eth0', del_port=None):
+    """
+    Retrofits an OpenStack deployment
+    """
     deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
 
 
-def upgrade(name='autotest', upgrade_branch='v4.1.3rc',
-            config=None, log=None, log_level="INFO", secret_path=None):
+@__log
+@__load_deployment
+def upgrade(deployment, args):
     """
     Upgrades a current deployment to the new branch / tag
     """
-    deployment = _load(name, config, secret_path)
-    logger.info(deployment)
-    deployment.upgrade(upgrade_branch)
+    deployment.upgrade(args['upgrade_branch'])
 
 
-def destroy(name="autotest", config=None, log=None, log_level="INFO",
-            secret_path=None):
+@__log
+@__load_deployment
+def destroy(deployment, args):
     """
     Destroys an existing OpenStack deployment
     """
-    deployment = _load(name, config, secret_path)
-    logger.info(deployment)
     deployment.destroy()
 
 
-def test(name="autotest", config=None, log="{0}.log".format(__name__), log_level="INFO",
-         tempest=False, ha=False, secret_path=None, deployment=None,
-         iterations=1, provider_net="f1d63cf1-cbac-499c-995e-dee4d752934a"):
-    """
-    Tests an openstack deployment
-    """
-    if not deployment:
-        #_set_log(logs, log, log_level)
-        deployment = _load(name, config, secret_path)
-    if not tempest and not ha:
-        tempest = True
-        ha = True
-    if not deployment.feature_in("highavailability"):
-        ha = False
-    if ha:
-        ha = HATest(deployment, log_level)
-    if tempest:
-        branch = TempestQuantum.tempest_branch(deployment.branch)
-        if "grizzly" in branch:
-            tempest = TempestQuantum(deployment)
-        else:
-            tempest = TempestNeutron(deployment)
-
-    env = deployment.environment.name
-    local = "./results/{0}/".format(env)
-    controllers = deployment.search_role('controller')
-    for controller in controllers:
-        ip, user, password = controller.get_creds()
-        remote = "{0}@{1}:~/*.xml".format(user, ip)
-        getFile(ip, user, password, remote, local)
-
-    for i in range(iterations):
-        #Prepares directory for xml files to be SCPed over
-        subprocess.call(['mkdir', '-p', '{0}'.format(local)])
-        logger.debug("Starting test iteration {0}".format(i))
-        if ha:
-            logger.debug("Triggering ha test")
-            ha.test(iterations, provider_net)
-        if tempest:
-            logger.debug("Triggering tempest test")
-            tempest.test()
-
-    logger.info("Tests have ended with {0} iterations!".format(iterations))
-
-
-def getFile(ip, user, password, remote, local, remote_delete=False):
-    cmd1 = 'sshpass -p {0} scp -q {1} {2}'.format(password, remote, local)
-    subprocess.call(cmd1, shell=True)
-    if remote_delete:
-        cmd2 = ("sshpass -p {0} ssh -o UserKnownHostsFile=/dev/null "
-                "-o StrictHostKeyChecking=no -o LogLevel=quiet -l {1} {2}"
-                " 'rm *.xml;exit'".format(password, user, ip))
-        subprocess.call(cmd2, shell=True)
-
-
-def artifact(name="autotest", config=None, log=None, secret_path=None,
-             log_level="INFO"):
+@__log
+@__load_deployment
+def artifact(deployment, args):
     """
     Artifacts a deployment (configs / running services)
     """
-
-    #_set_log(logs, log, log_level)
-    deployment = _load(name, config, secret_path)
     deployment.artifact()
 
 
-def openrc(name="autotest", config=None, log=None, secret_path=None,
-           log_level="INFO"):
+@__log
+@__load_deployment
+def openrc(deployment, args):
     """
     Loads OpenStack credentials into shell env
     """
-    #_set_log(logs, log, log_level)
-    deployment = _load(name, config, secret_path)
     deployment.openrc()
 
 
-def tmux(name="autotest", config=None, log=None, secret_path=None,
-         log_level="INFO"):
+@__log
+@__load_deployment
+def tmux(deployment, args):
     """
     Loads OpenStack nodes into new tmux session
     """
-    #_set_log(logs, log, log_level)
-    deployment = _load(name, config, secret_path)
     deployment.tmux()
 
 
-def horizon(name="autotest", config=None, log=None, secret_path=None,
-            log_level="INFO"):
+@__log
+@__load_deployment
+def horizon(deployment, args):
     """
-    Opens horizon in a browser tab
+    Opens Horizon in a browser tab
     """
-    logs = Logger(__name__)
-    logger = logs.get_logger()
-    _set_log(logs, log, log_level)
-    deployment = _load(name, config, secret_path)
     ip = deployment.horizon_ip()
     url = "https://{0}".format(ip)
     webbrowser.open_new_tab(url)
 
 
-def show(name="autotest", config=None, log=None, secret_path=None,
-         log_level="INFO"):
+@__log
+@__load_deployment
+def show(deployment, args):
     """
-    Shows details about and OpenStack deployment
+    Shows details about an OpenStack deployment
     """
-    logs = Logger(__name__)
-    logger = logs.get_logger()
-    _set_log(logs, log, log_level)
-    # load deployment and source openrc
-    deployment = _load(name, config, secret_path)
-    logger.info(str(deployment))
+    util.logger.info(str(deployment))
 
-
-def _load(name="autotest", config=None, secret_path=None):
-    # load deployment and source openrc
-    util.config = Config(config, secret_path=secret_path)
-    return MonsterChefDeployment.from_chef_environment(name)
-
-
-def _set_log(logger, log, log_level):
-    # set log level and file
-    logger.set_log_level(log_level)
-    if log:
-        logger.log_to_file(log)
-
+# is artifact supposed to be in the CLI?
+args = CLI.parser(
+    {'build': build, 'destroy': destroy, 'horizon': horizon, 'openrc': openrc,
+     'retrofit': retrofit, 'show': show, 'test': test, 'tmux': tmux,
+     'upgrade': upgrade}).parse_args()
 
 if __name__ == "__main__":
-    parser = argh.ArghParser()
-    parser.add_commands([build, retrofit, upgrade,
-                        destroy, openrc, horizon,
-                        show, test, tmux])
-    parser.dispatch()
+        args.func(args)
