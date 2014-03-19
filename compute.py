@@ -10,18 +10,18 @@ from tools.compute_decorators import __load_deployment
 from tools.compute_decorators import __build_deployment
 from tools.compute_decorators import __provision_for_deployment
 
-try:
-    import os
-    import traceback
-    import webbrowser
-    from compute_cli import CLI
-    from monster.test.test_util import TestUtil
-
-except ImportError as error:
-    util.logger.error("There was an import error when trying to load '{0}' "
-                      "This may be resolved if you load the monster virtual"
-                      " environment with the command \"source .venv/bin/"
-                      "activate\"".format(error.message[16:]))
+# try:
+import os
+import traceback
+import webbrowser
+from compute_cli import CLI
+from monster.tests.utils import TestUtil
+#
+# except ImportError as error:
+#     util.logger.error("There was an import error when trying to load '{0}' "
+#                       "This may be resolved if you load the monster virtual"
+#                       " environment with the command \"source .venv/bin/"
+#                       "activate\"".format(error.message[16:]))
     exit(1)
 if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
     util.logger.warning("You are not using the virtual environment! We "
