@@ -51,11 +51,11 @@ class CLI:
         test_to_run=test_parser.add_mutually_exclusive_group(required=True)
         test_to_run.add_argument('-a', '--all',action='store_true',
                                  help='Run all applicable tests.')
-        test_to_run.add_argument('--HA', '--ha', action='store_true',
+        test_to_run.add_argument('--ha', '--HA', action='store_true',
                                  help='Run only HA tests.')
-        test_to_run.add_argument('--tp', '--tempest',action='store_true',
+        test_to_run.add_argument('--tempest', '--tp', action='store_true',
                                  help='Run only Tempest tests.')
-        test_to_run.add_argument('--cc', '--cloudcafe', action='store_true',
+        test_to_run.add_argument('--cloudcafe', '--cc', action='store_true',
                                  help='Run only CloudCAFE tests.')
         test_parser.add_argument('-p', '--provider_net',
                 default='6241dfe9-11fe-45e7-b39d-45ef88f5d9cb')
