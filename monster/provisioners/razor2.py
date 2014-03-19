@@ -91,7 +91,7 @@ class Razor2(Provisioner):
                             "awk '{print $1}' `; do kill -9 $i; done")
                     node.run_cmd(kill)
                 node.run_cmd("shutdown -r now")
-                self.api.delete_node(razor_node)
+                self.api.reinstall_node(razor_node)
                 Client(node.name).delete()
                 cnode.delete()
                 sleep(15)
@@ -172,6 +172,26 @@ class RazorAPI2(object):
             return 'Error: exited with status code: {0}'.format(
                 str(r.status_code))
 
+    def reinstall_node(self, node):
+        """
+        Reinstalls a given node
+        :param node: Razor node name to reinstall
+        :type node: string
+        """
+
+        # Call the Razor RESTful API to get a node
+        headers = {'content-type': 'application/json'}
+        data = '{{"name": "{0}"}}'.format(node)
+        r = requests.post('{0}/commands/reinstall-node'.format(self.url),
+                          headers=headers, data=data)
+
+        # Check the status code and return appropriately
+        if r.status_code == 202 and 'no changes' not in r.content:
+            return json.loads(r.content)
+        else:
+            return 'Error: exited with status code: {0}'.format(
+                str(r.status_code))
+
     def delete_node(self, node):
         """
         Deletes a given node
@@ -182,7 +202,7 @@ class RazorAPI2(object):
         # Call the Razor RESTful API to get a node
         headers = {'content-type': 'application/json'}
         data = '{{"name": "{0}"}}'.format(node)
-        r = requests.post('{0}/commands/delete-nodes'.format(self.url),
+        r = requests.post('{0}/commands/delete-node'.format(self.url),
                           headers=headers, data=data)
 
         # Check the status code and return appropriately
