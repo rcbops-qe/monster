@@ -148,7 +148,7 @@ class Chef(Deployment):
 
         if ChefEnvironment(name, api=local_api).exists:
             # Use previous dry build if exists
-            util.logger.info("Using previous deployment:{0}".format(name))
+            #util.logger.info("Using previous deployment:{0}".format(name))
             return cls.from_chef_environment(name)
 
         if not template_path:
@@ -226,8 +226,8 @@ class Chef(Deployment):
         nodes = deployment_args.get('nodes', [])
         for node in (ChefNode(n, local_api) for n in nodes):
             if not node.exists:
-                util.logger.error("Non existant chef node:{0}".
-                                  format(node.name))
+                #util.logger.error("Non existant chef node:{0}".
+                #                  format(node.name))
                 continue
             cnode = MonsterChefNode.from_chef_node(node, product, environment,
                                                    deployment, provisioner,
@@ -275,8 +275,8 @@ class Chef(Deployment):
         # stringify and lowercase classes in deployment features
         classes = util.module_classes(deployment_features)
         for feature, rpcs_feature in features.items():
-            util.logger.debug("feature: {0}, rpcs_feature: {1}".format(
-                feature, rpcs_feature))
+            #util.logger.debug("feature: {0}, rpcs_feature: {1}".format(
+            #    feature, rpcs_feature))
             self.features.append(classes[feature](self, rpcs_feature))
 
     def destroy(self):

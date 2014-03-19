@@ -52,7 +52,7 @@ class Chef(MonsterEnvironment):
 
         # update chef env with local object info
         for attr in self.__dict__:
-            util.logger.debug("{0}: {1}".format(attr, self.__dict__[attr]))
+            #util.logger.debug("{0}: {1}".format(attr, self.__dict__[attr]))
             setattr(env, attr, self.__dict__[attr])
 
         # Save local/remote
@@ -61,7 +61,7 @@ class Chef(MonsterEnvironment):
             try:
                 env.save(self.remote_api)
             except Exception as e:
-                util.logger.error("Remote env error:{0}".format(e))
+                print ""#util.logger.error("Remote env error:{0}".format(e))
 
     def destroy(self):
         ChefEnvironment(self.name).delete()

@@ -28,7 +28,7 @@ class Build(object):
     Build state to be verified after failover
     """
     def __init__(self, server, network_id, subnet_id, name, image, flavor,
-                 log="{0}.log".format(__name__), log_level="ERROR"):
+                 log_level):
         self.server = server
         self.name = name
         self.image = image
@@ -37,9 +37,11 @@ class Build(object):
         self.subnet_id = subnet_id
         self.ip_info = None
         self.router_id = None
-        logger = Logger(__name__)
+        logger = Logger(__name__.__class__)
         self.logger = logger.get_logger()
         logger.set_log_level(log_level)
+        self.log_level = log_level
+        log="{0}.log".format(__name__)
         logger.log_to_file(log)
 
     def destroy(self, nova, neutron):
@@ -114,7 +116,7 @@ class HATest(Test):
     """
     HA Openstack tests
     """
-    def __init__(self, deployment, log="{0}.log".format(__name__), log_level="ERROR"):
+    def __init__(self, deployment, log_level):
         super(HATest, self).__init__(deployment)
 
         self.iterations = 1
@@ -138,6 +140,8 @@ class HATest(Test):
         logger = Logger(__name__)
         self.logger = logger.get_logger()
         logger.set_log_level(log_level)
+        self.log_level = log_level
+        log="{0}.log".format(__name__)
         logger.log_to_file(log)
 
     def gather_creds(self, deployment):
@@ -301,12 +305,12 @@ class HATest(Test):
             self.logger.debug("Server ({0}) status: {1}".format(server_name,
                                                                 build_status))
         build = Build(server, network_id, subnet_id, server_name,
-                      server_image, server_flavor)
+                      server_image, server_flavor, self.log_level)
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
         port_id = ""
         while not port_id:
-            print "Attempting to get a valid port id..."
+            self.logger.debug("Attempting to get a valid port id...")
             port_id = self.get_port_id(build)
 
         floating_ip = self.neutron.create_floatingip({"floatingip":
@@ -635,21 +639,17 @@ class HATest(Test):
 
 
 class Progress(object):
-    def __init__(self, bars, log="{0}.log".format(__name__), log_level="ERROR"):
+    def __init__(self, bars):
         self.bars = bars
-        logger = Logger(__name__)
-        self.logger = logger.get_logger()
-        logger.set_log_level(log_level)
-        logger.log_to_file(log)
 
     def advance(self, bar_name):
-        self.logger.debug("Advancing {0}...".format(bar_name))
+        #self.logger.debug("Advancing {0}...".format(bar_name))
         for bar in self.bars:
             if bar['name'] == bar_name:
                 bar['current'] += 1
 
     def print_bar(self, bar, size, curr):
-        self.logger.debug("Printing bar {0}...".format(bar['name']))
+        #self.logger.debug("Printing bar {0}...".format(bar['name']))
         sys.stdout.write("   {0}:[".format(bar['name']))
         self.set_color("bold")
         self.set_color("blue")
@@ -675,7 +675,7 @@ class Progress(object):
         sys.stdout.write("]   ")
 
     def set_color(self, style):
-        self.logger.debug("Changing output color to {0}...".format(style))
+        #self.logger.debug("Changing output color to {0}...".format(style))
         if style == "default":
             sys.stdout.write("\033[0m")
         elif style == "bold":
@@ -690,7 +690,7 @@ class Progress(object):
             sys.stdout.write("\033[5m")
 
     def display(self, current_bar_name):
-        self.logger.debug('Flushing print buffer for status bar...')
+        #self.logger.debug('Flushing print buffer for status bar...')
         for i in range(210):
             sys.stdout.write("\b")
 

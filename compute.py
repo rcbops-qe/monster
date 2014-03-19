@@ -4,11 +4,11 @@
 Command Line interface for Building Openstack clusters
 """
 import argh
+import logging
 import subprocess
 import traceback
 import webbrowser
 from monster import util
-from monster.logger import Logger
 from monster.config import Config
 from monster.tests.ha import HATest
 from monster.provisioners.util import get_provisioner
@@ -17,15 +17,17 @@ from monster.tests.tempest_quantum import TempestQuantum
 from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
 
 
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 def build(name="autotest", template="ubuntu-default", branch="master",
           config=None, dry=False, log=None, log_level="INFO",
           provisioner="rackspace", secret_path=None):
     """
     Builds an OpenStack Cluster
     """
-    logs = Logger(__name__)
-    logger = logs.get_logger()
-    _set_log(logs, log, log_level)
+    #logs = Logger(__name__)
+    #logger = logs.get_logger()
+    #_set_log(logs, log, log_level)
 
     # Magic to get the template location from the branch
     if branch == "master":
@@ -72,9 +74,6 @@ def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
     """
     Retrofit a deployment
     """
-    logs = Logger(__name__)
-    logger = logs.get_logger()
-    _set_log(logs, log, log_level)
     deployment = _load(name, config, secret_path)
     logger.info(deployment)
     deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
@@ -85,9 +84,6 @@ def upgrade(name='autotest', upgrade_branch='v4.1.3rc',
     """
     Upgrades a current deployment to the new branch / tag
     """
-    logs = Logger(__name__)
-    logger = logs.get_logger()
-    _set_log(logs, log, log_level)
     deployment = _load(name, config, secret_path)
     logger.info(deployment)
     deployment.upgrade(upgrade_branch)
@@ -98,24 +94,19 @@ def destroy(name="autotest", config=None, log=None, log_level="INFO",
     """
     Destroys an existing OpenStack deployment
     """
-    logs = Logger(__name__)
-    logger = logs.get_logger()
-    _set_log(logs, log, log_level)
     deployment = _load(name, config, secret_path)
     logger.info(deployment)
     deployment.destroy()
 
 
-def test(name="autotest", config=None, log=None, log_level="INFO",
+def test(name="autotest", config=None, log="{0}.log".format(__name__), log_level="INFO",
          tempest=False, ha=False, secret_path=None, deployment=None,
          iterations=1, provider_net="f1d63cf1-cbac-499c-995e-dee4d752934a"):
     """
     Tests an openstack deployment
     """
-    logs = Logger(__name__)
-    logger = logs.get_logger()
     if not deployment:
-        _set_log(logs, log, log_level)
+        #_set_log(logs, log, log_level)
         deployment = _load(name, config, secret_path)
     if not tempest and not ha:
         tempest = True
@@ -123,7 +114,7 @@ def test(name="autotest", config=None, log=None, log_level="INFO",
     if not deployment.feature_in("highavailability"):
         ha = False
     if ha:
-        ha = HATest(deployment)
+        ha = HATest(deployment, log_level)
     if tempest:
         branch = TempestQuantum.tempest_branch(deployment.branch)
         if "grizzly" in branch:
@@ -140,23 +131,17 @@ def test(name="autotest", config=None, log=None, log_level="INFO",
         getFile(ip, user, password, remote, local)
 
     for i in range(iterations):
-        #print ('\033[1;36mRunning iteration {0} of {1}!'
-        #       '\033[1;m'.format(i + 1, iterations))
-
         #Prepares directory for xml files to be SCPed over
         subprocess.call(['mkdir', '-p', '{0}'.format(local)])
-
+        logger.debug("Starting test iteration {0}".format(i))
         if ha:
-            #print ('\033[1;36mRunning High Availability test!'
-            #       '\033[1;m')
+            logger.debug("Triggering ha test")
             ha.test(iterations, provider_net)
         if tempest:
-            #print ('\033[1;36mRunning Tempest test!'
-            #       '\033[1;m')
+            logger.debug("Triggering tempest test")
             tempest.test()
 
-    print ('\033[1;36mTests have been completed with '
-           '{0} iterations!\033[1;m'.format(iterations))
+    logger.info("Tests have ended with {0} iterations!".format(iterations))
 
 
 def getFile(ip, user, password, remote, local, remote_delete=False):
@@ -175,9 +160,7 @@ def artifact(name="autotest", config=None, log=None, secret_path=None,
     Artifacts a deployment (configs / running services)
     """
 
-    logs = Logger(__name__)
-    logger = logs.get_logger()
-    _set_log(logs, log, log_level)
+    #_set_log(logs, log, log_level)
     deployment = _load(name, config, secret_path)
     deployment.artifact()
 
@@ -187,9 +170,7 @@ def openrc(name="autotest", config=None, log=None, secret_path=None,
     """
     Loads OpenStack credentials into shell env
     """
-    logs = Logger(__name__)
-    logger = logs.get_logger()
-    _set_log(logs, log, log_level)
+    #_set_log(logs, log, log_level)
     deployment = _load(name, config, secret_path)
     deployment.openrc()
 
@@ -199,9 +180,7 @@ def tmux(name="autotest", config=None, log=None, secret_path=None,
     """
     Loads OpenStack nodes into new tmux session
     """
-    logs = Logger(__name__)
-    logger = logs.get_logger()
-    _set_log(logs, log, log_level)
+    #_set_log(logs, log, log_level)
     deployment = _load(name, config, secret_path)
     deployment.tmux()
 
