@@ -47,11 +47,11 @@ class CLI:
         test_parser.add_argument('-d', '--deployment')
         test_parser.add_argument('-i', '--iterations', default=1)
         test_to_run=test_parser.add_mutually_exclusive_group(required=True)
-        test_to_run.add_argument('-a', '--all')
-        test_to_run.add_argument('--HA', '--ha')
-        test_to_run.add_argument('--tp', '--tempest')
-        test_to_run.add_argument('--oc', '--opencafe')
-        test_parser.add_argument('--pn', 'provider_net',
+        test_to_run.add_argument('-a', '--all', action='store_true')
+        test_to_run.add_argument('--HA', '--ha', action='store_true')
+        test_to_run.add_argument('--tp', '--tempest', action='store_true')
+        test_to_run.add_argument('--oc', '--opencafe', action='store_true')
+        test_parser.add_argument('--pn', '--provider_net',
                 default='6241dfe9-11fe-45e7-b39d-45ef88f5d9cb')
         test_parser.set_defaults(func=commands['test'])
 

@@ -22,7 +22,7 @@ from monster.tests.utils import TestUtil
 #                       "This may be resolved if you load the monster virtual"
 #                       " environment with the command \"source .venv/bin/"
 #                       "activate\"".format(error.message[16:]))
-    exit(1)
+#    exit(1)
 if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
     util.logger.warning("You are not using the virtual environment! We "
                         "cannot guarantee that your monster will be well"
