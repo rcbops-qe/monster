@@ -46,7 +46,8 @@ class CLI:
         test_parser=subparsers.add_parser('test')
         test_parser.add_argument('-d', '--deployment')
         test_parser.add_argument('-i', '--iterations',default=1,
-            help='Iterations to run each selected test suite.  Default is 1.')
+            help='Iterations to run each selected test suite.  If nothing '
+                 'is specified, each selected test suite will be ran once.')
         test_to_run=test_parser.add_mutually_exclusive_group(required=True)
         test_to_run.add_argument('-a', '--all',action='store_true',
                                  help='Run all applicable tests.')
@@ -64,7 +65,8 @@ class CLI:
         tmux_parser.set_defaults(func=commands['tmux'])
 
         def add_common_arguments(parser):
-            parser.add_argument('-n', '--name')
+            parser.add_argument('-n', '--name', help="Name of the OpenStack "
+                                                     "deployment.")
             parser.add_argument('-c', '--config', default='rspc.yaml')
             parser.add_argument('-s', '--secret-path', default='secret.yaml')
             parser.add_argument('-l', '--logfile-path', default='./log')
