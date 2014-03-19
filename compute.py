@@ -1,23 +1,22 @@
 #! /usr/bin/env python
 
 """
-Command Line interface for Building Openstack clusters
+Command-line interface for building OpenStack clusters
 """
 
 from monster import util
+from tools.compute_decorators import __log
+from tools.compute_decorators import __load_deployment
+from tools.compute_decorators import __build_deployment
+from tools.compute_decorators import __provision_for_deployment
+
 try:
-    import subprocess
+    import os
     import traceback
     import webbrowser
-    import os
-    import inspect
     from compute_cli import CLI
-    from monster.config import Config
-    from monster.tests.ha import HATest
-    from monster.provisioners.util import get_provisioner
-    from monster.tests.tempest_neutron import TempestNeutron
-    from monster.tests.tempest_quantum import TempestQuantum
-    from monster.deployments.chef_deployment import Chef as ChefDeployment
+    from monster.test.test_util import TestUtil
+
 except ImportError as error:
     util.logger.error("There was an import error when trying to load '{0}' "
                       "This may be resolved if you load the monster virtual"
@@ -30,44 +29,6 @@ if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
                         "-behaved.  To load the virtual environment, use "
                         "the command \"source .venv/bin/activate\"")
 
-def __log(function):
-    def wrap_function(args):
-        util.logger.setLevel(args.log_level)
-        util.log_to_file(args.logfile_path)
-        return function(args)
-    return wrap_function
-
-def __load_deployment(function):
-    def wrap_function(args):
-        util.config = Config(args.config, args.secret_path)
-        deployment = ChefDeployment.from_chef_environment(args.name)
-        util.logger.debug("Loading deployment {0}".format(deployment))
-        return function(deployment, args)
-    return wrap_function
-
-def __build_deployment(function):
-    def wrap_function(args):
-        util.logger.info("Building deployment object for %s" % args.name)
-        util.logger.debug("Creating ChefDeployment with dict %s" % args)
-        try:
-            args.deployment = ChefDeployment.fromfile(**vars(args))
-        except TypeError as error:
-            util.logger.critical(
-                str(error) +
-                "ChefDeployment.fromfile was called with \n{0},\n but "
-                "expects at least the following non-none : {1}."
-                .format(vars(args),
-                        inspect.getargspec(ChefDeployment.fromfile)[0][1:]))
-            exit(1)
-        return function(args)
-    return wrap_function
-
-def __provision_for_deployment(function):
-    def wrap_function(args):
-        util.config = Config(args.config, args.secret_path)
-        args.provisioner=get_provisioner(args.provisioner)
-        return function(args)
-    return wrap_function
 
 
 @__log
@@ -100,58 +61,15 @@ def build(deployment, dry):
 @__load_deployment
 def test(deployment, args):
     """
-    Tests an openstack deployment
+    Tests an OpenStack deployment
     """
-    if not args.tempest and not args.ha:
-        tempest = True
-        ha = True
-    if not deployment.feature_in("highavailability"):
-        ha = False
-    if ha:
-        ha = HATest(deployment)
-    if tempest:
-        branch = TempestQuantum.tempest_branch(deployment.branch)
-        if "grizzly" in branch:
-            tempest = TempestQuantum(deployment)
-        else:
-            tempest = TempestNeutron(deployment)
+    test_util = TestUtil(deployment, args)
 
-    env = deployment.environment.name
-    local = "./results/{0}/".format(env)
-    controllers = deployment.search_role('controller')
-    for controller in controllers:
-        ip, user, password = controller.get_creds()
-        remote = "{0}@{1}:~/*.xml".format(user, ip)
-        getFile(ip, user, password, remote, local)
-
-    for i in range(args.iterations):
-        #print ('\033[1;36mRunning iteration {0} of {1}!'
-        #       '\033[1;m'.format(i + 1, iterations))
-
-        #Prepares directory for xml files to be SCPed over
-        subprocess.call(['mkdir', '-p', '{0}'.format(local)])
-
-        if ha:
-            #print ('\033[1;36mRunning High Availability test!'
-            #       '\033[1;m')
-            ha.test(args.iterations, args.provider_net)
-        if tempest:
-            #print ('\033[1;36mRunning Tempest test!'
-            #       '\033[1;m')
-            tempest.test()
-
-    print ('\033[1;36mTests have been completed with '
-           '{0} iterations!\033[1;m'.format(args.iterations))
-
-
-def getFile(ip, user, password, remote, local, remote_delete=False):
-    cmd1 = 'sshpass -p {0} scp -q {1} {2}'.format(password, remote, local)
-    subprocess.call(cmd1, shell=True)
-    if remote_delete:
-        cmd2 = ("sshpass -p {0} ssh -o UserKnownHostsFile=/dev/null "
-                "-o StrictHostKeyChecking=no -o LogLevel=quiet -l {1} {2}"
-                " 'rm *.xml;exit'".format(password, user, ip))
-        subprocess.call(cmd2, shell=True)
+    if args.all or args.ha:
+        test_util.runHA()
+    if args.all or args.tempest:
+        test_util.runTempest()
+    test_util.report()
 
 
 @__log
@@ -159,7 +77,7 @@ def getFile(ip, user, password, remote, local, remote_delete=False):
 def retrofit(deployment, retro_branch='dev', ovs_bridge='br-eth1',
              x_bridge='lxb-mgmt', iface='eth0', del_port=None):
     """
-    Retrofit a deployment
+    Retrofits an OpenStack deployment
     """
     deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
 
@@ -212,7 +130,7 @@ def tmux(deployment, args):
 @__load_deployment
 def horizon(deployment, args):
     """
-    Opens horizon in a browser tab
+    Opens Horizon in a browser tab
     """
     ip = deployment.horizon_ip()
     url = "https://{0}".format(ip)  # i don't think this will work
