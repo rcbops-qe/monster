@@ -49,3 +49,4 @@ nosetests.xml
 *.json
 *.log
 *.xunit
+log
