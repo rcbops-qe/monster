@@ -27,7 +27,8 @@ class Build(object):
     """
     Build state to be verified after failover
     """
-    def __init__(self, server, network_id, subnet_id, name, image, flavor):
+    def __init__(self, server, network_id, subnet_id, name, image, flavor,
+                 log="{0}.log".format(__name__), log_level="ERROR"):
         self.server = server
         self.name = name
         self.image = image
@@ -36,7 +37,10 @@ class Build(object):
         self.subnet_id = subnet_id
         self.ip_info = None
         self.router_id = None
-        self.logger = Logger(__name__)
+        logger = Logger(__name__)
+        self.logger = logger.get_logger()
+        logger.set_log_level(log_level)
+        logger.log_to_file(log)
 
     def destroy(self, nova, neutron):
         """
@@ -110,7 +114,7 @@ class HATest(Test):
     """
     HA Openstack tests
     """
-    def __init__(self, deployment):
+    def __init__(self, deployment, log="{0}.log".format(__name__), log_level="ERROR"):
         super(HATest, self).__init__(deployment)
 
         self.iterations = 1
@@ -131,7 +135,10 @@ class HATest(Test):
                                       tenant_name=creds.user)
         self.rabbit = deployment.rabbitmq_mgmt_client
 
-        self.logger = Logger(__name__)
+        logger = Logger(__name__)
+        self.logger = logger.get_logger()
+        logger.set_log_level(log_level)
+        logger.log_to_file(log)
 
     def gather_creds(self, deployment):
         """
@@ -264,7 +271,6 @@ class HATest(Test):
         self.logger.debug("Interface port: {0}".format(iface_port))
 #-----------------------------------------------------------------------------
         provider_net_id = self.provider_net
-
         self.neutron.add_gateway_router(router_id,
                                         body={"network_id": provider_net_id})
 #-----------------------------------------------------------------------------
@@ -285,8 +291,6 @@ class HATest(Test):
                 sleep(1)
 
         build_status = "BUILD"
-        #from IPython import embed
-        #embed()
         while build_status == "BUILD":
             build_status = self.nova.servers.get(server.id).status
         if build_status == "ERROR":
@@ -301,10 +305,9 @@ class HATest(Test):
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
         port_id = ""
-        for port in self.neutron.list_ports()['ports']:
-            if port['device_id'] == build.server.id:
-                port_id = port['id']
-                break
+        while not port_id:
+            print "Attempting to get a valid port id..."
+            port_id = self.get_port_id(build)
 
         floating_ip = self.neutron.create_floatingip({"floatingip":
                                                      {"floating_network_id":
@@ -315,6 +318,13 @@ class HATest(Test):
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
         return build
+
+    def get_port_id(self, build):
+        port_id = ""
+        for port in self.neutron.list_ports()['ports']:
+            if port['device_id'] == build.server.id:
+                return port['id']
+        return port_id
 
     def failover(self, node_up, node_down):
         """
@@ -349,6 +359,12 @@ class HATest(Test):
         Verifies state persistence
         """
         self.logger.info("Verifying cluster integrity...")
+
+        # Checks if RS Cloud libvirt issue has been resolved
+        libvirt = node_up.run_cmd(";".join(["source openrc",
+                                  ("nova service-list | awk '{print $2}' "
+                                   "| grep 'nova-compute'")]))['return']
+        assert "compute" in libvirt, "The compute nodes are not reporting properly!"
 
         # Check RPCS services (ha_proxy, keepalived, rpc daemon)
         services = ['haproxy', 'keepalived', 'rpcdaemon']
@@ -619,9 +635,12 @@ class HATest(Test):
 
 
 class Progress(object):
-    def __init__(self, bars):
+    def __init__(self, bars, log="{0}.log".format(__name__), log_level="ERROR"):
         self.bars = bars
-        self.logger = Logger(__name__)
+        logger = Logger(__name__)
+        self.logger = logger.get_logger()
+        logger.set_log_level(log_level)
+        logger.log_to_file(log)
 
     def advance(self, bar_name):
         self.logger.debug("Advancing {0}...".format(bar_name))

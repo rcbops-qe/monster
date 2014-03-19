@@ -12,6 +12,9 @@ class Logger(object):
         self.logger.addHandler(self.console_handler)
         #config = None
 
+    def get_logger(self):
+        return self.logger
+
     def set_log_level(self, level):
         log_level = getattr(logging, level, logging.INFO)
         self.logger.setLevel(log_level)

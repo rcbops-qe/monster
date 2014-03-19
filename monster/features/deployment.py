@@ -6,7 +6,7 @@ import requests
 
 from monster.features.feature import Feature
 from monster import util
-
+from monster.logger import Logger
 
 class Deployment(Feature):
     """ Represents a feature across a deployment
@@ -15,6 +15,7 @@ class Deployment(Feature):
     def __init__(self, deployment, rpcs_feature):
         self.rpcs_feature = rpcs_feature
         self.deployment = deployment
+        self.logger = Logger(__name__).get_logger()
 
     def __repr__(self):
         """
@@ -61,6 +62,7 @@ class Neutron(Deployment):
 
         # Set the provider name in object (future use)
         self.provider = provider
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         """
@@ -112,11 +114,11 @@ class Neutron(Deployment):
                         "default").format(self.provider)
 
         controller = next(self.deployment.search_role('controller'))
-        util.logger.info("## Setting up ICMP security rule ##")
+        self.logger.info("## Setting up ICMP security rule ##")
         controller.run_cmd(icmp_command)
-        util.logger.info("## Setting up TCP security rule ##")
+        self.logger.info("## Setting up TCP security rule ##")
         controller.run_cmd(tcp_command)
-        util.logger.info("## Setting up LBAAS testing security rule ##")
+        self.logger.info("## Setting up LBAAS testing security rule ##")
         controller.run_cmd(tcp_command2)
 
     def _fix_networking_environment(self):
@@ -131,7 +133,7 @@ class Neutron(Deployment):
             iface = util.config[self.deployment.provisioner]['network'][
                 'vmnet']['iface']
 
-        util.logger.info("Using iface: {0}".format(iface))
+        self.logger.info("Using iface: {0}".format(iface))
 
         env = self.deployment.environment
         ovs = env.override_attributes[self.provider]['ovs']
@@ -191,8 +193,8 @@ class Neutron(Deployment):
         sleep_in_minutes = 5
         total_sleep_time = 0
         while not self.deployment.is_online():
-            util.logger.info("## Current Deployment is Offline ##")
-            util.logger.info("## Sleeping for {0} minutes ##".format(
+            self.logger.info("## Current Deployment is Offline ##")
+            self.logger.info("## Sleeping for {0} minutes ##".format(
                 str(sleep_in_minutes)))
             time.sleep(sleep_in_minutes * 60)
             total_sleep_time += sleep_in_minutes
@@ -209,34 +211,34 @@ class Neutron(Deployment):
         Build the subnets
         """
 
-        util.logger.info("### Beginning of Networking Block ###")
+        self.logger.info("### Beginning of Networking Block ###")
 
         controllers = self.deployment.search_role('controller')
         computes = self.deployment.search_role('compute')
 
-        util.logger.info("### Building OVS Bridge and "
+        self.logger.info("### Building OVS Bridge and "
                          "Ports on network nodes ###")
 
         for controller in controllers:
             iface = controller.get_vmnet_iface()
             command = self.iface_bb_cmd(iface)
-            util.logger.debug("Running {0} on {1}".format(command, controller))
+            self.logger.debug("Running {0} on {1}".format(command, controller))
             controller.run_cmd(command)
 
         # loop through computes and run
         for compute in computes:
             iface = compute.get_vmnet_iface()
             command = self.iface_bb_cmd(iface)
-            util.logger.debug("Running {0} on {1}".format(command, compute))
+            self.logger.debug("Running {0} on {1}".format(command, compute))
             compute.run_cmd(command)
 
-        util.logger.info("### End of Networking Block ###")
+        self.logger.info("### End of Networking Block ###")
 
     def iface_bb_cmd(self, iface):
         if not iface:
             iface = util.config[self.deployment.provisioner]['network'][
                 self.deployment.os_name]['vmnet']['iface']
-        util.logger.info("Using iface: {0}".format(iface))
+        self.logger.info("Using iface: {0}".format(iface))
         commands = ['ip a f {0}'.format(iface),
                     'ovs-vsctl add-port br-{0} {0}'.format(
                         iface)]
@@ -266,7 +268,7 @@ class Neutron(Deployment):
             iface = util.config[self.deployment.provisioner]['network'][
                 self.deployment.os_name]['vmnet']['iface']
 
-        util.logger.info("Using iface: {0}".format(iface))
+        self.logger.info("Using iface: {0}".format(iface))
         cmd = "ip a f {0}".format(iface)
         return cmd
 
@@ -278,6 +280,7 @@ class Swift(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Swift, self).__init__(deployment, rpcs_feature)
         self.environment = util.config['environments'][str(self)][rpcs_feature]
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -319,7 +322,7 @@ class Swift(Deployment):
         swift = env.override_attributes['swift'][master_key]
         swift['keystone'] = keystone
 
-        util.logger.info("Matching environment: {0} to RPCS "
+        self.logger.info("Matching environment: {0} to RPCS "
                          "swift requirements".format(env.name))
 
         env.del_override_attr('keystone')
@@ -362,18 +365,18 @@ class Swift(Deployment):
                         "/dev/{0} /srv/node/{0}".format(label),
                         "chown -R swift:swift /srv/node"]
             if auto:
-                util.logger.info(
+                self.logger.info(
                     "## Configuring Disks on Storage Node @ {0} ##".format(
                         storage_node.ipaddress))
                 command = "; ".join(commands)
                 storage_node.run_cmd(command)
             else:
-                util.logger.info("## Info to setup drives for Swift ##")
-                util.logger.info(
+                self.logger.info("## Info to setup drives for Swift ##")
+                self.logger.info(
                     "## Log into root@{0} and run the following commands: "
                     "##".format(storage_node.ipaddress))
                 for command in commands:
-                    util.logger.info(command)
+                    self.logger.info(command)
 
         ####################################################################
         ## Setup partitions on storage nodes, (must run as swiftops user) ##
@@ -432,17 +435,17 @@ class Swift(Deployment):
         commands.extend(cmd_list)
 
         if auto:
-            util.logger.info(
+            self.logger.info(
                 "## Setting up swift rings for deployment ##")
             command = "; ".join(commands)
             controller.run_cmd(command)
         else:
-            util.logger.info("## Info to manually set up swift rings: ##")
-            util.logger.info(
+            self.logger.info("## Info to manually set up swift rings: ##")
+            self.logger.info(
                 "## Log into root@{0} and run the following commands: "
                 "##".format(controller.ipaddress))
             for command in commands:
-                util.logger.info(command)
+                self.logger.info(command)
 
         #####################################################################
         ############# Time to distribute the ring to all the boxes ##########
@@ -451,34 +454,34 @@ class Swift(Deployment):
         command = "/usr/bin/swift-ring-minion-server -f -o"
         for proxy_node in proxy_nodes:
             if auto:
-                util.logger.info(
+                self.logger.info(
                     "## Pulling swift ring down on proxy node @ {0}: "
                     "##".format(proxy_node.ipaddress))
                 proxy_node.run_cmd(command)
             else:
-                util.logger.info(
+                self.logger.info(
                     "## On node root@{0} run the following command: "
                     "##".format(proxy_node.ipaddress))
-                util.logger.info(command)
+                self.logger.info(command)
 
         for storage_node in storage_nodes:
             if auto:
-                util.logger.info(
+                self.logger.info(
                     "## Pulling swift ring down on storage node: {0} "
                     "##".format(storage_node.ipaddress))
                 storage_node.run_cmd(command)
             else:
-                util.logger.info(
+                self.logger.info(
                     "## On node root@{0} run the following command: "
                     "##".format(storage_node.ipaddress))
-                util.logger.info(command)
+                self.logger.info(command)
 
         #####################################################################
         ############### Finalize by running chef on controler ###############
         #####################################################################
 
         if auto:
-            util.logger.info("Finalizing install on all nodes")
+            self.logger.info("Finalizing install on all nodes")
             for proxy_node in proxy_nodes:
                 proxy_node.run()
             for storage_node in storage_nodes:
@@ -486,16 +489,16 @@ class Swift(Deployment):
             controller.run()
         else:
             for proxy_node in proxy_nodes:
-                util.logger.info("On node root@{0}, run: "
+                self.logger.info("On node root@{0}, run: "
                                  "chef client".format(proxy_node.ipaddress))
             for storage_node in storage_nodes:
-                util.logger.info("On node root@{0}, run: "
+                self.logger.info("On node root@{0}, run: "
                                  "chef client".format(storage_node.ipaddress))
-            util.logger.info(
+            self.logger.info(
                 "On node root@{0} run the following command: chef-client "
                 "##".format(controller.ipaddress))
 
-        util.logger.info("## Done setting up swift rings ##")
+        self.logger.info("## Done setting up swift rings ##")
 
 
 class Glance(Deployment):
@@ -505,6 +508,7 @@ class Glance(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Glance, self).__init__(deployment, rpcs_feature)
         self.environment = util.config['environments'][str(self)][rpcs_feature]
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -552,6 +556,7 @@ class Keystone(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Keystone, self).__init__(deployment, rpcs_feature)
         self.environment = util.config['environments'][str(self)][rpcs_feature]
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -566,6 +571,7 @@ class Nova(Deployment):
         super(Nova, self).__init__(deployment, rpcs_feature)
         self.environment = util.config['environments'][str(self)][
             str(self.deployment.provisioner)]
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
 
@@ -579,10 +585,10 @@ class Nova(Deployment):
             iface = util.config[self.deployment.provisioner]['network'][
                 'vmnet']['iface']
 
-        util.logger.info("Using iface: {0}".format(iface))
+        self.logger.info("Using iface: {0}".format(iface))
 
         env = self.deployment.environment
-        util.logger.info("Setting bridge_dev to {0}".format(iface))
+        self.logger.info("Setting bridge_dev to {0}".format(iface))
         env.override_attributes['nova']['networks']['public'][
             'bridge_dev'] = iface
 
@@ -596,6 +602,7 @@ class Horizon(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Horizon, self).__init__(deployment, rpcs_feature)
         self.environment = util.config['environments'][str(self)][rpcs_feature]
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -609,6 +616,7 @@ class Cinder(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Cinder, self).__init__(deployment, rpcs_feature)
         self.environment = util.config['environments'][str(self)][rpcs_feature]
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -632,6 +640,7 @@ class RPCS(Deployment):
     def __init__(self, deployment, rpcs_feature, name):
         super(RPCS, self).__init__(deployment, rpcs_feature)
         self.name = name
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         pass
@@ -645,6 +654,7 @@ class Monitoring(RPCS):
         super(Monitoring, self).__init__(deployment, rpcs_feature,
                                          str(self))
         self.environment = util.config['environments'][self.name][rpcs_feature]
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -659,6 +669,7 @@ class MySql(RPCS):
         super(MySql, self).__init__(deployment, rpcs_feature,
                                     str(self))
         self.environment = util.config['environments'][self.name][rpcs_feature]
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -673,6 +684,7 @@ class OsOps(RPCS):
         super(OsOps, self).__init__(deployment, rpcs_feature,
                                     str(self))
         self.environment = util.config['environments'][self.name][rpcs_feature]
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -687,6 +699,7 @@ class DeveloperMode(RPCS):
         super(DeveloperMode, self).__init__(deployment, rpcs_feature,
                                             'developer_mode')
         self.environment = util.config['environments'][self.name][rpcs_feature]
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -701,6 +714,7 @@ class OsOpsNetworks(RPCS):
         super(OsOpsNetworks, self).__init__(deployment, rpcs_feature,
                                             'osops_networks')
         self.environment = util.config['environments'][self.name]
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         # provisioner = str(self.deployment.provisioner)
@@ -729,6 +743,7 @@ class HighAvailability(RPCS):
             vips = deployment.os_name
         """
         self.environment = util.config['environments'][self.name]
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(self.name,
@@ -743,6 +758,7 @@ class OpenLDAP(RPCS):
         super(OpenLDAP, self).__init__(deployment, rpcs_feature,
                                        str(self))
         self.environment = util.config['environments'][self.name]
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -769,6 +785,7 @@ class Openssh(RPCS):
     def __init__(self, deployment, rpcs_feature):
         super(Openssh, self).__init__(deployment, rpcs_feature, str(self))
         self.environment = util.config['environments'][self.name]
+        self.logger = Logger(__name__).get_logger()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(

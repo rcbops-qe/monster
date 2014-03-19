@@ -1,6 +1,7 @@
 from chef import Node as ChefNode
 
 from monster import util
+from monster.logger import Logger
 from monster.nodes.node import Node
 from monster.features import node as node_features
 from monster.provisioners.util import get_provisioner
@@ -19,6 +20,7 @@ class Chef(Node):
         self.branch = branch
         self.run_list = run_list or []
         self.features = []
+        self.logger = Logger(__name__).get_logger()
 
     def __str__(self):
         features = ", ".join(self.feature_names)
@@ -31,14 +33,14 @@ class Chef(Node):
         """
         Node has access to chef attributes
         """
-        util.logger.debug("getting {0} on {1}".format(item, self.name))
+        self.logger.debug("getting {0} on {1}".format(item, self.name))
         return ChefNode(self.name, api=self.environment.local_api)[item]
 
     def __setitem__(self, item, value):
         """
         Node can set chef attributes
         """
-        util.logger.debug("setting {0} to {1} on {2}".format(item, value,
+        self.logger.debug("setting {0} to {1} on {2}".format(item, value,
                                                              self.name))
         lnode = ChefNode(self.name, api=self.environment.local_api)
         lnode[item] = value
@@ -98,7 +100,7 @@ class Chef(Node):
         """
         Saves a chef node to local and remote chef server
         """
-        util.logger.debug("Saving chef_node:{0}".format(self.name))
+        self.logger.debug("Saving chef_node:{0}".format(self.name))
         chef_node = chef_node or ChefNode(self.name,
                                           self.environment.local_api)
         chef_node.save(self.environment.local_api)
@@ -110,7 +112,7 @@ class Chef(Node):
         """
         Syncs the remote chef nodes attribute to the local chef server
         """
-        util.logger.debug("Syncing chef node from remote:{0}".format(
+        self.logger.debug("Syncing chef node from remote:{0}".format(
             self.name))
         if self.environment.remote_api:
             chef_node = chef_node or ChefNode(self.name,
@@ -124,7 +126,7 @@ class Chef(Node):
         """
         Adds list of items to run_list
         """
-        util.logger.debug("run_list:{0} add:{1}".format(self.run_list, items))
+        self.logger.debug("run_list:{0} add:{1}".format(self.run_list, items))
         self.run_list.extend(items)
         cnode = ChefNode(self.name, api=self.environment.local_api)
         cnode.run_list = self.run_list
@@ -134,7 +136,7 @@ class Chef(Node):
         """
         Adds list of items to run_list
         """
-        util.logger.debug("run_list:{0} remove:{1}".format(self.run_list,
+        self.logger.debug("run_list:{0} remove:{1}".format(self.run_list,
                                                            item))
         self.run_list.pop(self.run_list.index(item))
         cnode = ChefNode(self.name, api=self.environment.local_api)
@@ -145,7 +147,7 @@ class Chef(Node):
         """
         Adds a list of feature classes
         """
-        util.logger.debug("node:{0} feature add:{1}".format(self.name,
+        self.logger.debug("node:{0} feature add:{1}".format(self.name,
                                                             features))
         classes = util.module_classes(node_features)
         for feature in features:

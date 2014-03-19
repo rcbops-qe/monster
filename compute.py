@@ -17,16 +17,15 @@ from monster.tests.tempest_quantum import TempestQuantum
 from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
 
 
-logger = Logger(__name__)
-
-
 def build(name="autotest", template="ubuntu-default", branch="master",
           config=None, dry=False, log=None, log_level="INFO",
           provisioner="rackspace", secret_path=None):
     """
     Builds an OpenStack Cluster
     """
-    _set_log(log, log_level)
+    logs = Logger(__name__)
+    logger = logs.get_logger()
+    _set_log(logs, log, log_level)
 
     # Magic to get the template location from the branch
     if branch == "master":
@@ -42,7 +41,7 @@ def build(name="autotest", template="ubuntu-default", branch="master",
     util.config = Config(config, secret_path=secret_path)
     cprovisioner = get_provisioner(provisioner)
 
-    util.logger.info("Building deployment object for {0}".format(name))
+    logger.info("Building deployment object for {0}".format(name))
     deployment = MonsterChefDeployment.fromfile(
         name, template, branch, cprovisioner, template_file)
 
@@ -51,19 +50,19 @@ def build(name="autotest", template="ubuntu-default", branch="master",
             deployment.update_environment()
         except Exception:
             error = traceback.print_exc()
-            util.logger.error(error)
+            logger.error(error)
             raise
 
     else:
-        util.logger.info(deployment)
+        logger.info(deployment)
         try:
             deployment.build()
         except Exception:
             error = traceback.print_exc()
-            util.logger.error(error)
+            logger.error(error)
             raise
 
-    util.logger.info(deployment)
+    logger.info(deployment)
 
 
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
@@ -73,9 +72,11 @@ def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
     """
     Retrofit a deployment
     """
-    _set_log(log, log_level)
+    logs = Logger(__name__)
+    logger = logs.get_logger()
+    _set_log(logs, log, log_level)
     deployment = _load(name, config, secret_path)
-    util.logger.info(deployment)
+    logger.info(deployment)
     deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
 
 
@@ -84,9 +85,11 @@ def upgrade(name='autotest', upgrade_branch='v4.1.3rc',
     """
     Upgrades a current deployment to the new branch / tag
     """
-    _set_log(log, log_level)
+    logs = Logger(__name__)
+    logger = logs.get_logger()
+    _set_log(logs, log, log_level)
     deployment = _load(name, config, secret_path)
-    util.logger.info(deployment)
+    logger.info(deployment)
     deployment.upgrade(upgrade_branch)
 
 
@@ -95,20 +98,24 @@ def destroy(name="autotest", config=None, log=None, log_level="INFO",
     """
     Destroys an existing OpenStack deployment
     """
-    _set_log(log, log_level)
+    logs = Logger(__name__)
+    logger = logs.get_logger()
+    _set_log(logs, log, log_level)
     deployment = _load(name, config, secret_path)
-    util.logger.info(deployment)
+    logger.info(deployment)
     deployment.destroy()
 
 
 def test(name="autotest", config=None, log=None, log_level="INFO",
          tempest=False, ha=False, secret_path=None, deployment=None,
-         iterations=1, provider_net="6241dfe9-11fe-45e7-b39d-45ef88f5d9cb"):
+         iterations=1, provider_net="f1d63cf1-cbac-499c-995e-dee4d752934a"):
     """
     Tests an openstack deployment
     """
+    logs = Logger(__name__)
+    logger = logs.get_logger()
     if not deployment:
-        _set_log(log, log_level)
+        _set_log(logs, log, log_level)
         deployment = _load(name, config, secret_path)
     if not tempest and not ha:
         tempest = True
@@ -168,7 +175,9 @@ def artifact(name="autotest", config=None, log=None, secret_path=None,
     Artifacts a deployment (configs / running services)
     """
 
-    _set_log(log, log_level)
+    logs = Logger(__name__)
+    logger = logs.get_logger()
+    _set_log(logs, log, log_level)
     deployment = _load(name, config, secret_path)
     deployment.artifact()
 
@@ -178,7 +187,9 @@ def openrc(name="autotest", config=None, log=None, secret_path=None,
     """
     Loads OpenStack credentials into shell env
     """
-    _set_log(log, log_level)
+    logs = Logger(__name__)
+    logger = logs.get_logger()
+    _set_log(logs, log, log_level)
     deployment = _load(name, config, secret_path)
     deployment.openrc()
 
@@ -188,7 +199,9 @@ def tmux(name="autotest", config=None, log=None, secret_path=None,
     """
     Loads OpenStack nodes into new tmux session
     """
-    _set_log(log, log_level)
+    logs = Logger(__name__)
+    logger = logs.get_logger()
+    _set_log(logs, log, log_level)
     deployment = _load(name, config, secret_path)
     deployment.tmux()
 
@@ -198,7 +211,9 @@ def horizon(name="autotest", config=None, log=None, secret_path=None,
     """
     Opens horizon in a browser tab
     """
-    _set_log(log, log_level)
+    logs = Logger(__name__)
+    logger = logs.get_logger()
+    _set_log(logs, log, log_level)
     deployment = _load(name, config, secret_path)
     ip = deployment.horizon_ip()
     url = "https://{0}".format(ip)
@@ -210,10 +225,12 @@ def show(name="autotest", config=None, log=None, secret_path=None,
     """
     Shows details about and OpenStack deployment
     """
-    _set_log(log, log_level)
+    logs = Logger(__name__)
+    logger = logs.get_logger()
+    _set_log(logs, log, log_level)
     # load deployment and source openrc
     deployment = _load(name, config, secret_path)
-    util.logger.info(str(deployment))
+    logger.info(str(deployment))
 
 
 def _load(name="autotest", config=None, secret_path=None):
@@ -222,7 +239,7 @@ def _load(name="autotest", config=None, secret_path=None):
     return MonsterChefDeployment.from_chef_environment(name)
 
 
-def _set_log(log, log_level):
+def _set_log(logger, log, log_level):
     # set log level and file
     logger.set_log_level(log_level)
     if log:
