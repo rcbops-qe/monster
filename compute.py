@@ -4,31 +4,23 @@
 Command-line interface for building OpenStack clusters
 """
 
-from monster import util
-from tools.compute_decorators import __log
-from tools.compute_decorators import __load_deployment
-from tools.compute_decorators import __build_deployment
-from tools.compute_decorators import __provision_for_deployment
-
-# try:
 import os
-import traceback
-import webbrowser
-from compute_cli import CLI
-from monster.tests.utils import TestUtil
-#
-# except ImportError as error:
-#     util.logger.error("There was an import error when trying to load '{0}' "
-#                       "This may be resolved if you load the monster virtual"
-#                       " environment with the command \"source .venv/bin/"
-#                       "activate\"".format(error.message[16:]))
-#    exit(1)
+from monster import util
+
 if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
     util.logger.warning("You are not using the virtual environment! We "
                         "cannot guarantee that your monster will be well"
                         "-behaved.  To load the virtual environment, use "
                         "the command \"source .venv/bin/activate\"")
 
+
+import webbrowser
+from compute_cli import CLI
+from monster.tests.utils import TestUtil
+from tools.compute_decorators import __log
+from tools.compute_decorators import __load_deployment
+from tools.compute_decorators import __build_deployment
+from tools.compute_decorators import __provision_for_deployment
 
 
 @__log
@@ -41,18 +33,14 @@ def build(deployment, dry):
     if dry:
         try:
             deployment.update_environment()
-        except Exception: # are you kidding me???
-            error = traceback.print_exc()
-            util.logger.error(error)
-            exit(1)
+        except Exception: # change this to something specific
+            util.error_exit()
     else:
         util.logger.info(deployment)
         try:
             deployment.build()
         except Exception:
-            error = traceback.print_exc()
-            util.logger.error(error)
-            exit(1)
+            util.error_exit()
 
     util.logger.info(deployment)
 
@@ -84,7 +72,7 @@ def retrofit(deployment, retro_branch='dev', ovs_bridge='br-eth1',
 
 @__log
 @__load_deployment
-def upgrade(deployment, args): #do we really want to set this default (no!!)
+def upgrade(deployment, args):
     """
     Upgrades a current deployment to the new branch / tag
     """

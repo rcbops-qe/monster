@@ -35,13 +35,13 @@ def __build_deployment(function):
         util.logger.debug("Creating ChefDeployment with dict %s" % args)
         try:
             args.deployment = ChefDeployment.fromfile(**vars(args))
-        except TypeError as error:
+        except TypeError:
             util.logger.critical(
-                str(error) +
                 "ChefDeployment.fromfile was called with \n{0},\n but "
                 "expects at least the following non-none : {1}."
                 .format(vars(args),
                         inspect.getargspec(ChefDeployment.fromfile)[0][1:]))
+
             exit(1)
         return function(args)
     return wrap_function
