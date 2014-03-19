@@ -9,6 +9,7 @@ def module_classes(module):
     return {k.lower(): v for (k, v) in
             getmembers(module, isclass)}
 
+
 def xunit_merge(path="."):
     #print "Merging xunit files"
     files = glob(path + "/*.xml")

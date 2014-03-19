@@ -8,7 +8,7 @@ import subprocess
 import traceback
 import webbrowser
 from monster import util
-from monster import logger
+from monster.logger import Logger
 from monster.config import Config
 from monster.tests.ha import HATest
 from monster.provisioners.util import get_provisioner
@@ -17,7 +17,8 @@ from monster.tests.tempest_quantum import TempestQuantum
 from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
 
 
-self.logger = logger(__name__)
+logger = Logger(__name__)
+
 
 def build(name="autotest", template="ubuntu-default", branch="master",
           config=None, dry=False, log=None, log_level="INFO",
@@ -223,9 +224,9 @@ def _load(name="autotest", config=None, secret_path=None):
 
 def _set_log(log, log_level):
     # set log level and file
-    self.logger.set_log_level(log_level)
+    logger.set_log_level(log_level)
     if log:
-        self.logger.log_to_file(log)
+        logger.log_to_file(log)
 
 
 if __name__ == "__main__":
