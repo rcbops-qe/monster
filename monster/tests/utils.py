@@ -5,6 +5,7 @@ from monster.tests.tempest_quantum import TempestQuantum
 from monster.tests.ha import HATest
 from monster import util
 
+
 class TestUtil:
     def __init__(self, deployment, args):
         self.deployment = deployment
@@ -22,7 +23,6 @@ class TestUtil:
             util.logger.debug('Running iteration %s!' % (i + 1))
             ha.test(self.args.iterations, self.args.provider_net)
 
-
     def runTempest(self):
         branch = TempestQuantum.tempest_branch(self.deployment.branch)
         if "grizzly" in branch:
@@ -37,7 +37,7 @@ class TestUtil:
 
     def report(self):
         util.logger.info('Tests have been completed with {0} iterations!'
-               .format(self.args.iterations))
+                         .format(self.args.iterations))
 
     def __get_file(ip, user, password, remote, local, remote_delete=False):
         cmd1 = 'sshpass -p {0} scp -q {1} {2}'.format(password, remote, local)

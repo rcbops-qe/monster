@@ -36,7 +36,7 @@ def build(deployment, dry):
         deployment.build()
 
     util.logger.info(deployment)
-    
+
 
 @__log
 @__load_deployment
@@ -51,6 +51,7 @@ def test(deployment, args):
     if args.all or args.tempest:
         test_util.runTempest()
     test_util.report()
+
 
 @__log
 @__load_deployment
@@ -69,6 +70,7 @@ def upgrade(deployment, args):
     Upgrades a current deployment to the new branch / tag
     """
     deployment.upgrade(args['upgrade_branch'])
+
 
 @__log
 @__load_deployment
@@ -126,9 +128,10 @@ def show(deployment, args):
     util.logger.info(str(deployment))
 
 # is artifact supposed to be in the CLI?
-args=CLI.parser({'build':build,'destroy':destroy,'horizon':horizon,
-                 'openrc':openrc,'retrofit':retrofit,'show':show,
-                 'test':test,'tmux':tmux,'upgrade':upgrade}).parse_args()
+args = CLI.parser(
+    {'build': build, 'destroy': destroy, 'horizon': horizon, 'openrc': openrc,
+     'retrofit': retrofit, 'show': show, 'test': test, 'tmux': tmux,
+     'upgrade': upgrade}).parse_args()
 
 if __name__ == "__main__":
         args.func(args)

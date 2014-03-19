@@ -29,6 +29,7 @@ def log_to_file(path):
     log_file.setLevel(logging.DEBUG)
     logger.addHandler(log_file)
 
+
 def error_exit(error_message=None):
     """
     Prints a stack track to the logger and exits gracefully.

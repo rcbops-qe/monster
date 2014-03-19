@@ -128,7 +128,7 @@ class Chef(Deployment):
 
     @classmethod
     def fromfile(cls, name, template_name, branch, provisioner, template_file,
-                 template_path=None,**args):
+                 template_path=None, **args):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment
@@ -161,7 +161,7 @@ class Chef(Deployment):
 
         try:
             template = Config(path)[template_name]
-        except KeyError as error:
+        except KeyError:
             util.logger.critical("Looking for the template {0} in the file: "
                                  "\n{1}\n The key was not found!"
                                  .format(template_name, path))

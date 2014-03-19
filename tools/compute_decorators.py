@@ -14,10 +14,11 @@ def __load_deployment(function):
         return function(deployment, args)
     return wrap_function
 
+
 def __provision_for_deployment(function):
     def wrap_function(args):
         util.config = Config(args.config, args.secret_path)
-        args.provisioner=get_provisioner(args.provisioner)
+        args.provisioner = get_provisioner(args.provisioner)
         return function(args)
     return wrap_function
 
@@ -28,6 +29,7 @@ def __log(function):
         util.log_to_file(args.logfile_path)
         return function(args)
     return wrap_function
+
 
 def __build_deployment(function):
     def wrap_function(args):
