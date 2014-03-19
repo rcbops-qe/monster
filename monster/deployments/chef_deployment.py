@@ -21,7 +21,7 @@ from monster.environments.chef_environment import Chef as \
 
 class Chef(Deployment):
     """
-    Deployment mechinisms specific to deployment using
+    Deployment mechanisms specific to deployment using
     Opscode's Chef as configuration management
     """
 

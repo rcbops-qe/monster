@@ -44,12 +44,14 @@ def test(deployment, args):
     """
     Tests an OpenStack deployment
     """
+    from IPython import embed
+    embed()
     test_util = TestUtil(deployment, args)
 
     if args.all or args.ha:
-        test_util.runHA()
+        test_util.run_ha()
     if args.all or args.tempest:
-        test_util.runTempest()
+        test_util.run_tempest()
     test_util.report()
 
 
