@@ -114,7 +114,7 @@ def horizon(deployment, args):
     Opens Horizon in a browser tab
     """
     ip = deployment.horizon_ip()
-    url = "https://{0}".format(ip)  # i don't think this will work
+    url = "https://{0}".format(ip)
     webbrowser.open_new_tab(url)
 
 
