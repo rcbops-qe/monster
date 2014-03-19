@@ -31,16 +31,9 @@ def build(deployment, dry):
     Builds an OpenStack Cluster
     """
     if dry:
-        try:
-            deployment.update_environment()
-        except Exception: # change this to something specific
-            util.error_exit()
+        deployment.update_environment()
     else:
-        util.logger.info(deployment)
-        try:
-            deployment.build()
-        except Exception:
-            util.error_exit()
+        deployment.build()
 
     util.logger.info(deployment)
 

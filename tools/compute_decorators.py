@@ -43,5 +43,7 @@ def __build_deployment(function):
                         inspect.getargspec(ChefDeployment.fromfile)[0][1:]))
 
             exit(1)
+        else:
+            util.info(args.deployment)
         return function(args)
     return wrap_function
