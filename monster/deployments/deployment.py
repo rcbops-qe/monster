@@ -21,7 +21,7 @@ class Deployment(object):
         self.branch = branch
         self.features = []
         self.nodes = []
-        self.status = status or "provisioning"
+        self.status = status or "Provisioning..."  # i don't like this default
         self.provisioner = str(provisioner)
         self.product = product
         self.clients = clients
@@ -51,37 +51,35 @@ class Deployment(object):
         Destroys an OpenStack deployment
         """
 
-        self.status = "destroying"
-        util.logger.info("Destroying deployment:{0}".format(self.name))
+        self.status = "Destroying..."
+        util.logger.info("Destroying deployment: {0}".format(self.name))
         for node in self.nodes:
             node.destroy()
-        self.status = "destroyed"
+        self.status = "Destroyed!"
 
     def update_environment(self):
         """
-        Pre configures node for each feature
+        Preconfigures node for each feature
         """
 
         util.logger.info("Building Configured Environment")
-        self.status = "loading environment"
+        self.status = "Loading environment..."
         for feature in self.features:
-            log = "Deployment feature: update environment: {0}"\
-                .format(str(feature))
-            util.logger.debug(log)
+            util.logger.debug("Deployment feature {0}: updating environment!"
+                              .format(str(feature)))
             feature.update_environment()
         util.logger.debug(self.environment)
-        self.status = "environment ready"
+        self.status = "Environment ready!"
 
     def pre_configure(self):
         """
-        Pre configures node for each feature
+        Preconfigures node for each feature
         """
 
-        self.status = "pre-configure"
+        self.status = "Pre-configuring nodes for features..."
         for feature in self.features:
-            log = "Deployment feature: pre-configure: {0}"\
-                .format(str(feature))
-            util.logger.debug(log)
+            util.logger.debug("Deployment feature: pre-configure: {0}"
+                .format(str(feature)))
             feature.pre_configure()
 
     def build_nodes(self):
@@ -89,17 +87,18 @@ class Deployment(object):
         Builds each node
         """
 
-        self.status = "building nodes"
+        self.status = "Building nodes..."
         for node in self.nodes:
+            util.logger.debug("Building node {0}!".format(str(node)))
             node.build()
-        self.status = "nodes built"
+        self.status = "Nodes built!"
 
     def post_configure(self):
         """
         Post configures node for each feature
         """
 
-        self.status = "post-configure"
+        self.status = "Post-configuration..."
         for feature in self.features:
             log = "Deployment feature: post-configure: {0}"\
                 .format(str(feature))
