@@ -238,6 +238,25 @@ class TempestQuantum(Test):
         clone = "git clone {0} -b {1} {2}".format(repo, branch, tempest_dir)
         self.test_node.run_cmd(clone)
 
+    def tempest_branch(self, branch):
+        """
+        Given rcbops branch, returns tempest branch
+        :param branch: branch of rcbops
+        :type branch: string
+        :rtype: string
+        """
+        branches = util.config['rcbops']['compute']['git']['branches']
+        branch_format = "stable/{0}"
+        if branch in branches.keys():
+            tag_branch = branch_format.format(branch)
+        else:
+            for branch_name, tags in branches.items():
+                if branch in tags:
+                    tag_branch = branch_name
+                else:
+                    tag_branch = "master"
+        return branch_format.format(tag_branch)
+
     def install_package_requirements(self):
         """
         Installs requirements of tempest
