@@ -13,7 +13,7 @@ class CLI:
 
         build_parser = subparsers.add_parser('build')
         build_parser.add_argument('-t', '--template-name', default='ubuntu-ha')
-        build_parser.add_argument('-T', '--template-file', default='default')
+        build_parser.add_argument('-T', '--template-file')
         build_parser.add_argument('-b', '--branch', default='master')
         build_parser.add_argument('-p', '--provisioner', default='rackspace')
         build_parser.add_argument('-d', '--dry', action='store_true')
