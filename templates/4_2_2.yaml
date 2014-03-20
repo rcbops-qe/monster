@@ -35,6 +35,7 @@ ubuntu-ha-novanet-actived:
     nova: default
     horizon: default
     osops: default
+    ceilometer: default
     keystone: actived
     osopsnetworks: default
   nodes:

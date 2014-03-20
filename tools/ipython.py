@@ -13,10 +13,10 @@ from monster.config import Config
 from monster.deployments.chef_deployment import Chef
 
 
-def load(name):
+def load(name, config="default.yaml"):
     """
     Load function for iPython
     """
 
-    util.config = Config()
+    util.config = Config(config)
     return Chef.from_chef_environment(name)
