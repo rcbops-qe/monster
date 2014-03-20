@@ -1,6 +1,6 @@
 import subprocess
 
-from monster.tests.tempest_helper import TempestHelper
+from monster.tests.tempest_helper import get_test_suite_for
 from monster.tests.ha import HATest
 from monster import util
 
@@ -19,7 +19,7 @@ class TestUtil:
         self.__run(ha)
 
     def run_tempest(self):
-        test_suite = TempestHelper.get_test_suite_for(self.deployment)
+        test_suite = get_test_suite_for(self.deployment)
         self.__run(test_suite)
 
     def run_cloudcafe(self):

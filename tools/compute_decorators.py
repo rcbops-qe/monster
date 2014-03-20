@@ -1,6 +1,5 @@
 import inspect
 
-from IPython import embed
 from monster import util
 from monster.config import Config
 from monster.deployments.chef_deployment import Chef as ChefDeployment
@@ -13,9 +12,10 @@ def __load_deployment(function):
         args.deployment = ChefDeployment.from_chef_environment(args.name)
         util.logger.debug("Loading deployment {0}".format(args.deployment))
         expected_arguments = inspect.getargspec(function)[0]
-        arguments_to_pass = { k:v for k,v in vars(args).iteritems()
-                       if k in expected_arguments}
+        arguments_to_pass = {k: v for k, v in vars(args).iteritems()
+                             if k in expected_arguments}
         return function(**arguments_to_pass)
+
     return wrap_function
 
 
@@ -24,6 +24,7 @@ def __provision_for_deployment(function):
         util.config = Config(args.config, args.secret_path)
         args.provisioner = get_provisioner(args.provisioner)
         return function(args)
+
     return wrap_function
 
 
@@ -32,6 +33,7 @@ def __log(function):
         util.logger.setLevel(args.log_level)
         util.log_to_file(args.logfile_path)
         return function(args)
+
     return wrap_function
 
 
@@ -54,7 +56,7 @@ def __build_deployment(function):
         return function(args.deployment, args)
             util.info(args.deployment)
         expected_arguments = inspect.getargspec(function)[0]
-        arguments_to_pass = { k:v for k,v in vars(args).iteritems()
-                       if k in expected_arguments}
+        arguments_to_pass = {k: v for k, v in vars(args).iteritems()
+                             if k in expected_arguments}
         return function(**arguments_to_pass)
     return wrap_function

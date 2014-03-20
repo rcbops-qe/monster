@@ -19,7 +19,6 @@ class TempestQuantum(Test):
     Tests a deployment with tempest
     """
 
-
     @property
     def name(self):
         return "Tempest Quantum tests"
