@@ -3,6 +3,7 @@ clean.py
 secret.yaml
 ipython_tools/
 results/
+.venv/
 
 # C extensions
 *.so
