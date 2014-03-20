@@ -15,6 +15,7 @@ def __load_deployment(function):
         arguments_to_pass = {k: v for k, v in vars(args).iteritems()
                              if k in expected_arguments}
         return function(**arguments_to_pass)
+
     return wrap_function
 
 
