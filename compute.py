@@ -26,11 +26,11 @@ from tools.compute_decorators import __provision_for_deployment
 @__log
 @__provision_for_deployment
 @__build_deployment
-def build(deployment, dry):
+def build(deployment, args):
     """
     Builds an OpenStack Cluster
     """
-    if dry:
+    if args.dry:
         deployment.update_environment()
     else:
         deployment.build()
