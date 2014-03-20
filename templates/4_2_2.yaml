@@ -12,6 +12,7 @@ ubuntu-ha-neutron:
     neutron: neutron
     horizon: default
     osops: default
+    ceilometer: default
     keystone: default
     osopsnetworks: default
   nodes:
@@ -59,6 +60,7 @@ ubuntu-ha-novanet-openldap:
     nova: default
     horizon: default
     osops: default
+    ceilometer: default
     keystone: openldap
     osopsnetworks: default
   nodes:
