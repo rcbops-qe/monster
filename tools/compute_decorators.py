@@ -1,5 +1,6 @@
 import inspect
 
+from IPython import embed
 from monster import util
 from monster.config import Config
 from monster.deployments.chef_deployment import Chef as ChefDeployment
@@ -9,9 +10,13 @@ from monster.provisioners.util import get_provisioner
 def __load_deployment(function):
     def wrap_function(args):
         util.config = Config(args.config, args.secret_path)
-        deployment = ChefDeployment.from_chef_environment(args.name)
-        util.logger.debug("Loading deployment {0}".format(deployment))
-        return function(deployment, args)
+        args.deployment = ChefDeployment.from_chef_environment(args.name)
+        util.logger.debug("Loading deployment {0}".format(args.deployment))
+        expected_arguments = inspect.getargspec(function)[0]
+	arguments_to_pass = { k:v for k,v in vars(args).iteritems()
+                       if k in expected_arguments}
+	embed()
+        return function(**arguments_to_pass)
     return wrap_function
 
 
@@ -35,7 +40,10 @@ def __build_deployment(function):
     def wrap_function(args):
         util.logger.info("Building deployment object for %s" % args.name)
         util.logger.debug("Creating ChefDeployment with dict %s" % args)
-        try:
+        from IPython import embed
+        embed()
+	sys.exit(0)
+	try:
             args.deployment = ChefDeployment.fromfile(**vars(args))
         except TypeError:
             util.logger.critical(
@@ -48,4 +56,10 @@ def __build_deployment(function):
         else:
             util.logger.info(args.deployment)
         return function(args.deployment, args)
+            util.info(args.deployment)
+        names_of_arguments_to_pass = inspect.getargspec(function)[0]
+        arguments_to_pass = vars(args).fromkeys(names_of_arguments_to_pass)
+	print vars(args)
+	print arguments_to_pass
+        return function(**arguments_to_pass)
     return wrap_function

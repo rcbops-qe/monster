@@ -40,19 +40,15 @@ def build(deployment, args):
 
 @__log
 @__load_deployment
-def test(deployment, args):
+def test(deployment, tests_to_run, iterations):
     """
     Tests an OpenStack deployment
     """
     from IPython import embed
     embed()
-    test_util = TestUtil(deployment, args)
-
-    if args.all or args.ha:
-        test_util.run_ha()
-    if args.all or args.tempest:
-        test_util.run_tempest()
-    test_util.report()
+    test_util = TestUtil(deployment, iterations)
+    for test in test_util.get_tests(tests_to_run):
+        test()
 
 
 @__log
@@ -71,7 +67,7 @@ def upgrade(deployment, args):
     """
     Upgrades a current deployment to the new branch / tag
     """
-    deployment.upgrade(args['upgrade_branch'])
+    deployment.upgrade(args.upgrade_branch)
 
 
 @__log

@@ -6,9 +6,9 @@ from monster import util
 
 
 class TestUtil:
-    def __init__(self, deployment, args):
+    def __init__(self, deployment, iterations):
         self.deployment = deployment
-        self.iterations = args.iterations
+        self.iterations = iterations
 
     def run_ha(self):
         if not self.deployment.feature_in("highavailability"):
@@ -19,12 +19,19 @@ class TestUtil:
         self.__run(ha)
 
     def run_tempest(self):
-        branch = self.deployment.branch
-        test_suite = TempestHelper.get_test_suite_for(branch)
+        test_suite = TempestHelper.get_test_suite_for(self.deployment)
         self.__run(test_suite)
 
     def run_cloudcafe(self):
         pass
+
+    def get_tests(self, tests):
+        tests_methods = []
+        if 'ha' or 'all' in tests:
+            tests_methods.append(self.run_ha)
+        if 'tempest' or 'all' in tests:
+            tests_methods.append(self.run_tempest)
+        return tests_methods
 
     def __run(self, test_suite):
         self.__prepare_xml_directory()
