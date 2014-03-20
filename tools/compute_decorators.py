@@ -15,7 +15,6 @@ def __load_deployment(function):
         arguments_to_pass = {k: v for k, v in vars(args).iteritems()
                              if k in expected_arguments}
         return function(**arguments_to_pass)
-
     return wrap_function
 
 
@@ -41,7 +40,6 @@ def __build_deployment(function):
     def wrap_function(args):
         util.logger.info("Building deployment object for %s" % args.name)
         util.logger.debug("Creating ChefDeployment with dict %s" % args)
-
         try:
             args.deployment = ChefDeployment.fromfile(**vars(args))
         except TypeError:
