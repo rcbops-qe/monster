@@ -1,6 +1,6 @@
-ubuntu-nonha-neutron:
+ubuntu-ha-neutron-ldap:
   product: compute
-  name: nonha
+  name: ha
   os: ubuntu
   features:
     openssh: default
@@ -12,9 +12,59 @@ ubuntu-nonha-neutron:
     neutron: quantum
     horizon: default
     osops: default
+    keystone: ldap
+    osopsnetworks: default
+  nodes:
+    - [chefserver]
+    - [controller, network]
+    - [controller, network]
+    - [cinder]
+    - [compute]
+    - [compute]
+
+ubuntu-ha-neutron-actived:
+  product: compute
+  name: ha
+  os: ubuntu
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    cinder: local
+    nova: default
+    neutron: quantum
+    horizon: default
+    osops: default
+    keystone: actived
+    osopsnetworks: default
+  nodes:
+    - [chefserver]
+    - [controller, network]
+    - [controller, network]
+    - [cinder]
+    - [compute]
+    - [compute]
+
+ubuntu-ha-novanet:
+  product: compute
+  name: ha
+  os: ubuntu
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    cinder: local
+    nova: default
+    horizon: default
+    osops: default
     keystone: default
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller, network, orchestration]
+    - [controller]
+    - [controller]
+    - [cinder]
+    - [compute]
     - [compute]
