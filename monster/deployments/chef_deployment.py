@@ -26,11 +26,11 @@ class Chef(Deployment):
     """
 
     def __init__(self, name, os_name, branch, environment, provisioner,
-                 status=None, product=None, clients=None):
+                 log_level, status=None, product=None, clients=None):
         status = status or "provisioning"
         super(Chef, self).__init__(name, os_name, branch,
                                    provisioner, status, product,
-                                   clients)
+                                   log_level, clients)
         self.environment = environment
         self.has_controller = False
         self.has_orch_master = False

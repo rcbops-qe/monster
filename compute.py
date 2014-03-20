@@ -7,7 +7,7 @@ Command-line interface for building OpenStack clusters
 import os
 from monster import util
 
-logger = util.get_logger(__name__)
+logger = util.get_logger("{0}.log".format(__name__))
 
 if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
     logger.warning("You are not using the virtual environment! We "
@@ -116,6 +116,7 @@ def show(deployment, args):
     """
     Shows details about an OpenStack deployment
     """
+    util.set_log_level(logger, "INFO")
     logger.info(str(deployment))
 
 # is artifact supposed to be in the CLI?

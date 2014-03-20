@@ -1,3 +1,4 @@
+import logging
 import subprocess
 
 from monster.tests.tempest_neutron import TempestNeutron
@@ -6,21 +7,25 @@ from monster.tests.ha import HATest
 from monster import util
 
 
+logger = logging.getLogger("{0}.log".format(__name__))
+
+
 class TestUtil:
     def __init__(self, deployment, args):
         self.deployment = deployment
         self.args = args
+        logging.basicConfig(level=logging.getLevelName(args.log_level))
 
     def runHA(self):
         if not self.deployment.feature_in("highavailability"):
-            util.logger.warning('High Availability was not detected as a '
-                                'feature; HA tests will not be run!')
+            logger.warning('High Availability was not detected as a '
+                           'feature; HA tests will not be run!')
             return
-        ha = HATest(self.deployment)
+        ha = HATest(self.deployment, self.args.log_level)
         self.__prepare_xml_directory()
-        util.logger.info('Running High Availability test!')
+        logger.info('Running High Availability test!')
         for i in range(self.args.iterations):
-            util.logger.debug('Running iteration %s!' % (i + 1))
+            logger.debug('Running iteration %s!' % (i + 1))
             ha.test(self.args.iterations, self.args.provider_net)
 
     def runTempest(self):
@@ -30,13 +35,13 @@ class TestUtil:
         else:
             tempest = TempestNeutron(self.deployment)
         self.__prepare_xml_directory()
-        util.logger.info('Running Tempest test!')
+        logger.info('Running Tempest test!')
         for i in range(self.args.iterations):
-            util.logger.debug('Running iteration %s!' % (i + 1))
+            logger.debug('Running iteration %s!' % (i + 1))
             tempest.test()
 
     def report(self):
-        util.logger.info('Tests have been completed with {0} iterations!'
+        logger.info('Tests have been completed with {0} iterations!'
                          .format(self.args.iterations))
 
     def __get_file(ip, user, password, remote, local, remote_delete=False):
@@ -58,4 +63,4 @@ class TestUtil:
             self.__get_file(ip, user, password, remote, local)
 
             #Prepares directory for xml files to be SCPed over
-            self.subprocess.call(['mkdir', '-p', '{0}'.format(local)])
+            subprocess.call(['mkdir', '-p', '{0}'.format(local)])

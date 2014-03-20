@@ -5,7 +5,7 @@ from monster.config import Config
 from monster.deployments.chef_deployment import Chef as ChefDeployment
 from monster.provisioners.util import get_provisioner
 
-logger = util.get_logger(__name__)
+logger = util.get_logger("{0}.log".format(__name__))
 
 def __load_deployment(function):
     def wrap_function(args):
