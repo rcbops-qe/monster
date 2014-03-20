@@ -16,7 +16,7 @@ if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
 
 import webbrowser
 from compute_cli import CLI
-from monster.tests.utils import TestUtil
+from monster.tests.util import TestUtil
 from tools.compute_decorators import __log
 from tools.compute_decorators import __load_deployment
 from tools.compute_decorators import __build_deployment

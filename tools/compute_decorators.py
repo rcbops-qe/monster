@@ -39,8 +39,8 @@ def __log(function):
 
 def __build_deployment(function):
     def wrap_function(args):
-        if not args.template_file
-            args.template_file = __get_template_filename
+        if not args.template_file:
+            args.template_file = __get_template_filename(args.branch)
 
         util.logger.info("Building deployment object for %s" % args.name)
         util.logger.debug("Creating ChefDeployment with dict %s" % args)
@@ -57,14 +57,12 @@ def __build_deployment(function):
             util.info(args.deployment)
         names_of_arguments_to_pass = inspect.getargspec(function)[0]
         arguments_to_pass = vars(args).fromkeys(names_of_arguments_to_pass)
-	print vars(args)
-	print arguments_to_pass
         return function(**arguments_to_pass)
     return wrap_function
 
 def __get_template_filename(branch):
-    if args.branch == "master":
+    if branch == "master":
         filename = "default"
     else:
-        filename = args.branch.lstrip('v').rstrip("rc").replace('.', '_')
+        filename = branch.lstrip('v').rstrip("rc").replace('.', '_')
     return filename
