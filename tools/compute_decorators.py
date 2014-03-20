@@ -16,7 +16,6 @@ def __load_deployment(function):
         arguments_to_pass = {k: v for k, v in vars(args).iteritems()
                              if k in expected_arguments}
         return function(**arguments_to_pass)
-
     return wrap_function
 
 
@@ -65,12 +64,11 @@ def __build_deployment(function):
                         inspect.getargspec(ChefDeployment.fromfile)[0][1:]))
             exit(1)
         else:
-            util.logger.info(args.deployment)
-        return function(args.deployment, args)
             util.info(args.deployment)
-        expected_arguments = inspect.getargspec(function)[0]
-        arguments_to_pass = {k: v for k, v in vars(args).iteritems()
-                             if k in expected_arguments}
+        names_of_arguments_to_pass = inspect.getargspec(function)[0]
+        arguments_to_pass = vars(args).fromkeys(names_of_arguments_to_pass)
+	print vars(args)
+	print arguments_to_pass
         return function(**arguments_to_pass)
     return wrap_function
 
