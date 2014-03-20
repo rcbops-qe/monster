@@ -26,7 +26,7 @@ from tools.compute_decorators import __provision_for_deployment
 @__log
 @__provision_for_deployment
 @__build_deployment
-def build(deployment, args):
+def build(deployment):
     """
     Builds an OpenStack Cluster
     """
