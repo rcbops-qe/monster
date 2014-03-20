@@ -7,6 +7,9 @@ chef:
         version: 11.08.0
         run_cmd: "chef-client"
 environments:
+    ceilometer:
+        default:
+             enabled: True
     openssh:
         server:
             subsystem: "sftp internal-sftp"
