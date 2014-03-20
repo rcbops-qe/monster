@@ -19,6 +19,7 @@ def get_logger(name):
     formatter = logging.Formatter(log_format)
     console_handler.setFormatter(formatter)
     logger.addHandler(console_handler)
+    return logger
 
 
 def set_log_level(logger, level):
