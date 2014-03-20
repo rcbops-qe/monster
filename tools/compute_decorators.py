@@ -1,5 +1,6 @@
 import inspect
 
+from IPython import embed
 from monster import util
 from monster.config import Config
 from monster.deployments.chef_deployment import Chef as ChefDeployment
@@ -51,7 +52,10 @@ def __build_deployment(function):
 
         util.logger.info("Building deployment object for %s" % args.name)
         util.logger.debug("Creating ChefDeployment with dict %s" % args)
-        try:
+        from IPython import embed
+        embed()
+	sys.exit(0)
+	try:
             args.deployment = ChefDeployment.fromfile(**vars(args))
         except TypeError:
             util.logger.critical(

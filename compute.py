@@ -44,7 +44,6 @@ def test(deployment, tests_to_run, iterations):
     """
     Tests an OpenStack deployment
     """
->>>>>>> james | continued cleaning up of compute.py
     test_util = TestUtil(deployment, iterations)
     for test in test_util.get_tests(tests_to_run):
         test()
