@@ -61,8 +61,8 @@ class CLI:
         test_to_run.add_argument('--cloudcafe', '--cc', action='store_true',
                                  help='Run only CloudCAFE tests.')
         test_parser.add_argument('-p', '--provider_net',
-                                 default='6241dfe9-11fe-'
-                                         '45e7-b39d-45ef88f5d9cb')
+                                 default='f1d63cf1-cbac-'
+                                         '499c-995e-dee4d752934a')
         test_parser.set_defaults(func=commands['test'])
 
         tmux_parser = subparsers.add_parser('tmux')

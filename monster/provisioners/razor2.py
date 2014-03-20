@@ -8,6 +8,8 @@ from chef import Node, Client, Search, autoconfigure
 from monster import util
 
 
+logger = util.get_logger("monster.provisioners.razor2.log")
+
 class Razor2(Provisioner):
     """
     Provisions chef nodes in a Razor environment
@@ -27,7 +29,7 @@ class Razor2(Provisioner):
         :rtype: list
         """
 
-        util.logger.info("Provisioning with Razor!")
+        logger.info("Provisioning with Razor!")
         image = deployment.os_name
         return [self.available_node(image, deployment)
                 for _ in template['nodes']]
@@ -96,7 +98,7 @@ class Razor2(Provisioner):
                 cnode.delete()
                 sleep(15)
             except:
-                util.logger.error("Node unreachable. "
+                logger.error("Node unreachable. "
                                   "Manual restart required:{0}".
                                   format(str(node)))
 

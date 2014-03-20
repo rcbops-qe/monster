@@ -1,29 +1,33 @@
 import os
-import sys
 import logging
-import traceback
 from glob import glob
 from xml.etree import ElementTree
 
-
 from inspect import getmembers, isclass
 
-
+# Log to console
+logger = logging.getLogger("rcbops.qa")
 console_handler = logging.StreamHandler()
+log_format = '%(asctime)s %(name)s %(levelname)s: %(message)s'
+formatter = logging.Formatter(log_format)
+console_handler.setFormatter(formatter)
+logger.addHandler(console_handler)
 config = None
 
-# Log to console
 def get_logger(name):
-    logger = logging.getLogger(name)
+    loggerx = logging.getLogger(name)
+    console_handler = logging.StreamHandler()
     log_format = '%(asctime)s %(name)s %(levelname)s: %(message)s'
     formatter = logging.Formatter(log_format)
     console_handler.setFormatter(formatter)
-    logger.addHandler(console_handler)
-    return logger
+    loggerx.addHandler(console_handler)
+    config = None
+    return loggerx
 
 
-def set_log_level(logger, level):
+def set_log_level(name, level):
     log_level = getattr(logging, level, logging.INFO)
+    logger = get_logger(name)
     logger.setLevel(log_level)
 
 
@@ -31,18 +35,8 @@ def log_to_file(logger, path):
     log_file = logging.FileHandler(path)
     log_file.setFormatter(console_handler.formatter)
     log_file.setLevel(logging.DEBUG)
+    logger = get_logger(name)
     logger.addHandler(log_file)
-
-
-def error_exit(error_message=None):
-    """
-    Prints a stack track to the logger and exits gracefully.
-    Takes an optional message parameter.
-    """
-    if error_message:
-        logger.error(error_message)
-    logger.error(traceback.print_exc())
-    sys.exit(1)
 
 
 def module_classes(module):
@@ -51,7 +45,7 @@ def module_classes(module):
 
 
 def xunit_merge(path="."):
-    #print "Merging xunit files"
+    print "Merging xunit files"
     files = glob(path + "/*.xml")
     tree = None
     attrs = ["failures", "tests", "errors", "skip"]

@@ -19,6 +19,8 @@ from monster.environments.chef_environment import Chef as \
     MonsterChefEnvironment
 
 
+logger = util.get_logger("monster.deployments.chef_deployment.log")
+
 class Chef(Deployment):
     """
     Deployment mechinisms specific to deployment using
@@ -26,11 +28,11 @@ class Chef(Deployment):
     """
 
     def __init__(self, name, os_name, branch, environment, provisioner,
-                 log_level, status=None, product=None, clients=None):
+                 status=None, product=None, clients=None):
         status = status or "provisioning"
         super(Chef, self).__init__(name, os_name, branch,
                                    provisioner, status, product,
-                                   log_level, clients)
+                                   clients)
         self.environment = environment
         self.has_controller = False
         self.has_orch_master = False
@@ -148,7 +150,7 @@ class Chef(Deployment):
 
         if ChefEnvironment(name, api=local_api).exists:
             # Use previous dry build if exists
-            #util.logger.info("Using previous deployment:{0}".format(name))
+            logger.info("Using previous deployment:{0}".format(name))
             return cls.from_chef_environment(name)
 
         if not template_path:
@@ -162,7 +164,7 @@ class Chef(Deployment):
         try:
             template = Config(path)[template_name]
         except KeyError:
-            util.logger.critical("Looking for the template {0} in the file: "
+            logger.critical("Looking for the template {0} in the file: "
                                  "\n{1}\n The key was not found!"
                                  .format(template_name, path))
             exit(1)
@@ -203,7 +205,7 @@ class Chef(Deployment):
         local_api = autoconfigure()
         env = ChefEnvironment(environment, api=local_api)
         if not env.exists:
-            util.logger.error("The specified environment, {0}, does not"
+            logger.error("The specified environment, {0}, does not"
                               "exist.".format(environment))
             exit(1)
         override = env.override_attributes
@@ -236,8 +238,8 @@ class Chef(Deployment):
         nodes = deployment_args.get('nodes', [])
         for node in (ChefNode(n, local_api) for n in nodes):
             if not node.exists:
-                #util.logger.error("Non existant chef node:{0}".
-                #                  format(node.name))
+                logger.error("Non existant chef node:{0}".
+                                  format(node.name))
                 continue
             cnode = MonsterChefNode.from_chef_node(node, product, environment,
                                                    deployment, provisioner,
@@ -285,8 +287,8 @@ class Chef(Deployment):
         # stringify and lowercase classes in deployment features
         classes = util.module_classes(deployment_features)
         for feature, rpcs_feature in features.items():
-            #util.logger.debug("feature: {0}, rpcs_feature: {1}".format(
-            #    feature, rpcs_feature))
+            logger.debug("feature: {0}, rpcs_feature: {1}".format(
+                feature, rpcs_feature))
             self.features.append(classes[feature](self, rpcs_feature))
 
     def destroy(self):

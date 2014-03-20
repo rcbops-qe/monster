@@ -18,8 +18,7 @@ class Deployment(object):
     """
 
     def __init__(self, name, os_name, branch, provisioner, status, product,
-                 log_level, clients=None):
-        logging.basicConfig(level=logging.getLevelName(log_level))
+                 clients=None):
         self.name = name
         self.os_name = os_name
         self.branch = branch

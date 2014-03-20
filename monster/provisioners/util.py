@@ -5,6 +5,8 @@ from monster.provisioners import *
 from monster import util
 
 
+logger = util.get_logger("monster.provisioners.util.log")
+
 def get_provisioner(provisioner):
     """
     This will return an instance of the correct provisioner class
@@ -17,7 +19,7 @@ def get_provisioner(provisioner):
         identifier = getattr(sys.modules['monster'].provisioners, provisioner)
     except AttributeError:
         print(traceback.print_exc())
-        util.logger.error("The provisioner \"{0}\" was not found."
+        logger.error("The provisioner \"{0}\" was not found."
                           .format(provisioner))
         exit(1)
     return module_classes(identifier)[provisioner]()

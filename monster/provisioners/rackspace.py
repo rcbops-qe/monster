@@ -6,6 +6,8 @@ from openstack import Openstack
 from monster.clients.openstack import Creds
 
 
+logger = util.get_logger("monster.provisioners.rackspace.log")
+
 class Rackspace(Openstack):
     """
     Provisions chef nodes in Rackspace Cloud Servers vms
@@ -69,7 +71,7 @@ class Rackspace(Openstack):
         :param size: Size of swap file in GBs
         :type size: int
         """
-        util.logger.info("Making swap file on:{0} of {1}GBs".format(node.name,
+        logger.info("Making swap file on:{0} of {1}GBs".format(node.name,
                                                                     size))
         size_b = 1048576 * size
         cmds = [
@@ -88,7 +90,7 @@ class Rackspace(Openstack):
         :param node: Node to update
         :type node: monster.Node
         """
-        util.logger.info("Updating node:{0}".format(node.name))
+        logger.info("Updating node:{0}".format(node.name))
         cmds = ["apt-get update -y",
                 "apt-get upgrade -y",
                 "apt-get install openssh-client git curl -y"]

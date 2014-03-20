@@ -14,17 +14,16 @@ class TestUtil:
     def __init__(self, deployment, args):
         self.deployment = deployment
         self.args = args
-        logging.basicConfig(level=logging.getLevelName(args.log_level))
 
     def runHA(self):
         if not self.deployment.feature_in("highavailability"):
             logger.warning('High Availability was not detected as a '
                            'feature; HA tests will not be run!')
             return
-        ha = HATest(self.deployment, self.args.log_level)
+        ha = HATest(self.deployment)
         self.__prepare_xml_directory()
         logger.info('Running High Availability test!')
-        for i in range(self.args.iterations):
+        for i in range(int(self.args.iterations)):
             logger.debug('Running iteration %s!' % (i + 1))
             ha.test(self.args.iterations, self.args.provider_net)
 

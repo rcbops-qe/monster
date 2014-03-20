@@ -17,7 +17,7 @@ from monster.tests.test import Test
 #logger = util.get_logger("hatest.log")
 #util.set_log_level(logger, "ERROR")
 
-logger = logging.getLogger("hatest.log")
+logger = util.get_logger("hatest.log")
 
 class Creds(object):
     """
@@ -33,10 +33,7 @@ class Build(object):
     """
     Build state to be verified after failover
     """
-    def __init__(self, server, network_id, subnet_id, name, image, flavor,
-                 log_level):
-        logging.basicConfig(level=logging.getLevelName(log_level))
-        self.log_level = log_level
+    def __init__(self, server, network_id, subnet_id, name, image, flavor):
         self.server = server
         self.name = name
         self.image = image
@@ -118,10 +115,8 @@ class HATest(Test):
     """
     HA Openstack tests
     """
-    def __init__(self, deployment, log_level):
+    def __init__(self, deployment):
         super(HATest, self).__init__(deployment)
-        logging.basicConfig(level=logging.getLevelName(log_level))
-        self.log_level = log_level
         self.iterations = 1
         self.current_iteration = 0
         controllers = list(self.deployment.search_role("controller"))
@@ -301,7 +296,7 @@ class HATest(Test):
             logger.debug("Server ({0}) status: {1}".format(server_name,
                                                                 build_status))
         build = Build(server, network_id, subnet_id, server_name,
-                      server_image, server_flavor, self.log_level)
+                      server_image, server_flavor)
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
         port_id = ""
@@ -533,7 +528,7 @@ class HATest(Test):
                 {'name': 'Verify', 'current': 0, 'total': verify_stages},
                 {'name': 'Failover', 'current': 0, 'total': failover_stages},
                 {'name': 'Failback', 'current': 0, 'total': failback_stages}]
-        progress = Progress(bars, self.log_level)
+        progress = Progress(bars)
 
         builds = []
 
@@ -635,9 +630,8 @@ class HATest(Test):
 
 
 class Progress(object):
-    def __init__(self, bars, log_level):
+    def __init__(self, bars):
         self.bars = bars
-        logging.basicConfig(level=logging.getLevelName(log_level))
 
     def advance(self, bar_name):
         logger.debug("Advancing {0}...".format(bar_name))
@@ -650,7 +644,7 @@ class Progress(object):
         sys.stdout.write("   {0}:[".format(bar['name']))
         self.set_color("bold")
         self.set_color("blue")
-        complete = (float(bar['current']) / bar['total']) * size
+        complete = (float(bar['current']) / int(bar['total'])) * size
         for i in range(int(complete)):
             sys.stdout.write("|")
 
@@ -658,7 +652,7 @@ class Progress(object):
         self.set_color("blink")
         work_on = 0
         if curr == 1:
-            work_on = (float(1) / bar['total']) * size
+            work_on = (float(1) / int(bar['total'])) * size
             for i in range(int(work_on)):
                 if (size - complete) > 0:
                     sys.stdout.write("|")

@@ -27,7 +27,6 @@ class TempestNeutron(Test):
         ##############################
         # Must be changed!
         ##############################
-        logging.basicConfig(level=logging.getLevelName(log_level))
         self.path = "/tmp/%s.conf" % self.deployment.name
         self.test_node = next(self.deployment.search_role("controller"))
         time_cmd = subprocess.Popen(['date', '+%F_%T'],

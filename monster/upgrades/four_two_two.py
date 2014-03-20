@@ -4,6 +4,8 @@ from monster import util
 from monster.upgrades.upgrade import Upgrade
 
 
+logger = util.get_logger("monster.upgrades.four_two_two.log")
+
 class FourTwoTwo(Upgrade):
     """
     4.2.2 Upgrade Procedures
@@ -26,7 +28,7 @@ class FourTwoTwo(Upgrade):
 
         supported = util.config['upgrade']['supported'][self.deployment.branch]
         if upgrade_branch not in supported:
-            util.logger.error("{0} to {1} upgarde not supported".format(
+            logger.error("{0} to {1} upgarde not supported".format(
                 self.deployment.branch, upgrade_branch))
             raise NotImplementedError
 

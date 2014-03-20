@@ -30,6 +30,18 @@ def build(deployment, args):
     """
     Builds an OpenStack Cluster
     """
+    util.set_log_level("compute", args.log_level)
+    print "PRE-BAH!!!!"
+    logger.error("BAH!!!!")
+    logger.error("BAH!!!!")
+    logger.error("BAH!!!!")
+    logger.info("BAH!!!!")
+    logger.info("BAH!!!!")
+    logger.info("BAH!!!!")
+    logger.debug("BAH!!!!")
+    logger.debug("BAH!!!!")
+    logger.debug("BAH!!!!")
+    print "POST-BAH!!!!"
     if args.dry:
         deployment.update_environment()
     else:
@@ -116,7 +128,6 @@ def show(deployment, args):
     """
     Shows details about an OpenStack deployment
     """
-    util.set_log_level(logger, "INFO")
     logger.info(str(deployment))
 
 # is artifact supposed to be in the CLI?
@@ -126,4 +137,5 @@ args = CLI.parser(
      'upgrade': upgrade}).parse_args()
 
 if __name__ == "__main__":
-    args.func(args)
+    import cProfile
+    cProfile.run('args.func(args)')
