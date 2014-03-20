@@ -135,6 +135,10 @@ class HATest(Test):
                                       tenant_name=creds.user)
         self.rabbit = deployment.rabbitmq_mgmt_client
 
+    @property
+    def name(self):
+        return "High Availability tests"
+
     def gather_creds(self, deployment):
         """
         Creates cred object based off deployment

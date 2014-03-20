@@ -130,7 +130,7 @@ class RazorAPI2(object):
         Initilizer for RazorAPI class
         """
 
-        self.url = "{0}/collections/".format(url)
+        self.url = "{0}".format(url)
 
     def __repr__(self):
         """
@@ -148,7 +148,8 @@ class RazorAPI2(object):
         """
         # Call the Razor RESTful API to get a list of nodes
         headers = {'content-type': 'application/json'}
-        r = requests.get('{0}/nodes'.format(self.url), headers=headers)
+        r = requests.get(
+            '{0}/collections/nodes'.format(self.url), headers=headers)
 
         # Check the status code and return appropriately
         if r.status_code == 200:
@@ -164,7 +165,7 @@ class RazorAPI2(object):
 
         # Call the Razor RESTful API to get a node
         headers = {'content-type': 'application/json'}
-        r = requests.get('{0}/nodes/{1}'.format(
+        r = requests.get('{0}/collections/nodes/{1}'.format(
             self.url, node), headers=headers)
 
         # Check the status code and return appropriately

@@ -22,6 +22,10 @@ class TempestNeutron(Test):
     Tests a deployment with tempest
     """
 
+    @property
+    def name(self):
+        return "Tempest Neutron tests"
+
     def __init__(self, deployment):
         super(TempestNeutron, self).__init__(deployment)
         ##############################

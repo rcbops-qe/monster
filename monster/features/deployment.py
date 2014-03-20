@@ -459,6 +459,39 @@ class Keystone(Deployment):
     def update_environment(self):
         self.deployment.environment.add_override_attr(
             str(self), self.environment)
+        # Check to see if we need to add the secret info to
+        # connect to AD/ldap
+        if 'actived' in self.rpcs_feature or 'openldap' in self.rpcs_feature:
+            # grab values from secrets file
+            url = util.config['secrets'][self.rpcs_feature]['url']
+            user = util.config['secrets'][self.rpcs_feature]['user']
+            password = util.config['secrets'][self.rpcs_feature]['password']
+            users = util.config['secrets'][self.rpcs_feature]['users']
+
+            # Grab environment
+            env = self.deployment.environment
+
+            # Override the attrs
+            env.override_attributes['keystone']['ldap']['url'] = url
+            env.override_attributes['keystone']['ldap']['user'] = user
+            env.override_attributes['keystone']['ldap']['password'] = password
+            env.override_attributes['keystone']['users'] = users
+
+            # Save the Environment
+            self.deployment.environment.save()
+
+    def pre_configure(self):
+
+        # Grab environment
+        env = self.deployment.environment
+
+        # Add the service user passwords
+        for user, value in util.config['secrets'][
+                self.rpcs_feature].items():
+                if self.deployment.feature_in(user):
+                    env.override_attributes[user]['service_pass'] = \
+                        value['service_pass']
+        self.deployment.environment.save()
 
         # Check to see if we need to add the secret info to
         # connect to AD/ldap
@@ -526,6 +559,19 @@ class Cinder(Deployment):
         computes = self.deployment.search_role("compute")
         for compute in computes:
             compute.run()
+
+
+class Ceilometer(Deployment):
+    """ Represents the Ceilometer feature
+    """
+
+    def __init__(self, deployment, rpcs_feature='default'):
+        super(Ceilometer, self).__init__(deployment, rpcs_feature)
+        self.environment = util.config['environments'][str(self)][rpcs_feature]
+
+    def update_environment(self):
+        self.deployment.environment.add_override_attr(
+            str(self), self.environment)
 
 
 #############################################################################
