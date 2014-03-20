@@ -14,4 +14,3 @@ def get_test_suite_for(self, deployment):
     else:
         tempest = TempestNeutron(deployment)
     return tempest
-

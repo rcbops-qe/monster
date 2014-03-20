@@ -44,7 +44,7 @@ def __build_deployment(function):
 
         util.logger.info("Building deployment object for %s" % args.name)
         util.logger.debug("Creating ChefDeployment with dict %s" % args)
-	try:
+        try:
             args.deployment = ChefDeployment.fromfile(**vars(args))
         except TypeError:
             util.logger.critical(
@@ -59,6 +59,7 @@ def __build_deployment(function):
         arguments_to_pass = vars(args).fromkeys(names_of_arguments_to_pass)
         return function(**arguments_to_pass)
     return wrap_function
+
 
 def __get_template_filename(branch):
     if branch == "master":
