@@ -39,6 +39,6 @@ def __build_deployment(function):
 
             exit(1)
         else:
-            util.info(args.deployment)
-        return function(args)
+            util.logger.info(args.deployment)
+        return function(args.deployment, args)
     return wrap_function
