@@ -39,6 +39,16 @@ def __log(function):
 
 def __build_deployment(function):
     def wrap_function(args):
+        # magic to get the template location from the branch
+        if args.branch == "master":
+            args.template_file = "default"
+        else:
+            temp_branch = args.branch.lstrip('v')
+            if "rc" in temp_branch:
+                args.template_file = temp_branch.rstrip("rc").replace('.', '_')
+            else:
+                args.template_file = temp_branch.replace('.', '_')
+
         util.logger.info("Building deployment object for %s" % args.name)
         util.logger.debug("Creating ChefDeployment with dict %s" % args)
         try:
