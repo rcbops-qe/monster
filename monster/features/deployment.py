@@ -457,11 +457,9 @@ class Keystone(Deployment):
     def update_environment(self):
         self.deployment.environment.add_override_attr(
             str(self), self.environment)
-
         # Check to see if we need to add the secret info to
         # connect to AD/ldap
-        if 'actived' or 'openldap' in self.rpcs_feature:
-
+        if 'actived' in self.rpcs_feature or 'openldap' in self.rpcs_feature :
             # grab values from secrets file
             url = util.config['secrets'][self.rpcs_feature]['url']
             user = util.config['secrets'][self.rpcs_feature]['user']
