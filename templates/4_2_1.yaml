@@ -1,4 +1,4 @@
-ubuntu-ha-neutron-ldap:
+ubuntu-ha-neutron:
   product: compute
   name: ha
   os: ubuntu
@@ -12,7 +12,7 @@ ubuntu-ha-neutron-ldap:
     neutron: neutron
     horizon: default
     osops: default
-    keystone: ldap
+    keystone: default
     osopsnetworks: default
   nodes:
     - [chefserver]
@@ -22,7 +22,7 @@ ubuntu-ha-neutron-ldap:
     - [compute]
     - [compute]
 
-ubuntu-ha-neutron-actived:
+ubuntu-ha-novanet-actived:
   product: compute
   name: ha
   os: ubuntu
@@ -33,20 +33,19 @@ ubuntu-ha-neutron-actived:
     glance: default
     cinder: local
     nova: default
-    neutron: neutron
     horizon: default
     osops: default
     keystone: actived
     osopsnetworks: default
   nodes:
     - [chefserver]
-    - [controller, network, orchestration]
-    - [controller, network, orchestration]
+    - [controller, orchestration]
+    - [controller, orchestration]
     - [cinder]
     - [compute]
     - [compute]
 
-ubuntu-ha-novanet:
+ubuntu-ha-novanet-openldap:
   product: compute
   name: ha
   os: ubuntu
@@ -59,7 +58,7 @@ ubuntu-ha-novanet:
     nova: default
     horizon: default
     osops: default
-    keystone: default
+    keystone: openldap
     osopsnetworks: default
   nodes:
     - [chefserver]
