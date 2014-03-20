@@ -44,11 +44,7 @@ def test(deployment, tests_to_run, iterations):
     """
     Tests an OpenStack deployment
     """
-<<<<<<< HEAD
-=======
-    from IPython import embed
-    embed()
->>>>>>> james | changing the behavior of the wrapper so they know what arguments to pass to their wrapped functions.
+>>>>>>> james | continued cleaning up of compute.py
     test_util = TestUtil(deployment, iterations)
     for test in test_util.get_tests(tests_to_run):
         test()
@@ -70,11 +66,7 @@ def upgrade(deployment, upgrade_branch):
     """
     Upgrades a current deployment to the new branch / tag
     """
-<<<<<<< HEAD
     deployment.upgrade(upgrade_branch)
-=======
-    deployment.upgrade(args.upgrade_branch)
->>>>>>> james | changing the behavior of the wrapper so they know what arguments to pass to their wrapped functions.
 
 
 @__log
