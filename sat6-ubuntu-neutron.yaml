@@ -47,19 +47,12 @@ environments:
             root_network_acl: "%"
             allow_remote_root: true
     nova:
-        razor2:
+        default:
             apply_patches: false
-            networks:
-                public:
-                    bridge: br0
-                    dns1: 8.8.8.8
-                    dns2: 8.8.4.4
-                    bridge_dev: vmnet
-                    network_size: "30"
-                    ipv4_cidr: 10.127.102.0/27
-                    label: public
             libvirt:
                 virt_type: kvm
+            network:
+                provider: neutron
     osops:
         default:
             apply_patches: true
@@ -90,7 +83,6 @@ environments:
                 network_type: gre
                 provider_networks:
                   - {bridge: "br-vmnet", vlans: "867:867", label: "ph-vmnet"}
-                vlans: "867:867"
     cinder:
         local:
             storage:
@@ -130,6 +122,9 @@ environments:
             10.127.101.67:
                 vrid: 12
                 network: public
+    bridge_devices:
+        data: vmnet
+        management: mgmt
 rcbops:
     retrofit:
         supported:
@@ -234,16 +229,6 @@ tests:
         - volume
       swift:
         - object_storage
-
-razor2:
-    network:
-        vmnet:
-            cidr: 10.127.102.0/27
-            iface: vmnet
-        mgmt:
-            cidr: 10.127.101.32/27
-            iface: mgmt
-
 upgrade:
   commands:
     backup-db: bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/database_backup.sh)
