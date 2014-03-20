@@ -44,8 +44,6 @@ def test(deployment, tests_to_run, iterations):
     """
     Tests an OpenStack deployment
     """
-    from IPython import embed
-    embed()
     test_util = TestUtil(deployment, iterations)
     for test in test_util.get_tests(tests_to_run):
         test()
@@ -63,16 +61,16 @@ def retrofit(deployment, retro_branch='dev', ovs_bridge='br-eth1',
 
 @__log
 @__load_deployment
-def upgrade(deployment, args):
+def upgrade(deployment, upgrade_branch):
     """
     Upgrades a current deployment to the new branch / tag
     """
-    deployment.upgrade(args.upgrade_branch)
+    deployment.upgrade(upgrade_branch)
 
 
 @__log
 @__load_deployment
-def destroy(deployment, args):
+def destroy(deployment):
     """
     Destroys an existing OpenStack deployment
     """
@@ -81,7 +79,7 @@ def destroy(deployment, args):
 
 @__log
 @__load_deployment
-def artifact(deployment, args):
+def artifact(deployment):
     """
     Artifacts a deployment (configs / running services)
     """
@@ -90,7 +88,7 @@ def artifact(deployment, args):
 
 @__log
 @__load_deployment
-def openrc(deployment, args):
+def openrc(deployment):
     """
     Loads OpenStack credentials into shell env
     """
@@ -99,7 +97,7 @@ def openrc(deployment, args):
 
 @__log
 @__load_deployment
-def tmux(deployment, args):
+def tmux(deployment):
     """
     Loads OpenStack nodes into new tmux session
     """
@@ -108,7 +106,7 @@ def tmux(deployment, args):
 
 @__log
 @__load_deployment
-def horizon(deployment, args):
+def horizon(deployment):
     """
     Opens Horizon in a browser tab
     """
@@ -119,7 +117,7 @@ def horizon(deployment, args):
 
 @__log
 @__load_deployment
-def show(deployment, args):
+def show(deployment):
     """
     Shows details about an OpenStack deployment
     """

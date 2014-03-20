@@ -13,9 +13,8 @@ def __load_deployment(function):
         args.deployment = ChefDeployment.from_chef_environment(args.name)
         util.logger.debug("Loading deployment {0}".format(args.deployment))
         expected_arguments = inspect.getargspec(function)[0]
-	arguments_to_pass = { k:v for k,v in vars(args).iteritems()
+        arguments_to_pass = { k:v for k,v in vars(args).iteritems()
                        if k in expected_arguments}
-	embed()
         return function(**arguments_to_pass)
     return wrap_function
 
@@ -40,10 +39,8 @@ def __build_deployment(function):
     def wrap_function(args):
         util.logger.info("Building deployment object for %s" % args.name)
         util.logger.debug("Creating ChefDeployment with dict %s" % args)
-        from IPython import embed
-        embed()
-	sys.exit(0)
-	try:
+
+        try:
             args.deployment = ChefDeployment.fromfile(**vars(args))
         except TypeError:
             util.logger.critical(
@@ -51,15 +48,13 @@ def __build_deployment(function):
                 "expects at least the following non-none : {1}."
                 .format(vars(args),
                         inspect.getargspec(ChefDeployment.fromfile)[0][1:]))
-
             exit(1)
         else:
             util.logger.info(args.deployment)
         return function(args.deployment, args)
             util.info(args.deployment)
-        names_of_arguments_to_pass = inspect.getargspec(function)[0]
-        arguments_to_pass = vars(args).fromkeys(names_of_arguments_to_pass)
-	print vars(args)
-	print arguments_to_pass
+        expected_arguments = inspect.getargspec(function)[0]
+        arguments_to_pass = { k:v for k,v in vars(args).iteritems()
+                       if k in expected_arguments}
         return function(**arguments_to_pass)
     return wrap_function
