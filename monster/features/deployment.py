@@ -69,12 +69,6 @@ class Neutron(Deployment):
         self.deployment.environment.add_override_attr(self.provider,
                                                       self.environment)
 
-        # Fix the nova network block in the env
-        self._fix_nova_environment()
-
-        # Fix the network provider block in the env
-        self._fix_networking_environment()
-
     def post_configure(self):
         """
         Runs cluster post configure commands
@@ -119,91 +113,6 @@ class Neutron(Deployment):
         util.logger.info("## Setting up LBAAS testing security rule ##")
         controller.run_cmd(tcp_command2)
 
-    def _fix_networking_environment(self):
-        """
-        Fix the network provider block in the enviornment
-        """
-
-        controller = next(self.deployment.search_role('controller'))
-
-        iface = controller.get_vmnet_iface()
-        if not iface:
-            iface = util.config[self.deployment.provisioner]['network'][
-                'vmnet']['iface']
-
-        util.logger.info("Using iface: {0}".format(iface))
-
-        env = self.deployment.environment
-        ovs = env.override_attributes[self.provider]['ovs']
-        try:
-            vlans = ovs['vlans']
-        except Exception:
-            vlans = '1:1000'
-            pass
-
-        provider_networks = [
-            {"label": "ph-{0}".format(iface),
-             "bridge": "br-{0}".format(iface),
-             "vlans": "{0}".format(vlans)}]
-        ovs['provider_networks'] = provider_networks
-        ovs.pop('vlans', None)
-        env.save()
-
-    def _fix_nova_environment(self):
-        """
-        Fix the nova networking environment block
-        """
-
-        env = self.deployment.environment
-        # set the network block key to the configured provider
-        neutron_network = {'provider': self.provider}
-
-        if 'networks' in env.override_attributes['nova']:
-            del env.override_attributes['nova']['networks']
-            env.override_attributes['nova']['network'] = neutron_network
-
-        """
-        # update the vip to correct api name and vip value
-        if self.deployment.feature_in("highavailability"):
-            api_name = '{0}-api'.format(self.provider)
-            api_vip = util.config[str(self)][
-                self.deployment.provisioner][self.deployment.os_name]['vip']
-            env.override_attributes['vips'][api_name] = api_vip
-        """
-
-        # Save the environment
-        env.save()
-
-    def _reboot_cluster(self):
-        """
-        Reboots the deployment cluster
-        : depreciated : no longer needed in RPCS
-        """
-
-        # reboot the deployment
-        self.deployment.reboot_deployment()
-
-        # Sleep for 20 seconds to let the deployment reboot
-        time.sleep(20)
-
-        # Keep sleeping till the deployment comes back
-        # Max at 8 minutes
-        sleep_in_minutes = 5
-        total_sleep_time = 0
-        while not self.deployment.is_online():
-            util.logger.info("## Current Deployment is Offline ##")
-            util.logger.info("## Sleeping for {0} minutes ##".format(
-                str(sleep_in_minutes)))
-            time.sleep(sleep_in_minutes * 60)
-            total_sleep_time += sleep_in_minutes
-            sleep_in_minutes -= 1
-
-            # if we run out of time to wait, exit
-            if sleep_in_minutes == 0:
-                error = ("## -- Failed to reboot deployment"
-                         "after {0} minutes -- ##".format(total_sleep_time))
-                raise Exception(error)
-
     def _build_bridges(self):
         """
         Build the subnets
@@ -233,9 +142,6 @@ class Neutron(Deployment):
         util.logger.info("### End of Networking Block ###")
 
     def iface_bb_cmd(self, iface):
-        if not iface:
-            iface = util.config[self.deployment.provisioner]['network'][
-                self.deployment.os_name]['vmnet']['iface']
         util.logger.info("Using iface: {0}".format(iface))
         commands = ['ip a f {0}'.format(iface),
                     'ovs-vsctl add-port br-{0} {0}'.format(
@@ -262,10 +168,6 @@ class Neutron(Deployment):
             compute.run_cmd(cmd)
 
     def iface_cb_cmd(self, iface):
-        if not iface:
-            iface = util.config[self.deployment.provisioner]['network'][
-                self.deployment.os_name]['vmnet']['iface']
-
         util.logger.info("Using iface: {0}".format(iface))
         cmd = "ip a f {0}".format(iface)
         return cmd
@@ -564,27 +466,12 @@ class Nova(Deployment):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Nova, self).__init__(deployment, rpcs_feature)
-        self.environment = util.config['environments'][str(self)][
-            str(self.deployment.provisioner)]
+        self.environment = util.config['environments'][str(self)]
 
     def update_environment(self):
 
         self.deployment.environment.add_override_attr(
             str(self), self.environment)
-
-        controller = next(self.deployment.search_role('controller'))
-
-        iface = controller.get_vmnet_iface()
-        if not iface:
-            iface = util.config[self.deployment.provisioner]['network'][
-                'vmnet']['iface']
-
-        util.logger.info("Using iface: {0}".format(iface))
-
-        env = self.deployment.environment
-        util.logger.info("Setting bridge_dev to {0}".format(iface))
-        env.override_attributes['nova']['networks']['public'][
-            'bridge_dev'] = iface
 
         self.deployment.environment.save()
 
@@ -703,13 +590,6 @@ class OsOpsNetworks(RPCS):
         self.environment = util.config['environments'][self.name]
 
     def update_environment(self):
-        # provisioner = str(self.deployment.provisioner)
-        # if provisioner == "rackspace":
-        #     if not self.deployment.feature_in("highavailability"):
-        #         # use public nic as public network
-        #         controller = next(self.deployment.search_role("controller"))
-        #         public = "{0}/32".format(controller.ipaddress)
-        #         self.environment['public'] = public
 
         self.deployment.environment.add_override_attr(
             self.name, self.environment)
@@ -722,12 +602,6 @@ class HighAvailability(RPCS):
     def __init__(self, deployment, rpcs_feature):
         super(HighAvailability, self).__init__(deployment, rpcs_feature,
                                                'vips')
-        """
-        if str(self.deployment.provisioner) == "rackspace":
-            vips = "rackspace"
-        else:
-            vips = deployment.os_name
-        """
         self.environment = util.config['environments'][self.name]
 
     def update_environment(self):

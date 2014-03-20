@@ -216,19 +216,9 @@ class Node(object):
 
     def get_vmnet_iface(self):
         """
-        Return the iface that our neutron network will live on
+        Return the iface that our vm data network will live on
         """
-        vmnet_cidr = util.config[self.deployment.provisioner]['network'][
-            'vmnet']['cidr']
-        vmnet_l3 = ".".join(vmnet_cidr.split(".")[:-1])
-        get_nbd = "ip a | grep {0} | awk \'{1}\'".format(
-            vmnet_l3, "{print $NF}")
-
-        ret = self.run_cmd(get_nbd)['return'].rstrip()
-
-        if ret is "":
-            return None
-        return ret
+        return util.config['environments']['bridge_devices']['data']
 
     def destroy(self):
         util.logger.info("Destroying node:{0}".format(self.name))
