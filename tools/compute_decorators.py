@@ -13,17 +13,10 @@ def __load_deployment(function):
         args.deployment = ChefDeployment.from_chef_environment(args.name)
         util.logger.debug("Loading deployment {0}".format(args.deployment))
         expected_arguments = inspect.getargspec(function)[0]
-<<<<<<< HEAD
         arguments_to_pass = {k: v for k, v in vars(args).iteritems()
                              if k in expected_arguments}
         return function(**arguments_to_pass)
 
-=======
-	arguments_to_pass = { k:v for k,v in vars(args).iteritems()
-                       if k in expected_arguments}
-	embed()
-        return function(**arguments_to_pass)
->>>>>>> james | changing the behavior of the wrapper so they know what arguments to pass to their wrapped functions.
     return wrap_function
 
 

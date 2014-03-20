@@ -551,6 +551,26 @@ class Keystone(Deployment):
             # Save the Environment
             self.deployment.environment.save()
 
+        # Check to see if we need to add the secret info to
+        # connect to AD/ldap
+        if 'actived' or 'openldap' in self.rpcs_feature:
+
+            # grab values from secrets file
+            url = util.config['secrets'][self.rpcs_feature]['url']
+            user = util.config['secrets'][self.rpcs_feature]['user']
+            password = util.config['secrets'][self.rpcs_feature]['password']
+
+            # Grab environment
+            env = self.deployment.environment
+
+            # Override the attrs
+            env.override_attributes['keystone']['ldap']['url'] = url
+            env.override_attributes['keystone']['ldap']['user'] = user
+            env.override_attributes['keystone']['ldap']['password'] = password
+
+            # Save the Environment
+            self.deployment.environment.save()
+
 
 class Nova(Deployment):
     """ Represents the monitoring feature
