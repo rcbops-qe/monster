@@ -14,7 +14,7 @@ environments:
         server:
             subsystem: "sftp internal-sftp"
     package_component:
-        default: grizzly
+        default: havana
     keystone:
         default:
             admin_user: admin
@@ -42,55 +42,6 @@ environments:
                 - service
                 - demo
                 - demo2
-        ldap:
-            debug: True
-            auth_type: ldap
-            ldap:
-                user_mail_attribute: mail
-                user_enabled_emulation: True
-                user_tree_dn: "ou=Users,dc=rcb,dc=me"
-                user_attribute_ignore: tenantId
-                tenant_enabled_emulation: True
-                url: ldap://<LDAP_IP>
-                user: "cn=admin,dc=rcb,dc=me"
-                role_objectclass: organizationalRole
-                tenant_objectclass: groupOfNames
-                group_attribute_ignore: enabled
-                tenant_attribute_ignore: tenantId
-                tenant_tree_dn: "ou=Groups,dc=rcb,dc=me"
-                allow_subtree_delete: false
-                password: <LDAP_ADMIN_PASS>
-                suffix: "dc=rcb,dc=me"
-                user_objectclass: inetOrgPerson
-                domain_attribute_ignore: enabled
-                use_dumb_member: True
-                role_tree_dn: "ou=Roles,dc=rcb,dc=me"
-            admin_user: admin
-            users:
-                demo:
-                    roles:
-                        Member:
-                            - demo
-                        default_tenant: demo
-                        password: secrete
-                admin:
-                   roles:
-                        admin:
-                            - admin
-                            - demo
-                   password: secrete
-            tenants:
-                - admin
-                - service
-                - demo
-                - demo2
-        swift:
-           swift_admin_url: ""
-           swift_public_url: ""
-           swift_internal_url: ""
-           auth_password: "secrete"
-           admin_password: "secrete"
-           ops_password: "secrete"
     monitoring:
         default:
             procmon_provider: monit
@@ -99,32 +50,12 @@ environments:
             root_network_acl: "%"
             allow_remote_root: true
     nova:
-        razor:
+        default:
             apply_patches: false
-            networks:
-                public:
-                    bridge: br0
-                    dns1: 8.8.8.8
-                    dns2: 8.8.4.4
-                    bridge_dev: eth1
-                    network_size: "254"
-                    ipv4_cidr: 172.31.0.0/24
-                    label: public
             libvirt:
                 virt_type: kvm
-        rackspace:
-            apply_patches: false
-            networks:
-              public:
-                  bridge: br0
-                  dns1: 8.8.8.8
-                  dns2: 8.8.4.4
-                  bridge_dev: eth2
-                  network_size: "254"
-                  ipv4_cidr: 172.31.0.0/24
-                  label: public
-            libvirt:
-                virt_type: qemu
+            network:
+                provider: neutron
     osops:
         default:
             apply_patches: true
@@ -173,17 +104,6 @@ environments:
                 provider: lvm
                 lvm:
                     volume_group: vg_storage
-    swift:
-        rpcs:
-            swift-private-cloud:
-                network:
-                    management: 198.101.133.0/24
-                    exnet: 198.101.133.0/24
-                swift_common:
-                   swift_hash_prefix: secretesecretestring
-                   swift_hash_suffix: ""
-                dispersion:
-                    dis_key: secrete
     vips:
         mysql-db: 192.168.4.154
         rabbitmq-queue: 192.168.4.155
@@ -217,6 +137,9 @@ environments:
             192.168.4.156:
                 vrid: 12
                 network: public
+    bridge_devices:
+        data: vmnet
+        management: mgmt
 rcbops:
     retrofit:
         supported:
@@ -320,41 +243,6 @@ tests:
         - volume
       swift:
         - object_storage
-swift:
-    master_env_key: swift-private-cloud
-    auto_build_rings: False
-    disk: "sdb"
-    disk_label: "sdb1"
-    num_rings: 3
-    part_power: 10
-    replicas: 3
-    min_part_hours: 1
-    disk_weight: 1000
-    builders:
-        object:
-            port: 6000
-        container:
-            port: 6001
-        account:
-            port: 6002
-cinder:
-    vg_name: vg_storage
-razor:
-    network:
-        centos:
-            vmnet:
-                cidr: 172.31.0.0/24
-                iface: vmnet
-            mgmt:
-                cidr: 198.101.133.0/24
-                iface: mgmt
-        ubuntu:
-            vmnet:
-                cidr: 172.31.0.0/24
-                iface: vmnet
-            mgmt:
-                cidr: 198.101.133.0/24
-                iface: mgmt
 rackspace:
     run_list:
     images:
@@ -394,46 +282,6 @@ rackspace:
         mgmt:
             cidr: 192.168.4.0/24
             iface: eth3
-openstack:
-    run_list:
-        - recipe[rcbops-qa]
-    images:
-        ubuntu: precise-image
-    flavors:
-        512MB: m1.tiny
-        1GB: m1.small
-        2GB: m1.medium
-        4GB: m1.large
-        8GB: m1.xlarge
-    networks:
-        - public
-        - private
-    network:
-        centos:
-            vmnet:
-                cidr: 192.168.3.0/24
-                iface: eth2
-            mgmt:
-                cidr: 192.168.4.0/24
-                iface: eth3
-        ubuntu:
-            vmnet:
-                cidr: 192.168.3.0/24
-                iface: eth2
-            mgmt:
-                cidr: 192.168.4.0/24
-                iface: eth3
-neutron:
-    razor:
-        centos:
-            vip: 198.101.133.156
-        ubuntu:
-            vip: 198.101.133.159
-    rackspace:
-        centos:
-            vip: 192.168.4.156
-        ubuntu:
-            vip: 192.168.4.156
 upgrade:
   commands:
     backup-db: bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/database_backup.sh)
