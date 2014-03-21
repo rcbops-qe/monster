@@ -1,6 +1,8 @@
 import inspect
 import sys
 
+from functools import wraps
+
 from monster import util
 from monster.util import Logger
 from monster.config import Config
@@ -11,28 +13,30 @@ logger = Logger(__name__)
 logger.set_log_level("INFO")
 
 
-def __load_deployment(function):
+def __load_deployment(func):
+    @wraps(func)
     def wrap_function(args):
         util.config = Config(args.config, args.secret_path)
         args.deployment = ChefDeployment.from_chef_environment(args.name)
         logger.debug("Loading deployment {0}".format(args.deployment))
-        expected_arguments = inspect.getargspec(function)[0]
+        expected_arguments = inspect.getargspec(func)[0]
         arguments_to_pass = {k: v for k, v in vars(args).iteritems()
                              if k in expected_arguments}
-        return function(**arguments_to_pass)
+        return func(**arguments_to_pass)
     return wrap_function
 
 
-def __provision_for_deployment(function):
+def __provision_for_deployment(func):
+    @wraps(func)
     def wrap_function(args):
         util.config = Config(args.config, args.secret_path)
         args.provisioner = get_provisioner(args.provisioner)
-        return function(args)
-
+        return func(args)
     return wrap_function
 
 
-def __build_deployment(function):
+def __build_deployment(func):
+    @wraps(func)
     def wrap_function(args):
         if not args.template_file:
             args.template_file = __get_template_filename(args.branch)
@@ -50,11 +54,10 @@ def __build_deployment(function):
             sys.exit(1)
         else:
             logger.info(args.deployment)
-        names_of_arguments_to_pass = inspect.getargspec(function)[0]
-        #arguments_to_pass = vars(args).fromkeys(names_of_arguments_to_pass)
+        names_of_arguments_to_pass = inspect.getargspec(func)[0]
         arguments_to_pass = {k: v for k, v in vars(args).iteritems()
                              if k in names_of_arguments_to_pass}
-        return function(**arguments_to_pass)
+        return func(**arguments_to_pass)
     return wrap_function
 
 
