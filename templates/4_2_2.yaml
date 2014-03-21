@@ -15,6 +15,7 @@ ubuntu-ha-neutron:
     ceilometer: default
     keystone: default
     osopsnetworks: default
+    highavailability: default
   nodes:
     - [chefserver]
     - [controller, network, orchestration]
@@ -39,6 +40,7 @@ ubuntu-ha-novanet-actived:
     ceilometer: default
     keystone: actived
     osopsnetworks: default
+    highavailability: default
   nodes:
     - [chefserver]
     - [controller, orchestration]
@@ -63,6 +65,7 @@ ubuntu-ha-novanet-openldap:
     ceilometer: default
     keystone: openldap
     osopsnetworks: default
+    highavailability: default
   nodes:
     - [chefserver]
     - [controller, orchestration]
