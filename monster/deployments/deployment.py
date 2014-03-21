@@ -4,10 +4,13 @@ OpenStack deployments
 
 import types
 import tmuxp
+import logging
 from pyrabbit.api import Client
 
-from monster import util
 from monster.tools.retrofit import Retrofit
+
+
+logger = logging.getLogger("monster.deployments.deployment.log")
 
 
 class Deployment(object):
@@ -52,7 +55,7 @@ class Deployment(object):
         """
 
         self.status = "Destroying..."
-        util.logger.info("Destroying deployment: {0}".format(self.name))
+        logger.info("Destroying deployment: {0}".format(self.name))
         for node in self.nodes:
             node.destroy()
         self.status = "Destroyed!"
@@ -62,13 +65,13 @@ class Deployment(object):
         Preconfigures node for each feature
         """
 
-        util.logger.info("Building Configured Environment")
+        logger.info("Building Configured Environment")
         self.status = "Loading environment..."
         for feature in self.features:
-            util.logger.debug("Deployment feature {0}: updating environment!"
-                              .format(str(feature)))
+            logger.debug("Deployment feature {0}: updating environment!"
+                         .format(str(feature)))
             feature.update_environment()
-        util.logger.debug(self.environment)
+        logger.debug(self.environment)
         self.status = "Environment ready!"
 
     def pre_configure(self):
@@ -78,8 +81,8 @@ class Deployment(object):
 
         self.status = "Pre-configuring nodes for features..."
         for feature in self.features:
-            util.logger.debug("Deployment feature: pre-configure: {0}"
-                .format(str(feature)))
+            logger.debug("Deployment feature: pre-configure: {0}"
+                         .format(str(feature)))
             feature.pre_configure()
 
     def build_nodes(self):
@@ -89,7 +92,7 @@ class Deployment(object):
 
         self.status = "Building nodes..."
         for node in self.nodes:
-            util.logger.debug("Building node {0}!".format(str(node)))
+            logger.debug("Building node {0}!".format(str(node)))
             node.build()
         self.status = "Nodes built!"
 
@@ -102,7 +105,7 @@ class Deployment(object):
         for feature in self.features:
             log = "Deployment feature: post-configure: {0}"\
                 .format(str(feature))
-            util.logger.debug(log)
+            logger.debug(log)
             feature.post_configure()
 
     def build(self):
@@ -110,16 +113,16 @@ class Deployment(object):
         Runs build steps for node's features
         """
 
-        util.logger.debug("Deployment step: update environment")
+        logger.debug("Deployment step: update environment")
         self.update_environment()
-        util.logger.debug("Deployment step: pre-configure")
+        logger.debug("Deployment step: pre-configure")
         self.pre_configure()
-        util.logger.debug("Deployment step: build nodes")
+        logger.debug("Deployment step: build nodes")
         self.build_nodes()
-        util.logger.debug("Deployment step: post-configure")
+        logger.debug("Deployment step: post-configure")
         self.post_configure()
         self.status = "post-build"
-        util.logger.info(self)
+        logger.info(self)
 
     def artifact(self):
         """
@@ -199,7 +202,7 @@ class Deployment(object):
         Retrofit the deployment
         """
 
-        util.logger.info("Retrofit Deployment: {0}".format(self.name))
+        logger.info("Retrofit Deployment: {0}".format(self.name))
 
         retrofit = Retrofit(self)
 

@@ -3,7 +3,10 @@ from cStringIO import StringIO
 from paramiko import SSHClient, WarningPolicy
 from subprocess import check_call, CalledProcessError
 
-from monster import util
+from monster.util import Logger
+
+logger = Logger("monster.server_helper")
+logger.set_log_level("INFO")
 
 
 class Command(object):
@@ -19,7 +22,7 @@ def run_cmd(command):
     @param cmd
     @return A map based on pass / fail run info
     """
-    util.logger.info("Running: {0}".format(command))
+    logger.info("Running: {0}".format(command))
     try:
         ret = check_call(command, shell=True)
         return {'success': True, 'return': ret, 'exception': None}
@@ -46,12 +49,12 @@ def ssh_cmd(ip, remote_cmd, user='root', password=None):
     stdin, stdout, stderr = ssh.exec_command(remote_cmd)
     stdin.close()
     for line in stdout:
-        if util.logger < 10:
+        if logger < 10:
             sys.stdout.write(line)
-        util.logger.info(line.strip())
+        logger.info(line.strip())
         output.write(line)
     for line in stderr:
-        util.logger.error(line.strip())
+        logger.error(line.strip())
         error.write(line)
     exit_status = stdout.channel.recv_exit_status()
     ret = {'success': True if exit_status == 0 else False,

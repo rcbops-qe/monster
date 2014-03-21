@@ -7,9 +7,14 @@ import argh
 import traceback
 
 from monster import util
+from monster.util import Logger
 from monster.config import Config
 from monster.deployments.chef_deployment import Chef
 from monster.provisioners import provisioner as provisioners
+
+
+logger = Logger("storage")
+logger.set_log_level("INFO")
 
 
 def build(name="autotest", branch="master", provisioner="rackspace",
@@ -31,21 +36,21 @@ def build(name="autotest", branch="master", provisioner="rackspace",
         try:
             deployment.update_environment()
         except Exception:
-            util.logger.error(traceback.print_exc())
+            logger.error(traceback.print_exc())
             deployment.destroy()
             sys.exit(1)
 
     else:
-        util.logger.info(deployment)
+        logger.info(deployment)
         # build deployment
         try:
             deployment.build()
         except Exception:
-            util.logger.error(traceback.print_exc())
+            logger.error(traceback.print_exc())
             deployment.destroy()
             sys.exit(1)
 
-    util.logger.info(deployment)
+    logger.info(deployment)
     if destroy:
         deployment.destroy()
 
@@ -56,7 +61,7 @@ def destroy(name="autotest", config=None, log=None, log_level="INFO"):
 
     _set_log(log, log_level)
     deployment = _load(name, config)
-    util.logger.info(deployment)
+    logger.info(deployment)
     deployment.destroy()
 
 
@@ -85,7 +90,7 @@ def load(name="autotest", config=None, log=None, log_level="INFO"):
     _set_log(log, log_level)
     # load deployment and source openrc
     deployment = _load(name, config)
-    util.logger.info(str(deployment))
+    logger.info(str(deployment))
 
 
 def _load(name="autotest", config=None, provisioner="razor"):
@@ -98,9 +103,9 @@ def _load(name="autotest", config=None, provisioner="razor"):
 
 def _set_log(log, log_level):
     # set log level and file
-    util.set_log_level(log_level)
+    logger.set_log_level(log_level)
     if log:
-        util.log_to_file(log)
+        logger.log_to_file(log)
 
 # Main
 if __name__ == "__main__":

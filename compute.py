@@ -5,25 +5,26 @@ Command-line interface for building OpenStack clusters
 """
 
 import os
-from monster import util
+from monster.util import Logger
+
+logger = Logger("compute")
+logger.set_log_level("INFO")
+
 
 if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
-    util.logger.warning("You are not using the virtual environment! We "
-                        "cannot guarantee that your monster will be well"
-                        "-behaved.  To load the virtual environment, use "
-                        "the command \"source .venv/bin/activate\"")
-
+    logger.warning("You are not using the virtual environment! We "
+                   "cannot guarantee that your monster will be well"
+                   "-behaved.  To load the virtual environment, use "
+                   "the command \"source .venv/bin/activate\"")
 
 import webbrowser
 from compute_cli import CLI
 from monster.tests.util import TestUtil
-from tools.compute_decorators import __log
 from tools.compute_decorators import __load_deployment
 from tools.compute_decorators import __build_deployment
 from tools.compute_decorators import __provision_for_deployment
 
 
-@__log
 @__provision_for_deployment
 @__build_deployment
 def build(deployment):
@@ -35,10 +36,9 @@ def build(deployment):
     else:
         deployment.build()
 
-    util.logger.info(deployment)
+    logger.info(deployment)
 
 
-@__log
 @__load_deployment
 def test(deployment, tests_to_run, iterations):
     """
@@ -49,7 +49,6 @@ def test(deployment, tests_to_run, iterations):
         test()
 
 
-@__log
 @__load_deployment
 def retrofit(deployment, retro_branch='dev', ovs_bridge='br-eth1',
              x_bridge='lxb-mgmt', iface='eth0', del_port=None):
@@ -59,7 +58,6 @@ def retrofit(deployment, retro_branch='dev', ovs_bridge='br-eth1',
     deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
 
 
-@__log
 @__load_deployment
 def upgrade(deployment, upgrade_branch):
     """
@@ -68,7 +66,6 @@ def upgrade(deployment, upgrade_branch):
     deployment.upgrade(upgrade_branch)
 
 
-@__log
 @__load_deployment
 def destroy(deployment):
     """
@@ -77,7 +74,6 @@ def destroy(deployment):
     deployment.destroy()
 
 
-@__log
 @__load_deployment
 def artifact(deployment):
     """
@@ -86,7 +82,6 @@ def artifact(deployment):
     deployment.artifact()
 
 
-@__log
 @__load_deployment
 def openrc(deployment):
     """
@@ -95,7 +90,6 @@ def openrc(deployment):
     deployment.openrc()
 
 
-@__log
 @__load_deployment
 def tmux(deployment):
     """
@@ -104,7 +98,6 @@ def tmux(deployment):
     deployment.tmux()
 
 
-@__log
 @__load_deployment
 def horizon(deployment):
     """
@@ -115,13 +108,12 @@ def horizon(deployment):
     webbrowser.open_new_tab(url)
 
 
-@__log
 @__load_deployment
 def show(deployment):
     """
     Shows details about an OpenStack deployment
     """
-    util.logger.info(str(deployment))
+    logger.info(str(deployment))
 
 # is artifact supposed to be in the CLI?
 args = CLI.parser(
@@ -130,4 +122,5 @@ args = CLI.parser(
      'upgrade': upgrade}).parse_args()
 
 if __name__ == "__main__":
-        args.func(args)
+    import cProfile
+    cProfile.run('args.func(args)')
