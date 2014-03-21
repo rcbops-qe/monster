@@ -1,8 +1,12 @@
 from time import sleep
 
 from monster import util
+from monster.util import Logger
 from monster.upgrades.upgrade import Upgrade
 
+
+logger = Logger("monster.upgrades.four_two_two")
+logger.set_log_level("INFO")
 
 class FourTwoTwo(Upgrade):
     """
@@ -26,7 +30,7 @@ class FourTwoTwo(Upgrade):
 
         supported = util.config['upgrade']['supported'][self.deployment.branch]
         if upgrade_branch not in supported:
-            util.logger.error("{0} to {1} upgarde not supported".format(
+            logger.error("{0} to {1} upgarde not supported".format(
                 self.deployment.branch, upgrade_branch))
             raise NotImplementedError
 

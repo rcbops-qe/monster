@@ -4,7 +4,11 @@ from cinderclient.v1 import client as cinder_client
 from keystoneclient.v2_0 import client as keystone_client
 
 from monster import util
+from monster.util import Logger
 
+
+logger = Logger("monster.clients.openstack")
+logger.set_log_level("INFO")
 
 class Creds(dict):
     """
@@ -37,7 +41,7 @@ class Clients(object):
         Openstack keystone client
         """
 
-        util.logger.debug(
+        logger.debug(
             "keystone connection created using token {0} and url {1}".format(
                 self.creds['username'], self.creds['auth_url']))
 
@@ -47,7 +51,7 @@ class Clients(object):
         """
         Openstack novaclient generator
         """
-        util.logger.debug(
+        logger.debug(
             'novaclient connection created using token "%s" and url "%s"'
             % (self.creds['username'], self.creds['auth_url'])
         )
@@ -70,7 +74,7 @@ class Clients(object):
         """
         Openstack cinderclient generator
         """
-        util.logger.debug(
+        logger.debug(
             'cinderclient connection created using token "%s" and url "%s"'
             % (self.creds['username'], self.creds['auth_url'])
         )
@@ -81,7 +85,7 @@ class Clients(object):
         """
         Openstack neutronclient generator
         """
-        util.logger.debug(
+        logger.debug(
             'neutron connection created using token "%s" and url "%s"'
             % (self.creds['username'], self.creds['auth_url'])
         )

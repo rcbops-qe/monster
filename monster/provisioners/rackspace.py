@@ -2,9 +2,13 @@ import pyrax
 from time import sleep
 
 from monster import util
+from monster.util import Logger
 from openstack import Openstack
 from monster.clients.openstack import Creds
 
+
+logger = Logger("monster.provisioners.rackspace")
+logger.set_log_level("INFO")
 
 class Rackspace(Openstack):
     """
@@ -69,7 +73,7 @@ class Rackspace(Openstack):
         :param size: Size of swap file in GBs
         :type size: int
         """
-        util.logger.info("Making swap file on:{0} of {1}GBs".format(node.name,
+        logger.info("Making swap file on:{0} of {1}GBs".format(node.name,
                                                                     size))
         size_b = 1048576 * size
         cmds = [
@@ -88,7 +92,7 @@ class Rackspace(Openstack):
         :param node: Node to update
         :type node: monster.Node
         """
-        util.logger.info("Updating node:{0}".format(node.name))
+        logger.info("Updating node:{0}".format(node.name))
         cmds = ["apt-get update -y",
                 "apt-get upgrade -y",
                 "apt-get install openssh-client git curl -y"]

@@ -4,6 +4,7 @@ Module to test OpenStack deployments with Tempest in Grizzly
 
 import os
 import json
+import logging
 import subprocess
 from string import Template
 from time import sleep
@@ -13,6 +14,8 @@ from monster import util
 from monster.tests.test import Test
 from monster.util import xunit_merge
 
+
+logger = logging.getLogger("tempest_quantum.log")
 
 class TempestQuantum(Test):
     """
@@ -25,6 +28,9 @@ class TempestQuantum(Test):
 
     def __init__(self, deployment):
         super(TempestQuantum, self).__init__(deployment)
+        ###############################
+        # Needs to be changed!!!!
+        ###############################
         self.path = "/tmp/%s.conf" % self.deployment.name
         self.test_node = next(self.deployment.search_role("controller"))
         time_cmd = subprocess.Popen(['date', '+%F_%T'],
@@ -140,8 +146,8 @@ class TempestQuantum(Test):
         name = "{0}-testing_setup_quantum.py".format(self.deployment.name)
         path = "/tmp/{0}".format(name)
         with open(path, 'w') as w:
-            util.logger.info("Writing test setup:{0}". format(self.path))
-            util.logger.debug(template)
+            logger.info("Writing test setup:{0}". format(self.path))
+            logger.debug(template)
             w.write(template)
 
         # send script to node
@@ -223,7 +229,7 @@ class TempestQuantum(Test):
         cmd = 'stat -c "%s" {0}.xml'.format(self.test_node.name)
         result = self.test_node.run_cmd(cmd)['return'].rstrip()
         while result == "0":
-            util.logger.info("Waiting for test results")
+            logger.info("Waiting for test results")
             sleep(30)
             result = self.test_node.run_cmd(cmd)['return'].rstrip()
 
@@ -291,9 +297,9 @@ class TempestQuantum(Test):
 
         # save config
         with open(self.path, 'w') as w:
-            util.logger.info("Writing tempest config:{0}".
+            logger.info("Writing tempest config:{0}".
                              format(self.path))
-            util.logger.debug(template)
+            logger.debug(template)
             w.write(template)
 
     def send_config(self):
