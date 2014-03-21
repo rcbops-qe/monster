@@ -16,7 +16,7 @@ if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
 
 import webbrowser
 from compute_cli import CLI
-from monster.tests.utils import TestUtil
+from monster.tests.util import TestUtil
 from tools.compute_decorators import __log
 from tools.compute_decorators import __load_deployment
 from tools.compute_decorators import __build_deployment
@@ -26,7 +26,7 @@ from tools.compute_decorators import __provision_for_deployment
 @__log
 @__provision_for_deployment
 @__build_deployment
-def build(deployment, args):
+def build(deployment):
     """
     Builds an OpenStack Cluster
     """
@@ -40,17 +40,13 @@ def build(deployment, args):
 
 @__log
 @__load_deployment
-def test(deployment, args):
+def test(deployment, tests_to_run, iterations):
     """
     Tests an OpenStack deployment
     """
-    test_util = TestUtil(deployment, args)
-
-    if args.all or args.ha:
-        test_util.runHA()
-    if args.all or args.tempest:
-        test_util.runTempest()
-    test_util.report()
+    test_util = TestUtil(deployment, iterations)
+    for test in test_util.get_tests(tests_to_run):
+        test()
 
 
 @__log
@@ -65,16 +61,16 @@ def retrofit(deployment, retro_branch='dev', ovs_bridge='br-eth1',
 
 @__log
 @__load_deployment
-def upgrade(deployment, args):
+def upgrade(deployment, upgrade_branch):
     """
     Upgrades a current deployment to the new branch / tag
     """
-    deployment.upgrade(args['upgrade_branch'])
+    deployment.upgrade(upgrade_branch)
 
 
 @__log
 @__load_deployment
-def destroy(deployment, args):
+def destroy(deployment):
     """
     Destroys an existing OpenStack deployment
     """
@@ -83,7 +79,7 @@ def destroy(deployment, args):
 
 @__log
 @__load_deployment
-def artifact(deployment, args):
+def artifact(deployment):
     """
     Artifacts a deployment (configs / running services)
     """
@@ -92,7 +88,7 @@ def artifact(deployment, args):
 
 @__log
 @__load_deployment
-def openrc(deployment, args):
+def openrc(deployment):
     """
     Loads OpenStack credentials into shell env
     """
@@ -101,7 +97,7 @@ def openrc(deployment, args):
 
 @__log
 @__load_deployment
-def tmux(deployment, args):
+def tmux(deployment):
     """
     Loads OpenStack nodes into new tmux session
     """
@@ -110,7 +106,7 @@ def tmux(deployment, args):
 
 @__log
 @__load_deployment
-def horizon(deployment, args):
+def horizon(deployment):
     """
     Opens Horizon in a browser tab
     """
@@ -121,7 +117,7 @@ def horizon(deployment, args):
 
 @__log
 @__load_deployment
-def show(deployment, args):
+def show(deployment):
     """
     Shows details about an OpenStack deployment
     """

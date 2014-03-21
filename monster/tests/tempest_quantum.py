@@ -19,6 +19,10 @@ class TempestQuantum(Test):
     Tests a deployment with tempest
     """
 
+    @property
+    def name(self):
+        return "Tempest Quantum tests"
+
     def __init__(self, deployment):
         super(TempestQuantum, self).__init__(deployment)
         self.path = "/tmp/%s.conf" % self.deployment.name
@@ -223,7 +227,17 @@ class TempestQuantum(Test):
             sleep(30)
             result = self.test_node.run_cmd(cmd)['return'].rstrip()
 
-    @classmethod
+    def clone_repo(self, branch):
+        """
+        Clones repo onto node
+        :param branch: branch to clone
+        :type branch: string
+        """
+        repo = util.config['tests']['tempest']['repo']
+        tempest_dir = util.config['tests']['tempest']['dir']
+        clone = "git clone {0} -b {1} {2}".format(repo, branch, tempest_dir)
+        self.test_node.run_cmd(clone)
+
     def tempest_branch(self, branch):
         """
         Given rcbops branch, returns tempest branch
@@ -239,21 +253,9 @@ class TempestQuantum(Test):
             for branch_name, tags in branches.items():
                 if branch in tags:
                     tag_branch = branch_name
-                    break
                 else:
                     tag_branch = "master"
         return branch_format.format(tag_branch)
-
-    def clone_repo(self, branch):
-        """
-        Clones repo onto node
-        :param branch: branch to clone
-        :type branch: string
-        """
-        repo = util.config['tests']['tempest']['repo']
-        tempest_dir = util.config['tests']['tempest']['dir']
-        clone = "git clone {0} -b {1} {2}".format(repo, branch, tempest_dir)
-        self.test_node.run_cmd(clone)
 
     def install_package_requirements(self):
         """

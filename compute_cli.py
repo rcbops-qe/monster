@@ -13,7 +13,7 @@ class CLI:
 
         build_parser = subparsers.add_parser('build')
         build_parser.add_argument('-t', '--template-name', default='ubuntu-ha')
-        build_parser.add_argument('-T', '--template-file', default='default')
+        build_parser.add_argument('-T', '--template-file')
         build_parser.add_argument('-b', '--branch', default='master')
         build_parser.add_argument('-p', '--provisioner', default='rackspace')
         build_parser.add_argument('-d', '--dry', action='store_true')
@@ -52,14 +52,18 @@ class CLI:
             help='Iterations to run each selected test suite.  If nothing '
             'is specified, each selected test suite will be ran once.')
         test_to_run = test_parser.add_mutually_exclusive_group(required=True)
-        test_to_run.add_argument('-a', '--all', action='store_true',
-                                 help='Run all applicable tests.')
-        test_to_run.add_argument('--ha', '--HA', action='store_true',
-                                 help='Run only HA tests.')
-        test_to_run.add_argument('--tempest', '--tp', action='store_true',
-                                 help='Run only Tempest tests.')
-        test_to_run.add_argument('--cloudcafe', '--cc', action='store_true',
-                                 help='Run only CloudCAFE tests.')
+        test_to_run.add_argument('-a', '--all', action='store_const',
+                                 help='Run all applicable tests.',
+                                 const='all', dest='tests_to_run')
+        test_to_run.add_argument('--ha', '--HA', action='store_const',
+                                 help='Run only HA tests.',
+                                 const='ha', dest='tests_to_run')
+        test_to_run.add_argument('--tempest', '--tp', action='store_const',
+                                 help='Run only Tempest tests.',
+                                 const='tempest', dest='tests_to_run')
+        test_to_run.add_argument('--cloudcafe', '--cc', action='store_const',
+                                 help='Run only CloudCAFE tests.',
+                                 const='cloudcafe', dest='tests_to_run')
         test_parser.add_argument('-p', '--provider_net',
                                  default='6241dfe9-11fe-'
                                          '45e7-b39d-45ef88f5d9cb')
