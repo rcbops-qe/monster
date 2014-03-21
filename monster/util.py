@@ -16,6 +16,7 @@ class Logger(object):
         self.console_handler.setFormatter(formatter)
         logger.addHandler(self.console_handler)
         self.logger = logger
+        self.critical = logger.critical
         self.error = logger.error
         self.warning = logger.warning
         self.info = logger.info
