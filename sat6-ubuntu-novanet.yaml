@@ -52,20 +52,19 @@ environments:
                 user_allow_delete: False
                 role_allow_update: True
                 domain_objectclass: Group
-                tenant_tree_dn: <OU=Tenants,dc=example,dc=com>
+                tenant_tree_dn: <OU=rpcsqe,OU=Tenants,dc=rpcsqe,dc=env>
                 tenant_allow_delete: True
-                role_tree_dn: <OU=Roles,dc=example,dc=com>
+                role_tree_dn: <OU=rpcsqe,OU=Roles,dc=rpcsqe,dc=env>
                 role_member_attribute: roleOccupant
-                domain_enabled_emulation_dn: <OU=Domains,dc=example,dc=com>
+                domain_enabled_emulation_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
                 group_attribute_ignore: enabled
                 user_id_attribute: cn
                 tenant_member_attribute: member
                 url: ldap://<Active Directory Domain Controller address >
                 tenant_objectclass: groupOfNames
                 tenant_id_attribute: cn
-                domain_tree_dn: <OU=Domains,dc=example,dc=com>
-                use_dumb_member: True
-                user_tree_dn: <CN=Users,dc=example,dc=com>
+                domain_tree_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
+                user_tree_dn: <OU=rpcsqe,CN=Users,dc=rpcsqe,dc=env>
                 user_objectclass: person
                 tenant_name_attribute: ou
                 tenant_desc_attribute: description
@@ -73,14 +72,13 @@ environments:
                 role_id_attribute: cn
                 role_allow_create: True
                 domain_attribute_ignore: enabled
-                suffix: dc=example,dc=com
-                dumb_member: CN=Administrator,CN=Users,dc=example,dc=com
+                suffix: dc=rpcsqe,dc=env
                 user_enabled_mask: 2
                 user_enabled_default: 512
                 role_name_attribute: ou
                 user_domain_id_attribute: businessCategory
                 domain_enabled_emulation: True
-                user: <CN=Administrator,CN=Users,dc=example,dc=com>
+                user: <CN=keystone,CN=Users,dc=rpcsqe,dc=env>
                 password: <administrator password>
                 tenant_enabled_attribute: extensionName
                 user_name_attribute: cn
@@ -99,20 +97,19 @@ environments:
                 user_allow_delete: False
                 role_allow_update: True
                 domain_objectclass: Group
-                tenant_tree_dn: <OU=Tenants,dc=example,dc=com>
+                tenant_tree_dn: <OU=rpcsqe,OU=Tenants,dc=rpcsqe,dc=env>
                 tenant_allow_delete: True
-                role_tree_dn: <OU=Roles,dc=example,dc=com>
+                role_tree_dn: <OU=rpcsqe,OU=Roles,dc=rpcsqe,dc=env>
                 role_member_attribute: roleOccupant
-                domain_enabled_emulation_dn: <OU=Domains,dc=example,dc=com>
+                domain_enabled_emulation_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
                 group_attribute_ignore: enabled
                 user_id_attribute: cn
                 tenant_member_attribute: member
                 url: ldap://<Active Directory Domain Controller address >
                 tenant_objectclass: groupOfNames
                 tenant_id_attribute: cn
-                domain_tree_dn: <OU=Domains,dc=example,dc=com>
-                use_dumb_member: True
-                user_tree_dn: <CN=Users,dc=example,dc=com>
+                domain_tree_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
+                user_tree_dn: <OU=rpcsqe,CN=Users,dc=rpcsqe,dc=env>
                 user_objectclass: person
                 tenant_name_attribute: ou
                 tenant_desc_attribute: description
@@ -120,14 +117,13 @@ environments:
                 role_id_attribute: cn
                 role_allow_create: True
                 domain_attribute_ignore: enabled
-                suffix: dc=example,dc=com
-                dumb_member: CN=Administrator,CN=Users,dc=example,dc=com
+                suffix: dc=rpcsqe,dc=env
                 user_enabled_mask: 2
                 user_enabled_default: 512
                 role_name_attribute: ou
                 user_domain_id_attribute: businessCategory
                 domain_enabled_emulation: True
-                user: <CN=Administrator,CN=Users,dc=example,dc=com>
+                user: <CN=keystone,CN=Users,dc=rpcsqe,dc=env>
                 password: <administrator password>
                 tenant_enabled_attribute: extensionName
                 user_name_attribute: cn
@@ -158,6 +154,18 @@ environments:
                     label: public
             libvirt:
                 virt_type: kvm
+        neutron:
+            apply_patches: false
+            libvirt:
+                virt_type: kvm
+            network:
+                provider: neutron
+        quantum:
+            apply_patches: false
+            libvirt:
+                virt_type: kvm
+            network:
+                provider: quantum
     osops:
         default:
             apply_patches: true

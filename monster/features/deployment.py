@@ -508,7 +508,7 @@ class Nova(Deployment):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Nova, self).__init__(deployment, rpcs_feature)
-        self.environment = util.config['environments'][str(self)]
+        self.environment = util.config['environments'][str(self)][rpcs_feature]
 
     def update_environment(self):
 
