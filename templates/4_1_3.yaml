@@ -14,10 +14,11 @@ ubuntu-ha-neutron:
     osops: default
     keystone: default
     osopsnetworks: default
+    highavailability: default
   nodes:
     - [chefserver]
-    - [controller, network]
-    - [controller, network]
+    - [controller, network, orchestration]
+    - [controller, network, orchestration]
     - [cinder]
     - [compute]
     - [compute]
@@ -37,10 +38,11 @@ ubuntu-ha-novanet-actived:
     osops: default
     keystone: actived
     osopsnetworks: default
+    highavailability: default
   nodes:
     - [chefserver]
-    - [controller]
-    - [controller]
+    - [controller, orchestration]
+    - [controller, orchestration]
     - [cinder]
     - [compute]
     - [compute]
@@ -60,10 +62,11 @@ ubuntu-ha-novanet-openldap:
     osops: default
     keystone: openldap
     osopsnetworks: default
+    highavailability: default
   nodes:
     - [chefserver]
-    - [controller]
-    - [controller]
+    - [controller, orchestration]
+    - [controller, orchestration]
     - [cinder]
     - [compute]
     - [compute]
