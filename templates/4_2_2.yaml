@@ -1,3 +1,29 @@
+centos-ha-neutron:
+  product: compute
+  name: ha
+  os: centos
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    cinder: local
+    nova: default
+    neutron: neutron
+    horizon: default
+    osops: default
+    ceilometer: default
+    keystone: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, network, orchestration]
+    - [controller, network, orchestration]
+    - [cinder]
+    - [compute]
+    - [compute]
+
 ubuntu-ha-neutron:
   product: compute
   name: ha
