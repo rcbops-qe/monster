@@ -132,8 +132,7 @@ class Chef(Deployment):
             f.write(str(self.environment))
 
     @classmethod
-    def fromfile(cls, name, template_name, branch, provisioner, template_file,
-                 template_path=None, **args):
+    def fromfile(cls, name, template_name, branch, provisioner, template_path=None):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment
@@ -150,6 +149,21 @@ class Chef(Deployment):
         """
 
         local_api = autoconfigure()
+
+        #name = args['name']
+        #template_name = args['template_name']
+        #branch = args['branch']
+        #provisioner = args['provisioner']
+        #template_path = args['template_path']
+
+        template_file = ""
+        if branch == "master":
+            template_file = "default"
+        else:
+            template_file = branch.lstrip('v')
+            if "rc" in template_file:
+                template_file = template_file.rstrip("rc")
+            template_file = template_file.replace('.','_')
 
         if ChefEnvironment(name, api=local_api).exists:
             # Use previous dry build if exists

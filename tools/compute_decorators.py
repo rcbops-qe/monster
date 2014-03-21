@@ -34,22 +34,26 @@ def __provision_for_deployment(function):
 
 def __build_deployment(function):
     def wrap_function(args):
-        if not args.template_file:
+        if 'template_file' in args.__dict__:
             args.template_file = __get_template_filename(args.branch)
 
         logger.info("Building deployment object for %s" % args.name)
         logger.debug("Creating ChefDeployment with dict %s" % args)
-        try:
-            args.deployment = ChefDeployment.fromfile(**vars(args))
-        except TypeError:
-            logger.critical(
-                "ChefDeployment.fromfile was called with \n{0},\n but "
-                "expects at least the following non-none : {1}."
-                .format(vars(args),
-                        inspect.getargspec(ChefDeployment.fromfile)[0][1:]))
-            sys.exit(1)
-        else:
-            logger.info(args.deployment)
+        expected_arguments = inspect.getargspec(ChefDeployment.fromfile)[0]
+        arguments_to_pass = {k: v for k, v in vars(args).iteritems()
+                             if k in expected_arguments}
+        args.deployment = ChefDeployment.fromfile(**arguments_to_pass)
+        #try:
+        #    args.deployment = ChefDeployment.fromfile(**vars(args))
+        #except TypeError:
+        #    logger.critical(
+        #        "ChefDeployment.fromfile was called with \n{0},\n but "
+        #        "expects at least the following non-none : {1}."
+        #        .format(vars(args),
+        #                inspect.getargspec(ChefDeployment.fromfile)[0][1:]))
+        #    sys.exit(1)
+        #else:
+        #    logger.info(args.deployment)
         names_of_arguments_to_pass = inspect.getargspec(function)[0]
         #arguments_to_pass = vars(args).fromkeys(names_of_arguments_to_pass)
         arguments_to_pass = {k: v for k, v in vars(args).iteritems()
