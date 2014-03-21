@@ -507,8 +507,27 @@ class Nova(Deployment):
     """
 
     def __init__(self, deployment, rpcs_feature='default'):
+        """
+        Decides nova block
+        nova networks: when neutron or quantum is not a deployment feature
+        neutron: when neutron is a deployment feature
+        quantum: when quantum is neutron's rpcs feature
+        """
         super(Nova, self).__init__(deployment, rpcs_feature)
-        self.environment = util.config['environments'][str(self)][rpcs_feature]
+        net_choice = self.get_net_choice()
+        self.environment = util.config['environments'][str(self)][net_choice]
+
+    def get_net_choice(self):
+        """
+        determines network choice
+        """
+        if self.deployment.feature_in('neutron'):
+            for feature in self.deployment.features:
+                if feature.__class__.__name__:
+                    return feature.rpcs_feature
+        else:
+            return "default"
+
 
     def update_environment(self):
 

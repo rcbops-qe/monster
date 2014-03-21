@@ -51,11 +51,31 @@ environments:
             allow_remote_root: true
     nova:
         default:
+            network:
+                public_interface: br-vmnet
+            apply_patches: false
+            networks:
+                public:
+                    bridge: br-vmnet
+                    dns1: 8.8.8.8
+                    dns2: 8.8.4.4
+                    bridge_dev: vmnet.868
+                    ipv4_cidr: 10.127.103.0/25
+                    label: public
+            libvirt:
+                virt_type: kvm
+        neutron:
             apply_patches: false
             libvirt:
                 virt_type: kvm
             network:
                 provider: neutron
+        quantum:
+            apply_patches: false
+            libvirt:
+                virt_type: kvm
+            network:
+                provider: quantum
     osops:
         default:
             apply_patches: true
