@@ -10,6 +10,7 @@ from monster.clients.openstack import Creds
 logger = Logger("monster.provisioners.rackspace")
 logger.set_log_level("INFO")
 
+
 class Rackspace(Openstack):
     """
     Provisions chef nodes in Rackspace Cloud Servers vms
@@ -74,7 +75,7 @@ class Rackspace(Openstack):
         :type size: int
         """
         logger.info("Making swap file on:{0} of {1}GBs".format(node.name,
-                                                                    size))
+                                                               size))
         size_b = 1048576 * size
         cmds = [
             "dd if=/dev/zero of=/mnt/swap bs=1024 count={0}".format(size_b),

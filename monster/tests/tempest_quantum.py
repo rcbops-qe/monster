@@ -17,6 +17,7 @@ from monster.util import xunit_merge
 
 logger = logging.getLogger("tempest_quantum.log")
 
+
 class TempestQuantum(Test):
     """
     Tests a deployment with tempest
@@ -298,7 +299,7 @@ class TempestQuantum(Test):
         # save config
         with open(self.path, 'w') as w:
             logger.info("Writing tempest config:{0}".
-                             format(self.path))
+                        format(self.path))
             logger.debug(template)
             w.write(template)
 

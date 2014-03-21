@@ -2,7 +2,6 @@
 Chef Environment
 """
 
-from monster import util
 from monster.util import Logger
 from chef import Environment as ChefEnvironment
 from environment import Environment as MonsterEnvironment
@@ -10,6 +9,7 @@ from environment import Environment as MonsterEnvironment
 
 logger = Logger("monster.environments.chef_environment")
 logger.set_log_level("INFO")
+
 
 class Chef(MonsterEnvironment):
 

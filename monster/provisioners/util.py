@@ -2,12 +2,12 @@ import sys
 import traceback
 from monster.util import module_classes
 from monster.provisioners import *
-from monster import util
 from monster.util import Logger
 
 
 logger = Logger("monster.provisioners.util")
 logger.set_log_level("INFO")
+
 
 def get_provisioner(provisioner):
     """
@@ -22,6 +22,6 @@ def get_provisioner(provisioner):
     except AttributeError:
         print(traceback.print_exc())
         logger.error("The provisioner \"{0}\" was not found."
-                          .format(provisioner))
+                     .format(provisioner))
         exit(1)
     return module_classes(identifier)[provisioner]()

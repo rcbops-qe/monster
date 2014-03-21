@@ -3,7 +3,6 @@ import subprocess
 
 from monster.tests.tempest_helper import get_test_suite_for
 from monster.tests.ha import HATest
-from monster import util
 
 
 logger = logging.getLogger("{0}.log".format(__name__))
@@ -44,7 +43,7 @@ class TestUtil:
             logger.debug('Running iteration %s!' % (i + 1))
             test_suite.test()
         logger.info('{0} have been completed with {1} iterations!'
-                         .format(test_suite.name, self.iterations))
+                    .format(test_suite.name, self.iterations))
 
     def __prepare_xml_directory(self):
         env = self.deployment.environment.name

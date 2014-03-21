@@ -15,7 +15,6 @@ class Logger(object):
         formatter = logging.Formatter(log_format)
         self.console_handler.setFormatter(formatter)
         logger.addHandler(self.console_handler)
-        config = None
         self.logger = logger
         self.error = logger.error
         self.warning = logger.warning
@@ -25,13 +24,12 @@ class Logger(object):
     def set_log_level(self, level):
         log_level = getattr(logging, level, logging.INFO)
         self.logger.setLevel(log_level)
-    
-    def log_to_file(self, logger, path):
+
+    def log_to_file(self, path):
         log_file = logging.FileHandler(path)
         log_file.setFormatter(self.console_handler.formatter)
         log_file.setLevel(logging.DEBUG)
-        logger = get_logger(name)
-        logger.addHandler(log_file)
+        self.logger.addHandler(log_file)
 
 
 def module_classes(module):

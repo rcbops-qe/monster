@@ -8,6 +8,7 @@ from monster.upgrades.upgrade import Upgrade
 logger = Logger("monster.upgrades.four_two_two")
 logger.set_log_level("INFO")
 
+
 class FourTwoTwo(Upgrade):
     """
     4.2.2 Upgrade Procedures

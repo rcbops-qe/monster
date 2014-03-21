@@ -11,6 +11,7 @@ from monster import util
 logger = Logger("monster.features.deployment")
 logger.set_log_level("INFO")
 
+
 class Deployment(Feature):
     """ Represents a feature across a deployment
     """
@@ -127,7 +128,7 @@ class Neutron(Deployment):
         computes = self.deployment.search_role('compute')
 
         logger.info("### Building OVS Bridge and "
-                         "Ports on network nodes ###")
+                    "Ports on network nodes ###")
 
         for controller in controllers:
             iface = controller.get_vmnet_iface()
@@ -225,7 +226,7 @@ class Swift(Deployment):
         swift['keystone'] = keystone
 
         logger.info("Matching environment: {0} to RPCS "
-                         "swift requirements".format(env.name))
+                    "swift requirements".format(env.name))
 
         env.del_override_attr('keystone')
         env.del_override_attr('swift')
@@ -392,10 +393,10 @@ class Swift(Deployment):
         else:
             for proxy_node in proxy_nodes:
                 logger.info("On node root@{0}, run: "
-                                 "chef client".format(proxy_node.ipaddress))
+                            "chef client".format(proxy_node.ipaddress))
             for storage_node in storage_nodes:
                 logger.info("On node root@{0}, run: "
-                                 "chef client".format(storage_node.ipaddress))
+                            "chef client".format(storage_node.ipaddress))
             logger.info(
                 "On node root@{0} run the following command: chef-client "
                 "##".format(controller.ipaddress))

@@ -23,6 +23,7 @@ from monster.environments.chef_environment import Chef as \
 logger = Logger("monster.deployments.chef_deployment")
 logger.set_log_level("INFO")
 
+
 class Chef(Deployment):
     """
     Deployment mechanisms specific to deployment using
@@ -167,8 +168,8 @@ class Chef(Deployment):
             template = Config(path)[template_name]
         except KeyError:
             logger.critical("Looking for the template {0} in the file: "
-                                 "\n{1}\n The key was not found!"
-                                 .format(template_name, path))
+                            "\n{1}\n The key was not found!"
+                            .format(template_name, path))
             exit(1)
 
         environment = MonsterChefEnvironment(name, local_api, description=name)
@@ -208,7 +209,7 @@ class Chef(Deployment):
         env = ChefEnvironment(environment, api=local_api)
         if not env.exists:
             logger.error("The specified environment, {0}, does not"
-                              "exist.".format(environment))
+                         "exist.".format(environment))
             exit(1)
         override = env.override_attributes
         default = env.default_attributes
@@ -241,7 +242,7 @@ class Chef(Deployment):
         for node in (ChefNode(n, local_api) for n in nodes):
             if not node.exists:
                 logger.error("Non existant chef node:{0}".
-                                  format(node.name))
+                             format(node.name))
                 continue
             cnode = MonsterChefNode.from_chef_node(node, product, environment,
                                                    deployment, provisioner,

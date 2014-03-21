@@ -3,11 +3,11 @@ from cStringIO import StringIO
 from paramiko import SSHClient, WarningPolicy
 from subprocess import check_call, CalledProcessError
 
-from monster import util
 from monster.util import Logger
 
 logger = Logger("monster.server_helper")
 logger.set_log_level("INFO")
+
 
 class Command(object):
     def __init__(self, command):

@@ -10,6 +10,7 @@ from monster.provisioners.util import get_provisioner
 logger = Logger(__name__)
 logger.set_log_level("INFO")
 
+
 def __load_deployment(function):
     def wrap_function(args):
         util.config = Config(args.config, args.secret_path)
@@ -26,15 +27,6 @@ def __provision_for_deployment(function):
     def wrap_function(args):
         util.config = Config(args.config, args.secret_path)
         args.provisioner = get_provisioner(args.provisioner)
-        return function(args)
-
-    return wrap_function
-
-
-def __log(function):
-    def wrap_function(args):
-        logger.setLevel(args.log_level)
-        log_to_file(args.logfile_path)
         return function(args)
 
     return wrap_function
@@ -61,7 +53,7 @@ def __build_deployment(function):
         names_of_arguments_to_pass = inspect.getargspec(function)[0]
         #arguments_to_pass = vars(args).fromkeys(names_of_arguments_to_pass)
         arguments_to_pass = {k: v for k, v in vars(args).iteritems()
-                            if k in names_of_arguments_to_pass}
+                             if k in names_of_arguments_to_pass}
         return function(**arguments_to_pass)
     return wrap_function
 

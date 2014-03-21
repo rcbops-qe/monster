@@ -12,6 +12,7 @@ from monster.util import Logger
 logger = Logger("monster.provisioners.razor2")
 logger.set_log_level("INFO")
 
+
 class Razor2(Provisioner):
     """
     Provisions chef nodes in a Razor environment
@@ -101,8 +102,8 @@ class Razor2(Provisioner):
                 sleep(15)
             except:
                 logger.error("Node unreachable. "
-                                  "Manual restart required:{0}".
-                                  format(str(node)))
+                             "Manual restart required:{0}".
+                             format(str(node)))
 
     @classmethod
     def node_search(cls, query, environment=None, tries=10):

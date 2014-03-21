@@ -5,7 +5,6 @@ Command-line interface for building OpenStack clusters
 """
 
 import os
-from monster import util
 from monster.util import Logger
 
 logger = Logger("compute")
@@ -21,11 +20,9 @@ if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
 import webbrowser
 from compute_cli import CLI
 from monster.tests.util import TestUtil
-from tools.compute_decorators import __log
 from tools.compute_decorators import __load_deployment
 from tools.compute_decorators import __build_deployment
 from tools.compute_decorators import __provision_for_deployment
-
 
 
 @__provision_for_deployment

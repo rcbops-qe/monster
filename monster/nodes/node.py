@@ -12,6 +12,7 @@ from monster.server_helper import ssh_cmd, scp_to, scp_from
 logger = Logger("monster.nodes.node")
 logger.set_log_level("INFO")
 
+
 class Node(object):
     """
     A individual computation entity to deploy a part OpenStack onto
@@ -99,7 +100,7 @@ class Node(object):
         user = user or self.user
         password = password or self.password
         logger.info("SCP: {0} to {1}:{2}".format(local_path, self.name,
-                                                      remote_path))
+                                                 remote_path))
         return scp_to(self.ipaddress,
                       local_path,
                       user=user,
@@ -113,7 +114,7 @@ class Node(object):
         user = user or self.user
         password = password or self.password
         logger.info("SCP: {0}:{1} to {2}".format(self.name, remote_path,
-                                                      local_path))
+                                                 local_path))
         return scp_from(self.ipaddress,
                         remote_path,
                         user=user,

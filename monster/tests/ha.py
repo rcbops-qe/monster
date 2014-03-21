@@ -8,7 +8,6 @@ from time import sleep
 from novaclient.v1_1 import client as nova_client
 from neutronclient.v2_0.client import Client as neutron_client
 
-from monster import util
 from monster.util import Logger
 from monster.util import xunit_merge
 from monster.tests.test import Test
@@ -16,6 +15,7 @@ from monster.tests.test import Test
 
 logger = Logger("hatest")
 logger.set_log_level("INFO")
+
 
 class Creds(object):
     """
@@ -284,7 +284,7 @@ class HATest(Test):
                 server = False
                 logger.debug("Server creation command failed epicly!")
                 logger.debug("The epicness of its failure was truly a "
-                                  "sight to behold...")
+                             "sight to behold...")
                 sleep(1)
 
         build_status = "BUILD"
@@ -292,11 +292,11 @@ class HATest(Test):
             build_status = self.nova.servers.get(server.id).status
         if build_status == "ERROR":
             logger.error("Server ({0}) entered ERROR status!".format(
-                              server_name))
+                server_name))
             assert (build_status == "ERROR"), "Server failed to initialize!"
         else:
             logger.debug("Server ({0}) status: {1}".format(server_name,
-                                                                build_status))
+                                                           build_status))
         build = Build(server, network_id, subnet_id, server_name,
                       server_image, server_flavor)
 #-----------------------------------------------------------------------------
@@ -342,11 +342,11 @@ class HATest(Test):
                                       service))['return'].rstrip()
             if not service_up:
                 logger.debug("{0} is not running on {1}".format(
-                                  service, node.name))
+                    service, node.name))
                 retry -= 1
                 if retry == 0:
                     logger.warning("Manually starting {0}".format(
-                                        service))
+                        service))
                     node.run_cmd("service {0} start".format(service))
                 sleep(1)
         logger.debug("{0} is up on {1}!".format(service, node.name))
@@ -361,7 +361,7 @@ class HATest(Test):
         libvirt = node_up.run_cmd(";".join(["source openrc",
                                   ("nova service-list | awk '{print $2}' "
                                    "| grep 'nova-compute'")]))['return']
-        assert "compute" in libvirt, "The compute nodes are not reporting properly!"
+        assert "compute" in libvirt, "The compute nodes are not checked in!"
 
         # Check RPCS services (ha_proxy, keepalived, rpc daemon)
         services = ['haproxy', 'keepalived', 'rpcdaemon']
@@ -378,7 +378,7 @@ class HATest(Test):
         exec_vips_down = " "
         if node_down:
             logger.debug("Checking for vips on {0}".format(
-                              node_down.name))
+                node_down.name))
             exec_vips_down = node_down.run_cmd("ip netns exec vips ip a")[
                 'return']
 
@@ -388,11 +388,11 @@ class HATest(Test):
             logger.debug("VIP: {0}".format(vip))
         for vip in vips:
             logger.debug(("Verifying that {0} is in the vips "
-                               "namespace...").format(vip))
+                          "namespace...").format(vip))
             # Checks if the vips are absent from both controllers
             while (vip not in exec_vips) and (vip not in exec_vips_down):
                 logger.debug(("{0} is not found in the vips "
-                                   "namespace").format(vip))
+                              "namespace").format(vip))
                 sleep(1)
                 exec_vips = node_up.run_cmd("ip netns exec vips "
                                             "ip a")['return']
@@ -406,11 +406,11 @@ class HATest(Test):
             # Checks for the vips on node_up controller
             elif vip in exec_vips:
                 logger.debug("{0} vip found in {1}...".format(
-                                  vip, node_up.name))
+                    vip, node_up.name))
             # Checks for the vips on the node_down controller
             else:
                 logger.debug("{0} vip found on {1}...".format(
-                                  vip, node_down.name))
+                    vip, node_down.name))
 
 ###########################################################################
 #       IP NETNS NEEDS TO CONTAIN NEUTRON NET-LIST?
@@ -494,7 +494,7 @@ class HATest(Test):
         count = 1
         while not self.is_online(node_down.ipaddress):
             logger.debug("Waiting for {0} to boot - s:{1}".format(
-                              node_down.name, count))
+                node_down.name, count))
             sleep(1)
             count += 1
 

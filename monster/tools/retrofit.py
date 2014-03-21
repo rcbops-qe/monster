@@ -9,6 +9,7 @@ from monster.util import Logger
 logger = Logger("retrofit")
 logger.set_log_level("INFO")
 
+
 class Retrofit(object):
 
     def __init__(self, deployment):

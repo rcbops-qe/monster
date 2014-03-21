@@ -7,11 +7,11 @@ import tmuxp
 import logging
 from pyrabbit.api import Client
 
-from monster import util
 from monster.tools.retrofit import Retrofit
 
 
 logger = logging.getLogger("monster.deployments.deployment.log")
+
 
 class Deployment(object):
     """Base for OpenStack deployments
@@ -69,7 +69,7 @@ class Deployment(object):
         self.status = "Loading environment..."
         for feature in self.features:
             logger.debug("Deployment feature {0}: updating environment!"
-                              .format(str(feature)))
+                         .format(str(feature)))
             feature.update_environment()
         logger.debug(self.environment)
         self.status = "Environment ready!"
@@ -82,7 +82,7 @@ class Deployment(object):
         self.status = "Pre-configuring nodes for features..."
         for feature in self.features:
             logger.debug("Deployment feature: pre-configure: {0}"
-                .format(str(feature)))
+                         .format(str(feature)))
             feature.pre_configure()
 
     def build_nodes(self):
