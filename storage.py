@@ -7,12 +7,14 @@ import argh
 import traceback
 
 from monster import util
+from monster.util import Logger
 from monster.config import Config
 from monster.deployments.chef_deployment import Chef
 from monster.provisioners import provisioner as provisioners
 
 
-logger = util.get_logger("storage.log")
+logger = Logger("storage")
+logger.set_log_level("INFO")
 
 def build(name="autotest", branch="master", provisioner="rackspace",
           template_path=None, config=None, destroy=False,
@@ -100,9 +102,9 @@ def _load(name="autotest", config=None, provisioner="razor"):
 
 def _set_log(log, log_level):
     # set log level and file
-    util.set_log_level(log_level)
+    logger.set_log_level(log_level)
     if log:
-        util.log_to_file(log)
+        logger.log_to_file(log)
 
 # Main
 if __name__ == "__main__":

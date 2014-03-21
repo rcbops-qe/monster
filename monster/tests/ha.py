@@ -4,20 +4,18 @@ Module to test High Availability in RPC
 import os
 import sys
 import socket
-import logging
 from time import sleep
 from novaclient.v1_1 import client as nova_client
 from neutronclient.v2_0.client import Client as neutron_client
 
 from monster import util
+from monster.util import Logger
 from monster.util import xunit_merge
 from monster.tests.test import Test
 
 
-#logger = util.get_logger("hatest.log")
-#util.set_log_level(logger, "ERROR")
-
-logger = util.get_logger("hatest.log")
+logger = Logger("hatest")
+logger.set_log_level("INFO")
 
 class Creds(object):
     """

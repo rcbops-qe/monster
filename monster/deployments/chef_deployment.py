@@ -6,6 +6,7 @@ from chef import Node as ChefNode
 from chef import Environment as ChefEnvironment
 
 from monster import util
+from monster.util import Logger
 from monster.config import Config
 from monster.upgrades.util import int2word
 from monster.features.node import ChefServer
@@ -19,7 +20,8 @@ from monster.environments.chef_environment import Chef as \
     MonsterChefEnvironment
 
 
-logger = util.get_logger("monster.deployments.chef_deployment.log")
+logger = Logger("monster.deployments.chef_deployment")
+logger.set_log_level("INFO")
 
 class Chef(Deployment):
     """

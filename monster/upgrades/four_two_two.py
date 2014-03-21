@@ -1,10 +1,12 @@
 from time import sleep
 
 from monster import util
+from monster.util import Logger
 from monster.upgrades.upgrade import Upgrade
 
 
-logger = util.get_logger("monster.upgrades.four_two_two.log")
+logger = Logger("monster.upgrades.four_two_two")
+logger.set_log_level("INFO")
 
 class FourTwoTwo(Upgrade):
     """

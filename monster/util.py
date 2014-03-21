@@ -5,38 +5,33 @@ from xml.etree import ElementTree
 
 from inspect import getmembers, isclass
 
-# Log to console
-logger = logging.getLogger("rcbops.qa")
-console_handler = logging.StreamHandler()
-log_format = '%(asctime)s %(name)s %(levelname)s: %(message)s'
-formatter = logging.Formatter(log_format)
-console_handler.setFormatter(formatter)
-logger.addHandler(console_handler)
-config = None
 
-def get_logger(name):
-    loggerx = logging.getLogger(name)
-    console_handler = logging.StreamHandler()
-    log_format = '%(asctime)s %(name)s %(levelname)s: %(message)s'
-    formatter = logging.Formatter(log_format)
-    console_handler.setFormatter(formatter)
-    loggerx.addHandler(console_handler)
-    config = None
-    return loggerx
+class Logger(object):
+    def __init__(self, name):
+        # Log to console
+        logger = logging.getLogger(name)
+        self.console_handler = logging.StreamHandler()
+        log_format = '%(asctime)s %(name)s %(levelname)s: %(message)s'
+        formatter = logging.Formatter(log_format)
+        self.console_handler.setFormatter(formatter)
+        logger.addHandler(self.console_handler)
+        config = None
+        self.logger = logger
+        self.error = logger.error
+        self.warning = logger.warning
+        self.info = logger.info
+        self.debug = logger.debug
 
-
-def set_log_level(name, level):
-    log_level = getattr(logging, level, logging.INFO)
-    logger = get_logger(name)
-    logger.setLevel(log_level)
-
-
-def log_to_file(logger, path):
-    log_file = logging.FileHandler(path)
-    log_file.setFormatter(console_handler.formatter)
-    log_file.setLevel(logging.DEBUG)
-    logger = get_logger(name)
-    logger.addHandler(log_file)
+    def set_log_level(self, level):
+        log_level = getattr(logging, level, logging.INFO)
+        self.logger.setLevel(log_level)
+    
+    def log_to_file(self, logger, path):
+        log_file = logging.FileHandler(path)
+        log_file.setFormatter(self.console_handler.formatter)
+        log_file.setLevel(logging.DEBUG)
+        logger = get_logger(name)
+        logger.addHandler(log_file)
 
 
 def module_classes(module):

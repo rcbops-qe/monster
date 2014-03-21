@@ -6,9 +6,11 @@ from provisioner import Provisioner
 from chef import Node, Client, Search, autoconfigure
 
 from monster import util
+from monster.util import Logger
 
 
-logger = util.get_logger("monster.provisioners.razor.log")
+logger = Logger("monster.provisioners.razor")
+logger.set_log_level("INFO")
 
 class Razor(Provisioner):
     """

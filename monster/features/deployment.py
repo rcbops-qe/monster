@@ -4,10 +4,12 @@
 import requests
 
 from monster.features.feature import Feature
+from monster.util import Logger
 from monster import util
 
 
-logger = util.get_logger("monster.features.deployment.log")
+logger = Logger("monster.features.deployment")
+logger.set_log_level("INFO")
 
 class Deployment(Feature):
     """ Represents a feature across a deployment
@@ -485,18 +487,17 @@ class Keystone(Deployment):
         # Grab environment
         env = self.deployment.environment
 
-        # Add the service user passwords
-        for user, value in util.config['secrets'][
-                self.rpcs_feature].items():
+        # Check to see if we need to add the secret info to
+        # connect to AD/ldap
+        if 'actived' in self.rpcs_feature or 'openldap' in self.rpcs_feature:
+
+            # Add the service user passwords
+            for user, value in util.config['secrets'][
+                    self.rpcs_feature].items():
                 if self.deployment.feature_in(user):
                     env.override_attributes[user]['service_pass'] = \
                         value['service_pass']
-        self.deployment.environment.save()
-
-        # Check to see if we need to add the secret info to
-        # connect to AD/ldap
-        if 'actived' or 'openldap' in self.rpcs_feature:
-
+            self.deployment.environment.save()
             # grab values from secrets file
             url = util.config['secrets'][self.rpcs_feature]['url']
             user = util.config['secrets'][self.rpcs_feature]['user']

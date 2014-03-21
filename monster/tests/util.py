@@ -39,11 +39,11 @@ class TestUtil:
 
     def __run(self, test_suite):
         self.__prepare_xml_directory()
-        util.logger.info('Running {0}!'.format(test_suite.name))
+        logger.info('Running {0}!'.format(test_suite.name))
         for i in range(self.iterations):
-            util.logger.debug('Running iteration %s!' % (i + 1))
+            logger.debug('Running iteration %s!' % (i + 1))
             test_suite.test()
-        util.logger.info('{0} have been completed with {1} iterations!'
+        logger.info('{0} have been completed with {1} iterations!'
                          .format(test_suite.name, self.iterations))
 
     def __prepare_xml_directory(self):

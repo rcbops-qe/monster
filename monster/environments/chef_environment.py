@@ -3,11 +3,13 @@ Chef Environment
 """
 
 from monster import util
+from monster.util import Logger
 from chef import Environment as ChefEnvironment
 from environment import Environment as MonsterEnvironment
 
 
-logger = util.get_logger("monster.environments.chef_environment.log")
+logger = Logger("monster.environments.chef_environment")
+logger.set_log_level("INFO")
 
 class Chef(MonsterEnvironment):
 

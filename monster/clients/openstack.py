@@ -4,9 +4,11 @@ from cinderclient.v1 import client as cinder_client
 from keystoneclient.v2_0 import client as keystone_client
 
 from monster import util
+from monster.util import Logger
 
 
-logger = util.get_logger("monster.clients.openstack.log")
+logger = Logger("monster.clients.openstack")
+logger.set_log_level("INFO")
 
 class Creds(dict):
     """

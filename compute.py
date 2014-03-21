@@ -6,8 +6,11 @@ Command-line interface for building OpenStack clusters
 
 import os
 from monster import util
+from monster.util import Logger
 
-logger = util.get_logger("{0}.log".format(__name__))
+logger = Logger("compute")
+logger.set_log_level("INFO")
+
 
 if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
     logger.warning("You are not using the virtual environment! We "
@@ -31,18 +34,6 @@ def build(deployment):
     """
     Builds an OpenStack Cluster
     """
-    util.set_log_level("compute", args.log_level)
-    print "PRE-BAH!!!!"
-    logger.error("BAH!!!!")
-    logger.error("BAH!!!!")
-    logger.error("BAH!!!!")
-    logger.info("BAH!!!!")
-    logger.info("BAH!!!!")
-    logger.info("BAH!!!!")
-    logger.debug("BAH!!!!")
-    logger.debug("BAH!!!!")
-    logger.debug("BAH!!!!")
-    print "POST-BAH!!!!"
     if args.dry:
         deployment.update_environment()
     else:

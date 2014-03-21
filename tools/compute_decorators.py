@@ -2,11 +2,13 @@ import inspect
 import sys
 
 from monster import util
+from monster.util import Logger
 from monster.config import Config
 from monster.deployments.chef_deployment import Chef as ChefDeployment
 from monster.provisioners.util import get_provisioner
 
-logger = util.get_logger("{0}.log".format(__name__))
+logger = Logger(__name__)
+logger.set_log_level("INFO")
 
 def __load_deployment(function):
     def wrap_function(args):
@@ -57,7 +59,9 @@ def __build_deployment(function):
         else:
             logger.info(args.deployment)
         names_of_arguments_to_pass = inspect.getargspec(function)[0]
-        arguments_to_pass = vars(args).fromkeys(names_of_arguments_to_pass)
+        #arguments_to_pass = vars(args).fromkeys(names_of_arguments_to_pass)
+        arguments_to_pass = {k: v for k, v in vars(args).iteritems()
+                            if k in names_of_arguments_to_pass}
         return function(**arguments_to_pass)
     return wrap_function
 

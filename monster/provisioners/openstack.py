@@ -5,11 +5,13 @@ from provisioner import Provisioner
 from gevent import spawn, joinall, sleep
 
 from monster import util
+from monster.util import Logger
 from monster.clients.openstack import Creds, Clients
 from monster.server_helper import run_cmd
 
 
-logger = util.get_logger(__name__)
+logger = Logger(__name__)
+logger.set_log_level("INFO")
 
 class Openstack(Provisioner):
     """
@@ -52,8 +54,6 @@ class Openstack(Provisioner):
         :type deployment: ChefDeployment
         :rtype: list
         """
-        print "Print statement saying that cloud provisioning is taking place"
-        util.set_log_level(__name__, "INFO")
         logger.info("Provisioning in the cloud!")
         # acquire connection
 

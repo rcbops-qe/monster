@@ -2,11 +2,13 @@ import pyrax
 from time import sleep
 
 from monster import util
+from monster.util import Logger
 from openstack import Openstack
 from monster.clients.openstack import Creds
 
 
-logger = util.get_logger("monster.provisioners.rackspace.log")
+logger = Logger("monster.provisioners.rackspace")
+logger.set_log_level("INFO")
 
 class Rackspace(Openstack):
     """
