@@ -122,5 +122,6 @@ args = CLI.parser(
      'upgrade': upgrade}).parse_args()
 
 if __name__ == "__main__":
-    import cProfile
-    cProfile.run('args.func(args)')
+    #import cProfile
+    #cProfile.run('args.func(args)')
+    args.func(args)
