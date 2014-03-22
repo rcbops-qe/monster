@@ -521,11 +521,10 @@ class Nova(Deployment):
         """
         if self.deployment.feature_in('neutron'):
             for feature in self.deployment.features:
-                if feature.__class__.__name__:
+                if feature.__class__.__name__ == 'Neutron':
                     return feature.rpcs_feature
         else:
             return "default"
-
 
     def update_environment(self):
         net_choice = self.get_net_choice()
