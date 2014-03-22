@@ -50,7 +50,7 @@ environments:
             root_network_acl: "%"
             allow_remote_root: true
     nova:
-        default:
+        neutron:
             apply_patches: false
             libvirt:
                 virt_type: kvm
