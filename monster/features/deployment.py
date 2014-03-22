@@ -514,8 +514,6 @@ class Nova(Deployment):
         quantum: when quantum is neutron's rpcs feature
         """
         super(Nova, self).__init__(deployment, rpcs_feature)
-        net_choice = self.get_net_choice()
-        self.environment = util.config['environments'][str(self)][net_choice]
 
     def get_net_choice(self):
         """
@@ -530,7 +528,8 @@ class Nova(Deployment):
 
 
     def update_environment(self):
-
+        net_choice = self.get_net_choice()
+        self.environment = util.config['environments'][str(self)][net_choice]
         self.deployment.environment.add_override_attr(
             str(self), self.environment)
 
