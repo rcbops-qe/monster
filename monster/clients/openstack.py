@@ -21,6 +21,7 @@ class Creds(object):
         self.username = username
         self.tenant_name = tenant_name
         self.api_key = apikey
+        self.apikey = apikey
         self.password = password
         self.project_id = project_id
         self.region_name = region
@@ -38,6 +39,7 @@ class Clients(object):
         if not self.creds["tenant_name"]:
             self.creds["tenant_name"] = self.creds["username"]
 
+    @property
     def keystoneclient(self):
         """
         Openstack keystone client
@@ -49,6 +51,7 @@ class Clients(object):
 
         return keystone_client.Client(**self.creds)
 
+    @property
     def novaclient(self):
         """
         Openstack novaclient generator
@@ -61,6 +64,7 @@ class Clients(object):
         client = nova_client.Client(**self.build_args(args))
         return client
 
+    @property
     def cinderclient(self):
         """
         Openstack cinderclient generator
@@ -72,6 +76,7 @@ class Clients(object):
         args = ["username", ("api_key", "password"), "project_id", "auth_url"]
         return cinder_client.Client(**self.build_args(args))
 
+    @property
     def neutronclient(self):
         """
         Openstack neutronclient generator
