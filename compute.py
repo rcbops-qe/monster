@@ -44,7 +44,7 @@ def test(deployment, tests_to_run, iterations):
     """
     Tests an OpenStack deployment
     """
-    test_util = TestUtil(deployment, iterations)
+    test_util = TestUtil(deployment, iterations, args.provider_net)
     for test in test_util.get_tests(tests_to_run):
         test()
 

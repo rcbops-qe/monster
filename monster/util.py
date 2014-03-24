@@ -14,8 +14,11 @@ class Logger(object):
         log_format = '%(asctime)s %(name)s %(levelname)s: %(message)s'
         formatter = logging.Formatter(log_format)
         self.console_handler.setFormatter(formatter)
+
         logger.addHandler(self.console_handler)
+        logger.debug("Initializing Console Logging for {0}!".format(name))
         self.logger = logger
+        self.name = name
 
         self.critical = logger.critical
         self.error = logger.error
@@ -33,7 +36,9 @@ class Logger(object):
         log_file = logging.FileHandler(path)
         log_file.setFormatter(self.console_handler.formatter)
         log_file.setLevel(logging.DEBUG)
+
         self.logger.addHandler(log_file)
+        self.logger.debug("Initializing Logfile Logging for {0}!".format(self.name))
 
 
 def module_classes(module):

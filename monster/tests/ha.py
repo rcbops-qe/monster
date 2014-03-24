@@ -113,7 +113,7 @@ class HATest(Test):
     """
     HA Openstack tests
     """
-    def __init__(self, deployment):
+    def __init__(self, deployment, provider_net):
         super(HATest, self).__init__(deployment)
         self.iterations = 1
         self.current_iteration = 0
@@ -125,7 +125,7 @@ class HATest(Test):
         creds = self.gather_creds(deployment)
 
         # Setup clients
-        self.provider_net = None
+        self.provider_net = provider_net
         self.nova = nova_client.Client(creds.user, creds.password, creds.user,
                                        auth_url=creds.url)
         self.neutron = neutron_client(auth_url=creds.url, username=creds.user,
@@ -293,7 +293,7 @@ class HATest(Test):
         if build_status == "ERROR":
             logger.error("Server ({0}) entered ERROR status!".format(
                 server_name))
-            assert (build_status == "ERROR"), "Server failed to initialize!"
+            assert (build_status == "ACTIVE"), "Server failed to initialize!"
         else:
             logger.debug("Server ({0}) status: {1}".format(server_name,
                                                            build_status))

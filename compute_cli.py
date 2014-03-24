@@ -65,8 +65,8 @@ class CLI:
                                  help='Run only CloudCAFE tests.',
                                  const='cloudcafe', dest='tests_to_run')
         test_parser.add_argument('-p', '--provider_net',
-                                 default='f1d63cf1-cbac-'
-                                         '499c-995e-dee4d752934a')
+                                 default='b6901fd8-4751-'
+                                         '4f4d-8267-136e4b5ee111')
         test_parser.set_defaults(func=commands['test'])
 
         tmux_parser = subparsers.add_parser('tmux')
@@ -75,7 +75,7 @@ class CLI:
         def add_common_arguments(parser):
             parser.add_argument('-n', '--name', help="Name of the OpenStack "
                                                      "deployment.")
-            parser.add_argument('-c', '--config', default='rspc.yaml')
+            parser.add_argument('-c', '--config', default='pubcloud-neutron.yaml')
             parser.add_argument('-s', '--secret-path', default='secret.yaml')
             parser.add_argument('-l', '--logfile-path', default='./log')
             parser.add_argument('-L', '--log-level',
