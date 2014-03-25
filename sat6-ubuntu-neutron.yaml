@@ -232,6 +232,12 @@ rcbops:
         storage:
             run_list: ['role[spc-starter-storage]']
 tests:
+  cloudcafe:
+    image: precise-image
+    network: ENV01-FLAT
+    volume_type: vol
+    user: admin
+
   tempest:
     repo: https://github.com/openstack/tempest.git
     dir: "/opt/tempest"
