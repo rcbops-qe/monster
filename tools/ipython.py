@@ -13,7 +13,7 @@ from monster.config import Config
 from monster.deployments.chef_deployment import Chef
 
 
-def load(name, config="default.yaml"):
+def load(name, config="config.yaml"):
     """
     Load function for iPython
     """
