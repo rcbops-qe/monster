@@ -9,7 +9,8 @@ logger = logging.getLogger("{0}.log".format(__name__))
 
 
 class TestUtil:
-    def __init__(self, deployment, iterations):
+    def __init__(self, deployment, iterations, provider_net):
+        self.provider_net = provider_net
         self.deployment = deployment
         self.iterations = iterations
 
@@ -18,7 +19,7 @@ class TestUtil:
             logger.warning('High Availability was not detected as a '
                            'feature; HA tests will not be run!')
             return
-        ha = HATest(self.deployment)
+        ha = HATest(self.deployment, self.provider_net)
         self.__run(ha)
 
     def run_tempest(self):
