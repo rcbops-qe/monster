@@ -113,19 +113,17 @@ class HATest(Test):
     """
     HA Openstack tests
     """
-    def __init__(self, deployment, provider_net):
+    def __init__(self, deployment):
         super(HATest, self).__init__(deployment)
         self.iterations = 1
         self.current_iteration = 0
         controllers = list(self.deployment.search_role("controller"))
         self.controller1 = controllers[0]
         self.controller2 = controllers[1]
-
         # get creds
         creds = self.gather_creds(deployment)
 
         # Setup clients
-        self.provider_net = provider_net
         self.nova = nova_client.Client(creds.user, creds.password, creds.user,
                                        auth_url=creds.url)
         self.neutron = neutron_client(auth_url=creds.url, username=creds.user,
@@ -173,21 +171,31 @@ class HATest(Test):
         router = self.neutron.create_router(new_router)
         return router['router']['id']
 
-    def create_network(self, network_name):
+    def create_network(self, network_name, router_external=False, shared=True):
         """
         Creates a neutron network
         """
-        new_net = {"network": {"name": network_name, "shared": True}}
+        new_net = {"network": {"name": network_name,
+                               "router:external": router_external,
+                               "shared": shared}}
         net = self.neutron.create_network(new_net)
         return net['network']['id']
 
-    def create_subnet(self, subnet_name, network_id, subnet_cidr):
+    def create_subnet(self, subnet_name, network_id, subnet_cidr, pnet=False):
         """
         Creates a neutron subnet
         """
-        new_subnet = {"subnet": {
-            "name": subnet_name, "network_id": network_id,
-            "cidr": subnet_cidr, "ip_version": "4"}}
+        new_subnet = ""
+        if pnet:
+            new_subnet = {"subnet": {
+                "name": subnet_name, "network_id": network_id,
+                "cidr": subnet_cidr, "ip_version": "4", "gateway_ip": None,
+                "allocation_pools": [{u'end': u'192.168.4.128', 'start': u'192.168.4.64'}],
+                "host_routes": [{'destination': '0.0.0.0/0','nexthop': '192.168.4.54'}]}}
+        else:
+            new_subnet = {"subnet": {
+                "name": subnet_name, "network_id": network_id,
+                "cidr": subnet_cidr, "ip_version": "4"}}
         subnet = self.neutron.create_subnet(new_subnet)
         return subnet['subnet']['id']
 
@@ -267,7 +275,27 @@ class HATest(Test):
         iface_port = self.add_router_interface(router_id, subnet_id)
         logger.debug("Interface port: {0}".format(iface_port))
 #-----------------------------------------------------------------------------
-        provider_net_id = self.provider_net
+        pnet = False
+        provider_net_id = ""
+        for net in self.neutron.list_networks()['networks']:
+            if net['name'] == "PROVIDER_NET":
+                pnet = True
+                provider_net_id = net['id']
+                break
+        if not pnet:
+            logger.debug("Creating PROVIDER_NET")
+            provider_net_id = self.create_network("PROVIDER_NET",
+                                                  router_external=True,
+                                                  shared=False)
+            logger.debug("PROVIDER_NET created")
+
+            logger.debug("Creating PROVIDER_SUBNET")
+            provider_subnet_id = self.create_subnet("PROVIDER_SUBNET",
+                                                    provider_net_id,
+                                                    "192.168.4.0/24",
+                                                    pnet=True)
+            logger.debug("PROVIDER_SUBNET created")
+
         self.neutron.add_gateway_router(router_id,
                                         body={"network_id": provider_net_id})
 #-----------------------------------------------------------------------------
@@ -624,8 +652,7 @@ class HATest(Test):
         """
         xunit_merge()
 
-    def test(self, iterations, provider_net):
-        self.provider_net = provider_net
+    def test(self, iterations):
         self.iterations = iterations
         self.run_tests()
         self.collect_results()

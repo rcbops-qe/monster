@@ -53,7 +53,7 @@ environments:
         neutron:
             apply_patches: false
             libvirt:
-                virt_type: kvm
+                virt_type: qemu
             network:
                 provider: neutron
     osops:
