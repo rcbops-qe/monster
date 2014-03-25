@@ -5,6 +5,7 @@ import os
 import sys
 import socket
 from time import sleep
+from subprocess import call
 from novaclient.v1_1 import client as nova_client
 from neutronclient.v2_0.client import Client as neutron_client
 
@@ -14,7 +15,6 @@ from monster.tests.test import Test
 
 
 logger = Logger("hatest")
-logger.set_log_level("INFO")
 
 
 class Creds(object):
@@ -40,6 +40,7 @@ class Build(object):
         self.subnet_id = subnet_id
         self.ip_info = None
         self.router_id = None
+        logger.set_log_level()
 
     def destroy(self, nova, neutron):
         """
@@ -114,6 +115,7 @@ class HATest(Test):
     HA Openstack tests
     """
     def __init__(self, deployment):
+        logger.set_log_level()
         super(HATest, self).__init__(deployment)
         self.iterations = 1
         self.current_iteration = 0
@@ -255,27 +257,34 @@ class HATest(Test):
         return True
 
     def build(self, server_name, server_image, server_flavor, network_name,
-              subnet_name, router_name, cidr):
+              subnet_name, router_name, cidr, progress):
         """
         Builds state in OpenStack (net, server)
         """
+        progress.set_stages("Progress", 14)
+        progress.update("Progress", 0)
+
         logger.info("Configuring network and building instance...")
 
         logger.debug("Creating network: {0}".format(network_name))
         network_id = self.create_network(network_name)
         logger.debug("Network ({0}) created".format(network_id))
+        progress.update("Progress", 1)
 
         logger.debug("Creating subnetwork: {0}".format(subnet_name))
         subnet_id = self.create_subnet(subnet_name, network_id, cidr)
         logger.debug("Subnet ({0}) created".format(subnet_id))
+        progress.update("Progress", 1)
 
         logger.debug("Creating router: {0}".format(router_name))
         router_id = self.create_router(router_name)
         logger.debug("Router ({0}) created".format(router_id))
+        progress.update("Progress", 1)
 
         logger.debug('Creating router interface')
         iface_port = self.add_router_interface(router_id, subnet_id)
         logger.debug("Interface port: {0}".format(iface_port))
+        progress.update("Progress", 1)
 #-----------------------------------------------------------------------------
         pnet = False
         provider_net_id = ""
@@ -284,6 +293,7 @@ class HATest(Test):
                 pnet = True
                 provider_net_id = net['id']
                 break
+        progress.update("Progress", 1)
         if not pnet:
             logger.debug("Creating PROVIDER_NET")
             provider_net_id = self.create_network("PROVIDER_NET",
@@ -298,9 +308,11 @@ class HATest(Test):
                                                     pnet=True)
             logger.debug("PROVIDER_SUBNET created: {0}".
                          format(provider_subnet_id))
+        progress.update("Progress", 1)
 
         self.neutron.add_gateway_router(router_id,
                                         body={"network_id": provider_net_id})
+        progress.update("Progress", 1)
 #-----------------------------------------------------------------------------
         networks = [{"net-id": network_id}]
         logger.debug("Building server with above network configuration")
@@ -317,10 +329,12 @@ class HATest(Test):
                 logger.debug("The epicness of its failure was truly a "
                              "sight to behold...")
                 sleep(1)
+        progress.update("Progress", 1)
 
         build_status = "BUILD"
         while build_status == "BUILD":
             build_status = self.nova.servers.get(server.id).status
+        progress.update("Progress", 1)
         if build_status == "ERROR":
             logger.error("Server ({0}) entered ERROR status!".format(
                 server_name))
@@ -328,21 +342,26 @@ class HATest(Test):
         else:
             logger.debug("Server ({0}) status: {1}".format(server_name,
                                                            build_status))
+        progress.update("Progress", 1)
         build = Build(server, network_id, subnet_id, server_name,
                       server_image, server_flavor)
+        progress.update("Progress", 1)
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
         port_id = ""
         while not port_id:
             logger.debug("Attempting to get a valid port id...")
             port_id = self.get_port_id(build)
+        progress.update("Progress", 1)
 
         floating_ip = self.neutron.create_floatingip({"floatingip":
                                                      {"floating_network_id":
                                                       provider_net_id,
                                                       "port_id": port_id}})
+        progress.update("Progress", 1)
         build.ip_info = floating_ip['floatingip']
         build.router_id = router_id
+        progress.update("Progress", 1)
 #-----------------------------------------------------------------------------
 #-----------------------------------------------------------------------------
         return build
@@ -354,16 +373,30 @@ class HATest(Test):
                 return port['id']
         return port_id
 
-    def failover(self, node_up, node_down):
+    def failover(self, progress, node_up, node_down):
         """
         Move vips on to first controller and fail it
         """
+        progress.set_stages("Progress", 7)
+        progress.update("Progress", 0)
+
         logger.info("Failing {0}...".format(node_down.name))
         logger.debug('Sleeping for 10 seconds...')
-        sleep(10)
+        sleep(2)
+        progress.update("Progress", 1)
+        sleep(2)
+        progress.update("Progress", 1)
+        sleep(2)
+        progress.update("Progress", 1)
+        sleep(2)
+        progress.update("Progress", 1)
+        sleep(2)
+        progress.update("Progress", 1)
         self.move_vips_from(node_up)
+        progress.update("Progress", 1)
         logger.debug('Powering down node')
         self.fail_node(node_down)
+        progress.update("Progress", 1)
 
     def wait_service(self, service, node, retry=10):
         service_up = False
@@ -382,39 +415,49 @@ class HATest(Test):
                 sleep(1)
         logger.debug("{0} is up on {1}!".format(service, node.name))
 
-    def verify(self, builds, node_up, node_down=None):
+    def verify(self, builds, progress, node_up, node_down=None):
         """
         Verifies state persistence
         """
         logger.info("Verifying cluster integrity...")
+        progress.set_stages("Progress", 15)
+        progress.update("Progress", 0)
 
         # Checks if RS Cloud libvirt issue has been resolved
         libvirt = node_up.run_cmd(";".join(["source openrc",
                                   ("nova service-list | awk '{print $2}' "
                                    "| grep 'nova-compute'")]))['return']
         assert "compute" in libvirt, "The compute nodes are not checked in!"
+        progress.update("Progress", 1)
 
         # Check RPCS services (ha_proxy, keepalived, rpc daemon)
         services = ['haproxy', 'keepalived', 'rpcdaemon']
         for service in services:
             self.wait_service(service, node_up)
+            progress.update("Progress", 1)
 
         if node_down:
             for service in services:
                 self.wait_service(service, node_down)
+                progress.update("Progress", 1)
+        else:
+            progress.update("Progress", 3)
 
         # Check that the VIPS moved over to node_up
         logger.debug("Checking for vips on {0}".format(node_up.name))
         exec_vips = node_up.run_cmd("ip netns exec vips ip a")['return']
+        progress.update("Progress", 1)
         exec_vips_down = " "
         if node_down:
             logger.debug("Checking for vips on {0}".format(
                 node_down.name))
             exec_vips_down = node_down.run_cmd("ip netns exec vips ip a")[
                 'return']
+        progress.update("Progress", 1)
 
         vips = self.deployment.environment.override_attributes[
             'vips']['config'].keys()
+        progress.update("Progress", 1)
         for vip in vips:
             logger.debug("VIP: {0}".format(vip))
         for vip in vips:
@@ -442,6 +485,7 @@ class HATest(Test):
             else:
                 logger.debug("{0} vip found on {1}...".format(
                     vip, node_down.name))
+        progress.update("Progress", 1)
 
 ###########################################################################
 #       IP NETNS NEEDS TO CONTAIN NEUTRON NET-LIST?
@@ -452,6 +496,7 @@ class HATest(Test):
         for build in builds:
             logger.debug("Checking DHCP on {0}".format(build.name))
             self.wait_dhcp_agent_alive(build.network_id)
+        progress.update("Progress", 1)
 #-----------------------------------------------------------------
         # Check connectivity to builds
         #print "Checking connectivity to builds..."
@@ -471,6 +516,7 @@ class HATest(Test):
 
         # Check rabbitmq
         self.test_rabbit_status()
+        progress.update("Progress", 1)
 
 ###########################################################################
         # Check if all the configured Openstack Services are functional.
@@ -484,11 +530,16 @@ class HATest(Test):
         nova_status = "down"
         while nova_status == "down":
             logger.debug("Checking if nova is up on compute")
+            progress.update("Progress", 1)
             nova_status = node_up.run_cmd(";".join(["source openrc", "nova "
                                                     "service-list | grep "
                                                     "compute | awk '{print "
                                                     "$10}'"
                                                     ""]))['return'].rstrip()
+            if nova_status == "down":
+                progress.update("Progress", -1)
+            else:
+                progress.update("Progress", 1)
             logger.debug("Nova has a state of {0}".format(nova_status))
 
     def wait_dhcp_agent_alive(self, net, wait=240):
@@ -516,18 +567,23 @@ class HATest(Test):
         assert in_time(count), "Agents failed to rise in time"
         logger.debug("DHCP is alive")
 
-    def failback(self, node_down):
+    def failback(self, node_down, progress):
         """
         Unfails a node
         """
+        progress.set_stages("Progress", 2)
+        progress.update("Progress", 0)
+
         logger.info("Performing Failback operation...")
         node_down.power_on()
+        progress.update("Progress", 1)
         count = 1
         while not self.is_online(node_down.ipaddress):
             logger.debug("Waiting for {0} to boot - s:{1}".format(
                 node_down.name, count))
             sleep(1)
             count += 1
+        progress.update("Progress", 1)
 
     def run_tests(self):
         """
@@ -554,13 +610,20 @@ class HATest(Test):
         verify_stages = 5
         failover_stages = 2
         failback_stages = 2
+        progress_stages = 100
 
         bars = [{'name': 'Iteration', 'current': self.current_iteration,
-                 'total': iterations},
-                {'name': 'Build', 'current': 0, 'total': build_stages},
-                {'name': 'Verify', 'current': 0, 'total': verify_stages},
-                {'name': 'Failover', 'current': 0, 'total': failover_stages},
-                {'name': 'Failback', 'current': 0, 'total': failback_stages}]
+                 'total': iterations, 'size': 100},
+                {'name': 'Build', 'current': 0,
+                 'total': build_stages, 'size': 100},
+                {'name': 'Verify', 'current': 0,
+                 'total': verify_stages, 'size': 100},
+                {'name': 'Failover', 'current': 0,
+                 'total': failover_stages, 'size': 100},
+                {'name': 'Failback', 'current': 0,
+                 'total': failback_stages, 'size': 100},
+                {'name': 'Progress', 'current': 0,
+                 'total': progress_stages, 'size': 100}]
         progress = Progress(bars)
 
         builds = []
@@ -572,7 +635,7 @@ class HATest(Test):
         while stage < 3:
             #os.system('clear')
             progress.display("Verify")
-            self.verify(builds, node_up, node_down)
+            self.verify(builds, progress, node_up, node_down)
             progress.advance("Verify")
             #os.system('clear')
 
@@ -582,17 +645,18 @@ class HATest(Test):
                                "testnetwork{0}".format(stage),
                                "testsubnet{0}".format(stage),
                                "testrouter{0}".format(stage),
-                               "172.32.{0}.0/24".format(stage))
+                               "172.32.{0}.0/24".format(stage),
+                               progress)
             stage += 1
             builds.append(build)
             progress.advance("Build")
 
             progress.display("Failover")
-            self.failover(node_up, node_down)
+            self.failover(progress, node_up, node_down)
             progress.advance("Failover")
 
             progress.display("Verify")
-            self.verify(builds, node_up)
+            self.verify(builds, progress, node_up)
             progress.advance("Verify")
 
             progress.display("Build")
@@ -601,13 +665,14 @@ class HATest(Test):
                                "testnetwork{0}".format(stage),
                                "testsubnet{0}".format(stage),
                                "testrouter{0}".format(stage),
-                               "172.32.{0}.0/24".format(stage))
+                               "172.32.{0}.0/24".format(stage),
+                               progress)
             stage += 1
             builds.append(build)
             progress.advance("Build")
 
             progress.display("Failback")
-            self.failback(node_down)
+            self.failback(node_down, progress)
             progress.advance("Failback")
 
             node_temp = node_up
@@ -615,7 +680,7 @@ class HATest(Test):
             node_down = node_temp
 
         progress.display("Verify")
-        self.verify(builds, node_up, node_down)
+        self.verify(builds, progress, node_up, node_down)
         progress.advance("Verify")
 
         progress.display("Iteration")
@@ -664,21 +729,64 @@ class HATest(Test):
 class Progress(object):
     def __init__(self, bars):
         self.bars = bars
+        self.current = None
 
-    def advance(self, bar_name):
+    def advance(self, bar_name, adv_amount=1):
         logger.debug("Advancing {0}...".format(bar_name))
         for bar in self.bars:
             if bar['name'] == bar_name:
-                bar['current'] += 1
+                bar['current'] += adv_amount
+
+    def display(self, current_bar_name):
+        logger.debug('Flushing print buffer for status bar...')
+        self.current = current_bar_name
+        #for i in range(210):
+        #    sys.stdout.write("\b")
+
+        os.system('clear')
+        for bar in self.bars:
+            if bar['name'] == "Iteration":
+                self.print_bar(bar, bar['size'], 1)
+            elif bar['name'] == current_bar_name:
+                self.print_bar(bar, bar['size'], 1)
+            else:
+                self.print_bar(bar, bar['size'], 0)
+        sys.stdout.flush()
+        call(["tail", "-n", "30", "log.log"])
+
+    def set_stages(self, bar_name, stages):
+        for bar in self.bars:
+            if bar['name'] == bar_name:
+                bar['total'] = stages
+
+    def update(self, bar_name, adv_amount):
+        # Advances bar without changing current bar indicator
+        # If value is 0, resets current progress position
+        if adv_amount == 0:
+            for bar in self.bars:
+                if bar['name'] == bar_name:
+                    bar['current'] = 0
+        else:
+            self.advance(bar_name, adv_amount)
+        self.display(self.current)
 
     def print_bar(self, bar, size, curr):
-        logger.debug("Printing bar {0}...".format(bar['name']))
-        sys.stdout.write("   {0}:[".format(bar['name']))
+        #logger.debug("Printing bar {0}...".format(bar['name']))
+        #sys.stdout.write("   {0}:[".format(bar['name']))
+        if len(bar['name']) < 8:
+            sys.stdout.write("{0}:\t\t[".format(bar['name']))
+        else:
+            sys.stdout.write("{0}:\t[".format(bar['name']))
         self.set_color("bold")
-        self.set_color("blue")
         complete = (float(bar['current']) / int(bar['total'])) * size
-        for i in range(int(complete)):
-            sys.stdout.write("|")
+        if bar['name'] == "Progress":
+            self.set_color("green")
+            for i in range(int(complete)):
+                sys.stdout.write(">")
+        else:
+            self.set_color("blue")
+            for i in range(int(complete)):
+                sys.stdout.write("|")
 
         self.set_color("yellow")
         self.set_color("blink")
@@ -692,13 +800,19 @@ class Progress(object):
         self.set_color("default")
         self.set_color("gray")
         remain = (size - int(complete) - int(work_on))
-        for i in range(remain):
-            sys.stdout.write("|")
+        if bar['name'] == "Progress":
+            for i in range(remain):
+                sys.stdout.write(">")
+        else:
+            for i in range(remain):
+                sys.stdout.write("|")
+
         self.set_color("default")
-        sys.stdout.write("]   ")
+        #sys.stdout.write("]   ")
+        sys.stdout.write("]\n")
 
     def set_color(self, style):
-        logger.debug("Changing output color to {0}...".format(style))
+        #logger.debug("Changing output color to {0}...".format(style))
         if style == "default":
             sys.stdout.write("\033[0m")
         elif style == "bold":
@@ -709,20 +823,7 @@ class Progress(object):
             sys.stdout.write("\033[33m")
         elif style == "gray":
             sys.stdout.write("\033[90m")
+        elif style == "green":
+            sys.stdout.write("\033[92m")
         elif style == "blink":
             sys.stdout.write("\033[5m")
-
-    def display(self, current_bar_name):
-        logger.debug('Flushing print buffer for status bar...')
-        #for i in range(210):
-        #    sys.stdout.write("\b")
-
-        os.system('clear')
-        for bar in self.bars:
-            if bar['name'] == "Iteration":
-                self.print_bar(bar, 10, 1)
-            elif bar['name'] == current_bar_name:
-                self.print_bar(bar, 10, 1)
-            else:
-                self.print_bar(bar, 10, 0)
-        sys.stdout.flush()

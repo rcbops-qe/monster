@@ -10,7 +10,6 @@ from monster.server_helper import ssh_cmd, scp_to, scp_from
 
 
 logger = Logger("monster.nodes.node")
-logger.set_log_level("INFO")
 
 
 class Node(object):
@@ -30,6 +29,7 @@ class Node(object):
         self.features = []
         self._cleanups = []
         self.status = status or "provisioning"
+        logger.set_log_level()
 
     def __repr__(self):
         """ Print out current instance

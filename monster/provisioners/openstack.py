@@ -11,7 +11,6 @@ from monster.server_helper import run_cmd
 
 
 logger = Logger(__name__)
-logger.set_log_level("INFO")
 
 
 class Openstack(Provisioner):
@@ -24,6 +23,7 @@ class Openstack(Provisioner):
         self.creds = Creds()
         self.auth_client = Clients(self.creds).get_client("keystoneclient")
         self.compute_client = Clients(self.creds).get_client("novaclient")
+        logger.set_log_level()
 
     def name(self, name, deployment, number=None):
         """

@@ -21,7 +21,6 @@ from monster.environments.chef_environment import Chef as \
 
 
 logger = Logger("monster.deployments.chef_deployment")
-logger.set_log_level("INFO")
 
 
 class Chef(Deployment):
@@ -39,6 +38,7 @@ class Chef(Deployment):
         self.environment = environment
         self.has_controller = False
         self.has_orch_master = False
+        logger.set_log_level()
 
     def __str__(self):
         nodes = "\n\t".join(str(node) for node in self.nodes)

@@ -10,10 +10,11 @@ from monster.deployments.chef_deployment import Chef as ChefDeployment
 from monster.provisioners.util import get_provisioner
 
 logger = Logger(__name__)
-logger.set_log_level("INFO")
 
 
 def __load_deployment(func):
+    logger.set_log_level()
+
     @wraps(func)
     def wrap_function(args):
         util.config = Config(args.config, args.secret_path)
@@ -27,6 +28,8 @@ def __load_deployment(func):
 
 
 def __provision_for_deployment(func):
+    logger.set_log_level()
+
     @wraps(func)
     def wrap_function(args):
         util.config = Config(args.config, args.secret_path)
@@ -36,6 +39,8 @@ def __provision_for_deployment(func):
 
 
 def __build_deployment(func):
+    logger.set_log_level()
+
     @wraps(func)
     def wrap_function(args):
         if 'template_file' in args.__dict__:
@@ -66,6 +71,7 @@ def __build_deployment(func):
 
 
 def __get_template_filename(branch):
+    logger.set_log_level()
     if branch == "master":
         filename = "default"
     else:

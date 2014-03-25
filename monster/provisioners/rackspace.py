@@ -8,7 +8,6 @@ from monster.clients.openstack import Creds
 
 
 logger = Logger("monster.provisioners.rackspace")
-logger.set_log_level("INFO")
 
 
 class Rackspace(Openstack):
@@ -32,6 +31,7 @@ class Rackspace(Openstack):
 
         self.compute_client = pyrax.cloudservers
         self.neutron = pyrax.cloud_networks
+        logger.set_log_level()
 
     def post_provision(self, node):
         """
