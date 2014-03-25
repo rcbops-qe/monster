@@ -132,7 +132,7 @@ class Chef(Deployment):
             f.write(str(self.environment))
 
     @classmethod
-    def fromfile(cls, name, template_name, branch, provisioner, template_path=None):
+    def fromfile(cls, name, template, branch, provisioner, template_path):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment
@@ -147,14 +147,7 @@ class Chef(Deployment):
         :type path: string
         :rtype: Chef
         """
-
         local_api = autoconfigure()
-
-        #name = args['name']
-        #template_name = args['template_name']
-        #branch = args['branch']
-        #provisioner = args['provisioner']
-        #template_path = args['template_path']
 
         template_file = ""
         if branch == "master":
@@ -163,13 +156,13 @@ class Chef(Deployment):
             template_file = branch.lstrip('v')
             if "rc" in template_file:
                 template_file = template_file.rstrip("rc")
-            template_file = template_file.replace('.','_')
+            template_file = template_file.replace('.', '_')
 
         if ChefEnvironment(name, api=local_api).exists:
             # Use previous dry build if exists
             logger.info("Using previous deployment:{0}".format(name))
             return cls.from_chef_environment(name)
-
+        path = ""
         if not template_path:
             path = os.path.join(os.path.dirname(__file__),
                                 os.pardir, os.pardir,
@@ -177,13 +170,12 @@ class Chef(Deployment):
                                     template_file))
         else:
             path = template_path
-
         try:
-            template = Config(path)[template_name]
+            template = Config(path)[template]
         except KeyError:
             logger.critical("Looking for the template {0} in the file: "
                             "\n{1}\n The key was not found!"
-                            .format(template_name, path))
+                            .format(template, path))
             exit(1)
 
         environment = MonsterChefEnvironment(name, local_api, description=name)

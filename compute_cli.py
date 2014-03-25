@@ -75,7 +75,8 @@ class CLI:
         def add_common_arguments(parser):
             parser.add_argument('-n', '--name', help="Name of the OpenStack "
                                                      "deployment.")
-            parser.add_argument('-c', '--config', default='pubcloud-neutron.yaml')
+            parser.add_argument('-c', '--config',
+                                default='pubcloud-neutron.yaml')
             parser.add_argument('-s', '--secret-path', default='secret.yaml')
             parser.add_argument('-l', '--logfile-path', default='./log')
             parser.add_argument('-L', '--log-level',

@@ -38,7 +38,8 @@ class Logger(object):
         log_file.setLevel(logging.DEBUG)
 
         self.logger.addHandler(log_file)
-        self.logger.debug("Initializing Logfile Logging for {0}!".format(self.name))
+        self.logger.debug("Initializing Logfile Logging for {0}!".
+                          format(self.name))
 
 
 def module_classes(module):
