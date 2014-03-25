@@ -7,6 +7,7 @@ from monster.util import Logger
 
 logger = Logger("monster.server_helper")
 
+
 class Command(object):
     def __init__(self, command):
         self.command = command

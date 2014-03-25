@@ -14,6 +14,7 @@ logger = Logger(__name__)
 
 def __load_deployment(func):
     logger.set_log_level()
+
     @wraps(func)
     def wrap_function(args):
         util.config = Config(args.config, args.secret_path)
@@ -28,6 +29,7 @@ def __load_deployment(func):
 
 def __provision_for_deployment(func):
     logger.set_log_level()
+
     @wraps(func)
     def wrap_function(args):
         util.config = Config(args.config, args.secret_path)
@@ -38,6 +40,7 @@ def __provision_for_deployment(func):
 
 def __build_deployment(func):
     logger.set_log_level()
+
     @wraps(func)
     def wrap_function(args):
         if 'template_file' in args.__dict__:

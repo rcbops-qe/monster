@@ -16,6 +16,7 @@ from monster.tests.test import Test
 
 logger = Logger("hatest")
 
+
 class Creds(object):
     """
     Openstack cred object

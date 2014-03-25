@@ -16,12 +16,10 @@ class Logger(object):
         self.console_formatter = logging.Formatter(console_format)
         self.console_handler.setFormatter(self.console_formatter)
 
-
         self.file_handler = logging.FileHandler('log.log')
         file_format = '%(asctime)s %(module)s %(levelname)s: %(message)s'
         self.file_formatter = logging.Formatter(file_format)
         self.file_handler.setFormatter(self.file_formatter)
-
 
         self.critical = self.logger.critical
         self.error = self.logger.error
