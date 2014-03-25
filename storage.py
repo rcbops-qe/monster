@@ -14,7 +14,6 @@ from monster.provisioners import provisioner as provisioners
 
 
 logger = Logger("storage")
-logger.set_log_level("INFO")
 
 
 def build(name="autotest", branch="master", provisioner="rackspace",
@@ -23,8 +22,7 @@ def build(name="autotest", branch="master", provisioner="rackspace",
 
     """ Builds an OpenStack Swift storage cluster
     """
-
-    _set_log(log, log_level)
+    logger.set_log_level()
 
     # provisiong deployment
     util.config = Config(config)
@@ -59,7 +57,7 @@ def destroy(name="autotest", config=None, log=None, log_level="INFO"):
     """ Tears down a OpenStack Storage cluster
     """
 
-    _set_log(log, log_level)
+    logger.set_log_level()
     deployment = _load(name, config)
     logger.info(deployment)
     deployment.destroy()
@@ -69,7 +67,7 @@ def test(name="autotest", config=None, log=None, log_level="INFO"):
     """ Tests a OpenStack Storage cluster
     """
 
-    _set_log(log, log_level)
+    logger.set_log_level()
     deployment = _load(name, config)
     deployment.test()
 
@@ -78,7 +76,7 @@ def openrc(name="autotest", config=None, log=None, log_level="INFO"):
     """ Loads the admin environment locally for a OpenStack Storage cluster
     """
 
-    _set_log(log, log_level)
+    logger.set_log_level()
     deployment = _load(name, config)
     deployment.openrc()
 
@@ -87,7 +85,7 @@ def load(name="autotest", config=None, log=None, log_level="INFO"):
     """ Loads a preconfigured OpenStack Storage cluster
     """
 
-    _set_log(log, log_level)
+    logger.set_log_level()
     # load deployment and source openrc
     deployment = _load(name, config)
     logger.info(str(deployment))
@@ -100,12 +98,6 @@ def _load(name="autotest", config=None, provisioner="razor"):
     cprovisioner = util.module_classes(provisioners)[class_name]()
     return Chef.from_chef_environment(environment=cprovisioner)
 
-
-def _set_log(log, log_level):
-    # set log level and file
-    logger.set_log_level(log_level)
-    if log:
-        logger.log_to_file(log)
 
 # Main
 if __name__ == "__main__":

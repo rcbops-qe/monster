@@ -7,7 +7,6 @@ from monster.util import Logger
 
 
 logger = Logger("monster.clients.openstack")
-logger.set_log_level("INFO")
 
 
 class Creds(dict):
@@ -27,6 +26,7 @@ class Creds(dict):
         self.insecure = insecure
         self.cacert = cacert
         self.auth_url = auth_url
+        logger.set_log_level()
 
 
 class Clients(object):
@@ -35,6 +35,7 @@ class Clients(object):
     """
     def __init__(self, creds):
         self.creds = creds.__dict__
+        logger.set_log_level()
 
     def keystoneclient(self):
         """

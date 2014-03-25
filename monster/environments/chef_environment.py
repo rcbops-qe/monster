@@ -8,7 +8,6 @@ from environment import Environment as MonsterEnvironment
 
 
 logger = Logger("monster.environments.chef_environment")
-logger.set_log_level("INFO")
 
 
 class Chef(MonsterEnvironment):
@@ -25,6 +24,7 @@ class Chef(MonsterEnvironment):
         self.remote_api = remote_api
         self.chef_server_name = chef_server_name
         self.save()
+        logger.set_log_level()
 
     def add_override_attr(self, key, value):
         self.override_attributes[key] = value

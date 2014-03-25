@@ -69,13 +69,13 @@ def build(name="autotest", template="ubuntu-default", branch="master",
 
 
 def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
-         log_level="INFO", tempest=False, ha=False, secret_path=None,
+         log_level="ERROR", tempest=False, ha=False, secret_path=None,
          deployment=None, iterations=1):
     """
     Tests an openstack deployment
     """
+    logger.set_log_level(log_level)
     if not deployment:
-        logger.set_log_level(log_level)
         deployment = _load(name, config, secret_path)
     if not tempest and not ha:
         tempest = True

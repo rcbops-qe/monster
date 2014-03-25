@@ -10,7 +10,6 @@ from monster.util import Logger
 
 
 logger = Logger("monster.provisioners.razor")
-logger.set_log_level("INFO")
 
 
 class Razor(Provisioner):
@@ -21,6 +20,7 @@ class Razor(Provisioner):
     def __init__(self, ip=None):
         self.ipaddress = ip or util.config['secrets']['razor']['ip']
         self.api = RazorAPI(self.ipaddress)
+        logger.set_log_level()
 
     def provision(self, template, deployment):
         """
@@ -134,6 +134,7 @@ class RazorAPI(object):
         self.ip = rzrip
         self.port = rzrport
         self.url = "http://{0}:{1}/razor/api".format(self.ip, self.port)
+        logger.set_log_level()
 
     def __repr__(self):
         """

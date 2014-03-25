@@ -8,7 +8,6 @@ from monster.provisioners.util import get_provisioner
 
 
 logger = Logger("monster.nodes.chef_node")
-logger.set_log_level("INFO")
 
 
 class Chef(Node):
@@ -24,6 +23,7 @@ class Chef(Node):
         self.branch = branch
         self.run_list = run_list or []
         self.features = []
+        logger.set_log_level()
 
     def __str__(self):
         features = ", ".join(self.feature_names)
