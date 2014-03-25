@@ -103,6 +103,15 @@ environments:
             lbaas:
                 enabled: true
             ovs:
+                external_bridge: br-int
+                network_type: gre
+                provider_networks:
+                  - {bridge: "br-vmnet", vlans: "867:867", label: "ph-vmnet"}
+        quantum:
+            lbaas:
+                enabled: true
+            ovs:
+                external_bridge: br-int
                 network_type: gre
                 provider_networks:
                   - {bridge: "br-vmnet", vlans: "867:867", label: "ph-vmnet"}
@@ -279,3 +288,5 @@ upgrade:
     v4.2.1:
       - v4.2.2rc
       - v4.2.2
+    v4.2.2rc:
+      - v4.2.2rc

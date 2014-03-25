@@ -9,16 +9,17 @@ from monster.util import Logger
 logger = Logger("monster.clients.openstack")
 
 
-class Creds(dict):
+class Creds(object):
     """
     Credentials to authenticate with OpenStack
     """
     def __init__(self, username=None, password=None, apikey=None,
-                 region=None, auth_url=None, auth_system=None,
+                 region=None, auth_url=None, auth_system="keystone",
                  tenant_name=None, project_id=None, insecure=False,
                  cacert=None):
         self.username = username
         self.tenant_name = tenant_name
+        self.api_key = apikey
         self.apikey = apikey
         self.password = password
         self.project_id = project_id
@@ -36,7 +37,10 @@ class Clients(object):
     def __init__(self, creds):
         self.creds = creds.__dict__
         logger.set_log_level()
+        if not self.creds["tenant_name"]:
+            self.creds["tenant_name"] = self.creds["username"]
 
+    @property
     def keystoneclient(self):
         """
         Openstack keystone client
@@ -48,6 +52,7 @@ class Clients(object):
 
         return keystone_client.Client(**self.creds)
 
+    @property
     def novaclient(self):
         """
         Openstack novaclient generator
@@ -56,21 +61,11 @@ class Clients(object):
             'novaclient connection created using token "%s" and url "%s"'
             % (self.creds['username'], self.creds['auth_url'])
         )
-        self.creds.update({
-            'auth_system': self.creds.system
-        })
-
-        key = None
-        if 'password' in self.creds:
-            key = self.creds['password']
-        else:
-            key = self.creds['api_key']
-
-        client = nova_client.Client(self.creds['username'], key,
-                                    self.creds['username'],
-                                    auth_url=self.creds['auth_url'])
+        args = ["username", ("api_key", "password"), "project_id", "auth_url"]
+        client = nova_client.Client(**self.build_args(args))
         return client
 
+    @property
     def cinderclient(self):
         """
         Openstack cinderclient generator
@@ -79,9 +74,10 @@ class Clients(object):
             'cinderclient connection created using token "%s" and url "%s"'
             % (self.creds['username'], self.creds['auth_url'])
         )
-        client = cinder_client.Client(**self.creds)
-        return client
+        args = ["username", ("api_key", "password"), "project_id", "auth_url"]
+        return cinder_client.Client(**self.build_args(args))
 
+    @property
     def neutronclient(self):
         """
         Openstack neutronclient generator
@@ -91,12 +87,8 @@ class Clients(object):
             % (self.creds['username'], self.creds['auth_url'])
         )
 
-        client = neutron_client(auth_url=self.creds['auth_url'],
-                                username=self.creds['username'],
-                                password=self.creds['password'],
-                                tenant_name=self.creds['username'],
-                                api_key=self.creds['api_key'])
-        return client
+        args = ["auth_url", "username", "password", "tenant_name"]
+        return neutron_client(**self.build_args(args))
 
     def get_client(self, client):
         """
@@ -109,3 +101,21 @@ class Clients(object):
             raise Exception('No Client Type Found')
         else:
             return client_type()
+
+    def add_cred(self, args, to_key, from_key=None):
+        if not from_key:
+            from_key = to_key
+        value = self.creds[from_key]
+        if value:
+            args[to_key] = value
+            return True
+        return False
+
+    def build_args(self, req_args):
+        args = {}
+        for arg in req_args:
+            if isinstance(arg, basestring):
+                self.add_cred(args, arg, arg)
+            else:
+                self.add_cred(args, arg[0], arg[1])
+        return args

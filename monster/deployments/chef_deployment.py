@@ -356,6 +356,7 @@ class Chef(Deployment):
             ip = self.environment.override_attributes['vips']['nova-api']
         return ip
 
+    @property
     def openstack_clients(self):
         """
         Setup openstack clients generator for deployment
@@ -366,8 +367,10 @@ class Chef(Deployment):
         users = keystone['users']
         user = keystone['admin_user']
         region = "RegionOne"
-        apikey = users[user]["password"]
+        password = users[user]["password"]
+        tenant_name = "admin"
         auth_url = "http://{0}:5000/v2.0".format(self.horizon_ip())
-        creds = Creds(user=user, apikey=apikey, region=region,
-                      auth_url=auth_url)
-        self.clients = Clients(creds)
+        creds = Creds(username=user,  password=password, region=region,
+                      auth_url=auth_url, project_id=tenant_name,
+                      tenant_name=tenant_name)
+        return Clients(creds)
