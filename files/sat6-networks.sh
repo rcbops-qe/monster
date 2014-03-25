@@ -16,6 +16,18 @@ vlan_provider() {
   vlannetid=`neutron net-create ENV01-VLAN --provider:network_type=vlan --provider:physical_network=ph-vmnet --provider:segmentation_id=867 | grep -w id | awk '{print $4}'`
   neutron subnet-create ENV01-VLAN 10.127.102.0/24 --name ENV01-VLAN-SUBNET --gateway 10.127.102.1 --allocation-pool start=10.127.102.128,end=10.127.102.159
   neutron net-update $vlannetid --router:external=true
+  grenetid=`neutron net-create ENV01-GRE --provider:network_type=gre --provider:segmentation_id=1 | grep -w id | awk '{print $4}'`
+  gresubid=`neutron subnet-create ENV01-GRE 192.168.105/24 --name ENV01-GRE-SUBNET --dns-nameservers list=true 8.8.8.8 8.8.4.4 | grep -w id | awk '{print $4}'`
+
+  neutron router-create ENV01-RTR
+  neutron router-gateway-set ENV01-RTR $vlannetid
+  neutron router-interface-add ENV01-RTR $gresubid
+
+  greinstanceid=`nova boot --flavor 2 --image precise-image --security-groups default --key-name key --nic net-id=$grenetid gretest | grep -w id | awk '{print $4}'`
+
+  floatingipid=`neutron floatingip-create $vlannetid | grep -w id | awk '{print $4}'`
+  greinstanceportid=$(for i in `neutron port-list | awk '/:/ {print $2}'`; do neutron port-show $i | grep -q $greinstanceid && neutron port-show $i | grep -w id | awk '{print $4}' ; done)
+  neutron floatingip-associate $floatingipid $greinstanceportid
 }
 
 vlan_tenant() {
@@ -29,16 +41,3 @@ if $1 == "provider"; then
 elif $1 == "tenant"; then
     vlan_tenant
 fi
-
-grenetid=`neutron net-create ENV01-GRE --provider:network_type=gre --provider:segmentation_id=1 | grep -w id | awk '{print $4}'`
-gresubid=`neutron subnet-create ENV01-GRE 192.168.105/24 --name ENV01-GRE-SUBNET --dns-nameservers list=true 8.8.8.8 8.8.4.4 | grep -w id | awk '{print $4}'`
-
-neutron router-create ENV01-RTR
-neutron router-gateway-set ENV01-RTR $vlannetid
-neutron router-interface-add ENV01-RTR $gresubid
-
-greinstanceid=`nova boot --flavor 2 --image precise-image --security-groups default --key-name key --nic net-id=$grenetid gretest | grep -w id | awk '{print $4}'`
-
-floatingipid=`neutron floatingip-create $vlannetid | grep -w id | awk '{print $4}'`
-greinstanceportid=$(for i in `neutron port-list | awk '/:/ {print $2}'`; do neutron port-show $i | grep -q $greinstanceid && neutron port-show $i | grep -w id | awk '{print $4}' ; done)
-neutron floatingip-associate $floatingipid $greinstanceportid
