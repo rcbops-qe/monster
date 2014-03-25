@@ -107,6 +107,14 @@ environments:
                 network_type: gre
                 provider_networks:
                   - {bridge: "br-vmnet", vlans: "867:867", label: "ph-vmnet"}
+        quantum:
+            lbaas:
+                enabled: true
+            ovs:
+                external_bridge: br-int
+                network_type: gre
+                provider_networks:
+                  - {bridge: "br-vmnet", vlans: "867:867", label: "ph-vmnet"}
     cinder:
         local:
             storage:
