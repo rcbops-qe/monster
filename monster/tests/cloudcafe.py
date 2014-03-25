@@ -2,8 +2,11 @@
 Module to test OpenStack deployments with CloudCafe
 """
 
+import os
+
 from monster import util
 from monster.tests.test import Test
+from monster.server_helper import run_cmd
 
 
 class CloudCafe(Test):
@@ -54,6 +57,10 @@ class CloudCafe(Test):
 
     def get_admin_ids(self):
         return ("blah", "blah", "blah")
+
+    def export_variable(self, section, variable, value):
+        export = "CAFE_{0}_{1}".format(section, variable)
+        os.environ[export] = value
 
     def config(self, network_name=None, files=None):
         endpoint = self.get_endpoint()

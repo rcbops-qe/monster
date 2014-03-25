@@ -1,3 +1,4 @@
+import os
 import sys
 from cStringIO import StringIO
 from paramiko import SSHClient, WarningPolicy
@@ -24,7 +25,7 @@ def run_cmd(command):
     """
     logger.info("Running: {0}".format(command))
     try:
-        ret = check_call(command, shell=True)
+        ret = check_call(command, shell=True, env=os.environ)
         return {'success': True, 'return': ret, 'exception': None}
     except CalledProcessError, cpe:
         return {'success': False,
