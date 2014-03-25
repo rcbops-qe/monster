@@ -29,6 +29,7 @@ if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
                    "-behaved.  To load the virtual environment, use "
                    "the command \"source .venv/bin/activate\"")
 
+
 # Logger needs to be rewritten to accept a log filename
 def build(name="autotest", template="ubuntu-default", branch="master",
           template_path=None, config="pubcloud-neutron.yaml",
@@ -229,4 +230,3 @@ if __name__ == "__main__":
                         destroy, openrc, horizon,
                         show, test, tmux])
     parser.dispatch()
-

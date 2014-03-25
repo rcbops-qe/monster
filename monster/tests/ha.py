@@ -190,8 +190,10 @@ class HATest(Test):
             new_subnet = {"subnet": {
                 "name": subnet_name, "network_id": network_id,
                 "cidr": subnet_cidr, "ip_version": "4", "gateway_ip": None,
-                "allocation_pools": [{u'end': u'192.168.4.128', 'start': u'192.168.4.64'}],
-                "host_routes": [{'destination': '0.0.0.0/0','nexthop': '192.168.4.54'}]}}
+                "allocation_pools": [{'end': '192.168.4.128',
+                                      'start': '192.168.4.64'}],
+                "host_routes": [{'destination': '0.0.0.0/0',
+                                 'nexthop': '192.168.4.54'}]}}
         else:
             new_subnet = {"subnet": {
                 "name": subnet_name, "network_id": network_id,
@@ -287,14 +289,15 @@ class HATest(Test):
             provider_net_id = self.create_network("PROVIDER_NET",
                                                   router_external=True,
                                                   shared=False)
-            logger.debug("PROVIDER_NET created")
+            logger.debug("PROVIDER_NET created: {0}".format(provider_net_id))
 
             logger.debug("Creating PROVIDER_SUBNET")
             provider_subnet_id = self.create_subnet("PROVIDER_SUBNET",
                                                     provider_net_id,
                                                     "192.168.4.0/24",
                                                     pnet=True)
-            logger.debug("PROVIDER_SUBNET created")
+            logger.debug("PROVIDER_SUBNET created: {0}".
+                         format(provider_subnet_id))
 
         self.neutron.add_gateway_router(router_id,
                                         body={"network_id": provider_net_id})

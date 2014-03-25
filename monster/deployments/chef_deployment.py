@@ -156,7 +156,7 @@ class Chef(Deployment):
             template_file = branch.lstrip('v')
             if "rc" in template_file:
                 template_file = template_file.rstrip("rc")
-            template_file = template_file.replace('.','_')
+            template_file = template_file.replace('.', '_')
 
         if ChefEnvironment(name, api=local_api).exists:
             # Use previous dry build if exists
