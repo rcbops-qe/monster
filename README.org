@@ -178,17 +178,18 @@ An OpenStack Orchestration Engine
 
     Opens an new tmux session with each node in a different window
 
+    #+BEGIN_SRC sh
+      compute.py tmux -n ubuntu-default
+    #+END_SRC
+
     *Requires tmux version >= 1.8*
 
     To add a 12.4 precise tmux 1.8 backport PPA, execute the following:
-    ```bash
-    add-apt-repository -y ppa:kalakris/tmux
-    apt-get update
-    apt-get install tmux -y
-    ```
 
-    #+BEGIN_SRC sh
-      compute.py tmux -n ubuntu-default
+    #+BEGIN_SRC
+      add-apt-repository -y ppa:kalakris/tmux
+      apt-get update
+      apt-get install tmux -y
     #+END_SRC
 
 **** Arguments
