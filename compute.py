@@ -2,10 +2,6 @@
 """
 Command-line interface for building OpenStack clusters
 """
-#from compute_cli import CLI
-#from tools.compute_decorators import __load_deployment
-#from tools.compute_decorators import __build_deployment
-#from tools.compute_decorators import __provision_for_deployment
 
 import os
 import argh
