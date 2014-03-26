@@ -6,7 +6,6 @@ from monster.upgrades.upgrade import Upgrade
 
 
 logger = Logger("monster.upgrades.four_one_three")
-logger.set_log_level("INFO")
 
 
 class FourOneThree(Upgrade):
@@ -16,6 +15,7 @@ class FourOneThree(Upgrade):
 
     def __init__(self, deployment):
         super(FourOneThree, self).__init__(deployment)
+        logger.set_log_level()
 
     def upgrade(self, rc=False):
         """

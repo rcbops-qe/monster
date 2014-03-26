@@ -6,7 +6,6 @@ from monster.util import Logger
 
 
 logger = Logger("monster.provisioners.util")
-logger.set_log_level("INFO")
 
 
 def get_provisioner(provisioner):
@@ -16,6 +15,7 @@ def get_provisioner(provisioner):
     :type provisioner: String
     :rtype: object
     """
+    logger.set_log_level()
 
     try:
         identifier = getattr(sys.modules['monster'].provisioners, provisioner)

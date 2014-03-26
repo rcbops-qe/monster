@@ -7,7 +7,6 @@ from monster.util import Logger
 
 
 logger = Logger("retrofit")
-logger.set_log_level("INFO")
 
 
 class Retrofit(object):
@@ -16,6 +15,7 @@ class Retrofit(object):
         self.deployment = deployment
         self.controllers = list(self.deployment.search_role('controller'))
         self.computes = list(self.deployment.search_role('compute'))
+        logger.set_log_level()
 
     def __repr__(self):
         """

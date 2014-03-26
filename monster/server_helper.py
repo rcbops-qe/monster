@@ -7,7 +7,6 @@ from subprocess import check_call, CalledProcessError
 from monster.util import Logger
 
 logger = Logger("monster.server_helper")
-logger.set_log_level("INFO")
 
 
 class Command(object):
@@ -16,6 +15,7 @@ class Command(object):
         self.successful = False
         self.output = None
         self.exception = None
+        logger.set_log_level()
 
 
 def run_cmd(command):
@@ -70,7 +70,6 @@ def scp_to(ip, local_path, user='root', password=None, remote_path=""):
     """
     Send a file to a server
     """
-
     ssh = SSHClient()
     ssh.set_missing_host_key_policy(WarningPolicy())
     ssh.connect(ip, username=user, password=password, allow_agent=False)
@@ -83,7 +82,6 @@ def scp_from(ip, remote_path, user='root', password=None, local_path=""):
     @param path_to_file: file to copy
     @param copy_location: place on localhost to place file
     """
-
     ssh = SSHClient()
     ssh.set_missing_host_key_policy(WarningPolicy())
     ssh.connect(ip, username=user, password=password, allow_agent=False)

@@ -7,7 +7,6 @@ from monster.util import Logger
 
 
 logger = Logger("monster.clients.openstack")
-logger.set_log_level("INFO")
 
 
 class Creds(object):
@@ -28,6 +27,7 @@ class Creds(object):
         self.insecure = insecure
         self.cacert = cacert
         self.auth_url = auth_url
+        logger.set_log_level()
 
 
 class Clients(object):
@@ -36,6 +36,7 @@ class Clients(object):
     """
     def __init__(self, creds):
         self.creds = creds.__dict__
+        logger.set_log_level()
         if not self.creds["tenant_name"]:
             self.creds["tenant_name"] = self.creds["username"]
 

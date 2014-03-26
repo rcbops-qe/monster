@@ -9,7 +9,6 @@ from monster import util
 
 
 logger = Logger("monster.features.deployment")
-logger.set_log_level("INFO")
 
 
 class Deployment(Feature):
@@ -19,6 +18,7 @@ class Deployment(Feature):
     def __init__(self, deployment, rpcs_feature):
         self.rpcs_feature = rpcs_feature
         self.deployment = deployment
+        logger.set_log_level()
 
     def __repr__(self):
         """
@@ -65,6 +65,7 @@ class Neutron(Deployment):
 
         # Set the provider name in object (future use)
         self.provider = provider
+        logger.set_log_level()
 
     def update_environment(self):
         """
@@ -184,6 +185,7 @@ class Swift(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Swift, self).__init__(deployment, rpcs_feature)
         self.environment = util.config['environments'][str(self)][rpcs_feature]
+        logger.set_log_level()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -411,6 +413,7 @@ class Glance(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Glance, self).__init__(deployment, rpcs_feature)
         self.environment = util.config['environments'][str(self)][rpcs_feature]
+        logger.set_log_level()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -458,6 +461,7 @@ class Keystone(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Keystone, self).__init__(deployment, rpcs_feature)
         self.environment = util.config['environments'][str(self)][rpcs_feature]
+        logger.set_log_level()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -514,6 +518,7 @@ class Nova(Deployment):
         quantum: when quantum is neutron's rpcs feature
         """
         super(Nova, self).__init__(deployment, rpcs_feature)
+        logger.set_log_level()
 
     def get_net_choice(self):
         """
@@ -542,6 +547,7 @@ class Horizon(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Horizon, self).__init__(deployment, rpcs_feature)
         self.environment = util.config['environments'][str(self)][rpcs_feature]
+        logger.set_log_level()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -555,6 +561,7 @@ class Cinder(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Cinder, self).__init__(deployment, rpcs_feature)
         self.environment = util.config['environments'][str(self)][rpcs_feature]
+        logger.set_log_level()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -573,6 +580,7 @@ class Ceilometer(Deployment):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Ceilometer, self).__init__(deployment, rpcs_feature)
         self.environment = util.config['environments'][str(self)][rpcs_feature]
+        logger.set_log_level()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -591,6 +599,7 @@ class RPCS(Deployment):
     def __init__(self, deployment, rpcs_feature, name):
         super(RPCS, self).__init__(deployment, rpcs_feature)
         self.name = name
+        logger.set_log_level()
 
     def update_environment(self):
         pass
@@ -604,6 +613,7 @@ class Monitoring(RPCS):
         super(Monitoring, self).__init__(deployment, rpcs_feature,
                                          str(self))
         self.environment = util.config['environments'][self.name][rpcs_feature]
+        logger.set_log_level()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -618,6 +628,7 @@ class MySql(RPCS):
         super(MySql, self).__init__(deployment, rpcs_feature,
                                     str(self))
         self.environment = util.config['environments'][self.name][rpcs_feature]
+        logger.set_log_level()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -632,6 +643,7 @@ class OsOps(RPCS):
         super(OsOps, self).__init__(deployment, rpcs_feature,
                                     str(self))
         self.environment = util.config['environments'][self.name][rpcs_feature]
+        logger.set_log_level()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -646,6 +658,7 @@ class DeveloperMode(RPCS):
         super(DeveloperMode, self).__init__(deployment, rpcs_feature,
                                             'developer_mode')
         self.environment = util.config['environments'][self.name][rpcs_feature]
+        logger.set_log_level()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -660,6 +673,7 @@ class OsOpsNetworks(RPCS):
         super(OsOpsNetworks, self).__init__(deployment, rpcs_feature,
                                             'osops_networks')
         self.environment = util.config['environments'][self.name]
+        logger.set_log_level()
 
     def update_environment(self):
 
@@ -675,6 +689,7 @@ class HighAvailability(RPCS):
         super(HighAvailability, self).__init__(deployment, rpcs_feature,
                                                'vips')
         self.environment = util.config['environments'][self.name]
+        logger.set_log_level()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(self.name,
@@ -689,6 +704,7 @@ class OpenLDAP(RPCS):
         super(OpenLDAP, self).__init__(deployment, rpcs_feature,
                                        str(self))
         self.environment = util.config['environments'][self.name]
+        logger.set_log_level()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -715,6 +731,7 @@ class Openssh(RPCS):
     def __init__(self, deployment, rpcs_feature):
         super(Openssh, self).__init__(deployment, rpcs_feature, str(self))
         self.environment = util.config['environments'][self.name]
+        logger.set_log_level()
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(

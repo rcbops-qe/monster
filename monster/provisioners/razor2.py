@@ -10,7 +10,6 @@ from monster.util import Logger
 
 
 logger = Logger("monster.provisioners.razor2")
-logger.set_log_level("INFO")
 
 
 class Razor2(Provisioner):
@@ -21,6 +20,7 @@ class Razor2(Provisioner):
     def __init__(self, url=None):
         self.url = url or util.config['secrets']['razor']['url']
         self.api = RazorAPI2(self.url)
+        logger.set_log_level()
 
     def provision(self, template, deployment):
         """
@@ -134,6 +134,7 @@ class RazorAPI2(object):
         """
 
         self.url = "{0}".format(url)
+        logger.set_log_level()
 
     def __repr__(self):
         """
