@@ -289,6 +289,7 @@ class HATest(Test):
         pnet = False
         provider_net_id = ""
         for net in self.neutron.list_networks()['networks']:
+            progress.update("Progress")
             if net['name'] == "PROVIDER_NET":
                 pnet = True
                 provider_net_id = net['id']
@@ -318,6 +319,7 @@ class HATest(Test):
         logger.debug("Building server with above network configuration")
         server = False
         while not server:
+            progress.update("Progress")
             try:
                 logger.debug("Executing server creation command")
                 server = self.nova.servers.create(server_name, server_image,
@@ -350,6 +352,7 @@ class HATest(Test):
 #-----------------------------------------------------------------------------
         port_id = ""
         while not port_id:
+            progress.update("Progress")
             logger.debug("Attempting to get a valid port id...")
             port_id = self.get_port_id(build)
         progress.update("Progress", 1)
@@ -395,6 +398,7 @@ class HATest(Test):
         self.move_vips_from(node_up)
         progress.update("Progress", 1)
         logger.debug('Powering down node')
+        progress.update("Progress")
         self.fail_node(node_down)
         progress.update("Progress", 1)
 
@@ -420,7 +424,7 @@ class HATest(Test):
         Verifies state persistence
         """
         logger.info("Verifying cluster integrity...")
-        progress.set_stages("Progress", 15)
+        progress.set_stages("Progress", 14)
         progress.update("Progress", 0)
 
         # Checks if RS Cloud libvirt issue has been resolved
@@ -495,7 +499,7 @@ class HATest(Test):
         # Check networks rescheduled
         for build in builds:
             logger.debug("Checking DHCP on {0}".format(build.name))
-            self.wait_dhcp_agent_alive(build.network_id)
+            self.wait_dhcp_agent_alive(build.network_id, progress)
         progress.update("Progress", 1)
 #-----------------------------------------------------------------
         # Check connectivity to builds
@@ -530,19 +534,16 @@ class HATest(Test):
         nova_status = "down"
         while nova_status == "down":
             logger.debug("Checking if nova is up on compute")
-            progress.update("Progress", 1)
+            progress.update("Progress")
             nova_status = node_up.run_cmd(";".join(["source openrc", "nova "
                                                     "service-list | grep "
                                                     "compute | awk '{print "
                                                     "$10}'"
                                                     ""]))['return'].rstrip()
-            if nova_status == "down":
-                progress.update("Progress", -1)
-            else:
-                progress.update("Progress", 1)
             logger.debug("Nova has a state of {0}".format(nova_status))
+        progress.update("Progress", 1)
 
-    def wait_dhcp_agent_alive(self, net, wait=240):
+    def wait_dhcp_agent_alive(self, net, progress, wait=240):
         """
         Waits until dhcp agent for net is alive
         """
@@ -553,14 +554,16 @@ class HATest(Test):
         while not dhcp_status['agents'] and in_time(count):
             logger.debug("Waiting for agents to populate".format(
                 dhcp_status))
+            progress.update("Progress")
             sleep(1)
             count += 1
             dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(net)
         assert in_time(count), "Agents failed to populate in time"
 
         while not dhcp_status['agents'][0]['alive'] and in_time(count):
-            logger.debug("Waiting for agents to be rise".format(
+            logger.debug("Waiting for agents to arise".format(
                 dhcp_status))
+            progress.update("Progress")
             sleep(1)
             count += 1
             dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(net)
@@ -579,6 +582,7 @@ class HATest(Test):
         progress.update("Progress", 1)
         count = 1
         while not self.is_online(node_down.ipaddress):
+            progress.update("Progress")
             logger.debug("Waiting for {0} to boot - s:{1}".format(
                 node_down.name, count))
             sleep(1)
@@ -687,6 +691,7 @@ class HATest(Test):
 
         for build in builds:
             build.destroy(self.nova, self.neutron)
+            progress.update("Progress")
 
         progress.advance("Iteration")
         progress.display("Iteration")
@@ -732,13 +737,13 @@ class Progress(object):
         self.current = None
 
     def advance(self, bar_name, adv_amount=1):
-        logger.debug("Advancing {0}...".format(bar_name))
+        #logger.debug("Advancing {0}...".format(bar_name))
         for bar in self.bars:
             if bar['name'] == bar_name:
                 bar['current'] += adv_amount
 
     def display(self, current_bar_name):
-        logger.debug('Flushing print buffer for status bar...')
+        #logger.debug('Flushing print buffer for status bar...')
         self.current = current_bar_name
         #for i in range(210):
         #    sys.stdout.write("\b")
@@ -752,21 +757,21 @@ class Progress(object):
             else:
                 self.print_bar(bar, bar['size'], 0)
         sys.stdout.flush()
-        call(["tail", "-n", "30", "log.log"])
+        call(["tail", "-n", "40", "log.log"])
 
     def set_stages(self, bar_name, stages):
         for bar in self.bars:
             if bar['name'] == bar_name:
                 bar['total'] = stages
 
-    def update(self, bar_name, adv_amount):
+    def update(self, bar_name, adv_amount=None):
         # Advances bar without changing current bar indicator
         # If value is 0, resets current progress position
         if adv_amount == 0:
             for bar in self.bars:
                 if bar['name'] == bar_name:
                     bar['current'] = 0
-        else:
+        elif adv_amount:
             self.advance(bar_name, adv_amount)
         self.display(self.current)
 
