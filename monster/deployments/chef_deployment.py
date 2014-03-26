@@ -370,7 +370,7 @@ class Chef(Deployment):
         password = users[user]["password"]
         tenant_name = "admin"
         auth_url = "http://{0}:5000/v2.0".format(self.horizon_ip())
-        creds = Creds(username=user,  password=password, region=region,
+        creds = Creds(username=user, password=password, region=region,
                       auth_url=auth_url, project_id=tenant_name,
                       tenant_name=tenant_name)
         return Clients(creds)

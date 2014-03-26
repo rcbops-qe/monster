@@ -44,7 +44,13 @@ An OpenStack Orchestration Engine
 
      #+BEGIN_EXAMPLE
        razor:
-         ip: RAZOR_IP
+         url: RAZOR_IP
+     #+END_EXAMPLE
+
+     You will also need to provide the default password for the cluster nodes
+
+     #+BEGIN_EXAMPLE
+       default_pass: DEFAULT_PASSWORD
      #+END_EXAMPLE
 
 ** CLI
@@ -55,7 +61,7 @@ An OpenStack Orchestration Engine
     Deploys an OpenStack cluster
 
     #+BEGIN_SRC sh
-      compute.py build -n ubuntu-default --branch master --template ubuntu-default --config config.yaml --secret-path secret.yaml --destroy --log log.txt --log-level DEBUG --provisioner rackspace --test
+      compute.py build -n ubuntu-default --branch master --template ubuntu-default --config config.yaml --secret-path secret.yaml --log log.txt --log-level DEBUG --provisioner rackspace
     #+END_SRC
 
 **** Arguments
@@ -64,12 +70,10 @@ An OpenStack Orchestration Engine
      - template: name of template to use
      - config: path to config file
      - secret-path: path to secret config file
-     - destroy: destroy after build or failure
      - dry: only build environment (will provision in cloud)
      - log: path to log file
      - log-level: level to log - INFO, DEBUG
      - provisioner: provisioner to use - razor, rackspace, openstack
-     - test: run tests after build
 
 *** Show
 
@@ -141,15 +145,18 @@ An OpenStack Orchestration Engine
     Runs tests on a running OpenStack cluster
 
     #+BEGIN_SRC sh
-      compute.py test -n ubuntu-default --config config.yaml --log log.txt --log-level DEBUG
+      compute.py test --ha --tempest -n ubuntu-default --config config.yaml --log log.txt --log-level DEBUG --iterations 3
     #+END_SRC
 
 **** Arguments
+     - ha: enables high availability testing
+     - tempest: enables the tempest testing suite
      - name: name of the deployment
      - config: path to config file
      - secret-path: path to secret config file
      - log: path to log file
      - log-level: level to log - INFO, DEBUG
+     - iterations: number of full test runs
 
 *** Upgrade
 
@@ -171,17 +178,18 @@ An OpenStack Orchestration Engine
 
     Opens an new tmux session with each node in a different window
 
+    #+BEGIN_SRC sh
+      compute.py tmux -n ubuntu-default
+    #+END_SRC
+
     *Requires tmux version >= 1.8*
 
     To add a 12.4 precise tmux 1.8 backport PPA, execute the following:
-    ```bash
-    add-apt-repository -y ppa:kalakris/tmux
-    apt-get update
-    apt-get install tmux -y
-    ```
 
-    #+BEGIN_SRC sh
-      compute.py tmux -n ubuntu-default
+    #+BEGIN_SRC
+      add-apt-repository -y ppa:kalakris/tmux
+      apt-get update
+      apt-get install tmux -y
     #+END_SRC
 
 **** Arguments
@@ -203,4 +211,5 @@ An OpenStack Orchestration Engine
        from tools.ipython import load
        deployment = load("yourdep")
        #+END_SRC
-    4. profit???
+    3. ????
+    4. profit!!!
