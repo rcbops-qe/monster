@@ -70,7 +70,7 @@ def build(name="autotest", template="ubuntu-default", branch="master",
 
 def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
          log_level="ERROR", tempest=False, ha=False, secret_path=None,
-         deployment=None, iterations=1):
+         deployment=None, iterations=1, progress=None):
     """
     Tests an openstack deployment
     """
@@ -83,7 +83,7 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
     if not deployment.feature_in("highavailability"):
         ha = False
     if ha:
-        ha = HATest(deployment)
+        ha = HATest(deployment, progress)
     if tempest:
         branch = TempestQuantum.tempest_branch(deployment.branch)
         if "grizzly" in branch:

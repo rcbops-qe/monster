@@ -1,9 +1,14 @@
 import os
 import sys
+#import threading
 
 from chef import autoconfigure
 from chef import Node as ChefNode
 from chef import Environment as ChefEnvironment
+
+from fabric.api import *
+from fabric.state import env
+from threading import Thread
 
 from monster import util
 from monster.util import Logger
@@ -189,18 +194,36 @@ class Chef(Deployment):
 
         # provision nodes
         chef_nodes = provisioner.provision(template, deployment)
+#        threads = []
+#        from time import sleep
         for node in chef_nodes:
+#            cnode = MonsterChefNode.from_chef_node(node, product, environment,
+#                                                   deployment, provisioner,
+#                                                   branch)
+#            deployment.nodes.append(cnode)
+#            tx = Thread(target=cls.provision_nodes,
+#                        args=(provisioner, cnode, ))
+#            threads.append(tx)
+#            tx.start()
+#            sleep(2)
+
+
             cnode = MonsterChefNode.from_chef_node(node, product, environment,
                                                    deployment, provisioner,
                                                    branch)
             provisioner.post_provision(cnode)
             deployment.nodes.append(cnode)
-
+#        for tx in threads:
+#            tx.join()
         # add features
         for node, features in zip(deployment.nodes, template['nodes']):
             node.add_features(features)
 
         return deployment
+
+#    @classmethod
+#    def provision_nodes(cls, provisioner, cnode):
+#        provisioner.post_provision(cnode)
 
     @classmethod
     def from_chef_environment(cls, environment):
