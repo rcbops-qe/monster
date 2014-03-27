@@ -32,10 +32,12 @@ class Logger(object):
         if self.logger.name == "compute":
             log_level = getattr(logging, level, logging.DEBUG)
         else:
-            level = logging.getLogger("compute").handlers[0].level
+            try:
+                level = logging.getLogger("compute").handlers[0].level
+            except IndexError:
+                level = logging.DEBUG
             if level == 0:
                 level = logging.getLogger("storage").level
-
             if level == 50:
                 log_level = "CRITICAL"
             elif level == 40:
@@ -51,11 +53,8 @@ class Logger(object):
         self.logger.addHandler(self.console_handler)
         self.logger.addHandler(self.file_handler)
 
-        #self.logger.critical("This is a critical log")
-        #self.logger.error("This is an error log")
-        #self.logger.warning("This is a warning log")
-        #self.logger.info("This is an info log")
-        #self.logger.debug("This is a debug log")
+
+logger = Logger('monster.util')
 
 
 def module_classes(module):
@@ -91,7 +90,7 @@ def template_file(source, destination=None, args=None):
         logger.debug("Templated:{0}". format(template))
 
     if not destination:
-        destinaton = "{0}.templated".format(source)
+        destination = "{0}.templated".format(source)
     with open(destination, 'w') as f:
         f.write(template)
         logger.debug("Writing template to:{0}".format(destination))
