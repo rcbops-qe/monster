@@ -38,7 +38,6 @@ class Logger(object):
                 level = logging.DEBUG
             if level == 0:
                 level = logging.getLogger("storage").level
-
             if level == 50:
                 log_level = "CRITICAL"
             elif level == 40:
