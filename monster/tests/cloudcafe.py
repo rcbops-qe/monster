@@ -67,7 +67,6 @@ class CloudCafe(Test):
 
     def get_network_id(self, network_name):
         neutron = self.deployment.openstack_clients.neutronclient
-        from IPython import embed; embed()
         return next(net['id'] for net in neutron.list_networks()['networks'] if
                     net['name'] == network_name)
 
