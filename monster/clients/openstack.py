@@ -49,8 +49,8 @@ class Clients(object):
         logger.debug(
             "keystone connection created using token {0} and url {1}".format(
                 self.creds['username'], self.creds['auth_url']))
-
-        return keystone_client.Client(**self.creds)
+        args = ["username", "password", "tenant_name", "auth_url"]
+        return keystone_client.Client(**self.build_args(args))
 
     @property
     def novaclient(self):

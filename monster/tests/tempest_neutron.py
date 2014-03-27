@@ -53,7 +53,7 @@ class TempestNeutron(Test):
         Gather all the values for tempest config file
         """
         tempest = self.tempest_config
-        override = self.deployment.environment.override_attributes
+
         controller = next(self.deployment.search_role("controller"))
         ip = controller['rabbitmq']['address']
 

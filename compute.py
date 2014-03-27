@@ -2,10 +2,6 @@
 """
 Command-line interface for building OpenStack clusters
 """
-#from compute_cli import CLI
-#from tools.compute_decorators import __load_deployment
-#from tools.compute_decorators import __build_deployment
-#from tools.compute_decorators import __provision_for_deployment
 
 import os
 import argh
@@ -16,6 +12,7 @@ from monster import util
 from monster.util import Logger
 from monster.config import Config
 from monster.tests.ha import HATest
+from monster.tests.cloudcafe import CloudCafe
 from monster.provisioners.util import get_provisioner
 from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
@@ -223,10 +220,16 @@ def _load(name="autotest", config=None, secret_path=None):
     util.config = Config(config, secret_path=secret_path)
     return MonsterChefDeployment.from_chef_environment(name)
 
+def cloudcafe(cmd, name="autotest", network=None, config=None,
+              secret_path=None, log_level="INFO"):
+    logger.set_log_level(log_level)
+    deployment = _load(name, config, secret_path)
+    CloudCafe(deployment).config(cmd, network_name=network)
+
 
 if __name__ == "__main__":
     parser = argh.ArghParser()
     parser.add_commands([build, retrofit, upgrade,
                         destroy, openrc, horizon,
-                        show, test, tmux])
+                         show, test, tmux, cloudcafe])
     parser.dispatch()
