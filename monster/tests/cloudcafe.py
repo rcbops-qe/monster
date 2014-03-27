@@ -84,8 +84,9 @@ class CloudCafe(Test):
         primary_image_id, secondary_image_id = self.get_image_ids()
         network_id = self.get_network_id(network_name)
         networks = "{'%s':{'v4': True, 'v6': False}}" % network_name
-
-        admin_endpoint = endpoint.replace("5000", "35357")
+        
+        endpoint_versioned = "{0}/v2.0".format(endpoint)
+        admin_endpoint_versioned = endpoint_versioned.replace("5000", "35357")
 
         args = {
             "compute_admin_user": {
@@ -125,13 +126,13 @@ class CloudCafe(Test):
                 "username": second_user,
                 "password": second_password,
                 "tenant_name": second_tenant,
-                "authentication_endpoint": endpoint
+                "authentication_endpoint": endpoint_versioned
                 },
             "identity_v2_admin": {
                 "username": admin_user,
                 "password": admin_password,
                 "tenant_name": admin_tenant,
-                "authentication_endpoint": admin_endpoint
+                "authentication_endpoint": admin_endpoint_versioned
                 }
             }
 
