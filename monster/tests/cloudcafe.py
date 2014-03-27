@@ -83,11 +83,11 @@ class CloudCafe(Test):
         admin_endpoint = endpoint.replace("5000", "35357")
 
         args = {
-            "compute_admin_user": {
-                "username": admin_user,
-                "password": admin_password,
-                "tenant_name": admin_tenant
-                },
+            # "compute_admin_user": {
+            #     "username": admin_user,
+            #     "password": admin_password,
+            #     "tenant_name": admin_tenant
+            #     },
             "user_auth_config": {
                 "endpoint": endpoint
                 },
@@ -95,18 +95,18 @@ class CloudCafe(Test):
                 "endpoint": endpoint
                 },
             "user": {
-                "username": admin_user,
-                "password": admin_password,
-                "tenant_name": admin_tenant,
+                # "username": admin_user,
+                # "password": admin_password,
+                # "tenant_name": admin_tenant,
                 "tenant_id": admin_tenant_id,
                 "user_id": admin_user_id,
                 "project_id": admin_project_id
                 },
-            "compute_secondary_user": {
-                "username": second_user,
-                "password": second_password,
-                "tenant_name": second_tenant
-                },
+            # "compute_secondary_user": {
+            #     "username": second_user,
+            #     "password": second_password,
+            #     "tenant_name": second_tenant
+            #     },
             "images": {
                 "primary_image": primary_image_id,
                 "secondary_image": secondary_image_id
@@ -117,15 +117,15 @@ class CloudCafe(Test):
                 "default_network": network_name
                 },
             "identity_v2_user": {
-                "username": second_user,
-                "password": second_password,
-                "tenant_name": second_tenant,
+                # "username": second_user,
+                # "password": second_password,
+                # "tenant_name": second_tenant,
                 "authentication_endpoint": endpoint
                 },
             "identity_v2_admin": {
-                "username": admin_user,
-                "password": admin_password,
-                "tenant_name": admin_tenant,
+                # "username": admin_user,
+                # "password": admin_password,
+                # "tenant_name": admin_tenant,
                 "authentication_endpoint": admin_endpoint
                 }
             }
