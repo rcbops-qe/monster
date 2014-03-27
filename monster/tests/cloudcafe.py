@@ -65,6 +65,12 @@ class CloudCafe(Test):
         project_id = keystone.project_id
         return (tenant_id, user_id, project_id)
 
+    def get_network_id(self, network_name):
+        neutron = self.deployment.openstack_clients.neutronclient
+        from IPython import embed; embed()
+        return next(net['id'] for net in neutron.list_networks()['networks'] if
+                    net['name'] == network_name)
+
     def export_variables(self, section, values):
         for variable, value in values.items():
             export = "CAFE_{0}_{1}".format(section, variable)
@@ -77,7 +83,7 @@ class CloudCafe(Test):
             admin_user, admin_password, admin_tenant)
         second_user, second_password, second_tenant = self.get_non_admin_user()
         primary_image_id, secondary_image_id = self.get_image_ids()
-
+        network_id = self.get_network_id(network_name)
         networks = "{'%s':{'v4': True, 'v6': False}}" % network_name
 
         admin_endpoint = endpoint.replace("5000", "35357")
@@ -95,9 +101,9 @@ class CloudCafe(Test):
                 "endpoint": endpoint
                 },
             "user": {
-                # "username": admin_user,
-                # "password": admin_password,
-                # "tenant_name": admin_tenant,
+                "username": admin_user,
+                "password": admin_password,
+                "tenant_name": admin_tenant,
                 "tenant_id": admin_tenant_id,
                 "user_id": admin_user_id,
                 "project_id": admin_project_id
@@ -114,7 +120,7 @@ class CloudCafe(Test):
             "servers": {
                 "network_for_ssh": network_name,
                 "expected_networks": networks,
-                "default_network": network_name
+                "default_network": network_id
                 },
             "identity_v2_user": {
                 "username": second_user,
