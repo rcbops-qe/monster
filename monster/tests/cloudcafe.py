@@ -78,7 +78,7 @@ class CloudCafe(Test):
         second_user, second_password, second_tenant = self.get_non_admin_user()
         primary_image_id, secondary_image_id = self.get_image_ids()
 
-        networks = "{{'%s':{'v4': True, 'v6': False}}" % network_name
+        networks = "{'%s':{'v4': True, 'v6': False}}" % network_name
 
         admin_endpoint = endpoint.replace("5000", "35357")
 
