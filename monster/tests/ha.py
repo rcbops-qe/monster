@@ -727,41 +727,35 @@ class HATest(Test):
         xunit_merge()
 
     def test(self, iterations):
-        #self.iterations = iterations
-        #self.run_tests()
-        #self.collect_results()
+        self.iterations = iterations
+        self.run_tests()
+        self.collect_results()
 
-        #from IPython import embed
-        #embed()
-        #import thread
-        from threading import Thread
+#        from threading import Thread
 
-        #thread.start_new_thread(self.run_multiple, (self.controller1, 1, ))
-        t1 = Thread(target=self.run_multiple, args=(self.controller1, 1, ))
-        #sleep(1)
-        #thread.start_new_thread(self.run_multiple, (self.controller2, 2, ))
-        t2 = Thread(target=self.run_multiple, args=(self.controller2, 2, ))
+#        t1 = Thread(target=self.run_multiple, args=(self.controller1, 1, ))
+#        t2 = Thread(target=self.run_multiple, args=(self.controller2, 2, ))
 
-        t1.start()
-        sleep(1)
-        t2.start()
+#        t1.start()
+#        sleep(1)
+#        t2.start()
 
 
-        t1.join()
-        print "t1 finished!"
-        t2.join()
-        print "t2 finished!"
+#        t1.join()
+#        print "t1 finished!"
+#        t2.join()
+#        print "t2 finished!"
 
-    def run_multiple(self, node, which):
-        print "Running command {0}!".format(which)
-        remote_cmd = ";".join(["for i in {0..100}", "do echo $i", "done"])
-        env.user = node.user
-        env.host_string = node.ipaddress
-        env.password = env.passwords[env.host_string] = node.password
-        run(remote_cmd)
+#    def run_multiple(self, node, which):
+#        print "Running command {0}!".format(which)
+#        remote_cmd = ";".join(["for i in {0..10000}", "do echo $i", "done"])
+#        env.user = node.user
+#        env.host_string = node.ipaddress
+#        env.password = env.passwords[env.host_string] = node.password
+#        run(remote_cmd)
 
-from fabric.api import *
-from fabric.state import env
+#from fabric.api import *
+#from fabric.state import env
 
 class Progress(object):
     def __init__(self, bars, progress):
@@ -771,14 +765,14 @@ class Progress(object):
 
     def advance(self, bar_name, adv_amount=1):
         #logger.debug("Advancing {0}...".format(bar_name))
-        if self.progress:
+        if not self.progress:
             return
         for bar in self.bars:
             if bar['name'] == bar_name:
                 bar['current'] += adv_amount
 
     def display(self, current_bar_name):
-        if self.progress:
+        if not self.progress:
             return
         #logger.debug('Flushing print buffer for status bar...')
         self.current = current_bar_name
@@ -797,14 +791,14 @@ class Progress(object):
         call(["tail", "-n", "40", "log.log"])
 
     def set_stages(self, bar_name, stages):
-        if self.progress:
+        if not self.progress:
             return
         for bar in self.bars:
             if bar['name'] == bar_name:
                 bar['total'] = stages
 
     def update(self, bar_name, adv_amount=None):
-        if self.progress:
+        if not self.progress:
             return
         # Advances bar without changing current bar indicator
         # If value is 0, resets current progress position
