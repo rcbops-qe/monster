@@ -35,7 +35,7 @@ class Logger(object):
             try:
                 level = logging.getLogger("compute").handlers[0].level
             except IndexError:
-                logging.DEBUG
+                level = logging.DEBUG
             if level == 0:
                 level = logging.getLogger("storage").level
 
