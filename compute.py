@@ -99,7 +99,7 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
 
     for i in range(iterations):
         print(Color.cyan('Running iteration {0} of {1}!'
-                          .format(i + 1, iterations)))
+                         .format(i + 1, iterations)))
 
         #Prepare directory for xml files to be SCPed over
         subprocess.call(['mkdir', '-p', '{0}'.format(local)])
@@ -218,6 +218,7 @@ def _load(name="autotest", config=None, secret_path=None):
     # Load deployment and source openrc
     util.config = Config(config, secret_path=secret_path)
     return MonsterChefDeployment.from_chef_environment(name)
+
 
 def cloudcafe(cmd, name="autotest", network=None, config=None,
               secret_path=None, log_level="INFO"):

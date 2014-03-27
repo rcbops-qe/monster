@@ -4,12 +4,12 @@ Module to test OpenStack deployments with CloudCafe
 
 import os
 
-from monster import util
 from monster.util import Logger
 from monster.tests.test import Test
 from monster.server_helper import run_cmd
 
 logger = Logger("cloudcafe")
+
 
 class CloudCafe(Test):
     def __init__(self, deployment):
