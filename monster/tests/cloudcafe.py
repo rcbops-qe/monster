@@ -20,7 +20,7 @@ class CloudCafe(Test):
         raise NotImplementedError
 
     def get_endpoint(self):
-        auth_url = "http://{0}:5000/v2.0".format(self.deployment.horizon_ip())
+        auth_url = "http://{0}:5000".format(self.deployment.horizon_ip())
         return auth_url
 
     def get_admin_user(self):
