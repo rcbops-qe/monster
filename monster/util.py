@@ -32,7 +32,10 @@ class Logger(object):
         if self.logger.name == "compute":
             log_level = getattr(logging, level, logging.DEBUG)
         else:
-            level = logging.getLogger("compute").handlers[0].level
+            try:
+                level = logging.getLogger("compute").handlers[0].level
+            except IndexError:
+                logging.DEBUG
             if level == 0:
                 level = logging.getLogger("storage").level
 
