@@ -147,6 +147,7 @@ class Chef(Deployment):
         :type path: string
         :rtype: Chef
         """
+        logger.set_log_level()
         local_api = autoconfigure()
 
         template_file = ""
@@ -211,6 +212,7 @@ class Chef(Deployment):
         :rtype: Chef
         """
 
+        logger.set_log_level()
         local_api = autoconfigure()
         env = ChefEnvironment(environment, api=local_api)
         if not env.exists:
@@ -280,6 +282,7 @@ class Chef(Deployment):
         :rtype: Chef
         """
 
+        logger.set_log_level()
         status = status or "provisioning"
         deployment = cls(name, os_name, branch, environment,
                          provisioner, status, product)
