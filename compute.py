@@ -10,6 +10,7 @@ import traceback
 import webbrowser
 from monster import util
 from monster.util import Logger
+from monster.color import Color
 from monster.config import Config
 from monster.tests.ha import HATest
 from monster.tests.cloudcafe import CloudCafe
@@ -104,16 +105,14 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
         subprocess.call(['mkdir', '-p', '{0}'.format(local)])
 
         if ha:
-            print ('\033[1;36mRunning High Availability test!'
-                   '\033[1;m')
+            print(Color.cyan('Running High Availability test!'))
             ha.test(iterations)
         if tempest:
-            print ('\033[1;36mRunning Tempest test!'
-                   '\033[1;m')
+            print(Color.cyan('Running Tempest test!'))
             tempest.test()
 
-    print ('\033[1;36mTests have been completed with '
-           '{0} iterations!\033[1;m'.format(iterations))
+    print (Color.cyan('Tests have been completed with {0} iterations!'
+                      .format(iterations)))
 
 
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
