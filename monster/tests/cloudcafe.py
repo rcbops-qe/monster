@@ -16,9 +16,6 @@ class CloudCafe(Test):
         super(CloudCafe, self).__init__(deployment)
         logger.set_log_level()
 
-    def test(self):
-        raise NotImplementedError
-
     def get_endpoint(self):
         auth_url = "http://{0}:5000".format(self.deployment.horizon_ip())
         return auth_url
