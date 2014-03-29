@@ -595,7 +595,13 @@ class HATest(Test):
         Waits until dhcp agent for net is alive
         """
         count = 0
-        dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(net)
+        neutron_up = False
+        while not neutron_up:
+            try:
+                dhcp_status = self.neutron.list_dhcp_agent_hosting_networks(net)
+                neutron_up = True
+            except:
+                util.logger.warning("Neutron is not up yet")
         in_time = lambda x: wait > x
 
         while not dhcp_status['agents'] and in_time(count):
