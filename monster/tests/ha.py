@@ -334,7 +334,8 @@ class HATest(Test):
         provider_net_id = ""
         for net in self.neutron.list_networks()['networks']:
             progress.update("Progress")
-            if net['name'] == "PROVIDER_NET":
+            #if net['name'] == "PROVIDER_NET":
+            if net['name'] == "ENV01-VLAN":
                 pnet = True
                 provider_net_id = net['id']
                 break
@@ -473,6 +474,10 @@ class HATest(Test):
         progress.set_stages("Progress", 14)
         progress.update("Progress", 0)
 
+        # Verify that node_up IS INDEED up... (yes it's necessary)
+        while not self.is_online(node_up.ipaddress):
+            sleep(1)
+
         # Checks if RS Cloud libvirt issue has been resolved
         libvirt = node_up.run_cmd(";".join(["source openrc",
                                   ("nova service-list | awk '{print $2}' "
@@ -556,8 +561,10 @@ class HATest(Test):
                                   "responding...".
                                   format(build.name,
                                          build.ip_info['floating_ip_address']))
+                progress.update("Progress")
             util.logger.debug("Build {0} with IP {1} IS responding...".
-                              format(build.name, build.ipaddress))
+                              format(build.name, build.ip_info['floating_ip_address']))
+            progress.update("Progress")
 #-----------------------------------------------------------------
 
 ###########################################################################
@@ -605,8 +612,8 @@ class HATest(Test):
         in_time = lambda x: wait > x
 
         while not dhcp_status['agents'] and in_time(count):
-            util.logger.debug("Waiting for agents to populate".format(
-                dhcp_status))
+            util.logger.debug("Waiting for agents to populate {0}: {1}".format(
+                count, dhcp_status))
             progress.update("Progress")
             sleep(1)
             count += 1
@@ -615,8 +622,8 @@ class HATest(Test):
 
         alive = False
         while not alive and in_time(count):
-            util.logger.debug("Waiting for agents to arise".format(
-                dhcp_status))
+            util.logger.debug("Waiting for agents to arise {0}: {1}".format(
+                count, dhcp_status))
             progress.update("Progress")
             sleep(1)
             count += 1
