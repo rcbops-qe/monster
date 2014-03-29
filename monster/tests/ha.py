@@ -251,8 +251,8 @@ class HATest(Test):
         progress.update("Progress", 0)
 
         util.logger.info("Failing {0}...".format(node_down.name))
-        util.logger.debug('Sleeping for 10 seconds...')
-        for i in range(5):
+        util.logger.debug('Sleeping for 30 seconds...')
+        for i in range(15):
             sleep(2)
             progress.update("Progress", 1)
 
