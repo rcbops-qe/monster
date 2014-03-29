@@ -11,7 +11,6 @@ from fabric.state import env
 from threading import Thread
 
 from monster import util
-from monster.util import Logger
 from monster.config import Config
 from monster.upgrades.util import int2word
 from monster.features.node import ChefServer
@@ -23,9 +22,6 @@ from monster.nodes.chef_node import Chef as MonsterChefNode
 from monster.features import deployment as deployment_features
 from monster.environments.chef_environment import Chef as \
     MonsterChefEnvironment
-
-
-logger = Logger("monster.deployments.chef_deployment")
 
 
 class Chef(Deployment):
@@ -43,7 +39,6 @@ class Chef(Deployment):
         self.environment = environment
         self.has_controller = False
         self.has_orch_master = False
-        logger.set_log_level()
 
     def __str__(self):
         nodes = "\n\t".join(str(node) for node in self.nodes)
@@ -152,7 +147,6 @@ class Chef(Deployment):
         :type path: string
         :rtype: Chef
         """
-        logger.set_log_level()
         local_api = autoconfigure()
 
         template_file = ""
@@ -166,7 +160,7 @@ class Chef(Deployment):
 
         if ChefEnvironment(name, api=local_api).exists:
             # Use previous dry build if exists
-            logger.info("Using previous deployment:{0}".format(name))
+            util.logger.info("Using previous deployment:{0}".format(name))
             return cls.from_chef_environment(name)
         path = ""
         if not template_path:
@@ -179,7 +173,7 @@ class Chef(Deployment):
         try:
             template = Config(path)[template]
         except KeyError:
-            logger.critical("Looking for the template {0} in the file: "
+            util.logger.critical("Looking for the template {0} in the file: "
                             "\n{1}\n The key was not found!"
                             .format(template, path))
             exit(1)
@@ -235,11 +229,10 @@ class Chef(Deployment):
         :rtype: Chef
         """
 
-        logger.set_log_level()
         local_api = autoconfigure()
         env = ChefEnvironment(environment, api=local_api)
         if not env.exists:
-            logger.error("The specified environment, {0}, does not"
+            util.logger.error("The specified environment, {0}, does not"
                          "exist.".format(environment))
             exit(1)
         override = env.override_attributes
@@ -272,7 +265,7 @@ class Chef(Deployment):
         nodes = deployment_args.get('nodes', [])
         for node in (ChefNode(n, local_api) for n in nodes):
             if not node.exists:
-                logger.error("Non existant chef node:{0}".
+                util.logger.error("Non existant chef node:{0}".
                              format(node.name))
                 continue
             cnode = MonsterChefNode.from_chef_node(node, product, environment,
@@ -305,7 +298,6 @@ class Chef(Deployment):
         :rtype: Chef
         """
 
-        logger.set_log_level()
         status = status or "provisioning"
         deployment = cls(name, os_name, branch, environment,
                          provisioner, status, product)
@@ -322,7 +314,7 @@ class Chef(Deployment):
         # stringify and lowercase classes in deployment features
         classes = util.module_classes(deployment_features)
         for feature, rpcs_feature in features.items():
-            logger.debug("feature: {0}, rpcs_feature: {1}".format(
+            util.logger.debug("feature: {0}, rpcs_feature: {1}".format(
                 feature, rpcs_feature))
             self.features.append(classes[feature](self, rpcs_feature))
 

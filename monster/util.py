@@ -6,55 +6,38 @@ from xml.etree import ElementTree
 from inspect import getmembers, isclass
 
 
-class Logger(object):
-    def __init__(self, name):
-        # Log to console
-        self.logger = logging.getLogger(name)
+# Gets RPC-QE logger
+name = 'RPC-QE'
+asctime = '%(asctime)s'
+logger = logging.getLogger(name)
 
-        self.console_handler = logging.StreamHandler()
-        console_format = '%(asctime)s %(module)s %(levelname)s: %(message)s'
-        self.console_formatter = logging.Formatter(console_format)
-        self.console_handler.setFormatter(self.console_formatter)
+# Console logging setup
+console_handler = logging.StreamHandler()
+console_format = '%(asctime)s %(name)s %(levelname)s %(module)s: %(message)s'
+console_formatter = logging.Formatter(console_format)
+console_handler.setFormatter(console_formatter)
 
-        self.file_handler = logging.FileHandler('log.log')
-        file_format = '%(asctime)s %(module)s %(levelname)s: %(message)s'
-        self.file_formatter = logging.Formatter(file_format)
-        self.file_handler.setFormatter(self.file_formatter)
+# File logging setup
+file_handler = logging.FileHandler("{0} {1}.log".format(name, asctime))
+file_format = '%(asctime)s %(name)s %(levelname)s %(module)s: %(message)s'
+file_formatter = logging.Formatter(file_format)
+file_handler.setFormatter(file_formatter)
 
-        self.critical = self.logger.critical
-        self.error = self.logger.error
-        self.warning = self.logger.warning
-        self.info = self.logger.info
-        self.debug = self.logger.debug
+critical = logger.critical
+error = logger.error
+warning = logger.warning
+info = logger.info
+debug = logger.debug
 
-    def set_log_level(self, level=None):
-        log_level = ""
-        if self.logger.name == "compute":
-            log_level = getattr(logging, level, logging.DEBUG)
-        else:
-            try:
-                level = logging.getLogger("compute").handlers[0].level
-            except IndexError:
-                level = logging.DEBUG
-            if level == 0:
-                level = logging.getLogger("storage").level
-            if level == 50:
-                log_level = "CRITICAL"
-            elif level == 40:
-                log_level = "ERROR"
-            elif level == 30:
-                log_level = "WARNING"
-            elif level == 20:
-                log_level = "INFO"
-            elif level == 10:
-                log_level = "DEBUG"
-        self.console_handler.setLevel(log_level)
-        self.logger.setLevel(logging.DEBUG)
-        self.logger.addHandler(self.console_handler)
-        self.logger.addHandler(self.file_handler)
+# Sets logging level to the file
+logger.setLevel(logging.DEBUG)
+logger.addHandler(file_handler)
 
-
-logger = Logger('monster.util')
+def set_log_level(level):
+    log_level = getattr(logging, level, logging.DEBUG)
+    # Sets logging level to the console
+    console_handler.setLevel(log_level)
+    logger.addHandler(console_handler)
 
 
 def module_classes(module):

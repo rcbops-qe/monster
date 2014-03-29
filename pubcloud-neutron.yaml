@@ -105,37 +105,37 @@ environments:
                 lvm:
                     volume_group: vg_storage
     vips:
-        mysql-db: 192.168.4.154
-        rabbitmq-queue: 192.168.4.155
-        cinder-api: 192.168.4.156
-        glance-api: 192.168.4.156
-        glance-registry: 192.168.4.156
-        horizon-dash: 192.168.4.156
-        horizon-dash_ssl: 192.168.4.156
-        keystone-admin-api: 192.168.4.156
-        keystone-internal-api: 192.168.4.156
-        keystone-service-api: 192.168.4.156
-        nova-api: 192.168.4.156
-        nova-ec2-public: 192.168.4.156
-        nova-api-metadata: 192.168.4.156
-        nova-novnc-proxy: 192.168.4.156
-        nova-xvpvnc-proxy: 192.168.4.156
-        neutron-api: 192.168.4.156
-        swift-proxy: 192.168.4.156
-        ceilometer-api: 192.168.4.156
-        ceilometer-central-agent: 192.168.4.156
-        heat-api: 192.168.4.156
-        heat-api-cfn: 192.168.4.156
-        heat-api-cloudwatch: 192.168.4.156
+        mysql-db: 192.168.4.151
+        rabbitmq-queue: 192.168.4.152
+        cinder-api: 192.168.4.153
+        glance-api: 192.168.4.153
+        glance-registry: 192.168.4.153
+        horizon-dash: 192.168.4.153
+        horizon-dash_ssl: 192.168.4.153
+        keystone-admin-api: 192.168.4.153
+        keystone-internal-api: 192.168.4.153
+        keystone-service-api: 192.168.4.153
+        nova-api: 192.168.4.153
+        nova-ec2-public: 192.168.4.153
+        nova-api-metadata: 192.168.4.153
+        nova-novnc-proxy: 192.168.4.153
+        nova-xvpvnc-proxy: 192.168.4.153
+        neutron-api: 192.168.4.153
+        swift-proxy: 192.168.4.153
+        ceilometer-api: 192.168.4.153
+        ceilometer-central-agent: 192.168.4.153
+        heat-api: 192.168.4.153
+        heat-api-cfn: 192.168.4.153
+        heat-api-cloudwatch: 192.168.4.153
         config:
-            192.168.4.154:
-                vrid: 10
+            192.168.4.151:
+                vrid: 14
                 network: public
-            192.168.4.155:
-                vrid: 11
+            192.168.4.152:
+                vrid: 15
                 network: public
-            192.168.4.156:
-                vrid: 12
+            192.168.4.153:
+                vrid: 16
                 network: public
     bridge_devices:
         data: vmnet
