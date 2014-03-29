@@ -11,6 +11,7 @@ from monster.server_helper import run_cmd
 
 logger = Logger("cloudcafe")
 
+
 class CloudCafe(Test):
     def __init__(self, deployment):
         super(CloudCafe, self).__init__(deployment)
@@ -79,9 +80,16 @@ class CloudCafe(Test):
             admin_user, admin_password, admin_tenant)
         second_user, second_password, second_tenant = self.get_non_admin_user()
         primary_image_id, secondary_image_id = self.get_image_ids()
-        network_id = self.get_network_id(network_name)
-        networks = "{'%s':{'v4': True, 'v6': False}}" % network_name
-        
+        if self.deployment.feature_in("neutron"):
+            network_id = self.get_network_id(network_name)
+            networks = "{'%s':{'v4': True, 'v6': False}}" % network_name
+        else:
+            # How connectivity works in cloudcafe for novanet needs work
+            # May not be possible atm due to floating ips
+            network_name = "public"
+            network_id = "0000" * 5
+            networks = "{'%s':{'v4': True, 'v6': False}}" % network_name
+
         endpoint_versioned = "{0}/v2.0".format(endpoint)
         admin_endpoint_versioned = endpoint_versioned.replace("5000", "35357")
 
@@ -90,13 +98,13 @@ class CloudCafe(Test):
                 "username": admin_user,
                 "password": admin_password,
                 "tenant_name": admin_tenant
-                },
+            },
             "user_auth_config": {
                 "endpoint": endpoint
-                },
+            },
             "coumpute_admin_auth_config": {
                 "endpoint": endpoint
-                },
+            },
             "user": {
                 "username": admin_user,
                 "password": admin_password,
@@ -104,34 +112,34 @@ class CloudCafe(Test):
                 "tenant_id": admin_tenant_id,
                 "user_id": admin_user_id,
                 "project_id": admin_project_id
-                },
+            },
             "compute_secondary_user": {
                 "username": second_user,
                 "password": second_password,
                 "tenant_name": second_tenant
-                },
+            },
             "images": {
                 "primary_image": primary_image_id,
                 "secondary_image": secondary_image_id
-                },
+            },
             "servers": {
                 "network_for_ssh": network_name,
                 "expected_networks": networks,
                 "default_network": network_id
-                },
+            },
             "identity_v2_user": {
                 "username": second_user,
                 "password": second_password,
                 "tenant_name": second_tenant,
                 "authentication_endpoint": endpoint_versioned
-                },
+            },
             "identity_v2_admin": {
                 "username": admin_user,
                 "password": admin_password,
                 "tenant_name": admin_tenant,
                 "authentication_endpoint": admin_endpoint_versioned
-                }
             }
+        }
 
         for section, values in args.items():
             self.export_variables(section, values)
