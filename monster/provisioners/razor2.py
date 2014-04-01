@@ -1,3 +1,4 @@
+import sys
 import json
 import requests
 
@@ -54,7 +55,8 @@ class Razor2(Provisioner):
                 node.save()
                 return node
         deployment.destroy()
-        raise Exception("No more nodes!!")
+        util.logger.info("Cannot build, no more available_nodes")
+        sys.exit()
 
     def power_down(self, node):
         if node.feature_in('controller'):
@@ -82,8 +84,8 @@ class Razor2(Provisioner):
             cnode.chef_environment = "_default"
             cnode.save()
         else:
-            # Remove active model if the node is dirty
-            razor_node = cnode.name.split(".")[0]
+            # Reinstall node if the node is dirty
+            razor_node = cnode.name.split("-")[0]
             try:
                 if node.feature_in('controller'):
                     # rabbit can cause the node to not actually reboot
@@ -94,7 +96,6 @@ class Razor2(Provisioner):
                 self.api.reinstall_node(razor_node)
                 Client(node.name).delete()
                 cnode.delete()
-                sleep(15)
             except:
                 util.logger.error("Node unreachable. "
                                   "Manual restart required:{0}".
