@@ -10,6 +10,7 @@ from novaclient.v1_1 import client as nova_client
 from neutronclient.v2_0.client import Client as neutron_client
 
 from monster import util
+from monster.color import Color
 from monster.util import xunit_merge
 from monster.tests.test import Test
 
@@ -38,7 +39,7 @@ class Build(object):
         self.ip_info = None
         self.router_id = None
 
-    def destroy(self, nova, neutron):
+    def destroy(self, nova, neutron, progress):
         """
         Cleans up build state from OpenStack
         """
@@ -51,6 +52,7 @@ class Build(object):
         util.logger.info('Cleaning up instance and network clutter...')
 
         util.logger.debug('Deleting floating IP')
+        progress.update("Progress")
         deleted = False
         while not deleted:
             try:
@@ -59,7 +61,8 @@ class Build(object):
             except:
                 deleted = False
 
-        util.logger.debug('Deleting server')
+        util.logger.debug('Deleting server {0}'.format(self.name))
+        progress.update("Progress")
         deleted = False
         while not deleted:
             try:
@@ -69,6 +72,7 @@ class Build(object):
                 deleted = False
 
         util.logger.debug('Deleting router interface')
+        progress.update("Progress")
         deleted = False
         while not deleted:
             try:
@@ -79,6 +83,7 @@ class Build(object):
                 deleted = False
 
         util.logger.debug("Deleting router")
+        progress.update("Progress")
         deleted = False
         while not deleted:
             try:
@@ -88,6 +93,7 @@ class Build(object):
                 deleted = False
 
         util.logger.debug("Deleting subnet")
+        progress.update("Progress")
         deleted = False
         while not deleted:
             try:
@@ -97,6 +103,7 @@ class Build(object):
                 deleted = False
 
         util.logger.debug("Deleting network")
+        progress.update("Progress")
         deleted = False
         while not deleted:
             try:
@@ -159,30 +166,24 @@ class HATest(Test):
                 "{2}").format(namespace, server_ip, cmd)
         server.run_cmd(icmd)
 
-    def create_router(self, router_name, admin_state_up=True):
-        """
-        Creates a neutron router
-        """
-        new_router = {"router": {
-                      "name": router_name,
-                      "admin_state_up": admin_state_up}}
-        router = self.neutron.create_router(new_router)
-        return router['router']['id']
-
     def create_network(self, network_name, router_external=False, shared=True):
         """
         Creates a neutron network
         """
+        util.logger.debug("Creating network: {0}".format(network_name))
         new_net = {"network": {"name": network_name,
                                "router:external": router_external,
                                "shared": shared}}
         net = self.neutron.create_network(new_net)
-        return net['network']['id']
+        network_id = net['network']['id']
+        util.logger.debug("Network ({0}) created".format(network_id))
+        return network_id
 
     def create_subnet(self, subnet_name, network_id, subnet_cidr, pnet=False):
         """
         Creates a neutron subnet
         """
+        util.logger.debug("Creating subnetwork: {0}".format(subnet_name))
         new_subnet = ""
         if pnet:
             new_subnet = {"subnet": {
@@ -197,15 +198,33 @@ class HATest(Test):
                 "name": subnet_name, "network_id": network_id,
                 "cidr": subnet_cidr, "ip_version": "4"}}
         subnet = self.neutron.create_subnet(new_subnet)
-        return subnet['subnet']['id']
+        subnet_id = subnet['subnet']['id']
+        util.logger.debug("Subnet ({0}) created".format(subnet_id))
+        return subnet_id
+
+    def create_router(self, router_name, admin_state_up=True):
+        """
+        Creates a neutron router
+        """
+        util.logger.debug("Creating router: {0}".format(router_name))
+        new_router = {"router": {
+                      "name": router_name,
+                      "admin_state_up": admin_state_up}}
+        router = self.neutron.create_router(new_router)
+        router_id = router['router']['id']
+        util.logger.debug("Router ({0}) created".format(router_id))
+        return router_id
 
     def add_router_interface(self, router_id, subnet_id):
         """
         Adds an interface to a given router
         """
+        util.logger.debug('Creating router interface')
         subnet_iface = {"subnet_id": subnet_id}
         iface = self.neutron.add_interface_router(router_id, subnet_iface)
-        return iface['port_id']
+        iface_port = iface['port_id']
+        util.logger.debug("Interface port: {0}".format(iface_port))
+        return iface_port
 
     def keepalived_fail(self, node):
         """
@@ -250,10 +269,33 @@ class HATest(Test):
         progress.set_stages("Progress", 7)
         progress.update("Progress", 0)
 
-        util.logger.info("Failing {0}...".format(node_down.name))
-        util.logger.debug('Sleeping for 30 seconds...')
-        for i in range(15):
-            sleep(2)
+        util.logger.info("Entering Failover Stage for {0}".format(node_down.name))
+
+        rep_stat = False
+        for i in range(4):
+            util.logger.debug("Checking replication status on {0}".format(node_down.name))
+            rep_statd = node_down.run_cmd("mysql -e 'show slave status\G' | "
+                                          "grep 'Seconds_Behind_Master' | "
+                                          "awk '{print $2}'")['return'].rstrip()
+
+            util.logger.debug("Checking replication status on {0}".format(node_up.name))
+            rep_statu = node_up.run_cmd("mysql -e 'show slave status\G' | "
+                                        "grep 'Seconds_Behind_Master' | "
+                                        "awk '{print $2}'")['return'].rstrip()
+
+            if rep_statd == "0" and rep_statu == "0":
+                util.logger.debug("Replication seems to be complete. "
+                                  "Waiting 2 seconds and rechecking: {0}/4".format(i))
+                sleep(2)
+            else:
+                util.logger.warning(Color.yellow("Replication has not finished - Down:{0} Up:{1}".format(rep_statd, rep_statu)))
+                sleep(2)
+                i = 0
+
+        util.logger.debug("\033[96mReplication has finished - Down:{0} Up:{1}\033[0m".format(rep_statd, rep_statu))
+
+#        util.logger.debug('Sleeping for 10 seconds...')
+        for i in range(5):
             progress.update("Progress", 1)
 
         self.move_vips_from(node_up)
@@ -308,24 +350,16 @@ class HATest(Test):
 
         util.logger.info("Configuring network and building instance...")
 
-        util.logger.debug("Creating network: {0}".format(network_name))
         network_id = self.create_network(network_name)
-        util.logger.debug("Network ({0}) created".format(network_id))
         progress.update("Progress", 1)
 
-        util.logger.debug("Creating subnetwork: {0}".format(subnet_name))
         subnet_id = self.create_subnet(subnet_name, network_id, cidr)
-        util.logger.debug("Subnet ({0}) created".format(subnet_id))
         progress.update("Progress", 1)
 
-        util.logger.debug("Creating router: {0}".format(router_name))
         router_id = self.create_router(router_name)
-        util.logger.debug("Router ({0}) created".format(router_id))
         progress.update("Progress", 1)
 
-        util.logger.debug('Creating router interface')
         iface_port = self.add_router_interface(router_id, subnet_id)
-        util.logger.debug("Interface port: {0}".format(iface_port))
         progress.update("Progress", 1)
 #-----------------------------------------------------------------------------
 #
@@ -335,7 +369,7 @@ class HATest(Test):
         for net in self.neutron.list_networks()['networks']:
             progress.update("Progress")
             #if net['name'] == "PROVIDER_NET":
-            if net['name'] == "ENV01-VLAN":
+            if net['name'] == "ENV01-VLAN" or net['name'] == "PROVIDER_NET":
                 pnet = True
                 provider_net_id = net['id']
                 break
@@ -556,14 +590,16 @@ class HATest(Test):
         # Check connectivity to builds
         util.logger.info("Checking connectivity to builds...")
         for build in builds:
-            while not self.is_online(build.ip_info['floating_ip_address']):
-                util.logger.debug("Build {0} with IP {1} IS NOT "
-                                  "responding...".
-                                  format(build.name,
-                                         build.ip_info['floating_ip_address']))
-                progress.update("Progress")
-            util.logger.debug("Build {0} with IP {1} IS responding...".
-                              format(build.name, build.ip_info['floating_ip_address']))
+            util.logger.debug("Skipping connectivity test for build {0}".
+                              format(build.name))
+        #    while not self.is_online(build.ip_info['floating_ip_address']):
+        #        util.logger.debug("Build {0} with IP {1} IS NOT "
+        #                          "responding...".
+        #                          format(build.name,
+        #                                 build.ip_info['floating_ip_address']))
+        #        progress.update("Progress")
+        #    util.logger.debug("Build {0} with IP {1} IS responding...".
+        #                      format(build.name, build.ip_info['floating_ip_address']))
             progress.update("Progress")
 #-----------------------------------------------------------------
 
@@ -612,8 +648,8 @@ class HATest(Test):
         in_time = lambda x: wait > x
 
         while not dhcp_status['agents'] and in_time(count):
-            util.logger.debug("Waiting for agents to populate {0}: {1}".format(
-                count, dhcp_status))
+            util.logger.debug("Waiting for agents to populate {0}".format(
+                count))
             progress.update("Progress")
             sleep(1)
             count += 1
@@ -622,8 +658,8 @@ class HATest(Test):
 
         alive = False
         while not alive and in_time(count):
-            util.logger.debug("Waiting for agents to arise {0}: {1}".format(
-                count, dhcp_status))
+            util.logger.debug("Waiting for agents to arise {0}".format(
+                count))
             progress.update("Progress")
             sleep(1)
             count += 1
@@ -775,8 +811,7 @@ class HATest(Test):
         progress.display("Iteration")
 
         for build in builds:
-            build.destroy(self.nova, self.neutron)
-            progress.update("Progress")
+            build.destroy(self.nova, self.neutron, progress)
 
         progress.advance("Iteration")
         progress.display("Iteration")
@@ -873,7 +908,8 @@ class Progress(object):
             else:
                 self.print_bar(bar, bar['size'], 0)
         sys.stdout.flush()
-        call(["tail", "-n", "40", "{0} {1}.log".format(util.name, util.asctime)])
+        call("tail -n 40 {0}-{1}.log | sed 's/^.*RPC-QE //' | cut -c-118".
+             format(util.name, util.time), shell=True)
 
     def set_stages(self, bar_name, stages):
         if not self.progress:

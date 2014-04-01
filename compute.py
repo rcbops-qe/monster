@@ -97,21 +97,21 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
         getFile(ip, user, password, remote, local)
 
     for i in range(iterations):
-        print(Color.cyan('Running iteration {0} of {1}!'
+        util.logger.info(Color.cyan('Running iteration {0} of {1}!'
                          .format(i + 1, iterations)))
 
         #Prepare directory for xml files to be SCPed over
         subprocess.call(['mkdir', '-p', '{0}'.format(local)])
 
         if ha:
-            print(Color.cyan('Running High Availability test!'))
+            util.logger.info(Color.cyan('Running High Availability test!'))
             ha.test(iterations)
         if tempest:
-            print(Color.cyan('Running Tempest test!'))
+            util.logger.info(Color.cyan('Running Tempest test!'))
             tempest.test()
 
-    print (Color.cyan('Tests have been completed with {0} iterations!'
-                      .format(iterations)))
+    util.logger.info(Color.cyan('Tests have been completed with {0} iterations!'.
+                                format(iterations)))
 
 
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',

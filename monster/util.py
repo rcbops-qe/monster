@@ -1,5 +1,6 @@
 import os
 import logging
+import subprocess
 from glob import glob
 from string import Template
 from xml.etree import ElementTree
@@ -8,7 +9,9 @@ from inspect import getmembers, isclass
 
 # Gets RPC-QE logger
 name = 'RPC-QE'
-asctime = '%(asctime)s'
+time_cmd = subprocess.Popen(['date', '+%F_%T'],
+                            stdout=subprocess.PIPE)
+time = time_cmd.stdout.read().rstrip()
 logger = logging.getLogger(name)
 
 # Console logging setup
@@ -18,7 +21,8 @@ console_formatter = logging.Formatter(console_format)
 console_handler.setFormatter(console_formatter)
 
 # File logging setup
-file_handler = logging.FileHandler("{0} {1}.log".format(name, asctime))
+
+file_handler = logging.FileHandler("{0}-{1}.log".format(name, time))
 file_format = '%(asctime)s %(name)s %(levelname)s %(module)s: %(message)s'
 file_formatter = logging.Formatter(file_format)
 file_handler.setFormatter(file_formatter)
