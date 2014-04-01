@@ -1,5 +1,6 @@
 argcomplete
 argh
+fabric
 gevent
 paramiko
 pychef

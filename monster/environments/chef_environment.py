@@ -2,12 +2,9 @@
 Chef Environment
 """
 
-from monster.util import Logger
+from monster import util
 from chef import Environment as ChefEnvironment
 from environment import Environment as MonsterEnvironment
-
-
-logger = Logger("monster.environments.chef_environment")
 
 
 class Chef(MonsterEnvironment):
@@ -24,7 +21,6 @@ class Chef(MonsterEnvironment):
         self.remote_api = remote_api
         self.chef_server_name = chef_server_name
         self.save()
-        logger.set_log_level()
 
     def add_override_attr(self, key, value):
         self.override_attributes[key] = value
@@ -56,7 +52,7 @@ class Chef(MonsterEnvironment):
 
         # update chef env with local object info
         for attr in self.__dict__:
-            logger.debug("{0}: {1}".format(attr, self.__dict__[attr]))
+            util.logger.debug("{0}: {1}".format(attr, self.__dict__[attr]))
             setattr(env, attr, self.__dict__[attr])
 
         # Save local/remote
@@ -65,7 +61,7 @@ class Chef(MonsterEnvironment):
             try:
                 env.save(self.remote_api)
             except Exception as e:
-                logger.error("Remote env error:{0}".format(e))
+                util.logger.error("Remote env error:{0}".format(e))
 
     def destroy(self):
         ChefEnvironment(self.name).delete()

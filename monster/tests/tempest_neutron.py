@@ -4,7 +4,6 @@ Module to test OpenStack deployments with Tempest
 
 import os
 import json
-import logging
 import subprocess
 from string import Template
 from time import sleep
@@ -13,9 +12,6 @@ from itertools import ifilter, chain
 from monster import util
 from monster.tests.test import Test
 from monster.util import xunit_merge
-
-
-logger = logging.getLogger("tempest_neutron.log")
 
 
 class TempestNeutron(Test):
@@ -147,8 +143,8 @@ class TempestNeutron(Test):
         name = "{0}-testing_setup_neutron.py".format(self.deployment.name)
         path = "/tmp/{0}".format(name)
         with open(path, 'w') as w:
-            logger.info("Writing test setup:{0}". format(self.path))
-            logger.debug(template)
+            util.logger.info("Writing test setup:{0}". format(self.path))
+            util.logger.debug(template)
             w.write(template)
 
         # send script to node
@@ -230,7 +226,7 @@ class TempestNeutron(Test):
         cmd = 'stat -c "%s" {0}.xml'.format(self.test_node.name)
         result = self.test_node.run_cmd(cmd)['return'].rstrip()
         while result == "0":
-            logger.info("Waiting for test results")
+            util.logger.info("Waiting for test results")
             sleep(30)
             result = self.test_node.run_cmd(cmd)['return'].rstrip()
 
@@ -297,9 +293,9 @@ class TempestNeutron(Test):
 
         # save config
         with open(self.path, 'w') as w:
-            logger.info("Writing tempest config:{0}".
-                        format(self.path))
-            logger.debug(template)
+            util.logger.info("Writing tempest config:{0}".
+                             format(self.path))
+            util.logger.debug(template)
             w.write(template)
 
     def send_config(self):

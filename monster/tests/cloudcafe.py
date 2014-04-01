@@ -4,17 +4,13 @@ Module to test OpenStack deployments with CloudCafe
 
 import os
 
-from monster.util import Logger
 from monster.tests.test import Test
 from monster.server_helper import run_cmd
-
-logger = Logger("cloudcafe")
 
 
 class CloudCafe(Test):
     def __init__(self, deployment):
         super(CloudCafe, self).__init__(deployment)
-        logger.set_log_level()
 
     def get_endpoint(self):
         auth_url = "http://{0}:5000".format(self.deployment.horizon_ip())
