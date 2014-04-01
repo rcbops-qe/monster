@@ -70,7 +70,7 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
     Test an OpenStack deployment
     """
     if progress:
-        log_level="ERROR"
+        log_level = "ERROR"
     util.set_log_level(log_level)
     if not deployment:
         deployment = _load(name, config, secret_path)
@@ -110,8 +110,8 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
             util.logger.info(Color.cyan('Running Tempest test!'))
             tempest.test()
 
-    util.logger.info(Color.cyan('Tests have been completed with {0} iterations!'.
-                                format(iterations)))
+    util.logger.info(Color.cyan("Tests have been completed with {0} "
+                                "iterations".format(iterations)))
 
 
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',

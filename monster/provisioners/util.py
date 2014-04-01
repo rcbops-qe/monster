@@ -18,6 +18,6 @@ def get_provisioner(provisioner):
     except AttributeError:
         print(traceback.print_exc())
         util.logger.error("The provisioner \"{0}\" was not found."
-                     .format(provisioner))
+                          .format(provisioner))
         exit(1)
     return module_classes(identifier)[provisioner]()

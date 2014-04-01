@@ -39,7 +39,7 @@ class Chef(Node):
         Node can set chef attributes
         """
         util.logger.debug("setting {0} to {1} on {2}".format(item, value,
-                                                        self.name))
+                                                             self.name))
         lnode = ChefNode(self.name, api=self.environment.local_api)
         lnode[item] = value
         self.save(lnode)
@@ -135,7 +135,7 @@ class Chef(Node):
         Adds list of items to run_list
         """
         util.logger.debug("run_list:{0} remove:{1}".format(self.run_list,
-                                                      item))
+                                                           item))
         self.run_list.pop(self.run_list.index(item))
         cnode = ChefNode(self.name, api=self.environment.local_api)
         cnode.run_list = self.run_list
@@ -146,7 +146,7 @@ class Chef(Node):
         Adds a list of feature classes
         """
         util.logger.debug("node:{0} feature add:{1}".format(self.name,
-                                                       features))
+                                                            features))
         classes = util.module_classes(node_features)
         for feature in features:
             feature_class = classes[feature](self)

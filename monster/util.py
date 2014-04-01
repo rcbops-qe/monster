@@ -37,6 +37,7 @@ debug = logger.debug
 logger.setLevel(logging.DEBUG)
 logger.addHandler(file_handler)
 
+
 def set_log_level(level):
     log_level = getattr(logging, level, logging.DEBUG)
     # Sets logging level to the console

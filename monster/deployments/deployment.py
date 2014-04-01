@@ -66,7 +66,7 @@ class Deployment(object):
         self.status = "Loading environment..."
         for feature in self.features:
             util.logger.debug("Deployment feature {0}: updating environment!"
-                         .format(str(feature)))
+                              .format(str(feature)))
             feature.update_environment()
         util.logger.debug(self.environment)
         self.status = "Environment ready!"
@@ -79,7 +79,7 @@ class Deployment(object):
         self.status = "Pre-configuring nodes for features..."
         for feature in self.features:
             util.logger.debug("Deployment feature: pre-configure: {0}"
-                         .format(str(feature)))
+                              .format(str(feature)))
             feature.pre_configure()
 
     def build_nodes(self):

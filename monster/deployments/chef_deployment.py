@@ -7,8 +7,8 @@ from chef import Node as ChefNode
 from chef import Environment as ChefEnvironment
 
 from fabric.api import *
-from fabric.state import env
-from threading import Thread
+#from fabric.state import env
+#from threading import Thread
 
 from monster import util
 from monster.config import Config
@@ -174,8 +174,8 @@ class Chef(Deployment):
             template = Config(path)[template]
         except KeyError:
             util.logger.critical("Looking for the template {0} in the file: "
-                            "\n{1}\n The key was not found!"
-                            .format(template, path))
+                                 "\n{1}\n The key was not found!"
+                                 .format(template, path))
             exit(1)
 
         environment = MonsterChefEnvironment(name, local_api, description=name)
@@ -201,7 +201,6 @@ class Chef(Deployment):
 #            threads.append(tx)
 #            tx.start()
 #            sleep(2)
-
 
             cnode = MonsterChefNode.from_chef_node(node, product, environment,
                                                    deployment, provisioner,
@@ -230,13 +229,13 @@ class Chef(Deployment):
         """
 
         local_api = autoconfigure()
-        env = ChefEnvironment(environment, api=local_api)
-        if not env.exists:
+        environ = ChefEnvironment(environment, api=local_api)
+        if not environ.exists:
             util.logger.error("The specified environment, {0}, does not"
-                         "exist.".format(environment))
+                              "exist.".format(environment))
             exit(1)
-        override = env.override_attributes
-        default = env.default_attributes
+        override = environ.override_attributes
+        default = environ.default_attributes
         chef_auth = override.get('remote_chef', None)
         remote_api = None
         if chef_auth and chef_auth["key"]:
@@ -245,10 +244,10 @@ class Chef(Deployment):
             override = renv.override_attributes
             default = renv.default_attributes
         environment = MonsterChefEnvironment(
-            env.name, local_api, description=env.name,
+            environ.name, local_api, description=environ.name,
             default=default, override=override, remote_api=remote_api)
 
-        name = env.name
+        name = environ.name
         deployment_args = override.get('deployment', {})
         features = deployment_args.get('features', {})
         os_name = deployment_args.get('os_name', None)
@@ -266,7 +265,7 @@ class Chef(Deployment):
         for node in (ChefNode(n, local_api) for n in nodes):
             if not node.exists:
                 util.logger.error("Non existant chef node:{0}".
-                             format(node.name))
+                                  format(node.name))
                 continue
             cnode = MonsterChefNode.from_chef_node(node, product, environment,
                                                    deployment, provisioner,

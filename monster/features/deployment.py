@@ -123,7 +123,7 @@ class Neutron(Deployment):
         computes = self.deployment.search_role('compute')
 
         util.logger.info("### Building OVS Bridge and "
-                    "Ports on network nodes ###")
+                         "Ports on network nodes ###")
 
         for controller in controllers:
             iface = controller.get_vmnet_iface()
@@ -221,7 +221,7 @@ class Swift(Deployment):
         swift['keystone'] = keystone
 
         util.logger.info("Matching environment: {0} to RPCS "
-                    "swift requirements".format(env.name))
+                         "swift requirements".format(env.name))
 
         env.del_override_attr('keystone')
         env.del_override_attr('swift')
@@ -388,13 +388,12 @@ class Swift(Deployment):
         else:
             for proxy_node in proxy_nodes:
                 util.logger.info("On node root@{0}, run: "
-                            "chef client".format(proxy_node.ipaddress))
+                                 "chef client".format(proxy_node.ipaddress))
             for storage_node in storage_nodes:
                 util.logger.info("On node root@{0}, run: "
-                            "chef client".format(storage_node.ipaddress))
-            util.logger.info(
-                "On node root@{0} run the following command: chef-client "
-                "##".format(controller.ipaddress))
+                                 "chef client".format(storage_node.ipaddress))
+            util.logger.info("On node root@{0} run the following command: "
+                             "chef-client ##".format(controller.ipaddress))
 
         util.logger.info("## Done setting up swift rings ##")
 
@@ -405,7 +404,8 @@ class Glance(Deployment):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Glance, self).__init__(deployment, rpcs_feature)
-        self.environment = util.config['environments'][str(self)][rpcs_feature]
+        self.environment = util.config['environments'][str(
+                                                       self)][rpcs_feature]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(

@@ -97,8 +97,8 @@ class Razor2(Provisioner):
                 sleep(15)
             except:
                 util.logger.error("Node unreachable. "
-                             "Manual restart required:{0}".
-                             format(str(node)))
+                                  "Manual restart required:{0}".
+                                  format(str(node)))
 
     @classmethod
     def node_search(cls, query, environment=None, tries=10):

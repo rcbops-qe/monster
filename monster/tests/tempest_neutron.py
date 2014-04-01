@@ -294,7 +294,7 @@ class TempestNeutron(Test):
         # save config
         with open(self.path, 'w') as w:
             util.logger.info("Writing tempest config:{0}".
-                        format(self.path))
+                             format(self.path))
             util.logger.debug(template)
             w.write(template)
 

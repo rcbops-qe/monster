@@ -215,7 +215,7 @@ class Openstack(Provisioner):
                 break
             except Exception as e:
                 util.logger.error("Wait: Request error:{0}-{1}".
-                             format(desired, e))
+                                  format(desired, e))
                 continue
         get_attr = lambda x: getattr(x, attr)
         util.logger.debug("Search:{0} for {1} in {2}".format(
@@ -247,7 +247,7 @@ class Openstack(Provisioner):
         in_attempt = lambda x: not attempts or attempts > x
         while getattr(obj, attr) not in desired and in_attempt(attempt):
             util.logger.info("Waiting:{0} {1}:{2}".format(obj, attr,
-                                                     getattr(obj, attr)))
+                                                          getattr(obj, attr)))
             sleep(interval)
             obj = fun(obj.id)
             attempt = attempt + 1
