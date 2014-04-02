@@ -26,11 +26,11 @@ class Razor2(Provisioner):
         :type deployment: ChefDeployment
         :rtype: list
         """
-
         util.logger.info("Provisioning with Razor!")
         image = deployment.os_name
-        return [self.available_node(image, deployment)
-                for _ in template['nodes']]
+        self.nodes.append([self.available_node(image, deployment)
+                for _ in template['nodes']])
+        return self.nodes
 
     def available_node(self, image, deployment):
         """

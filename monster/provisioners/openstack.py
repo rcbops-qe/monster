@@ -64,8 +64,8 @@ class Openstack(Provisioner):
         joinall(events)
 
         # acquire chef nodes
-        chef_nodes = [event.value for event in events]
-        return chef_nodes
+        self.nodes.append([event.value for event in events])
+        return self.nodes
 
     def destroy_node(self, node):
         """

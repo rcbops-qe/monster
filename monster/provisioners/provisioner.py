@@ -2,8 +2,10 @@ class Provisioner(object):
     """
     Provisioner class template
 
-    Enforce implementation of provsision and destroy_node and naming convention
+    Enforce implementation of provision and destroy_node and naming convention
     """
+
+    nodes = []
 
     def __repr__(self):
         return self.__class__.__name__.lower()
