@@ -5,19 +5,21 @@ from monster.provisioners import *
 from monster import util
 
 
-def get_provisioner(provisioner):
+def get_provisioner(provisioner_name):
     """
     This will return an instance of the correct provisioner class
-    :param provisioner: The name of the provisioner
-    :type provisioner: str
-    :rtype: object
+    :param provisioner_name: The name of the provisioner
+    :type provisioner_name: str
+    :rtype: Provisioner
     """
 
     try:
-        identifier = getattr(sys.modules['monster'].provisioners, provisioner)
+        identifier = getattr(sys.modules['monster'].provisioners,
+                             provisioner_name)
     except AttributeError:
         print(traceback.print_exc())
         util.logger.error("The provisioner \"{0}\" was not found."
-                          .format(provisioner))
+                          .format(provisioner_name))
         exit(1)
-    return module_classes(identifier)[provisioner]()
+    else:
+        return module_classes(identifier)[provisioner_name]()

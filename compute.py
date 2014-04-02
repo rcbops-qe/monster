@@ -16,7 +16,8 @@ from monster.tests.cloudcafe import CloudCafe
 from monster.provisioners.util import get_provisioner
 from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
-from monster.deployments.chef_deployment import ChefDeployment as MonsterChefDeployment
+from monster.deployments.chef_deployment import ChefDeployment as \
+    MonsterChefDeployment
 from monster.deployments.orchestrator import Orchestrator
 
 if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
@@ -41,7 +42,7 @@ def build(name="autotest", template="ubuntu-default", branch="master",
     cprovisioner = get_provisioner(provisioner)
 
     util.logger.info("Building deployment object for {0}".format(name))
-    deployment = Orchestrator.fromfile(
+    deployment = Orchestrator.from_file(
         name, template, branch, cprovisioner, template_path)
 
     if dry:
@@ -95,7 +96,7 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
     for controller in controllers:
         ip, user, password = controller.get_creds()
         remote = "{0}@{1}:~/*.xml".format(user, ip)
-        getFile(ip, user, password, remote, local)
+        get_file(ip, user, password, remote, local)
 
     for i in range(iterations):
         util.logger.info(Color.cyan('Running iteration {0} of {1}!'
@@ -150,7 +151,7 @@ def destroy(name="autotest", config=None, log=None, log_level="INFO",
     deployment.destroy()
 
 
-def getFile(ip, user, password, remote, local, remote_delete=False):
+def get_file(ip, user, password, remote, local, remote_delete=False):
     cmd1 = 'sshpass -p {0} scp -q {1} {2}'.format(password, remote, local)
     subprocess.call(cmd1, shell=True)
     if remote_delete:
@@ -217,7 +218,7 @@ def show(name="autotest", config=None, log=None, secret_path=None,
 def _load(name="autotest", config=None, secret_path=None):
     # Load deployment and source openrc
     util.config = Config(config, secret_path=secret_path)
-    return MonsterChefDeployment.from_chef_environment(name)
+    return Orchestrator.from_chef_environment(name)
 
 
 def cloudcafe(cmd, name="autotest", network=None, config=None,

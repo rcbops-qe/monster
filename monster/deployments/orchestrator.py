@@ -21,7 +21,7 @@ class Orchestrator:
         pass
 
     @classmethod
-    def fromfile(cls, name, template, branch, provisioner, template_path):
+    def from_file(cls, name, template, branch, provisioner, template_path):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment
@@ -32,9 +32,7 @@ class Orchestrator:
         :type branch:: string
         :param provisioner: provisioner to use for nodes
         :type provisioner: Provisioner
-        :param path: path to template
-        :type path: string
-        :rtype: Chef
+        :rtype: ChefDeployment
         """
         local_api = autoconfigure()
 
@@ -99,7 +97,7 @@ class Orchestrator:
         Rebuilds a Deployment given a chef environment
         :param environment: name of environment
         :type environment: string
-        :rtype: Chef
+        :rtype: ChefDeployment
         """
 
         local_api = autoconfigure()
@@ -169,7 +167,7 @@ class Orchestrator:
         :type status: string
         :param product: name of rcbops product - compute, storage
         :type product: string
-        :rtype: Chef
+        :rtype: ChefDeployment
         """
 
         status = status or "provisioning"

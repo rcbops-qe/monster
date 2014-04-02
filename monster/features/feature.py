@@ -87,7 +87,7 @@ def install_packages(node, packages):
     Installs a list of packages
 
     :param packages: List of packages to install
-    :type packages: List of Strings
+    :type packages: list of Strings
     """
 
     for package in packages:
@@ -99,7 +99,7 @@ def install_ruby_gem(node, gem):
     Installs a ruby gem
 
     :param gem: Ruby gem to install
-    :type gem: String
+    :type gem: str
     :rtype: function
     """
 
@@ -114,7 +114,7 @@ def install_ruby_gems(node, gems):
     Installs a list of ruby gems
 
     :param gems: List of gems to install
-    :type gems: List of Strings
+    :type gems: list of Strings
     """
 
     for gem in gems:

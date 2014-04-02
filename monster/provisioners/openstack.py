@@ -84,8 +84,6 @@ class Openstack(Provisioner):
     def chef_instance(self, deployment, name, flavor="2GBP"):
         """
         Builds an instance with desired specs and inits it with chef
-        :param client: compute client object
-        :type client: novaclient.client.Client
         :param deployment: deployement to add to
         :type deployment: ChefDeployment
         :param name: name for instance
@@ -127,8 +125,6 @@ class Openstack(Provisioner):
                        flavor="2GBP"):
         """
         Builds an instance with desired specs
-        :param client: compute client object
-        :type client: novaclient.client.Client
         :param name: name of server
         :type name: string
         :param image: desired image for server
@@ -188,9 +184,10 @@ class Openstack(Provisioner):
                 sshup = False
                 util.logger.debug("Waiting for ssh connection...")
                 sleep(1)
-        return (server, password)
+        return server, password
 
-    def _client_search(self, collection_fun, attr, desired, attempts=None,
+    @staticmethod
+    def _client_search(collection_fun, attr, desired, attempts=None,
                        interval=1):
         """
         Searches for a desired attribute in a list of objects
@@ -225,7 +222,8 @@ class Openstack(Provisioner):
                 return obj
         raise Exception("Client search fail:{0} not found".format(desired))
 
-    def wait_for_state(self, fun, obj, attr, desired, interval=15,
+    @staticmethod
+    def wait_for_state(fun, obj, attr, desired, interval=15,
                        attempts=None):
         """
         Waits for a desired state of an object using gevented sleep
@@ -235,13 +233,13 @@ class Openstack(Provisioner):
         :type obj: obj
         :param attr: attribute of object of which state resides
         :type attr: str
-        :param desired: desired state of attribute
-        :type desired: string
+        :param desired: desired states of attribute
+        :type desired: list of str
         :param interval: interval to check state in secs
         :param interval: int
         :param attempts: number of attempts to acheive state
         :type attempts: int
-        :rtype: object
+        :rtype: obj
         """
         attempt = 0
         in_attempt = lambda x: not attempts or attempts > x
@@ -250,7 +248,7 @@ class Openstack(Provisioner):
                                                           getattr(obj, attr)))
             sleep(interval)
             obj = fun(obj.id)
-            attempt = attempt + 1
+            attempt += 1
         return obj
 
     def power_down(self, node):
