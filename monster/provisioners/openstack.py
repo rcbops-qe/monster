@@ -69,7 +69,7 @@ class Openstack(Provisioner):
 
     def destroy_node(self, node):
         """
-        Destroys chef node from openstack
+        Destroys Chef node from OpenStack
         :param node: node to destroy
         :type node: ChefNode
         """

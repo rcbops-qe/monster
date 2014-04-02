@@ -37,6 +37,14 @@ class Provisioner(object):
         """
         raise NotImplementedError
 
+    def destroy_all_nodes(self):
+        """
+        Destroys all Chef nodes from an OpenStack deployment
+        :param node: node to destroy
+        :type node: ChefNode
+        """
+        [self.destroy_node(node) for node in self.nodes]
+
     def power_down(self, node):
         """
         Turns a node off
