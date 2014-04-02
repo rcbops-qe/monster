@@ -256,6 +256,6 @@ class Openstack(Provisioner):
                      "echo o > /proc/sysrq-trigger")
 
     def power_up(self, node):
-        id = node['uuid']
-        server = self.compute_client.servers.get(id)
+        uuid = node['uuid']
+        server = self.compute_client.servers.get(uuid)
         server.reboot("hard")

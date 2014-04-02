@@ -30,6 +30,7 @@ class Node(object):
         """ Print out current instance
         :rtype: string
         """
+        features = []
         outl = 'class: ' + self.__class__.__name__
         for attr in self.__dict__:
             # We want to not print the deployment because
@@ -190,8 +191,8 @@ class Node(object):
         :type package: String
         :rtype: function
         """
-
         # Need to make this more machine agnostic (jwagner)
+        command = ""
         if self.os_name == "ubuntu":
             command = 'apt-get install -y {0}'.format(package)
         if self.os_name in ["centos", "rhel"]:
@@ -203,7 +204,7 @@ class Node(object):
         """
         Checks to see if a package is installed
         """
-
+        chk_cmd = ""
         if self.os_name == "ubuntu":
             chk_cmd = "dpkg -l | grep {0}".format(package)
         if self.os_name in ["centos", "rhel"]:
@@ -214,7 +215,8 @@ class Node(object):
 
         return self.run_cmd(chk_cmd)
 
-    def get_vmnet_iface(self):
+    @staticmethod
+    def get_vmnet_iface():
         """
         Return the iface that our vm data network will live on
         """

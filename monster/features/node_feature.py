@@ -198,7 +198,7 @@ class ChefServer(NodeFeature):
         command = "; ".join(self.install_commands)
         self.node.run_cmd(command)
 
-    def _install_cookbooks(self, dir=None):
+    def _install_cookbooks(self, directory=None):
         """
         Installs cookbooks
         """
@@ -206,7 +206,7 @@ class ChefServer(NodeFeature):
         cookbook_url = util.config['rcbops'][self.node.product]['git']['url']
         cookbook_branch = self.node.branch
         cookbook_name = cookbook_url.split("/")[-1].split(".")[0]
-        install_dir = dir or util.config['chef']['server']['install_dir']
+        install_dir = directory or util.config['chef']['server']['install_dir']
 
         commands = ["mkdir -p {0}".format(install_dir),
                     "cd {0}".format(install_dir),
@@ -235,7 +235,7 @@ class ChefServer(NodeFeature):
         clean = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done",
                  "rm -rf {0}".format(install_dir)]
         self.node.run_cmd("; ".join(clean))
-        return self._install_cookbooks(dir=install_dir)
+        return self._install_cookbooks(directory=install_dir)
 
     def _set_up_remote(self):
         """
