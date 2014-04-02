@@ -16,7 +16,8 @@ from monster.tests.cloudcafe import CloudCafe
 from monster.provisioners.util import get_provisioner
 from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
-from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
+from monster.deployments.chef_deployment import ChefDeployment as MonsterChefDeployment
+from monster.deployments.orchestrator import Orchestrator
 
 if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
     util.logger.warning("You are not using the virtual environment! We "
@@ -40,7 +41,7 @@ def build(name="autotest", template="ubuntu-default", branch="master",
     cprovisioner = get_provisioner(provisioner)
 
     util.logger.info("Building deployment object for {0}".format(name))
-    deployment = MonsterChefDeployment.fromfile(
+    deployment = Orchestrator.fromfile(
         name, template, branch, cprovisioner, template_path)
 
     if dry:

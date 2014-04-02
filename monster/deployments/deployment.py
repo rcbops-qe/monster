@@ -4,7 +4,6 @@ OpenStack deployments
 
 import types
 import tmuxp
-from pyrabbit.api import Client
 
 from monster.tools.retrofit import Retrofit
 from monster import util
@@ -30,16 +29,12 @@ class Deployment(object):
         """
         Print out current instance
         """
+        features = "\tFeatures: %s" % self.feature_names
+        nodes = "\tNodes: %s" % self.node_names
 
         outl = 'class: ' + self.__class__.__name__
         for attr in self.__dict__:
-            if attr == 'features':
-                features = "\tFeatures: {0}".format(
-                    ", ".join((str(f) for f in self.features)))
-            elif attr == 'nodes':
-                nodes = "\tNodes: {0}".format(
-                    "".join((str(n) for n in self.nodes)))
-            elif isinstance(getattr(self, attr), types.NoneType):
+            if isinstance(getattr(self, attr), types.NoneType):
                 outl += '\n\t{0} : {1}'.format(attr, 'None')
             else:
                 outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
@@ -68,7 +63,6 @@ class Deployment(object):
             util.logger.debug("Deployment feature {0}: updating environment!"
                               .format(str(feature)))
             feature.update_environment()
-        util.logger.debug(self.environment)
         self.status = "Environment ready!"
 
     def pre_configure(self):
@@ -123,17 +117,8 @@ class Deployment(object):
 
     def artifact(self):
         """
-        Artifacts openstack and its dependant services for a deployment
+        Artifacts OpenStack and its dependant services for a deployment
         """
-
-        self.log_path = "/var/log"
-        self.etc_path = "/etc/"
-        self.misc_path = "misc/"
-
-        if self.deployment.os_name == 'ubuntu':
-            self.list_packages_cmd = ["dpkg -l"]
-        else:
-            self.list_packages_cmd = ["rpm -qa"]
 
         # Run each features archive
         for feature in self.features:
@@ -162,11 +147,7 @@ class Deployment(object):
         :type feature: string
         :rtype: Boolean
         """
-
-        if feature in (feature.__class__.__name__.lower()
-                       for feature in self.features):
-            return True
-        return False
+        return feature in self.feature_names
 
     def tmux(self):
         """
@@ -187,12 +168,19 @@ class Deployment(object):
     @property
     def feature_names(self):
         """
-        Returns list features as strings
+        Returns list of features as strings
         :rtype: list (string)
         """
-
         return [feature.__class__.__name__.lower() for feature in
                 self.features]
+
+    @property
+    def node_names(self):
+        """
+        Returns list of nodes as strings
+        :rtype: list (string)
+        """
+        return [str(node) for node in self.nodes]
 
     def retrofit(self, branch, ovs_bridge, lx_bridge, iface, del_port=None):
         """
@@ -212,24 +200,3 @@ class Deployment(object):
 
         # Bootstrap
         retrofit.bootstrap(iface, lx_bridge, ovs_bridge)
-
-    @property
-    def rabbitmq_mgmt_client(self):
-        """
-        Return rabbitmq mgmt client
-        """
-        overrides = self.environment.override_attributes
-        if 'vips' in overrides:
-            # HA
-            ip = overrides['vips']['rabbitmq-queue']
-        else:
-            # Non HA
-            controller = next(self.search_role("controller"))
-            ip = controller.ipaddress
-        url = "{ip}:15672".format(ip=ip)
-
-        user = "guest"
-        password = "guest"
-
-        client = Client(url, user, password)
-        return client

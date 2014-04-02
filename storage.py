@@ -8,7 +8,7 @@ import traceback
 
 from monster import util
 from monster.config import Config
-from monster.deployments.chef_deployment import Chef
+from monster.deployments.chef_deployment import ChefDeployment
 from monster.provisioners import provisioner as provisioners
 
 
@@ -24,7 +24,7 @@ def build(name="autotest", branch="master", provisioner="rackspace",
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    deployment = Chef.fromfile(name, branch, cprovisioner, template_path)
+    deployment = ChefDeployment.fromfile(name, branch, cprovisioner, template_path)
     if dry:
         # build environment
         try:
@@ -92,7 +92,7 @@ def _load(name="autotest", config=None, provisioner="razor"):
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    return Chef.from_chef_environment(environment=cprovisioner)
+    return ChefDeployment.from_chef_environment(environment=cprovisioner)
 
 
 # Main

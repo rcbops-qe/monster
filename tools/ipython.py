@@ -10,7 +10,7 @@ Use:
 
 from monster import util
 from monster.config import Config
-from monster.deployments.chef_deployment import Chef
+from monster.deployments.chef_deployment import ChefDeployment
 
 
 def load(name, config="config.yaml"):
@@ -19,4 +19,4 @@ def load(name, config="config.yaml"):
     """
 
     util.config = Config(config)
-    return Chef.from_chef_environment(name)
+    return ChefDeployment.from_chef_environment(name)
