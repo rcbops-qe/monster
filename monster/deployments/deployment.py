@@ -41,16 +41,21 @@ class Deployment(object):
 
         return "\n".join([outl, features, nodes])
 
-    def destroy(self):
+    def build(self):
         """
-        Destroys an OpenStack deployment
+        Runs build steps for node's features
         """
 
-        self.status = "Destroying..."
-        util.logger.info("Destroying deployment: {0}".format(self.name))
-        for node in self.nodes:
-            node.destroy()
-        self.status = "Destroyed!"
+        util.logger.debug("Deployment step: update environment")
+        self.update_environment()
+        util.logger.debug("Deployment step: pre-configure")
+        self.pre_configure()
+        util.logger.debug("Deployment step: build nodes")
+        self.build_nodes()
+        util.logger.debug("Deployment step: post-configure")
+        self.post_configure()
+        self.status = "post-build"
+        util.logger.info(self)
 
     def update_environment(self):
         """
@@ -99,21 +104,16 @@ class Deployment(object):
             util.logger.debug(log)
             feature.post_configure()
 
-    def build(self):
+    def destroy(self):
         """
-        Runs build steps for node's features
+        Destroys an OpenStack deployment
         """
 
-        util.logger.debug("Deployment step: update environment")
-        self.update_environment()
-        util.logger.debug("Deployment step: pre-configure")
-        self.pre_configure()
-        util.logger.debug("Deployment step: build nodes")
-        self.build_nodes()
-        util.logger.debug("Deployment step: post-configure")
-        self.post_configure()
-        self.status = "post-build"
-        util.logger.info(self)
+        self.status = "Destroying..."
+        util.logger.info("Destroying deployment: {0}".format(self.name))
+        for node in self.nodes:
+            node.destroy()
+        self.status = "Destroyed!"
 
     def artifact(self):
         """
@@ -128,16 +128,14 @@ class Deployment(object):
         for node in self.nodes:
             node.archive()
 
-    def search_role(self, feature):
+    def search_role(self, feature_name):
         """
         Returns nodes the have the desired role
-        :param feature: feature to be searched for
-        :type feature: string
+        :param feature_name: feature to be searched for
+        :type feature_name: string
         :rtype: Iterator (Nodes)
         """
-
-        return (node for node in
-                self.nodes if feature in
+        return (node for node in self.nodes if feature_name in
                 (str(f).lower() for f in node.features))
 
     def feature_in(self, feature):

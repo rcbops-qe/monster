@@ -9,7 +9,7 @@ from monster.features.feature import (Feature,
                                       install_ruby_gems)
 
 
-class Node(Feature):
+class NodeFeature(Feature):
     """ Represents a feature on a node
     """
 
@@ -27,8 +27,7 @@ class Node(Feature):
         Print out current class instance
         :rtype: String
         """
-        outl = 'class: ' + self.__class__.__name__
-        return outl
+        return 'class: ' + self.__class__.__name__
 
     def pre_configure(self):
         pass
@@ -88,7 +87,7 @@ class Node(Feature):
         self.run_cmd(store_running_services)
 
 
-class Berkshelf(Node):
+class Berkshelf(NodeFeature):
     """ Represents a node with berks installed
     """
 
@@ -153,7 +152,7 @@ class Berkshelf(Node):
         self.node.run_cmd(command)
 
 
-class ChefServer(Node):
+class ChefServer(NodeFeature):
     """ Represents a chef server
     """
 
@@ -286,7 +285,7 @@ class ChefServer(Node):
                 node.save_to_node()
 
 
-class Cinder(Node):
+class Cinder(NodeFeature):
     """ Enables cinder with local lvm backend
     """
 
@@ -298,7 +297,7 @@ class Cinder(Node):
                         "configs": [""]}
 
 
-class Compute(Node):
+class Compute(NodeFeature):
     """ Represents a RPCS compute
     """
 
@@ -325,7 +324,7 @@ class Compute(Node):
                         "configs": ["nova"]}
 
 
-class Controller(Node):
+class Controller(NodeFeature):
     """ Represents a RPCS Controller
     """
 
@@ -398,7 +397,7 @@ class Controller(Node):
                                     "ufw"]}
 
 
-class Metrics(Node):
+class Metrics(NodeFeature):
     """ Represents a Metrics Node
     """
 
@@ -433,7 +432,7 @@ class Metrics(Node):
         self.node.add_run_list_item(run_list)
 
 
-class Network(Node):
+class Network(NodeFeature):
     """ Sets the node to be a Network
     """
 
@@ -445,7 +444,7 @@ class Network(Node):
                         "configs": [""]}
 
 
-class NetworkManager(Node):
+class NetworkManager(NodeFeature):
 
     def preconfigure(self):
         self.set_run_list()
@@ -455,7 +454,7 @@ class NetworkManager(Node):
                         "configs": [""]}
 
 
-class OpenLDAP(Node):
+class OpenLDAP(NodeFeature):
     """ Represents a LDAP server
     """
 
@@ -475,7 +474,7 @@ class OpenLDAP(Node):
         self.node.run_cmd(ldapadd)
 
 
-class Orchestration(Node):
+class Orchestration(NodeFeature):
 
     def __init__(self, node):
         super(Orchestration, self).__init__(node)
@@ -497,7 +496,7 @@ class Orchestration(Node):
                         "configs": [""]}
 
 
-class Proxy(Node):
+class Proxy(NodeFeature):
     """ Represents a RPCS proxy node
     """
 
@@ -509,7 +508,7 @@ class Proxy(Node):
                         "configs": [""]}
 
 
-class Remote(Node):
+class Remote(NodeFeature):
     """ Represents the deployment having a remote chef server
     """
 
@@ -539,7 +538,7 @@ class Remote(Node):
         self.node.save()
 
 
-class Storage(Node):
+class Storage(NodeFeature):
     """ Represents a RPCS proxy node
     """
 

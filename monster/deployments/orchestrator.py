@@ -8,7 +8,7 @@ from fabric.api import *
 
 from monster import util
 from monster.config import Config
-from monster.features.node import ChefServer
+from monster.features.node_feature import ChefServer
 from monster.provisioners.util import get_provisioner
 from monster.nodes.chef_node import Chef as MonsterChefNode
 from monster.deployments.chef_deployment import ChefDeployment

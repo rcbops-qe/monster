@@ -7,7 +7,7 @@ from monster.features.feature import Feature
 from monster import util
 
 
-class Deployment(Feature):
+class DeploymentFeature(Feature):
     """ Represents a feature across a deployment
     """
 
@@ -39,7 +39,7 @@ class Deployment(Feature):
 #############################################################################
 
 
-class Neutron(Deployment):
+class Neutron(DeploymentFeature):
     """ Represents a neutron network cluster
     """
 
@@ -172,7 +172,7 @@ class Neutron(Deployment):
         return cmd
 
 
-class Swift(Deployment):
+class Swift(DeploymentFeature):
     """ Represents a block storage cluster enabled by swift
     """
 
@@ -398,7 +398,7 @@ class Swift(Deployment):
         util.logger.info("## Done setting up swift rings ##")
 
 
-class Glance(Deployment):
+class Glance(DeploymentFeature):
     """ Represents a glance with cloud files backend
     """
 
@@ -446,7 +446,7 @@ class Glance(Deployment):
         api['swift_store_key'] = password
 
 
-class Keystone(Deployment):
+class Keystone(DeploymentFeature):
     """ Represents the keystone feature
     """
 
@@ -497,7 +497,7 @@ class Keystone(Deployment):
             self.deployment.environment.save()
 
 
-class Nova(Deployment):
+class Nova(DeploymentFeature):
     """ Represents the monitoring feature
     """
 
@@ -530,7 +530,7 @@ class Nova(Deployment):
         self.deployment.environment.save()
 
 
-class Horizon(Deployment):
+class Horizon(DeploymentFeature):
     """ Represents the monitoring feature
     """
 
@@ -543,7 +543,7 @@ class Horizon(Deployment):
             str(self), self.environment)
 
 
-class Cinder(Deployment):
+class Cinder(DeploymentFeature):
     """ Represents the Cinder feature
     """
 
@@ -561,7 +561,7 @@ class Cinder(Deployment):
             compute.run()
 
 
-class Ceilometer(Deployment):
+class Ceilometer(DeploymentFeature):
     """ Represents the Ceilometer feature
     """
 
@@ -579,7 +579,7 @@ class Ceilometer(Deployment):
 #############################################################################
 
 
-class RPCS(Deployment):
+class RPCS(DeploymentFeature):
     """ Represents a Rackspace Private Cloud Software Feature
     """
 

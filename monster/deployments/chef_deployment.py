@@ -11,7 +11,7 @@ from monster.provisioners.razor import Razor
 from monster.clients.openstack import Creds, Clients
 from monster.deployments.deployment import Deployment
 from monster.nodes.chef_node import Chef as MonsterChefNode
-from monster.features import deployment as deployment_features
+from monster.features import deployment_feature as deployment_features
 
 from pyrabbit.api import Client as RabbitClient
 
@@ -32,16 +32,14 @@ class ChefDeployment(Deployment):
         self.has_controller = False
         self.has_orch_master = False
 
+    def __repr__(self):
+        return {'nodes': self.nodes, 'features': self.features,
+                'name': self.name, 'os_name': self.os_name,
+                'branch': self.branch, 'status': self.status,
+                'product': self.product, 'provisioner': self.provisioner}
+
     def __str__(self):
-        nodes = "\n\t".join(str(node) for node in self.nodes)
-        features = ", ".join(self.feature_names)
-        deployment = ("Deployment - name:{0}, os:{1}, branch:{2}, status:{3}\n"
-                      "{4}\nFeatures: \n\t{5}\n"
-                      "Nodes: \n\t{6}".format(self.name, self.os_name,
-                                              self.branch, self.status,
-                                              self.environment, features,
-                                              nodes))
-        return deployment
+        return str(self.__repr__())
 
     def build(self):
         """
@@ -69,19 +67,16 @@ class ChefDeployment(Deployment):
                       'provisioner': self.provisioner}
         self.environment.add_override_attr('deployment', deployment)
 
-    def get_upgrade(self, upgrade):
+    def get_upgrade(self, branch_name):
         """
         This will return an instance of the correct upgrade class
-        :param upgrade: The name of the provisoner
-        :type upgrade: String
+        :param branch_name: The name of the provisioner
+        :type branch_name: str
         :rtype: object
         """
 
         # convert branch into a list of int strings
-        if 'v' in upgrade:
-            branch_i = [int(x) for x in upgrade.strip('v').split('.')]
-        else:
-            branch_i = [int(x) for x in upgrade.split('.')]
+        branch_i = [int(x) for x in branch_name.lstrip('v').split('.')]
 
         # convert list of int strings to their english counterpart
         word_b = [int2word(b) for b in branch_i]
@@ -98,19 +93,15 @@ class ChefDeployment(Deployment):
 
         return util.module_classes(identifier)[up_class](self)
 
-    def upgrade(self, upgrade_branch):
+    def upgrade(self, branch_name):
         """
         Upgrades the deployment (very chefy, rcbopsy)
         """
 
-        rc = False
+        rc = "rc" in branch_name
+        upgrade_branch_name = branch_name.rstrip("rc")
 
-        # if we are deploying a release candidate upgrade
-        if "rc" in upgrade_branch:
-            upgrade_branch = upgrade_branch.rstrip("rc")
-            rc = True
-
-        upgrade = self.get_upgrade(upgrade_branch)
+        upgrade = self.get_upgrade(upgrade_branch_name)
         upgrade.upgrade(rc)
 
     def update_environment(self):
@@ -152,7 +143,7 @@ class ChefDeployment(Deployment):
                                       tries=1)
             for n in nodes:
                 MonsterChefNode.from_chef_node(n,
-                                               environment=self.environment).\
+                                               environment=self.environment). \
                     destroy()
 
         # Destroy Chef environment

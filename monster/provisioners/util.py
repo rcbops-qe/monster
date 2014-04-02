@@ -9,7 +9,7 @@ def get_provisioner(provisioner):
     """
     This will return an instance of the correct provisioner class
     :param provisioner: The name of the provisioner
-    :type provisioner: String
+    :type provisioner: str
     :rtype: object
     """
 
