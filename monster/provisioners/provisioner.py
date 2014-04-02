@@ -40,8 +40,6 @@ class Provisioner(object):
     def destroy_all_nodes(self):
         """
         Destroys all Chef nodes from an OpenStack deployment
-        :param node: node to destroy
-        :type node: ChefNode
         """
         [self.destroy_node(node) for node in self.nodes]
 
