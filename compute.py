@@ -214,8 +214,9 @@ def show(name="autotest", config=None, log=None, secret_path=None,
 
 
 def _load_config(config, secret_path):
-    config_path = "config/{}".format(config)
-    util.config = Config(config_path, secret_file_name=secret_path)
+    if "config/" not in config:
+        config = "config/{}".format(config)
+    util.config = Config(config, secret_file_name=secret_path)
 
 
 def _load(name="autotest", config="config.yaml", secret_path=None):
