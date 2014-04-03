@@ -16,11 +16,10 @@ class Retrofit(object):
         """
         Print out current instance
         """
-
-        outl = 'class: ' + self.__class__.__name__
+        output = 'class: ' + self.__class__.__name__
         for attr in self.__dict__:
-            outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
-        return outl
+            output += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
+        return output
 
     def install(self, branch):
         """
@@ -44,8 +43,7 @@ class Retrofit(object):
         """
         Bootstraps a node with retrofit
         """
-
-        util.logger.info("Bootstraping to seperate plane")
+        util.logger.info("Bootstrapping to separate plane")
 
         # bootstrap cmd
         bstrap_cmds = ['cd /opt/retrofit',
@@ -61,39 +59,37 @@ class Retrofit(object):
 
     def convert(self, iface, lx_bridge, ovs_bridge):
         """
-        Converts a deployment to a seperate plane
+        Converts a deployment to a separate plane
         """
+        util.logger.info("Converting to separate plane")
 
-        util.logger.info("Converting to seperate plane")
-
-        conv_cmds = ["cd '/opt/retrofit",
-                     "./retrofit.py convert -i {0} -l {1} -o {2}".format(
-                         iface, lx_bridge, ovs_bridge)]
-        conv_cmd = "; ".join(conv_cmds)
+        convert_commands = ["cd '/opt/retrofit",
+                            "./retrofit.py convert -i {0} -l {1} -o {2}"
+                            "".format(iface, lx_bridge, ovs_bridge)]
+        convert_command = "; ".join(convert_commands)
 
         for controller in self.controllers:
-            controller.run_cmd(conv_cmd)
+            controller.run_cmd(convert_command)
 
         for compute in self.computes:
-            compute.run_cmd(conv_cmd)
+            compute.run_cmd(convert_command)
 
     def revert(self, iface, lx_bridge, ovs_bridge):
         """
         Reverts a deployment to a single plane
         """
-
         util.logger.info("Reverting to a single plane")
 
-        revt_cmds = ["cd '/opt/retrofit",
-                     "./retrofit.py revert -i {0} -l {1} -o {2}".format(
-                         iface, lx_bridge, ovs_bridge)]
-        revt_cmd = "; ".join(revt_cmds)
+        revert_commands = ["cd '/opt/retrofit",
+                           "./retrofit.py revert -i {0} -l {1} -o {2}"
+                           "".format(iface, lx_bridge, ovs_bridge)]
+        revert_command = "; ".join(revert_commands)
 
         for controller in self.controllers:
-            controller.run_cmd(revt_cmd)
+            controller.run_cmd(revert_command)
 
         for compute in self.computes:
-            compute.run_cmd(revt_cmd)
+            compute.run_cmd(revert_command)
 
     def remove_port_from_bridge(self, ovs_bridge, del_port):
         """
@@ -117,7 +113,6 @@ class Retrofit(object):
         """
         Installs the retrofit repository
         """
-
         retro_git = util.config['rcbops']['retrofit']['git']['url']
         branches = util.config['rcbops']['retrofit']['git']['branches']
 
@@ -139,9 +134,8 @@ class Retrofit(object):
         """
         Check to make sure neutron is in the deployment
         """
-
         if not self.deployment.feature_in('neutron'):
-            error = "This build doesnt have Neutron/Quantum, cannot Retrofit"
+            error = "This build doesnt have Neutron/Quantum, cannot retrofit"
             util.logger.info(error)
             raise Exception(error)
 
@@ -149,7 +143,6 @@ class Retrofit(object):
         """
         Checks to see if os is supported
         """
-
         supported = util.config['rcbops']['retrofit']['supported']['os']
 
         if not self.deployment.os_name in supported:
@@ -162,7 +155,6 @@ class Retrofit(object):
         """
         Checks to see if bridge-util is installed on nodes
         """
-
         for controller in self.controllers:
             installed = controller.check_package('bridge-utils')['success']
             if not installed:

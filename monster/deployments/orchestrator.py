@@ -21,7 +21,8 @@ class Orchestrator:
         pass
 
     @classmethod
-    def get_deployment_from_file(cls, name, template, branch, provisioner, template_path):
+    def get_deployment_from_file(cls, name, template, branch, provisioner,
+                                 template_path):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment
@@ -137,7 +138,7 @@ class Orchestrator:
         nodes = deployment_args.get('nodes', [])
         for node in (ChefNode(n, local_api) for n in nodes):
             if not node.exists:
-                util.logger.error("Non existant chef node:{0}".
+                util.logger.error("Non-existent chef node: {0}".
                                   format(node.name))
                 continue
             cnode = MonsterChefNode.from_chef_node(node, product, environment,

@@ -10,7 +10,8 @@ from monster import util
 
 
 class Deployment(object):
-    """Base for OpenStack deployments
+    """
+    Base for OpenStack deployments
     """
 
     def __init__(self, name, os_name, branch, provisioner, status, product,
@@ -32,14 +33,14 @@ class Deployment(object):
         features = "\tFeatures: %s" % self.feature_names
         nodes = "\tNodes: %s" % self.node_names
 
-        outl = 'class: ' + self.__class__.__name__
+        output = 'class: ' + self.__class__.__name__
         for attr in self.__dict__:
             if isinstance(getattr(self, attr), types.NoneType):
-                outl += '\n\t{0} : {1}'.format(attr, 'None')
+                output += '\n\t{0} : {1}'.format(attr, 'None')
             else:
-                outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
+                output += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
 
-        return "\n".join([outl, features, nodes])
+        return "\n".join([output, features, nodes])
 
     def build(self):
         """
@@ -61,7 +62,6 @@ class Deployment(object):
         """
         Preconfigures node for each feature
         """
-
         util.logger.info("Building Configured Environment")
         self.status = "Loading environment..."
         for feature in self.features:
@@ -74,7 +74,6 @@ class Deployment(object):
         """
         Preconfigures node for each feature
         """
-
         self.status = "Pre-configuring nodes for features..."
         for feature in self.features:
             util.logger.debug("Deployment feature: pre-configure: {0}"
@@ -85,7 +84,6 @@ class Deployment(object):
         """
         Builds each node
         """
-
         self.status = "Building nodes..."
         for node in self.nodes:
             util.logger.debug("Building node {0}!".format(str(node)))
@@ -96,7 +94,6 @@ class Deployment(object):
         """
         Post configures node for each feature
         """
-
         self.status = "Post-configuration..."
         for feature in self.features:
             log = "Deployment feature: post-configure: {0}"\
@@ -108,7 +105,6 @@ class Deployment(object):
         """
         Destroys an OpenStack deployment
         """
-
         self.status = "Destroying..."
         util.logger.info("Destroying deployment: {0}".format(self.name))
         for node in self.nodes:
@@ -119,7 +115,6 @@ class Deployment(object):
         """
         Artifacts OpenStack and its dependant services for a deployment
         """
-
         # Run each features archive
         for feature in self.features:
             feature.archive()
@@ -151,7 +146,6 @@ class Deployment(object):
         """
         Creates an new tmux session with an window for each node
         """
-
         server = tmuxp.Server()
         session = server.new_session(session_name=self.name)
         cmd = ("sshpass -p {1} ssh -o UserKnownHostsFile=/dev/null "

@@ -159,6 +159,13 @@ def get_file(ip, user, password, remote, local, remote_delete=False):
         subprocess.call(cmd2, shell=True)
 
 
+def cloudcafe(cmd, name="autotest", network=None, config=None,
+              secret_path=None, log_level="INFO"):
+    util.set_log_level(log_level)
+    deployment = _load(name, config, secret_path)
+    CloudCafe(deployment).config(cmd, network_name=network)
+
+
 def artifact(name="autotest", config=None, log=None, secret_path=None,
              log_level="INFO"):
     """
@@ -208,22 +215,16 @@ def show(name="autotest", config=None, log=None, secret_path=None,
     Show details about an OpenStack deployment
     """
     util.set_log_level(log_level)
-    # load deployment and source openrc
     deployment = _load(name, config, secret_path)
     util.logger.info(str(deployment))
 
 
 def _load(name="autotest", config=None, secret_path=None):
-    # Load deployment and source openrc
+    """
+    Load deployment and source openrc
+    """
     util.config = Config(config, secret_path=secret_path)
     return Orchestrator.get_deployment_from_chef_env(name)
-
-
-def cloudcafe(cmd, name="autotest", network=None, config=None,
-              secret_path=None, log_level="INFO"):
-    util.set_log_level(log_level)
-    deployment = _load(name, config, secret_path)
-    CloudCafe(deployment).config(cmd, network_name=network)
 
 
 if __name__ == "__main__":
