@@ -214,8 +214,8 @@ def show(name="autotest", config=None, log=None, secret_path=None,
 
 
 def _load_config(config, secret_path):
-    if "config/" not in config:
-        config = "config/{}".format(config)
+    if "configs/" not in config:
+        config = "configs/{}".format(config)
     util.config = Config(config, secret_file_name=secret_path)
 
 
