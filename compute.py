@@ -36,7 +36,7 @@ def build(name="autotest", template="ubuntu-default", branch="master",
     util.set_log_level(log_level)
 
     # Provision deployment
-    util.config = Config(config, secret_path=secret_path)
+    util.config = Config(config, secret_file_name=secret_path)
     cprovisioner = get_provisioner(provisioner)
 
     util.logger.info("Building deployment object for {0}".format(name))
@@ -215,7 +215,7 @@ def show(name="autotest", config=None, log=None, secret_path=None,
 
 def _load(name="autotest", config=None, secret_path=None):
     # Load deployment and source openrc
-    util.config = Config(config, secret_path=secret_path)
+    util.config = Config(config, secret_file_name=secret_path)
     return MonsterChefDeployment.from_chef_environment(name)
 
 

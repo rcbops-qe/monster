@@ -7,20 +7,16 @@ from collections import defaultdict
 
 class Config(object):
     """Application config object"""
-    def __init__(self, file=None, secret_path=None):
-        from IPython import embed()
-        embed()
-        secret_path = secret_path or os.path.join(os.path.dirname(
-                                                  os.path.dirname(__file__)),
-                                                  "secret.yaml")
+    def __init__(self, template_file_name="config.yaml",
+                 secret_file_name="secret.yaml"):
+        secret_path = secret_file_name or os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), secret_file_name)
 
-        if not file:
-            file = os.path.join(os.path.dirname(__file__),
-                                os.pardir,
-                                'config.yaml')
+        template_path = os.path.join(os.path.dirname(os.path.dirname(
+            __file__)), 'config/{0}'.format(template_file_name))
 
-        f = open(file)
-        self.config = defaultdict(None, load(f))
+        template_file = open(template_path)
+        self.config = defaultdict(None, load(template_file))
 
         secret_file = open(secret_path)
         secrets = load(secret_file)
