@@ -37,27 +37,24 @@ class Orchestrator:
         """
         local_api = autoconfigure()
 
-        template_file = ""
         if branch == "master":
             template_file = "default"
         else:
-            template_file = branch.lstrip('v')
-            if "rc" in template_file:
-                template_file = template_file.rstrip("rc")
-            template_file = template_file.replace('.', '_')
+            template_file = branch.lstrip('v').rstrip("rc").replace('.', '_')
 
         if ChefEnvironment(name, api=local_api).exists:
             # Use previous dry build if exists
             util.logger.info("Using previous deployment:{0}".format(name))
             return cls.get_deployment_from_chef_env(name)
-        path = ""
-        if not template_path:
+
+        if template_path:
+            path = template_path
+        else:
             path = os.path.join(os.path.dirname(__file__),
                                 os.pardir, os.pardir,
-                                'templates/{0}.yaml'.format(
-                                    template_file))
-        else:
-            path = template_path
+                                "templates/{0}.yaml"
+                                "".format(template_file))
+
         try:
             template = Config(path)[template]
         except KeyError:
@@ -143,7 +140,7 @@ class Orchestrator:
                 continue
             cnode = MonsterChefNode.from_chef_node(node, product, environment,
                                                    deployment, provisioner,
-                                                   deployment_args['branch'])
+                                                   deployment_args["branch"])
             deployment.nodes.append(cnode)
         return deployment
 

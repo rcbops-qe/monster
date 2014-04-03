@@ -173,15 +173,15 @@ class Openstack(Provisioner):
             return self.build_instance(name=name, image=image, flavor=flavor)
         ip = server.accessIPv4
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sshup = False
-        while not sshup:
+        ssh_up = False
+        while not ssh_up:
             try:
                 s.settimeout(2)
                 s.connect((ip, 22))
                 s.close()
-                sshup = True
+                ssh_up = True
             except socket.error:
-                sshup = False
+                ssh_up = False
                 util.logger.debug("Waiting for ssh connection...")
                 sleep(1)
         return server, password
@@ -226,7 +226,7 @@ class Openstack(Provisioner):
     def wait_for_state(fun, obj, attr, desired, interval=15,
                        attempts=None):
         """
-        Waits for a desired state of an object using gevented sleep
+        Waits for a desired state of an object using gevent sleep
         :param fun: function to update object
         :type fun: function
         :param obj: object which to check state

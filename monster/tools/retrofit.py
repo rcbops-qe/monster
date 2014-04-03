@@ -6,7 +6,6 @@ from monster import util
 
 
 class Retrofit(object):
-
     def __init__(self, deployment):
         self.deployment = deployment
         self.controllers = list(self.deployment.search_role('controller'))
@@ -45,17 +44,17 @@ class Retrofit(object):
         """
         util.logger.info("Bootstrapping to separate plane")
 
-        # bootstrap cmd
-        bstrap_cmds = ['cd /opt/retrofit',
-                       './retrofit.py bootstrap -i {0} -l {1} -o {2}'.format(
-                           iface, lx_bridge, ovs_bridge)]
-        bstrap_cmd = "; ".join(bstrap_cmds)
+        # bootstrap command
+        bootstrap_commands = ["cd /opt/retrofit",
+                              "./retrofit.py bootstrap -i {0} -l {1} -o {2}"
+                              "".format(iface, lx_bridge, ovs_bridge)]
+        bootstrap_command = "; ".join(bootstrap_commands)
 
         for controller in self.controllers:
-            controller.run_cmd(bstrap_cmd)
+            controller.run_cmd(bootstrap_command)
 
         for compute in self.computes:
-            compute.run_cmd(bstrap_cmd)
+            compute.run_cmd(bootstrap_command)
 
     def convert(self, iface, lx_bridge, ovs_bridge):
         """
@@ -98,8 +97,8 @@ class Retrofit(object):
 
         util.logger.info(
             ("Removing old OVS port:{0} from OVS bridge: "
-             "{1} on deployment: {2}".format(
-                 del_port, ovs_bridge, self.deployment.name)))
+             "{1} on deployment: {2}"
+             "".format(del_port, ovs_bridge, self.deployment.name)))
 
         remove_cmd = "ovs-vsctl del-port {0} {1}".format(ovs_bridge, del_port)
 
@@ -121,14 +120,13 @@ class Retrofit(object):
             util.logger.info(error)
             raise Exception(error)
 
-        # clone repo
-        clone_cmds = ['cd /opt',
-                      'rm -rf retrofit',
-                      'git clone -b {0} {1}'.format(branch, retro_git)]
+        clone_commands = ["cd /opt",
+                          "rm -rf retrofit",
+                          "git clone -b {0} {1}"
+                          "".format(branch, retro_git)]
 
-        clone_cmd = "; ".join(clone_cmds)
-
-        node.run_cmd(clone_cmd)
+        clone_command = "; ".join(clone_commands)
+        node.run_cmd(clone_command)
 
     def _check_neutron(self):
         """

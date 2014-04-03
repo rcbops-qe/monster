@@ -21,7 +21,7 @@ class Deployment(object):
         self.branch = branch
         self.features = []
         self.nodes = []
-        self.status = status or "Provisioning..."  # i don't like this default
+        self.status = status or "Provisioning..."
         self.provisioner = str(provisioner)
         self.product = product
         self.clients = clients
@@ -161,7 +161,7 @@ class Deployment(object):
     def feature_names(self):
         """
         Returns list of features as strings
-        :rtype: list (string)
+        :rtype: list (str)
         """
         return [feature.__class__.__name__.lower() for feature in
                 self.features]
@@ -170,7 +170,7 @@ class Deployment(object):
     def node_names(self):
         """
         Returns list of nodes as strings
-        :rtype: list (string)
+        :rtype: list (str)
         """
         return [str(node) for node in self.nodes]
 
