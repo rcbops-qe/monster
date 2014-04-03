@@ -9,7 +9,7 @@ import traceback
 
 from monster import util
 from monster.config import Config
-from monster.deployments.orchestrator import Orchestrator
+from monster.deployments.deployment_orchestrator import DeploymentOrchestrator
 from monster.provisioners import provisioner as provisioners
 
 
@@ -25,7 +25,7 @@ def build(name="autotest", branch="master", provisioner="rackspace",
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    deployment = Orchestrator.get_deployment_from_file(name, branch,
+    deployment = DeploymentOrchestrator.get_deployment_from_file(name, branch,
                                                        cprovisioner,
                                                        template_path)
     if dry:
@@ -95,7 +95,7 @@ def _load(name="autotest", config=None, provisioner="razor"):
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    return Orchestrator.get_deployment_from_chef_env(environment=cprovisioner)
+    return DeploymentOrchestrator.get_deployment_from_chef_env(environment=cprovisioner)
 
 
 # Main

@@ -16,7 +16,7 @@ from monster.environments.chef_environment import Chef as \
     MonsterChefEnvironment
 
 
-class Orchestrator:
+class DeploymentOrchestrator:
     @classmethod
     def get_deployment_from_file(cls, name, template, branch, provisioner,
                                  template_path=None):
@@ -65,10 +65,9 @@ class Orchestrator:
         os_name = template['os']
         product = template['product']
 
-        deployment = Orchestrator.deployment_config(template['features'], name,
-                                                    os_name, branch,
-                                                    environment, provisioner,
-                                                    product=product)
+        deployment = cls.deployment_config(template['features'], name,
+                                           os_name, branch, environment,
+                                           provisioner, product=product)
 
         # provision nodes
         chef_nodes = provisioner.provision(template, deployment)
@@ -86,8 +85,8 @@ class Orchestrator:
 
         return deployment
 
-    @staticmethod
-    def get_deployment_from_chef_env(environment):
+    @classmethod
+    def get_deployment_from_chef_env(cls, environment):
         """
         Rebuilds a Deployment given a chef environment
         :param environment: name of environment
@@ -124,10 +123,9 @@ class Orchestrator:
         provisioner_name = deployment_args.get('provisioner', "razor2")
         provisioner = get_provisioner(provisioner_name)
 
-        deployment = Orchestrator.deployment_config(features, name, os_name,
-                                                    branch, environment,
-                                                    provisioner, status,
-                                                    product=product)
+        deployment = cls.deployment_config(features, name, os_name, branch,
+                                           environment, provisioner, status,
+                                           product)
 
         nodes = deployment_args.get('nodes', [])
         for node in (ChefNode(n, local_api) for n in nodes):

@@ -16,7 +16,7 @@ from monster.tests.cloudcafe import CloudCafe
 from monster.provisioners.util import get_provisioner
 from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
-from monster.deployments.orchestrator import Orchestrator
+from monster.deployments.deployment_orchestrator import DeploymentOrchestrator
 
 if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
     util.logger.warning("You are not using the virtual environment! We "
@@ -40,7 +40,7 @@ def build(name="autotest", template="ubuntu-default", branch="master",
     cprovisioner = get_provisioner(provisioner)
 
     util.logger.info("Building deployment object for {0}".format(name))
-    deployment = Orchestrator.get_deployment_from_file(
+    deployment = DeploymentOrchestrator.get_deployment_from_file(
         name, template, branch, cprovisioner, template_path)
 
     if dry:
@@ -224,7 +224,7 @@ def _load(name="autotest", config=None, secret_path=None):
     Load deployment and source openrc
     """
     util.config = Config(config, secret_path=secret_path)
-    return Orchestrator.get_deployment_from_chef_env(name)
+    return DeploymentOrchestrator.get_deployment_from_chef_env(name)
 
 
 if __name__ == "__main__":
