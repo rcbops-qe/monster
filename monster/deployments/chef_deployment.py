@@ -32,14 +32,8 @@ class ChefDeployment(Deployment):
         self.has_controller = False
         self.has_orch_master = False
 
-    def __repr__(self):
-        return {'nodes': self.nodes, 'features': self.features,
-                'name': self.name, 'os_name': self.os_name,
-                'branch': self.branch, 'status': self.status,
-                'product': self.product, 'provisioner': self.provisioner}
-
     def __str__(self):
-        return str(self.__repr__())
+        return str(self.to_dict)
 
     def build(self):
         """
@@ -53,18 +47,7 @@ class ChefDeployment(Deployment):
         """
         Save deployment restore attributes to chef environment
         """
-
-        features = {key: value for (key, value) in
-                    ((str(x).lower(), x.rpcs_feature) for x in self.features)}
-        nodes = [n.name for n in self.nodes]
-        deployment = {'nodes': nodes,
-                      'features': features,
-                      'name': self.name,
-                      'os_name': self.os_name,
-                      'branch': self.branch,
-                      'status': self.status,
-                      'product': self.product,
-                      'provisioner': self.provisioner}
+        deployment = self.to_dict
         self.environment.add_override_attr('deployment', deployment)
 
     def get_upgrade(self, branch_name):
@@ -72,7 +55,7 @@ class ChefDeployment(Deployment):
         This will return an instance of the correct upgrade class
         :param branch_name: The name of the provisioner
         :type branch_name: str
-        :rtype: object
+        :rtype: ChefDeployment
         """
 
         # convert branch into a list of int strings
@@ -182,6 +165,16 @@ class ChefDeployment(Deployment):
         if "vips" in self.environment.override_attributes:
             ip = self.environment.override_attributes['vips']['nova-api']
         return ip
+
+    @property
+    def to_dict(self):
+        features = {key: value for (key, value) in
+                    ((str(x).lower(), x.rpcs_feature) for x in self.features)}
+        nodes = [n.name for n in self.nodes]
+        return {'nodes': nodes, 'features': features,
+                'name': self.name, 'os_name': self.os_name,
+                'branch': self.branch, 'status': self.status,
+                'product': self.product, 'provisioner': self.provisioner}
 
     @property
     def openstack_clients(self):

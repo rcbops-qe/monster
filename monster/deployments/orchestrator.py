@@ -17,12 +17,9 @@ from monster.environments.chef_environment import Chef as \
 
 
 class Orchestrator:
-    def __init__(self):
-        pass
-
     @classmethod
     def get_deployment_from_file(cls, name, template, branch, provisioner,
-                                 template_path):
+                                 template_path=None):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment

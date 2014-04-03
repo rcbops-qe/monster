@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 
-""" Command Line interface for Building Openstack Swift clusters
+"""
+Command Line interface for Building Openstack Swift clusters
 """
 import sys
 import argh
@@ -8,23 +9,25 @@ import traceback
 
 from monster import util
 from monster.config import Config
-from monster.deployments.chef_deployment import ChefDeployment
+from monster.deployments.orchestrator import Orchestrator
 from monster.provisioners import provisioner as provisioners
 
 
 def build(name="autotest", branch="master", provisioner="rackspace",
           template_path=None, config=None, destroy=False,
           dry=False, log=None, log_level="INFO"):
-
-    """ Builds an OpenStack Swift storage cluster
+    """
+    Builds an OpenStack Swift storage cluster
     """
     util.set_log_level(log_level)
 
-    # provisiong deployment
+    # provision deployment
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    deployment = ChefDeployment.fromfile(name, branch, cprovisioner, template_path)
+    deployment = Orchestrator.get_deployment_from_file(name, branch,
+                                                       cprovisioner,
+                                                       template_path)
     if dry:
         # build environment
         try:
@@ -50,9 +53,9 @@ def build(name="autotest", branch="master", provisioner="rackspace",
 
 
 def destroy(name="autotest", config=None, log=None, log_level="INFO"):
-    """ Tears down a OpenStack Storage cluster
     """
-
+    Tears down a OpenStack Storage cluster
+    """
     util.set_log_level(log_level)
     deployment = _load(name, config)
     util.logger.info(deployment)
@@ -92,7 +95,7 @@ def _load(name="autotest", config=None, provisioner="razor"):
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    return ChefDeployment.from_chef_environment(environment=cprovisioner)
+    return Orchestrator.get_deployment_from_chef_env(environment=cprovisioner)
 
 
 # Main

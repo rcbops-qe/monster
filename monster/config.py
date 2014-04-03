@@ -9,7 +9,7 @@ class Config(object):
     """Application config object"""
     def __init__(self, file_path=None, secret_path=None):
         secret_path = secret_path or os.path.join(os.path.dirname(__file__),
-                                                  'secret.yaml')
+                                                  os.pardir, 'secret.yaml')
         file_path = file_path or os.path.join(os.path.dirname(__file__),
                                               os.pardir, 'config.yaml')
 
