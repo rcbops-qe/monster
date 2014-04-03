@@ -8,6 +8,8 @@ from collections import defaultdict
 class Config(object):
     """Application config object"""
     def __init__(self, file=None, secret_path=None):
+        from IPython import embed()
+        embed()
         secret_path = secret_path or os.path.join(os.path.dirname(
                                                   os.path.dirname(__file__)),
                                                   "secret.yaml")
