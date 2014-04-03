@@ -99,6 +99,7 @@ class Build(object):
                     sleep(1)
                     current_try += 1
                 except:
+                    util.logger.debug(Color.green("{0} has been deleted (really)".format(self.name)))
                     really_deleted = True
                     deleted = True
 
