@@ -10,13 +10,12 @@ Use:
 
 from monster import util
 from monster.config import Config
-from monster.deployments.chef_deployment import ChefDeployment
+from monster.deployments.deployment_orchestrator import DeploymentOrchestrator
 
 
 def load(name, config="config.yaml"):
     """
     Load function for iPython
     """
-
     util.config = Config(config)
-    return ChefDeployment.from_chef_environment(name)
+    return DeploymentOrchestrator.get_deployment_from_chef_env(name)
