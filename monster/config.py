@@ -7,13 +7,13 @@ from collections import defaultdict
 
 class Config(object):
     """Application config object"""
-    def __init__(self, template_file_name="config.yaml",
+    def __init__(self, template_path_from_project_root=None,
                  secret_file_name="secret.yaml"):
         secret_path = secret_file_name or os.path.join(
             os.path.dirname(os.path.dirname(__file__)), secret_file_name)
 
         template_path = os.path.join(os.path.dirname(os.path.dirname(
-            __file__)), 'config/{0}'.format(template_file_name))
+            __file__)), template_path_from_project_root)
 
         template_file = open(template_path)
         self.config = defaultdict(None, load(template_file))

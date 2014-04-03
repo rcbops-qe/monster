@@ -213,9 +213,10 @@ def show(name="autotest", config=None, log=None, secret_path=None,
     util.logger.info(str(deployment))
 
 
-def _load(name="autotest", config=None, secret_path=None):
+def _load(name="autotest", config="config.yaml", secret_path=None):
     # Load deployment and source openrc
-    util.config = Config(config, secret_file_name=secret_path)
+    config_path = "config/{}".format(config)
+    util.config = Config(config_path, secret_file_name=secret_path)
     return MonsterChefDeployment.from_chef_environment(name)
 
 
