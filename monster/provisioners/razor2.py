@@ -28,8 +28,8 @@ class Razor2(Provisioner):
         """
         util.logger.info("Provisioning with Razor!")
         image = deployment.os_name
-        self.nodes.append([self.available_node(image, deployment)
-                           for _ in template['nodes']])
+        self.nodes += [self.available_node(image, deployment)
+                       for _ in template['nodes']]
         return self.nodes
 
     def available_node(self, image, deployment):
