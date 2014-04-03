@@ -120,8 +120,6 @@ environments:
                 provider_networks:
                   - {bridge: "br-vmnet", vlans: "867:867", label: "ph-vmnet"}
         quantum:
-            lbaas:
-                enabled: true
             ovs:
                 external_bridge: br-int
                 network_type: gre
@@ -150,6 +148,7 @@ environments:
         nova-novnc-proxy: 10.127.101.67
         nova-xvpvnc-proxy: 10.127.101.67
         neutron-api: 10.127.101.67
+        quantum-api: 10.127.101.67
         swift-proxy: 10.127.101.67
         ceilometer-api: 10.127.101.67
         ceilometer-central-agent: 10.127.101.67

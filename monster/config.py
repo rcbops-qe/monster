@@ -15,7 +15,7 @@ class Config(object):
         if not file:
             file = os.path.join(os.path.dirname(__file__),
                                 os.pardir,
-                                'configs/default.yaml')
+                                'default.yaml')
 
         f = open(file)
         self.config = defaultdict(None, load(f))
