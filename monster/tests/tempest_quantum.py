@@ -116,11 +116,11 @@ class TempestQuantum(Test):
         """
         Creates a router, network, and gets image, returns their ids
         :param url: authentication url
-        :type url: string
+        :type url: str
         :param user: user authenticate with
-        :type user: string
+        :type user: str
         :param password: password to authenticate user
-        :type password: string
+        :type password: str
         :rtype: dict
         """
 
@@ -180,7 +180,7 @@ class TempestQuantum(Test):
         @param paths: list
         """
 
-        # clone tempest
+        # clone Tempest
         tempest_dir = util.config['tests']['tempest']['dir']
         checkout = "cd {0}; git checkout stable/grizzly".format(tempest_dir)
         node.run_cmd(checkout)
@@ -273,7 +273,7 @@ class TempestQuantum(Test):
             self.test_node.run_cmd("apt-get install -y screen python-dev "
                                    "libxml2 libxslt1-dev libpq-dev python-pip")
 
-        # install python requirements for Tempest
+        # install Python requirements for Tempest
         tempest_dir = util.config['tests']['tempest']['dir']
         install_cmd = ("pip install -r "
                        "{0}/tools/pip-requires").format(tempest_dir)

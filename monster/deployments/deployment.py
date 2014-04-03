@@ -132,7 +132,7 @@ class Deployment(object):
         """
         Returns nodes the have the desired role
         :param feature_name: feature to be searched for
-        :type feature_name: string
+        :type feature_name: str
         :rtype: Iterator (Nodes)
         """
         return (node for node in self.nodes if feature_name in
@@ -142,8 +142,8 @@ class Deployment(object):
         """
         Boolean function to determine if a feature exists in deployment
         :param feature: feature to be searched for
-        :type feature: string
-        :rtype: Boolean
+        :type feature: str
+        :rtype: bool
         """
         return feature in self.feature_names
 
@@ -180,7 +180,8 @@ class Deployment(object):
         """
         return [str(node) for node in self.nodes]
 
-    def retrofit(self, branch, ovs_bridge, lx_bridge, iface, del_port=None):
+    def retrofit(self, branch, ovs_bridge, lx_bridge, iface,
+                 old_port_to_delete=None):
         """
         Retrofit the deployment
         """
@@ -190,11 +191,8 @@ class Deployment(object):
         retrofit = Retrofit(self)
 
         # if old port exists, remove it
-        if del_port:
-            retrofit.remove_port_from_bridge(ovs_bridge, del_port)
+        if old_port_to_delete:
+            retrofit.remove_port_from_bridge(ovs_bridge, old_port_to_delete)
 
-        # Install
         retrofit.install(branch)
-
-        # Bootstrap
         retrofit.bootstrap(iface, lx_bridge, ovs_bridge)
