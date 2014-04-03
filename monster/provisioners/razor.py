@@ -29,7 +29,7 @@ class Razor(Provisioner):
         util.logger.info("Provisioning with Razor!")
         image = deployment.os_name
         self.nodes.append([self.available_node(image, deployment)
-                for _ in template['nodes']])
+                          for _ in template['nodes']])
         return self.nodes
 
     def available_node(self, image, deployment):
@@ -47,7 +47,7 @@ class Razor(Provisioner):
         for node in nodes:
             is_default = node.chef_environment == "_default"
             iface_in_run_list = "recipe[network-interfaces]" in node.run_list
-            if (is_default and iface_in_run_list):
+            if is_default and iface_in_run_list:
                 node.chef_environment = deployment.environment.name
                 node['in_use'] = "provisioning"
                 node.save()
@@ -116,7 +116,7 @@ class Razor(Provisioner):
         while not search and tries > 0:
             search = Search("node", api=api).query(query)
             sleep(10)
-            tries = tries - 1
+            tries -= 1
         return (n.object for n in search)
 
 

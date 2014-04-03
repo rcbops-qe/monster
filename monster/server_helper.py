@@ -16,7 +16,7 @@ class Command(object):
 
 def run_cmd(command):
     """
-    @param cmd
+    @param command
     @return A map based on pass / fail run info
     """
     util.logger.info("Running: {0}".format(command))
@@ -30,7 +30,7 @@ def run_cmd(command):
                 'command': command}
 
 
-def ssh_cmd(ip, remote_cmd, user='root', password=None):
+def ssh_cmd(server_ip, remote_cmd, user='root', password=None):
     """
     @param server_ip
     @param user
@@ -42,7 +42,7 @@ def ssh_cmd(ip, remote_cmd, user='root', password=None):
     error = StringIO()
     ssh = SSHClient()
     ssh.set_missing_host_key_policy(WarningPolicy())
-    ssh.connect(ip, username=user, password=password, allow_agent=False)
+    ssh.connect(server_ip, username=user, password=password, allow_agent=False)
     stdin, stdout, stderr = ssh.exec_command(remote_cmd)
     stdin.close()
     for line in stdout:
@@ -65,6 +65,8 @@ def ssh_cmd(ip, remote_cmd, user='root', password=None):
 def scp_to(ip, local_path, user='root', password=None, remote_path=""):
     """
     Send a file to a server
+    @param local_path: file on localhost to copy
+    @param remote_path: destination to copy to
     """
     ssh = SSHClient()
     ssh.set_missing_host_key_policy(WarningPolicy())
@@ -75,8 +77,8 @@ def scp_to(ip, local_path, user='root', password=None, remote_path=""):
 
 def scp_from(ip, remote_path, user='root', password=None, local_path=""):
     """
-    @param path_to_file: file to copy
-    @param copy_location: place on localhost to place file
+    @param remote_path: file to copy
+    @param local_path: place on localhost to place file
     """
     ssh = SSHClient()
     ssh.set_missing_host_key_policy(WarningPolicy())

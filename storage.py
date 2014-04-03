@@ -26,8 +26,8 @@ def build(name="autotest", branch="master", provisioner="rackspace",
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
     deployment = DeploymentOrchestrator.get_deployment_from_file(name, branch,
-                                                       cprovisioner,
-                                                       template_path)
+                                                                 cprovisioner,
+                                                                 template_path)
     if dry:
         # build environment
         try:
@@ -65,10 +65,7 @@ def destroy(name="autotest", config=None, log=None, log_level="INFO"):
 def test(name="autotest", config=None, log=None, log_level="INFO"):
     """ Tests a OpenStack Storage cluster
     """
-
-    util.set_log_level(log_level)
-    deployment = _load(name, config)
-    deployment.test()
+    raise NotImplementedError
 
 
 def openrc(name="autotest", config=None, log=None, log_level="INFO"):
@@ -95,7 +92,8 @@ def _load(name="autotest", config=None, provisioner="razor"):
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    return DeploymentOrchestrator.get_deployment_from_chef_env(environment=cprovisioner)
+    return DeploymentOrchestrator.get_deployment_from_chef_env(
+        environment=cprovisioner)
 
 
 # Main

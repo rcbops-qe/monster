@@ -23,7 +23,7 @@ class CloudCafe(Test):
         users = keystone['users']
         password = users[user]['password']
         tenant = users[user]['roles']['admin'][0]
-        return (user, password, tenant)
+        return user, password, tenant
 
     def get_non_admin_user(self):
         override = self.deployment.environment.override_attributes
@@ -34,7 +34,7 @@ class CloudCafe(Test):
         user = next(non_admin_users)
         password = users[user]['password']
         tenant = users[user]['roles']['Member'][0]
-        return (user, password, tenant)
+        return user, password, tenant
 
     def get_image_ids(self):
         nova = self.deployment.openstack_clients.novaclient
@@ -49,14 +49,14 @@ class CloudCafe(Test):
         except StopIteration:
             # Only one image
             image_id2 = image_id1
-        return (image_id1, image_id2)
+        return image_id1, image_id2
 
     def get_admin_ids(self, user, tenant, project):
         keystone = self.deployment.openstack_clients.keystoneclient
         user_id = keystone.user_id
         tenant_id = keystone.tenant_id
         project_id = keystone.project_id
-        return (tenant_id, user_id, project_id)
+        return tenant_id, user_id, project_id
 
     def get_network_id(self, network_name):
         neutron = self.deployment.openstack_clients.neutronclient

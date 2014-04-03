@@ -105,7 +105,7 @@ class Node(object):
 
     def scp_from(self, remote_path, user=None, password=None, local_path=""):
         """
-        Retreives a file from the node
+        Retrieves a file from the node
         """
         user = user or self.user
         password = password or self.password

@@ -171,7 +171,7 @@ class TempestNeutron(Test):
         """
         Runs tests from node
         @param xunit: Produce xunit report
-        @type xunit: Boolean
+        @type xunit: bool
         @param tags: Tags to pass the nosetests
         @type tags: list
         @param exclude: Expressions to exclude
