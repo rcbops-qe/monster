@@ -21,7 +21,7 @@ class Orchestrator:
         pass
 
     @classmethod
-    def from_file(cls, name, template, branch, provisioner, template_path):
+    def get_deployment_from_file(cls, name, template, branch, provisioner, template_path):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment
@@ -48,7 +48,7 @@ class Orchestrator:
         if ChefEnvironment(name, api=local_api).exists:
             # Use previous dry build if exists
             util.logger.info("Using previous deployment:{0}".format(name))
-            return cls.from_chef_environment(name)
+            return cls.get_deployment_from_chef_env(name)
         path = ""
         if not template_path:
             path = os.path.join(os.path.dirname(__file__),
@@ -92,7 +92,7 @@ class Orchestrator:
         return deployment
 
     @staticmethod
-    def from_chef_environment(environment):
+    def get_deployment_from_chef_env(environment):
         """
         Rebuilds a Deployment given a chef environment
         :param environment: name of environment

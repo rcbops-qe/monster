@@ -8,8 +8,8 @@ from monster.provisioners.util import get_provisioner
 
 class Chef(Node):
     """
-    A chef entity
-    Provides chef related server fuctions
+    A Chef entity
+    Provides chef related server functions
     """
     def __init__(self, ip, user, password, product, environment, deployment,
                  name, provisioner, branch, status=None, run_list=None):

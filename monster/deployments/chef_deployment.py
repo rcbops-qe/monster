@@ -152,7 +152,7 @@ class ChefDeployment(Deployment):
 
     def openrc(self):
         """
-        Opens a new shell with variables loaded for novaclient
+        Opens a new shell with variables loaded for nova-client
         """
 
         user_name = self.environment.override_attributes['keystone'][
@@ -186,7 +186,7 @@ class ChefDeployment(Deployment):
     @property
     def openstack_clients(self):
         """
-        Setup openstack clients generator for deployment
+        Setup OpenStack clients generator for deployment
         """
 
         override = self.environment.override_attributes
@@ -205,7 +205,7 @@ class ChefDeployment(Deployment):
     @property
     def rabbitmq_mgmt_client(self):
         """
-        Return rabbitmq mgmt client
+        Return rabbitmq management client
         """
         overrides = self.environment.override_attributes
         if 'vips' in overrides:

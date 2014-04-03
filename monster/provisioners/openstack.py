@@ -11,7 +11,7 @@ from monster.server_helper import run_cmd
 
 class Openstack(Provisioner):
     """
-    Provisions chef nodes in openstack vms
+    Provisions Chef nodes in OpenStack vms
     """
     def __init__(self):
         self.names = []
@@ -37,7 +37,7 @@ class Openstack(Provisioner):
             self.name_index[name] = num
             return "{0}-{1}{2}".format(deployment.name, name, num)
 
-        # Name doesn't exist initalize index use name
+        # Name doesn't exist initialize index use name
         self.name_index[name] = 1
         return "{0}-{1}".format(deployment.name, name)
 
@@ -83,8 +83,8 @@ class Openstack(Provisioner):
 
     def chef_instance(self, deployment, name, flavor="2GBP"):
         """
-        Builds an instance with desired specs and inits it with chef
-        :param deployment: deployement to add to
+        Builds an instance with desired specs and initializes it with Chef
+        :param deployment: deployment to add to
         :type deployment: ChefDeployment
         :param name: name for instance
         :type name: string
@@ -197,7 +197,7 @@ class Openstack(Provisioner):
         :type attr: string
         :param desired: desired value of object's attribute
         :type desired: object
-        :param attempts: number of attempts to acheive state
+        :param attempts: number of attempts to achieve state
         :type attempts: int
         :param interval: time between attempts
         :type interval: int
@@ -237,7 +237,7 @@ class Openstack(Provisioner):
         :type desired: list of str
         :param interval: interval to check state in secs
         :param interval: int
-        :param attempts: number of attempts to acheive state
+        :param attempts: number of attempts to achieve state
         :type attempts: int
         :rtype: obj
         """

@@ -16,8 +16,6 @@ from monster.tests.cloudcafe import CloudCafe
 from monster.provisioners.util import get_provisioner
 from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
-from monster.deployments.chef_deployment import ChefDeployment as \
-    MonsterChefDeployment
 from monster.deployments.orchestrator import Orchestrator
 
 if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
@@ -42,7 +40,7 @@ def build(name="autotest", template="ubuntu-default", branch="master",
     cprovisioner = get_provisioner(provisioner)
 
     util.logger.info("Building deployment object for {0}".format(name))
-    deployment = Orchestrator.from_file(
+    deployment = Orchestrator.get_deployment_from_file(
         name, template, branch, cprovisioner, template_path)
 
     if dry:
@@ -218,7 +216,7 @@ def show(name="autotest", config=None, log=None, secret_path=None,
 def _load(name="autotest", config=None, secret_path=None):
     # Load deployment and source openrc
     util.config = Config(config, secret_path=secret_path)
-    return Orchestrator.from_chef_environment(name)
+    return Orchestrator.get_deployment_from_chef_env(name)
 
 
 def cloudcafe(cmd, name="autotest", network=None, config=None,
