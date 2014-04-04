@@ -43,12 +43,11 @@ class DeploymentOrchestrator:
             return cls.get_deployment_from_chef_env(name)
         environment = MonsterChefEnvironment(name, local_api, description=name)
         template = Config.fetch_template(template, branch)
-        os_name = template['os']
-        product = template['product']
 
-        deployment = cls.deployment_config(template['features'], name,
-                                           os_name, branch, environment,
-                                           provisioner, product=product)
+        os, product, features = template.fetch('os', 'product', 'features')
+
+        deployment = cls.deployment_config(features, name, os, branch,
+                                           environment, provisioner, product)
 
         # provision nodes
         chef_nodes = provisioner.provision(template, deployment)
@@ -100,14 +99,12 @@ class DeploymentOrchestrator:
         features = deployment_args.get('features', {})
         os_name = deployment_args.get('os_name', None)
         branch = deployment_args.get('branch', None)
-        status = deployment_args.get('status', "provisioning")
         product = deployment_args.get('product', None)
         provisioner_name = deployment_args.get('provisioner', "razor2")
         provisioner = get_provisioner(provisioner_name)
 
         deployment = cls.deployment_config(features, name, os_name, branch,
-                                           environment, provisioner, status,
-                                           product)
+                                           environment, provisioner, product)
 
         nodes = deployment_args.get('nodes', [])
         for node in (ChefNode(n, local_api) for n in nodes):
@@ -123,7 +120,7 @@ class DeploymentOrchestrator:
 
     @staticmethod
     def deployment_config(features, name, os_name, branch, environment,
-                          provisioner, status=None, product=None):
+                          provisioner, product=None):
         """
         Returns deployment given dictionaries of features
         :param features: dictionary of features {"monitoring": "default", ...}
@@ -138,14 +135,12 @@ class DeploymentOrchestrator:
         :type environment: ChefEnvironment
         :param provisioner: provisioner to deploy nodes
         :type provisioner: Provisioner
-        :param status: initial status of deployment
-        :type status: string
         :param product: name of rcbops product - compute, storage
         :type product: string
         :rtype: ChefDeployment
         """
 
-        status = status or "provisioning"
+        status = "provisioning"
         deployment = ChefDeployment(name, os_name, branch, environment,
                                     provisioner, status, product)
         deployment.add_features(features)

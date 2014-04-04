@@ -5,6 +5,7 @@ import os
 from monster import util
 from yaml import load
 from collections import defaultdict
+from monster.template import Template
 
 
 class Config(object):
@@ -26,6 +27,11 @@ class Config(object):
 
     @classmethod
     def fetch_template(cls, template_name, branch):
+        """
+        :param template_name
+        :param branch
+        :return: Template
+        """
         if branch == "master":
             template_file = "default"
         else:
@@ -35,8 +41,7 @@ class Config(object):
                             "templates/{0}.yaml".format(template_file))
 
         try:
-            template = Config(path)[template_name]
-            print template
+            template = Template(Config(path)[template_name])
         except KeyError:
             util.logger.critical("Looking for the template {0} in the file: "
                                  "\n{1}\n The key was not found!"
