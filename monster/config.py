@@ -25,21 +25,18 @@ class Config(object):
         return self.config[name]
 
     @classmethod
-    def fetch_template(cls, template_path, branch):
+    def fetch_template(cls, template_name, branch):
         if branch == "master":
             template_file = "default"
         else:
             template_file = branch.lstrip('v').rstrip("rc").replace('.', '_')
 
-        if template_path:
-            path = template_path
-        else:
-            path = os.path.join(os.path.dirname(__file__), os.pardir,
-                                "templates/{0}.yaml"
-                                "".format(template_file))
+        path = os.path.join(os.path.dirname(__file__), os.pardir,
+                            "templates/{0}.yaml".format(template_file))
 
         try:
-            template = Config(path)[template_file]
+            template = Config(path)[template_name]
+            print template
         except KeyError:
             util.logger.critical("Looking for the template {0} in the file: "
                                  "\n{1}\n The key was not found!"

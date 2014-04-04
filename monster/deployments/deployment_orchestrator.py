@@ -18,8 +18,8 @@ from monster.environments.chef_environment import Chef as \
 
 class DeploymentOrchestrator:
     @classmethod
-    def get_deployment_from_file(cls, name, template, branch, provisioner_name,
-                                 template_path=None):
+    def get_deployment_from_file(cls, name, template, branch,
+                                 provisioner_name):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment
@@ -42,7 +42,7 @@ class DeploymentOrchestrator:
             util.logger.info("Using previous deployment:{0}".format(name))
             return cls.get_deployment_from_chef_env(name)
         environment = MonsterChefEnvironment(name, local_api, description=name)
-        template = Config.fetch_template(template_path, branch)
+        template = Config.fetch_template(template, branch)
         os_name = template['os']
         product = template['product']
 
