@@ -35,37 +35,14 @@ class DeploymentOrchestrator:
         local_api = autoconfigure()
         provisioner = get_provisioner(provisioner_name)
 
-            # Provision deployment
         util.logger.info("Building deployment object for {0}".format(name))
-
-        if branch == "master":
-            template_file = "default"
-        else:
-            template_file = branch.lstrip('v').rstrip("rc").replace('.', '_')
 
         if ChefEnvironment(name, api=local_api).exists:
             # Use previous dry build if exists
             util.logger.info("Using previous deployment:{0}".format(name))
             return cls.get_deployment_from_chef_env(name)
-
-        if template_path:
-            path = template_path
-        else:
-            path = os.path.join(os.path.dirname(__file__),
-                                os.pardir, os.pardir,
-                                "templates/{0}.yaml"
-                                "".format(template_file))
-
-        try:
-            template = Config(path)[template]
-        except KeyError:
-            util.logger.critical("Looking for the template {0} in the file: "
-                                 "\n{1}\n The key was not found!"
-                                 .format(template, path))
-            exit(1)
-
         environment = MonsterChefEnvironment(name, local_api, description=name)
-
+        template = Config.fetch_template(template_path, branch)
         os_name = template['os']
         product = template['product']
 
@@ -77,7 +54,8 @@ class DeploymentOrchestrator:
         chef_nodes = provisioner.provision(template, deployment)
         for node in chef_nodes:
             cnode = MonsterChefNode.from_chef_node(node, product, environment,
-                                                   deployment, provisioner_name,
+                                                   deployment,
+                                                   provisioner_name,
                                                    branch)
             provisioner.post_provision(cnode)
             deployment.nodes.append(cnode)
