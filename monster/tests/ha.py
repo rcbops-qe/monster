@@ -78,7 +78,8 @@ class Build(object):
 
             max_tries = 60
             current_try = 1
-            # If "No server" is not found in the return, then the server has not yet been deleted...
+            # If "No server" is not found in the return, then the server
+            # has not yet been deleted...
             deleted = True
             really_deleted = False
             while not really_deleted:
@@ -88,7 +89,7 @@ class Build(object):
                         # Force kill RabbitMQ server and start it back up
                         util.logger.error(Color.red("Server deletion is hung"))
                         progress.update("Progress")
-                        self.kill_the_wabbit(node_up, node_down)
+                        self.kill_the_wabbit(node1, node2)
                         deleted = False
                         break
 
@@ -99,7 +100,9 @@ class Build(object):
                     sleep(1)
                     current_try += 1
                 except:
-                    util.logger.debug(Color.green("{0} has been deleted (really)".format(self.name)))
+                    util.logger.debug(Color.green("{0} has been deleted "
+                                                  "(really)".
+                                                  format(self.name)))
                     really_deleted = True
                     deleted = True
 
@@ -299,7 +302,8 @@ class HATest(Test):
                 node.power_on()
                 rebootable = True
             except:
-                util.logger.warning(Color.yellow("Unable to boot {0}".format(node.name)))
+                util.logger.warning(Color.yellow("Unable to boot {0}".
+                                                 format(node.name)))
                 sleep(5)
 
     def failover(self, progress, node_up, node_down):
@@ -331,7 +335,7 @@ class HATest(Test):
             if rep_statd == "0" and rep_statu == "0":
                 util.logger.debug("Replication seems to be complete. "
                                   "Waiting 2 seconds and rechecking: {0}/4".
-                                  format(i+1))
+                                  format(i + 1))
                 progress.update("Progress")
                 sleep(2)
             else:
@@ -586,7 +590,7 @@ class HATest(Test):
                 continue
             elif "up" in libvirt:
                 util.logger.debug(Color.green("The compute nodes are "
-                                                 "checked in!"))
+                                              "checked in!"))
                 computes_reporting = True
         progress.update("Progress", 1)
 
@@ -704,9 +708,10 @@ class HATest(Test):
                                                     "$10}'"
                                                     ""]))['return'].rstrip()
             if "down" in nova_status:
-                util.logger.warning(Color.yellow("At least one compute node is not reporting properly"))
+                util.logger.warning(Color.yellow("At least one compute node "
+                                                 "is not reporting properly"))
             else:
-                util.logger.debug("All of the compute nodes are reporting properly")
+                util.logger.debug("All compute nodes are reporting properly")
         progress.update("Progress", 1)
 
     def wait_dhcp_agent_alive(self, net, progress, wait=240):
@@ -887,7 +892,8 @@ class HATest(Test):
         progress.display("Iteration")
 
         for build in builds:
-            build.destroy(self.nova, self.neutron, progress, node_up, node_down)
+            build.destroy(self.nova, self.neutron, progress, node_up,
+                          node_down)
 
         progress.advance("Iteration")
         progress.display("Iteration")
@@ -896,19 +902,25 @@ class HATest(Test):
         #tempest.test()
 
     def kill_the_wabbit(self, node1, node2=None):
-        util.logger.warning(Color.yellow("Remidiation: Forcefully killing and restarting RabbitMQ server on {0}!".format(node1.name)))
+        util.logger.warning(Color.yellow("Remidiation: Forcefully killing "
+                                         "and restarting RabbitMQ server on "
+                                         "{0}!".format(node1.name)))
         node1.run_cmd(";".
                       join([("for i in `ps aux | grep [r]abbitmq | "
-                             "awk '{print $2}'`"), "do kill -9 $i", "done",
-                             "service rabbitmq-server start"]))
+                            "awk '{print $2}'`"), "do kill -9 $i", "done",
+                            "service rabbitmq-server start"]))
         if node2:
-            util.logger.warning(Color.yellow("Remidiation: Forcefully killing and restarting RabbitMQ server on {0}!".format(node2.name)))
+            util.logger.warning(Color.yellow("Remidiation: Forcefully killing"
+                                             " and restarting RabbitMQ server"
+                                             " on {0}!".format(node2.name)))
             node2.run_cmd(";".
                           join([("for i in `ps aux | grep [r]abbitmq | "
-                                 "awk '{print $2}'`"), "do kill -9 $i", "done",
-                                 "service rabbitmq-server start"]))
+                                 "awk '{print $2}'`"), "do kill -9 $i",
+                                "done",
+                                "service rabbitmq-server start"]))
         else:
-            util.logger.error(Color.red("Remidiation: Rabbit had to be restarted during a failover event!"))
+            util.logger.error(Color.red("Remidiation: Rabbit had to be "
+                                        "restarted during a failover event!"))
 
     def test_rabbit_status(self, progress, node1, node2=None):
         """
@@ -918,7 +930,8 @@ class HATest(Test):
         cycle = 1
         max_cycle = 120
         while not status:
-            util.logger.debug("Testing if RabbitMQ is alive: {0}".format(cycle))
+            util.logger.debug("Testing if RabbitMQ is alive: {0}".
+                              format(cycle))
             progress.update("Progress")
             try:
                 status = self.rabbit.is_alive()
