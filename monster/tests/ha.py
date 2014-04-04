@@ -916,7 +916,7 @@ class HATest(Test):
         """
         status = False
         cycle = 1
-        max_cycle = 60
+        max_cycle = 120
         while not status:
             util.logger.debug("Testing if RabbitMQ is alive: {0}".format(cycle))
             progress.update("Progress")
