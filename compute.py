@@ -13,7 +13,6 @@ from monster.color import Color
 from monster.config import Config
 from monster.tests.ha import HATest
 from monster.tests.cloudcafe import CloudCafe
-from monster.provisioners.util import get_provisioner
 from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
 from monster.deployments.deployment_orchestrator import DeploymentOrchestrator
@@ -28,20 +27,17 @@ if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
 # Logger needs to be rewritten to accept a log filename
 def build(name="autotest", template="ubuntu-default", branch="master",
           template_path=None, config="pubcloud-neutron.yaml",
-          dry=False, log=None, log_level="INFO", provisioner="rackspace",
+          dry=False, log=None, log_level="INFO", provisioner_name="rackspace",
           secret_path=None):
     """
     Build an OpenStack Cluster
     """
     util.set_log_level(log_level)
-
-    # Provision deployment
     util.config = Config(config, secret_path=secret_path)
-    cprovisioner = get_provisioner(provisioner)
 
-    util.logger.info("Building deployment object for {0}".format(name))
-    deployment = DeploymentOrchestrator.get_deployment_from_file(
-        name, template, branch, cprovisioner, template_path)
+    orchestrator = DeploymentOrchestrator
+    deployment = orchestrator.get_deployment_from_file(
+        name, template, branch, provisioner_name, template_path)
 
     if dry:
         try:
@@ -52,7 +48,6 @@ def build(name="autotest", template="ubuntu-default", branch="master",
             raise
 
     else:
-        util.logger.info(deployment)
         try:
             deployment.build()
         except Exception:

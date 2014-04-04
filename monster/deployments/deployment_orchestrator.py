@@ -8,8 +8,8 @@ from fabric.api import *
 
 from monster import util
 from monster.config import Config
-from monster.features.node_feature import ChefServer
 from monster.provisioners.util import get_provisioner
+from monster.features.node_feature import ChefServer
 from monster.nodes.chef_node import Chef as MonsterChefNode
 from monster.deployments.chef_deployment import ChefDeployment
 from monster.environments.chef_environment import Chef as \
@@ -18,7 +18,7 @@ from monster.environments.chef_environment import Chef as \
 
 class DeploymentOrchestrator:
     @classmethod
-    def get_deployment_from_file(cls, name, template, branch, provisioner,
+    def get_deployment_from_file(cls, name, template, branch, provisioner_name,
                                  template_path=None):
         """
         Returns a new deployment given a deployment template at path
@@ -28,11 +28,15 @@ class DeploymentOrchestrator:
         :type name: string
         :param branch: branch of the RCBOPS chef cookbook repo to use
         :type branch:: string
-        :param provisioner: provisioner to use for nodes
-        :type provisioner: Provisioner
+        :param provisioner_name: provisioner to use for nodes
+        :type provisioner_name: str
         :rtype: ChefDeployment
         """
         local_api = autoconfigure()
+        provisioner = get_provisioner(provisioner_name)
+
+            # Provision deployment
+        util.logger.info("Building deployment object for {0}".format(name))
 
         if branch == "master":
             template_file = "default"
@@ -73,7 +77,7 @@ class DeploymentOrchestrator:
         chef_nodes = provisioner.provision(template, deployment)
         for node in chef_nodes:
             cnode = MonsterChefNode.from_chef_node(node, product, environment,
-                                                   deployment, provisioner,
+                                                   deployment, provisioner_name,
                                                    branch)
             provisioner.post_provision(cnode)
             deployment.nodes.append(cnode)
