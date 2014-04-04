@@ -34,8 +34,7 @@ class Config(object):
         if template_path:
             path = template_path
         else:
-            path = os.path.join(os.path.dirname(__file__),
-                                os.pardir, os.pardir,
+            path = os.path.join(os.path.dirname(__file__), os.pardir,
                                 "templates/{0}.yaml"
                                 "".format(template_file))
 
