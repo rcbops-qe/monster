@@ -36,8 +36,8 @@ def build(name="autotest", template="ubuntu-default", branch="master",
     util.config = Config(config, secret_path=secret_path)
 
     orchestrator = DeploymentOrchestrator
-    deployment = orchestrator.get_deployment_from_file(
-        name, template, branch, provisioner_name, template_path)
+    deployment = orchestrator.get_deployment_from_file(name, template, branch,
+                                                       provisioner_name)
 
     if dry:
         try:
