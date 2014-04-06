@@ -1,199 +1,72 @@
-precise-default:
+ubuntu-ha-neutron:
   product: compute
-  name: default
-  os: precise
-  features:
-    openssh: default
-    monitoring: default
-    mysql: default
-    glance: cf
-    nova: default
-    horizon: default
-    keystone: default
-    osops: default
-    osopsnetworks: default
-  nodes:
-    - [chefserver]
-    - [controller]
-    - [compute]
-
-centos-default:
-  product: compute
-  name: default
-  os: centos
-  features:
-    openssh: default
-    monitoring: default
-    mysql: default
-    glance: cf
-    cinder: local
-    nova: default
-    horizon: default
-    keystone: default
-    osops: default
-    osopsnetworks: default
-  nodes:
-    - [chefserver]
-    - [controller]
-    - [compute]
-
-precise-neutron:
-  product: compute
-  name: neutron
-  os: precise
+  name: ha
+  os: ubuntu
   features:
     openssh: default
     monitoring: default
     mysql: default
     glance: default
-    nova: default
-    neutron: quantum
-    horizon: default
-    keystone: default
-    osops: default
-    osopsnetworks: default
-  nodes:
-    - [chefserver]
-    - [controller, network]
-    - [compute]
-
-centos-neutron:
-  product: compute
-  name: neutron
-  os: centos
-  features:
-    openssh: default
-    monitoring: default
-    mysql: default
-    glance: default
-    nova: default
-    neutron: quantum
-    horizon: default
-    keystone: default
-    osops: default
-    osopsnetworks: default
-  nodes:
-    - [chefserver]
-    - [controller, network]
-    - [compute]
-
-precise-ha:
-  product: compute
-  name: ha
-  os: precise
-  features:
-    openssh: default
-    monitoring: default
-    mysql: default
-    glance: cf
-    nova: default
-    neutron: quantum
-    horizon: default
-    keystone: default
-    osops: default
-    osopsnetworks: default
-    highavailability: default
-  nodes:
-    - [chefserver]
-    - [controller, network]
-    - [controller, network]
-    - [compute]
-
-centos-ha:
-  product: compute
-  name: ha
-  os: centos
-  features:
-    openssh: default
-    monitoring: default
-    mysql: default
-    glance: cf
     cinder: local
     nova: default
     neutron: quantum
     horizon: default
-    keystone: default
     osops: default
+    keystone: default
     osopsnetworks: default
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, network]
-    - [controller, network]
+    - [controller, network, orchestration]
+    - [controller, network, orchestration]
+    - [cinder]
+    - [compute]
     - [compute]
 
-precise-ha-nova-net:
+ubuntu-ha-novanet-actived:
   product: compute
   name: ha
-  os: precise
+  os: ubuntu
   features:
     openssh: default
     monitoring: default
     mysql: default
     glance: default
+    cinder: local
     nova: default
     horizon: default
-    keystone: default
     osops: default
+    keystone: actived
     osopsnetworks: default
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller]
-    - [controller]
+    - [controller, orchestration]
+    - [controller, orchestration]
+    - [cinder]
+    - [compute]
     - [compute]
 
-centos-ha-nova-net:
+ubuntu-ha-novanet-openldap:
   product: compute
   name: ha
-  os: centos
+  os: ubuntu
   features:
     openssh: default
     monitoring: default
     mysql: default
     glance: default
+    cinder: local
     nova: default
     horizon: default
-    keystone: default
     osops: default
+    keystone: openldap
     osopsnetworks: default
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller]
-    - [controller]
+    - [controller, orchestration]
+    - [controller, orchestration]
+    - [cinder]
     - [compute]
-
-precise-swift:
-  product: storage
-  name: swift
-  os: precise
-  features:
-    openssh: default
-    keystone: swift
-    swift: rpcs
-  nodes:
-    - [chefserver, berkshelf]
-    - [controller]
-    - [proxy]
-    - [proxy]
-    - [storage]
-    - [storage]
-    - [storage]
-
-centos-swift:
-  product: storage
-  name: swift
-  os: centos
-  features:
-    openssh: default
-    keystone: swift
-    swift: rpcs
-  nodes:
-    - [chefserver, berkshelf]
-    - [controller]
-    - [proxy]
-    - [proxy]
-    - [storage]
-    - [storage]
-    - [storage]
+    - [compute]
