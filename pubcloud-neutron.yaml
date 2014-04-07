@@ -127,6 +127,7 @@ environments:
         nova-novnc-proxy: 192.168.4.153
         nova-xvpvnc-proxy: 192.168.4.153
         neutron-api: 192.168.4.153
+        quantum-api: 192.168.4.153
         swift-proxy: 192.168.4.153
         ceilometer-api: 192.168.4.153
         ceilometer-central-agent: 192.168.4.153

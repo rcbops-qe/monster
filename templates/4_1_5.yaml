@@ -17,8 +17,8 @@ ubuntu-ha-neutron:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, network, orchestration]
-    - [controller, network, orchestration]
+    - [controller, network]
+    - [controller, network]
     - [cinder]
     - [compute]
     - [compute]
@@ -41,8 +41,8 @@ ubuntu-ha-novanet-actived:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, orchestration]
-    - [controller, orchestration]
+    - [controller]
+    - [controller]
     - [cinder]
     - [compute]
     - [compute]
@@ -65,8 +65,8 @@ ubuntu-ha-novanet-openldap:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, orchestration]
-    - [controller, orchestration]
+    - [controller]
+    - [controller]
     - [cinder]
     - [compute]
     - [compute]
