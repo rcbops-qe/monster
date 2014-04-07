@@ -61,30 +61,30 @@ environments:
                 user_name_attribute: sAMAccountName
                 user_allow_create: False
                 user_allow_update: False
-                #role_allow_delete: True
-                #tenant_enabled_attribute: extensionName
-                #domain_enabled_emulation: True
-                #tenant_allow_create: True
-                #tenant_allow_update: True
-                #role_allow_update: True
-                #domain_objectclass: Group
-                #tenant_tree_dn: <OU=rpcsqe,OU=Tenants,dc=rpcsqe,dc=env>
-                #tenant_allow_delete: True
-                #role_tree_dn: <OU=rpcsqe,OU=Roles,dc=rpcsqe,dc=env>
-                #role_member_attribute: roleOccupant
-                #domain_enabled_emulation_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
-                #group_attribute_ignore: enabled
-                #tenant_member_attribute: member
-                #tenant_objectclass: groupOfNames
-                #tenant_id_attribute: cn
-                #domain_tree_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
-                #tenant_name_attribute: ou
-                #tenant_desc_attribute: description
-                #role_objectclass: organizationalRole
-                #role_id_attribute: cn
-                #role_allow_create: True
-                #domain_attribute_ignore: enabled
-                #role_name_attribute: ou
+                role_allow_delete: True
+                tenant_enabled_attribute: extensionName
+                domain_enabled_emulation: True
+                tenant_allow_create: True
+                tenant_allow_update: True
+                role_allow_update: True
+                domain_objectclass: Group
+                tenant_tree_dn: <OU=rpcsqe,OU=Tenants,dc=rpcsqe,dc=env>
+                tenant_allow_delete: True
+                role_tree_dn: <OU=rpcsqe,OU=Roles,dc=rpcsqe,dc=env>
+                role_member_attribute: roleOccupant
+                domain_enabled_emulation_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
+                group_attribute_ignore: enabled
+                tenant_member_attribute: member
+                tenant_objectclass: groupOfNames
+                tenant_id_attribute: cn
+                domain_tree_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
+                tenant_name_attribute: ou
+                tenant_desc_attribute: description
+                role_objectclass: organizationalRole
+                role_id_attribute: cn
+                role_allow_create: True
+                domain_attribute_ignore: enabled
+                role_name_attribute: ou
             auth_type: ldap
             debug: True
         openldap:
