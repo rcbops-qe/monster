@@ -1,5 +1,3 @@
-import os
-
 from chef import autoconfigure
 from chef import Node as ChefNode
 from chef import Environment as ChefEnvironment
