@@ -23,28 +23,6 @@ ubuntu-ha-neutron:
     - [compute]
     - [compute]
 
-ubuntu-ha-novanet:
-  product: compute
-  name: ha
-  os: ubuntu
-  features:
-    openssh: default
-    monitoring: default
-    mysql: default
-    glance: cf
-    cinder: local
-    nova: default
-    horizon: default
-    osops: default
-    keystone: default
-    osopsnetworks: default
-    highavailability: default
-  nodes:
-    - [controller]
-    - [cinder]
-    - [compute]
-    - [compute]
-
 ubuntu-ha-novanet-actived:
   product: compute
   name: ha
@@ -145,7 +123,7 @@ centos-ha-novanet-actived:
 centos-ha-novanet-openldap:
   product: compute
   name: ha
-  os: ubuntu
+  os: centos
   features:
     openssh: default
     monitoring: default
