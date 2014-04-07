@@ -13,8 +13,9 @@ class Chef(Node):
     """
     def __init__(self, ip, user, password, product, environment, deployment,
                  name, provisioner, branch, status=None, run_list=None):
-        super(Chef, self).__init__(ip, user, password, product, environment,
+        super(Chef, self).__init__(ip, user, password, product,
                                    deployment, provisioner, status)
+        self.environment = environment
         self.name = name
         self.branch = branch
         self.run_list = run_list or []

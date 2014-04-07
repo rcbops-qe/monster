@@ -13,13 +13,12 @@ class Node(object):
     A individual computation entity to deploy a part OpenStack onto
     Provides server related functions
     """
-    def __init__(self, ip, user, password, product, environment,
+    def __init__(self, ip, user, password, product,
                  deployment, provisioner, status=None):
         self.ipaddress = ip
         self.user = user
         self.password = password
         self.product = product
-        self.environment = environment
         self.deployment = deployment
         self.provisioner = provisioner
         self.features = []
@@ -232,10 +231,7 @@ class Node(object):
         self.status = "Destroyed"
 
     def feature_in(self, feature):
-        if feature in (feature.__class__.__name__.lower()
-                       for feature in self.features):
-            return True
-        return False
+        return feature in self.feature_names
 
     @property
     def feature_names(self):
