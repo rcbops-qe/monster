@@ -162,6 +162,7 @@ class Chef(Deployment):
             # Use previous dry build if exists
             util.logger.info("Using previous deployment:{0}".format(name))
             return cls.from_chef_environment(name)
+
         path = ""
         if not template_path:
             path = os.path.join(os.path.dirname(__file__),
@@ -176,7 +177,7 @@ class Chef(Deployment):
             util.logger.critical("Looking for the template {0} in the file: "
                                  "\n{1}\n The key was not found!"
                                  .format(template, path))
-            exit(1)
+            sys.exit(1)
 
         environment = MonsterChefEnvironment(name, local_api, description=name)
 
