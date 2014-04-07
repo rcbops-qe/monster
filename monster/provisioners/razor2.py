@@ -56,7 +56,7 @@ class Razor2(Provisioner):
                 return node
         deployment.destroy()
         util.logger.info("Cannot build, no more available_nodes")
-        sys.exit()
+        sys.exit(1)
 
     def power_down(self, node):
         if node.feature_in('controller'):
