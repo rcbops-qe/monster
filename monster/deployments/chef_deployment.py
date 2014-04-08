@@ -10,7 +10,7 @@ from monster.upgrades.util import int2word
 from monster.provisioners.razor import Razor
 from monster.clients.openstack import Creds, Clients
 from monster.deployments.deployment import Deployment
-from monster.nodes.chef_node import Chef as MonsterChefNode
+from monster.nodes.chef_node import ChefNode as MonsterChefNode
 from monster.features import deployment_feature as deployment_features
 
 from pyrabbit.api import Client as RabbitClient

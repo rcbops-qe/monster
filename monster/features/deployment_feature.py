@@ -126,14 +126,14 @@ class Neutron(DeploymentFeature):
                          "Ports on network nodes ###")
 
         for controller in controllers:
-            iface = controller.get_vmnet_iface()
+            iface = controller.vmnet_iface
             command = self.iface_bb_cmd(iface)
             util.logger.debug("Running {0} on {1}".format(command, controller))
             controller.run_cmd(command)
 
         # loop through computes and run
         for compute in computes:
-            iface = compute.get_vmnet_iface()
+            iface = compute.vmnet_iface
             command = self.iface_bb_cmd(iface)
             util.logger.debug("Running {0} on {1}".format(command, compute))
             compute.run_cmd(command)
@@ -157,12 +157,12 @@ class Neutron(DeploymentFeature):
         computes = self.deployment.search_role('compute')
 
         for controller in controllers:
-            iface = controller.get_vmnet_iface()
+            iface = controller.vmnet_iface
             cmd = self.iface_cb_cmd(iface)
             controller.run_cmd(cmd)
 
         for compute in computes:
-            iface = compute.get_vmnet_iface()
+            iface = compute.vmnet_iface
             cmd = self.iface_cb_cmd(iface)
             compute.run_cmd(cmd)
 

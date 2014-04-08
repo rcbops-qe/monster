@@ -6,24 +6,26 @@ import types
 from time import sleep
 from monster import util
 from monster.server_helper import ssh_cmd, scp_to, scp_from
+from monster.features import node_feature
 
 
-class Node(object):
+class BaseNode(object):
     """
     A individual computation entity to deploy a part OpenStack onto
     Provides server related functions
     """
-    def __init__(self, ip, user, password, product,
-                 deployment, provisioner, status=None):
+    def __init__(self, name, ip, user, password, product,
+                 deployment, provisioner):
         self.ipaddress = ip
         self.user = user
+        self.name = name
         self.password = password
         self.product = product
         self.deployment = deployment
         self.provisioner = provisioner
         self.features = []
         self._cleanups = []
-        self.status = status or "provisioning"
+        self.status = "Unknown"
 
     def __repr__(self):
         """ Print out current instance
@@ -128,6 +130,30 @@ class Node(object):
             util.logger.debug(log)
             feature.pre_configure()
 
+    def save_to_node(self):
+        """
+        Save deployment restore attributes to chef environment
+        """
+        features = [str(f).lower() for f in self.features]
+        node = {'features': features,
+                'status': self.status,
+                'provisioner': str(self.provisioner)}
+        self['archive'] = node
+
+    def add_features(self, features):
+        """
+        Adds a list of feature classes
+        """
+        util.logger.debug("node:{0} feature add:{1}".format(self.name,
+                                                            features))
+        classes = util.module_classes(node_feature)
+        for feature in features:
+            feature_class = classes[feature](self)
+            self.features.append(feature_class)
+
+        # save features for restore
+        self.save_to_node()
+
     def apply_feature(self):
         self.status = "apply-feature"
         """Applies each feature"""
@@ -214,8 +240,8 @@ class Node(object):
 
         return self.run_cmd(chk_cmd)
 
-    @staticmethod
-    def get_vmnet_iface():
+    @property
+    def vmnet_iface(self):
         """
         Return the iface that our vm data network will live on
         """
@@ -242,5 +268,4 @@ class Node(object):
         self.provisioner.power_down(self)
 
     def power_on(self):
-
         self.provisioner.power_up(self)
