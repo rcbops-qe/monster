@@ -1,6 +1,6 @@
 """ A Deployment Features
 """
-
+import sys
 import requests
 
 from monster.features.feature import Feature
@@ -428,14 +428,16 @@ class Glance(DeploymentFeature):
         response = requests.post(url, data=data, headers=head, verify=False)
 
         if not response.ok:
-            raise Exception(
+            util.logger.info(
                 "Unable to authorize your cloudfiles credentials, "
-                "please check secrete.yaml file")
-            #response.raise_for_status()
+                "please check your secrets file")
+            sys.exit(1)
         try:
             services = response.json()['access']['serviceCatalog']
         except KeyError:
-            raise KeyError("Response content has no key: serviceCatalog")
+            util.logger.info(
+                "Response content for glance files has no key: serviceCatalog")
+            sys.exit(1)
 
         cloudfiles = next(s for s in services if s['type'] == "object-store")
         tenant_id = cloudfiles['endpoints'][0]['tenantId']

@@ -33,7 +33,7 @@ def build(name="autotest", template="ubuntu-default", branch="master",
     Build an OpenStack Cluster
     """
     util.set_log_level(log_level)
-    util.config = Config(config, secret_path=secret_path)
+    _load_config(config, secret_path)
 
     orchestrator = DeploymentOrchestrator
     deployment = orchestrator.get_deployment_from_file(name, template, branch,
@@ -154,13 +154,6 @@ def get_file(ip, user, password, remote, local, remote_delete=False):
         subprocess.call(cmd2, shell=True)
 
 
-def cloudcafe(cmd, name="autotest", network=None, config=None,
-              secret_path=None, log_level="INFO"):
-    util.set_log_level(log_level)
-    deployment = _load(name, config, secret_path)
-    CloudCafe(deployment).config(cmd, network_name=network)
-
-
 def artifact(name="autotest", config=None, log=None, secret_path=None,
              log_level="INFO"):
     """
@@ -214,12 +207,25 @@ def show(name="autotest", config=None, log=None, secret_path=None,
     util.logger.info(str(deployment))
 
 
-def _load(name="autotest", config=None, secret_path=None):
-    """
-    Load deployment and source openrc
-    """
-    util.config = Config(config, secret_path=secret_path)
-    return DeploymentOrchestrator.get_deployment_from_chef_env(name)
+def _load_config(config, secret_path):
+    if "configs/" not in config:
+        config = "configs/{}".format(config)
+    util.config = Config(config, secret_file_name=secret_path)
+
+
+def _load(name="autotest", config="config.yaml", secret_path=None):
+    # Load deployment and source openrc
+    _load_config(config, secret_path)
+    orchestrator = DeploymentOrchestrator
+    deployment = orchestrator.get_deployment_from_chef_env(name)
+    return deployment
+
+
+def cloudcafe(cmd, name="autotest", network=None, config=None,
+              secret_path=None, log_level="INFO"):
+    util.set_log_level(log_level)
+    deployment = _load(name, config, secret_path)
+    CloudCafe(deployment).config(cmd, network_name=network)
 
 
 if __name__ == "__main__":

@@ -42,6 +42,96 @@ environments:
                 - service
                 - demo
                 - demo2
+        actived:
+            ldap:
+                url: ldap://<Active Directory Domain Controller address >
+                suffix: dc=rpcsqe,dc=env
+                user: <CN=keystone,CN=Users,dc=rpcsqe,dc=env>
+                password: <administrator password>
+                user_attribute_ignore: password,tenantId,tenants
+                user_mail_attribute: mail
+                user_enabled_attribute: userAccountControl
+                user_allow_delete: False
+                user_id_attribute: cn
+                user_tree_dn: <CN=Users,dc=rpcsqe,dc=env>
+                user_objectclass: person
+                user_enabled_mask: 2
+                user_enabled_default: 512
+                user_domain_id_attribute: businessCategory
+                user_name_attribute: sAMAccountName
+                user_allow_create: False
+                user_allow_update: False
+                role_allow_delete: True
+                tenant_enabled_attribute: extensionName
+                domain_enabled_emulation: True
+                tenant_allow_create: True
+                tenant_allow_update: True
+                role_allow_update: True
+                domain_objectclass: Group
+                tenant_tree_dn: <OU=rpcsqe,OU=Tenants,dc=rpcsqe,dc=env>
+                tenant_allow_delete: True
+                role_tree_dn: <OU=rpcsqe,OU=Roles,dc=rpcsqe,dc=env>
+                role_member_attribute: roleOccupant
+                domain_enabled_emulation_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
+                group_attribute_ignore: enabled
+                tenant_member_attribute: member
+                tenant_objectclass: groupOfNames
+                tenant_id_attribute: cn
+                domain_tree_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
+                tenant_name_attribute: ou
+                tenant_desc_attribute: description
+                role_objectclass: organizationalRole
+                role_id_attribute: cn
+                role_allow_create: True
+                domain_attribute_ignore: enabled
+                role_name_attribute: ou
+            auth_type: ldap
+            debug: True
+        openldap:
+            ldap:
+                user_attribute_ignore: password,tenantId,tenants
+                tenant_allow_create: True
+                tenant_allow_update: True
+                user_mail_attribute: mail
+                user_enabled_attribute: userAccountControl
+                user_allow_delete: False
+                role_allow_update: True
+                domain_objectclass: Group
+                tenant_tree_dn: <OU=rpcsqe,OU=Tenants,dc=rpcsqe,dc=env>
+                tenant_allow_delete: True
+                role_tree_dn: <OU=rpcsqe,OU=Roles,dc=rpcsqe,dc=env>
+                role_member_attribute: roleOccupant
+                domain_enabled_emulation_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
+                group_attribute_ignore: enabled
+                user_id_attribute: cn
+                tenant_member_attribute: member
+                url: ldap://<Active Directory Domain Controller address >
+                tenant_objectclass: groupOfNames
+                tenant_id_attribute: cn
+                domain_tree_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
+                user_tree_dn: <OU=rpcsqe,CN=Users,dc=rpcsqe,dc=env>
+                user_objectclass: person
+                tenant_name_attribute: ou
+                tenant_desc_attribute: description
+                role_objectclass: organizationalRole
+                role_id_attribute: cn
+                role_allow_create: True
+                domain_attribute_ignore: enabled
+                suffix: dc=rpcsqe,dc=env
+                user_enabled_mask: 2
+                user_enabled_default: 512
+                role_name_attribute: ou
+                user_domain_id_attribute: businessCategory
+                domain_enabled_emulation: True
+                user: <CN=keystone,CN=Users,dc=rpcsqe,dc=env>
+                password: <administrator password>
+                tenant_enabled_attribute: extensionName
+                user_name_attribute: cn
+                user_allow_create: False
+                user_allow_update: False
+                role_allow_delete: True
+            auth_type: ldap
+            debug: True
     monitoring:
         default:
             procmon_provider: monit
@@ -50,33 +140,49 @@ environments:
             root_network_acl: "%"
             allow_remote_root: true
     nova:
+        default:
+            network:
+                public_interface: br-vmnet
+            apply_patches: false
+            networks:
+                public:
+                    bridge: br-vmnet
+                    dns1: 8.8.8.8
+                    dns2: 8.8.4.4
+                    bridge_dev: vmnet.868
+                    ipv4_cidr: 10.127.103.0/25
+                    label: public
+            libvirt:
+                virt_type: kvm
         neutron:
             apply_patches: false
             libvirt:
-                virt_type: qemu
+                virt_type: kvm
             network:
                 provider: neutron
+        quantum:
+            apply_patches: false
+            libvirt:
+                virt_type: kvm
+            network:
+                provider: quantum
     osops:
         default:
             apply_patches: true
     horizon:
         neutron:
           enable_lb: true
+          theme: default
         default:
             theme: default
     developer_mode:
         default:
             default: false
     osops_networks:
-        management: 192.168.4.0/24
-        nova: 192.168.4.0/24
-        public: 192.168.4.0/24
+        management: 10.127.101.0/24
+        nova: 10.127.101.0/24
+        public: 10.127.101.0/24
     glance:
-        default:
-            image_upload: true
-            images:
-                - cirros
-                - precise
         cf:
             api:
                 default_store: swift
@@ -89,15 +195,26 @@ environments:
             images:
                 - cirros
                 - precise
+        default:
+            image_upload: true
+            images:
+                - cirros
+                - precise
     neutron:
-        quantum:
-            ovs:
-                network_type: gre
         neutron:
             lbaas:
                 enabled: true
             ovs:
+                external_bridge: br-int
                 network_type: gre
+                provider_networks:
+                  - {bridge: "br-vmnet", vlans: "867:867", label: "ph-vmnet"}
+        quantum:
+            ovs:
+                external_bridge: br-int
+                network_type: gre
+                provider_networks:
+                  - {bridge: "br-vmnet", vlans: "867:867", label: "ph-vmnet"}
     cinder:
         local:
             storage:
@@ -105,37 +222,38 @@ environments:
                 lvm:
                     volume_group: vg_storage
     vips:
-        mysql-db: 192.168.4.151
-        rabbitmq-queue: 192.168.4.152
-        cinder-api: 192.168.4.153
-        glance-api: 192.168.4.153
-        glance-registry: 192.168.4.153
-        horizon-dash: 192.168.4.153
-        horizon-dash_ssl: 192.168.4.153
-        keystone-admin-api: 192.168.4.153
-        keystone-internal-api: 192.168.4.153
-        keystone-service-api: 192.168.4.153
-        nova-api: 192.168.4.153
-        nova-ec2-public: 192.168.4.153
-        nova-api-metadata: 192.168.4.153
-        nova-novnc-proxy: 192.168.4.153
-        nova-xvpvnc-proxy: 192.168.4.153
-        neutron-api: 192.168.4.153
-        swift-proxy: 192.168.4.153
-        ceilometer-api: 192.168.4.153
-        ceilometer-central-agent: 192.168.4.153
-        heat-api: 192.168.4.153
-        heat-api-cfn: 192.168.4.153
-        heat-api-cloudwatch: 192.168.4.153
+        mysql-db: 10.127.101.65
+        rabbitmq-queue: 10.127.101.66
+        cinder-api: 10.127.101.67
+        glance-api: 10.127.101.67
+        glance-registry: 10.127.101.67
+        horizon-dash: 10.127.101.67
+        horizon-dash_ssl: 10.127.101.67
+        keystone-admin-api: 10.127.101.67
+        keystone-internal-api: 10.127.101.67
+        keystone-service-api: 10.127.101.67
+        nova-api: 10.127.101.67
+        nova-ec2-public: 10.127.101.67
+        nova-api-metadata: 10.127.101.67
+        nova-novnc-proxy: 10.127.101.67
+        nova-xvpvnc-proxy: 10.127.101.67
+        neutron-api: 10.127.101.67
+        quantum-api: 10.127.101.67
+        swift-proxy: 10.127.101.67
+        ceilometer-api: 10.127.101.67
+        ceilometer-central-agent: 10.127.101.67
+        heat-api: 10.127.101.67
+        heat-api-cfn: 10.127.101.67
+        heat-api-cloudwatch: 10.127.101.67
         config:
-            192.168.4.151:
-                vrid: 14
+            10.127.101.65:
+                vrid: 10
                 network: public
-            192.168.4.152:
-                vrid: 15
+            10.127.101.66:
+                vrid: 11
                 network: public
-            192.168.4.153:
-                vrid: 16
+            10.127.101.67:
+                vrid: 12
                 network: public
     bridge_devices:
         data: vmnet
@@ -160,6 +278,7 @@ rcbops:
             url: https://github.com/rcbops/chef-cookbooks.git
             branches:
                 havana:
+                    - v4.2.2rc
                     - v4.2.2
                     - v4.2.1
                     - v4.2.0
@@ -243,45 +362,6 @@ tests:
         - volume
       swift:
         - object_storage
-rackspace:
-    run_list:
-    images:
-        ubuntu: Ubuntu 12.04 LTS (Precise Pangolin)
-        centos: centos-rdo
-    flavors:
-        512MB: 512MB Standard Instance
-        1GB: 1GB Standard Instance
-        2GB: 2GB Standard Instance
-        4GB: 4GB Standard Instance
-        8GB: 8GB Standard Instance
-        15GB: 15GB Standard Instance
-        30GB: 30GB Standard Instance
-        1GBP: 1 GB Performance
-        2GBP: 2 GB Performance
-        4GBP: 4 GB Performance
-        8GBP: 8 GB Performance
-        120GBP: 120 GB Performance
-        15GBP: 15 GB Performance
-        30GBP: 30 GB Performance
-        60GBP: 60 GB Performance
-        90GBP: 90 GB Performance
-    roles:
-      chefserver: 1GBP
-      controller: 2GBP
-      compute: 8GBP
-      cinder: 1GBP
-    networks:
-        - public
-        - private
-        - vmnet
-        - mgmt
-    network:
-        vmnet:
-            cidr: 192.168.3.0/24
-            iface: eth2
-        mgmt:
-            cidr: 192.168.4.0/24
-            iface: eth3
 upgrade:
   commands:
     backup-db: bash <(curl -s https://raw.github.com/rcbops/support-tools/master/havana-tools/database_backup.sh)
@@ -309,3 +389,5 @@ upgrade:
     v4.2.1:
       - v4.2.2rc
       - v4.2.2
+    v4.2.2rc:
+      - v4.2.2rc

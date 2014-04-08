@@ -10,17 +10,20 @@ from monster.template import Template
 
 class Config(object):
     """Application config object"""
-    def __init__(self, file_path=None, secret_path=None):
-        secret_path = secret_path or os.path.join(os.path.dirname(__file__),
-                                                  os.pardir, 'secret.yaml')
-        file_path = file_path or os.path.join(os.path.dirname(__file__),
-                                              os.pardir, 'config.yaml')
+    def __init__(self, template_path_from_project_root=None,
+                 secret_file_name=None):
+        secret_path = secret_file_name or os.path.join(
+            os.path.dirname(os.path.dirname(__file__)), "secret.yaml")
 
-        with open(file_path, 'r') as f:
-            secret_file = open(secret_path)
-            secrets = load(secret_file)
-            self.config = defaultdict(None, load(f))
-            self.config['secrets'] = secrets
+        template_path = os.path.join(os.path.dirname(os.path.dirname(
+            __file__)), template_path_from_project_root)
+
+        template_file = open(template_path)
+        self.config = defaultdict(None, load(template_file))
+
+        secret_file = open(secret_path)
+        secrets = load(secret_file)
+        self.config['secrets'] = secrets
 
     def __getitem__(self, name):
         return self.config[name]

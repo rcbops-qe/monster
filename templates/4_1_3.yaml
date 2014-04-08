@@ -8,7 +8,7 @@ ubuntu-ha-neutron:
     mysql: default
     glance: default
     cinder: local
-    nova: default
+    nova: quantum
     neutron: quantum
     horizon: default
     osops: default
@@ -17,8 +17,8 @@ ubuntu-ha-neutron:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, network, orchestration]
-    - [controller, network, orchestration]
+    - [controller, network]
+    - [controller, network]
     - [cinder]
     - [compute]
     - [compute]
@@ -31,7 +31,7 @@ ubuntu-ha-novanet-actived:
     openssh: default
     monitoring: default
     mysql: default
-    glance: default
+    glance: cf
     cinder: local
     nova: default
     horizon: default
@@ -41,8 +41,8 @@ ubuntu-ha-novanet-actived:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, orchestration]
-    - [controller, orchestration]
+    - [controller]
+    - [controller]
     - [cinder]
     - [compute]
     - [compute]
@@ -65,8 +65,81 @@ ubuntu-ha-novanet-openldap:
     highavailability: default
   nodes:
     - [chefserver]
-    - [controller, orchestration]
-    - [controller, orchestration]
+    - [controller]
+    - [controller]
+    - [cinder]
+    - [compute]
+    - [compute]
+
+centos-ha-neutron:
+  product: compute
+  name: ha
+  os: centos
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    cinder: local
+    nova: quantum
+    neutron: quantum
+    horizon: default
+    osops: default
+    keystone: default
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller, network]
+    - [controller, network]
+    - [cinder]
+    - [compute]
+    - [compute]
+
+centos-ha-novanet-actived:
+  product: compute
+  name: ha
+  os: centos
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: cf
+    cinder: local
+    nova: default
+    horizon: default
+    osops: default
+    keystone: actived
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller]
+    - [controller]
+    - [cinder]
+    - [compute]
+    - [compute]
+
+centos-ha-novanet-openldap:
+  product: compute
+  name: ha
+  os: centos
+  features:
+    openssh: default
+    monitoring: default
+    mysql: default
+    glance: default
+    cinder: local
+    nova: default
+    horizon: default
+    osops: default
+    keystone: openldap
+    osopsnetworks: default
+    highavailability: default
+  nodes:
+    - [chefserver]
+    - [controller]
+    - [controller]
     - [cinder]
     - [compute]
     - [compute]

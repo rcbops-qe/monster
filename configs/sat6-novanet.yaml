@@ -42,6 +42,96 @@ environments:
                 - service
                 - demo
                 - demo2
+        actived:
+            ldap:
+                url: ldap://<Active Directory Domain Controller address >
+                suffix: dc=rpcsqe,dc=env
+                user: <CN=keystone,CN=Users,dc=rpcsqe,dc=env>
+                password: <administrator password>
+                user_attribute_ignore: password,tenantId,tenants
+                user_mail_attribute: mail
+                user_enabled_attribute: userAccountControl
+                user_allow_delete: False
+                user_id_attribute: cn
+                user_tree_dn: <CN=Users,dc=rpcsqe,dc=env>
+                user_objectclass: person
+                user_enabled_mask: 2
+                user_enabled_default: 512
+                user_domain_id_attribute: businessCategory
+                user_name_attribute: sAMAccountName
+                user_allow_create: False
+                user_allow_update: False
+                role_allow_delete: True
+                tenant_enabled_attribute: extensionName
+                domain_enabled_emulation: True
+                tenant_allow_create: True
+                tenant_allow_update: True
+                role_allow_update: True
+                domain_objectclass: Group
+                tenant_tree_dn: <OU=rpcsqe,OU=Tenants,dc=rpcsqe,dc=env>
+                tenant_allow_delete: True
+                role_tree_dn: <OU=rpcsqe,OU=Roles,dc=rpcsqe,dc=env>
+                role_member_attribute: roleOccupant
+                domain_enabled_emulation_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
+                group_attribute_ignore: enabled
+                tenant_member_attribute: member
+                tenant_objectclass: groupOfNames
+                tenant_id_attribute: cn
+                domain_tree_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
+                tenant_name_attribute: ou
+                tenant_desc_attribute: description
+                role_objectclass: organizationalRole
+                role_id_attribute: cn
+                role_allow_create: True
+                domain_attribute_ignore: enabled
+                role_name_attribute: ou
+            auth_type: ldap
+            debug: True
+        openldap:
+            ldap:
+                user_attribute_ignore: password,tenantId,tenants
+                tenant_allow_create: True
+                tenant_allow_update: True
+                user_mail_attribute: mail
+                user_enabled_attribute: userAccountControl
+                user_allow_delete: False
+                role_allow_update: True
+                domain_objectclass: Group
+                tenant_tree_dn: <OU=rpcsqe,OU=Tenants,dc=rpcsqe,dc=env>
+                tenant_allow_delete: True
+                role_tree_dn: <OU=rpcsqe,OU=Roles,dc=rpcsqe,dc=env>
+                role_member_attribute: roleOccupant
+                domain_enabled_emulation_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
+                group_attribute_ignore: enabled
+                user_id_attribute: cn
+                tenant_member_attribute: member
+                url: ldap://<Active Directory Domain Controller address >
+                tenant_objectclass: groupOfNames
+                tenant_id_attribute: cn
+                domain_tree_dn: <OU=rpcsqe,OU=Domains,dc=rpcsqe,dc=env>
+                user_tree_dn: <OU=rpcsqe,CN=Users,dc=rpcsqe,dc=env>
+                user_objectclass: person
+                tenant_name_attribute: ou
+                tenant_desc_attribute: description
+                role_objectclass: organizationalRole
+                role_id_attribute: cn
+                role_allow_create: True
+                domain_attribute_ignore: enabled
+                suffix: dc=rpcsqe,dc=env
+                user_enabled_mask: 2
+                user_enabled_default: 512
+                role_name_attribute: ou
+                user_domain_id_attribute: businessCategory
+                domain_enabled_emulation: True
+                user: <CN=keystone,CN=Users,dc=rpcsqe,dc=env>
+                password: <administrator password>
+                tenant_enabled_attribute: extensionName
+                user_name_attribute: cn
+                user_allow_create: False
+                user_allow_update: False
+                role_allow_delete: True
+            auth_type: ldap
+            debug: True
     monitoring:
         default:
             procmon_provider: monit
@@ -80,9 +170,6 @@ environments:
         default:
             apply_patches: true
     horizon:
-        neutron:
-          enable_lb: true
-          theme: default
         default:
             theme: default
     developer_mode:
@@ -93,6 +180,11 @@ environments:
         nova: 10.127.101.0/24
         public: 10.127.101.0/24
     glance:
+        default:
+            image_upload: true
+            images:
+                - cirros
+                - precise
         cf:
             api:
                 default_store: swift
@@ -105,28 +197,6 @@ environments:
             images:
                 - cirros
                 - precise
-        default:
-            image_upload: true
-            images:
-                - cirros
-                - precise
-    neutron:
-        neutron:
-            lbaas:
-                enabled: true
-            ovs:
-                external_bridge: br-int
-                network_type: gre
-                provider_networks:
-                  - {bridge: "br-vmnet", vlans: "867:867", label: "ph-vmnet"}
-        quantum:
-            lbaas:
-                enabled: true
-            ovs:
-                external_bridge: br-int
-                network_type: gre
-                provider_networks:
-                  - {bridge: "br-vmnet", vlans: "867:867", label: "ph-vmnet"}
     cinder:
         local:
             storage:
@@ -134,37 +204,37 @@ environments:
                 lvm:
                     volume_group: vg_storage
     vips:
-        mysql-db: 10.127.101.65
-        rabbitmq-queue: 10.127.101.66
-        cinder-api: 10.127.101.67
-        glance-api: 10.127.101.67
-        glance-registry: 10.127.101.67
-        horizon-dash: 10.127.101.67
-        horizon-dash_ssl: 10.127.101.67
-        keystone-admin-api: 10.127.101.67
-        keystone-internal-api: 10.127.101.67
-        keystone-service-api: 10.127.101.67
-        nova-api: 10.127.101.67
-        nova-ec2-public: 10.127.101.67
-        nova-api-metadata: 10.127.101.67
-        nova-novnc-proxy: 10.127.101.67
-        nova-xvpvnc-proxy: 10.127.101.67
-        neutron-api: 10.127.101.67
-        swift-proxy: 10.127.101.67
-        ceilometer-api: 10.127.101.67
-        ceilometer-central-agent: 10.127.101.67
-        heat-api: 10.127.101.67
-        heat-api-cfn: 10.127.101.67
-        heat-api-cloudwatch: 10.127.101.67
+        mysql-db: 10.127.101.68
+        rabbitmq-queue: 10.127.101.69
+        cinder-api: 10.127.101.71
+        glance-api: 10.127.101.71
+        glance-registry: 10.127.101.71
+        horizon-dash: 10.127.101.71
+        horizon-dash_ssl: 10.127.101.71
+        keystone-admin-api: 10.127.101.71
+        keystone-internal-api: 10.127.101.71
+        keystone-service-api: 10.127.101.71
+        nova-api: 10.127.101.71
+        nova-ec2-public: 10.127.101.71
+        nova-api-metadata: 10.127.101.71
+        nova-novnc-proxy: 10.127.101.71
+        nova-xvpvnc-proxy: 10.127.101.71
+        neutron-api: 10.127.101.71
+        swift-proxy: 10.127.101.71
+        ceilometer-api: 10.127.101.71
+        ceilometer-central-agent: 10.127.101.71
+        heat-api: 10.127.101.71
+        heat-api-cfn: 10.127.101.71
+        heat-api-cloudwatch: 10.127.101.71
         config:
-            10.127.101.65:
-                vrid: 10
+            10.127.101.68:
+                vrid: 14
                 network: public
-            10.127.101.66:
-                vrid: 11
+            10.127.101.69:
+                vrid: 15
                 network: public
-            10.127.101.67:
-                vrid: 12
+            10.127.101.71:
+                vrid: 16
                 network: public
     bridge_devices:
         data: vmnet
@@ -300,5 +370,3 @@ upgrade:
     v4.2.1:
       - v4.2.2rc
       - v4.2.2
-    v4.2.2rc:
-      - v4.2.2rc

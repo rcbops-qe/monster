@@ -7,10 +7,8 @@ from fabric.api import *
 
 from monster import util
 from monster.upgrades.util import int2word
-from monster.provisioners.razor import Razor
 from monster.clients.openstack import Creds, Clients
 from monster.deployments.deployment import Deployment
-from monster.nodes.chef_node import ChefNode as MonsterChefNode
 from monster.features import deployment_feature as deployment_features
 
 from pyrabbit.api import Client as RabbitClient
@@ -97,6 +95,7 @@ class ChefDeployment(Deployment):
         with open("{0}.json".format(self.name), "w") as f:
             f.write(str(self.environment))
 
+
     def add_features(self, features):
         """
         Adds a dictionary of features to deployment
@@ -121,15 +120,8 @@ class ChefDeployment(Deployment):
         super(ChefDeployment, self).destroy()
         # Destroy rogue nodes
         if not self.nodes:
-            nodes = Razor.node_search("chef_environment:{0}".
-                                      format(self.name),
-                                      tries=1)
-            for n in nodes:
-                MonsterChefNode.from_chef_node(n,
-                                               environment=self.environment). \
-                    destroy()
-
-        # Destroy Chef environment
+            pass
+            # destroy rouge nodes
         self.environment.destroy()
         self.status = "Destroyed"
 
