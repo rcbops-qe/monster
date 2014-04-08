@@ -89,7 +89,7 @@ class Build(object):
                         # Force kill RabbitMQ server and start it back up
                         util.logger.error(Color.red("Server deletion is hung"))
                         progress.update("Progress")
-                        self.kill_the_wabbit(node1, node2)
+                        self.kill_rabbit(node1, node2)
                         deleted = False
                         break
 
@@ -901,7 +901,7 @@ class HATest(Test):
         #tempest.test_node = node_up
         #tempest.test()
 
-    def kill_the_wabbit(self, node1, node2=None):
+    def kill_rabbit(self, node1, node2=None):
         util.logger.warning(Color.yellow("Remidiation: Forcefully killing "
                                          "and restarting RabbitMQ server on "
                                          "{0}!".format(node1.name)))
@@ -940,7 +940,7 @@ class HATest(Test):
                 status = False
                 cycle += 1
                 if cycle > max_cycle:
-                    self.kill_the_wabbit(node1, node2)
+                    self.kill_rabbit(node1, node2)
                     cycle = 1
                 sleep(1)
 
