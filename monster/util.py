@@ -8,7 +8,7 @@ from inspect import getmembers, isclass
 
 
 # Gets RPC-QE logger
-name = 'RPC-QE'
+name = 'Monster'
 time_cmd = subprocess.Popen(['date', '+%F_%T'],
                             stdout=subprocess.PIPE)
 time = time_cmd.stdout.read().rstrip()
@@ -22,7 +22,7 @@ console_handler.setFormatter(console_formatter)
 
 # File logging setup
 
-file_handler = logging.FileHandler("{0}-{1}.log".format(name, time))
+file_handler = logging.FileHandler("logs/{0}-{1}.log".format(name, time))
 file_format = '%(asctime)s %(name)s %(levelname)s %(module)s: %(message)s'
 file_formatter = logging.Formatter(file_format)
 file_handler.setFormatter(file_formatter)

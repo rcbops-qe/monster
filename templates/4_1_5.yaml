@@ -145,7 +145,7 @@ centos-ha-novanet-actived:
 centos-ha-novanet-openldap:
   product: compute
   name: ha
-  os: centos
+  os: ubuntu
   features:
     openssh: default
     monitoring: default
