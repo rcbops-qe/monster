@@ -2,13 +2,11 @@ from chef import autoconfigure
 from chef import Node as ChefNode
 from chef import Environment as ChefEnvironment
 
-from fabric.api import *
-
 from monster import util
 from monster.config import Config
+from monster.nodes.node_factory import NodeFactory
 from monster.provisioners.util import get_provisioner
 from monster.features.node_feature import ChefServer
-from monster.nodes.chef_node import ChefNode as MonsterChefNode
 from monster.deployments.chef_deployment import ChefDeployment
 from monster.environments.chef_environment import Chef as \
     MonsterChefEnvironment
@@ -48,17 +46,14 @@ class DeploymentOrchestrator:
                                            environment, provisioner, product)
 
         # provision nodes
-        chef_nodes = provisioner.provision(template, deployment)
-        for node in chef_nodes:
-            cnode = MonsterChefNode.from_chef_node(node, product, environment,
-                                                   deployment,
-                                                   provisioner_name,
-                                                   branch)
-            provisioner.post_provision(cnode)
-            deployment.nodes.append(cnode)
-#        for tx in threads:
-#            tx.join()
-        # add features
+        base_nodes = provisioner.provision(template, deployment)
+        for node in base_nodes:
+            chef_node = NodeFactory.get_chef_node(node, product, environment,
+                                                  deployment, provisioner,
+                                                  branch)
+            provisioner.post_provision(chef_node)
+            deployment.nodes.append(chef_node)
+
         for node, features in zip(deployment.nodes, template['nodes']):
             node.add_features(features)
 
@@ -110,10 +105,10 @@ class DeploymentOrchestrator:
                 util.logger.error("Non-existent chef node: {0}".
                                   format(node.name))
                 continue
-            cnode = MonsterChefNode.from_chef_node(node, product, environment,
-                                                   deployment, provisioner,
-                                                   deployment_args["branch"])
-            deployment.nodes.append(cnode)
+            chef_node = NodeFactory.get_chef_node(node, product, environment,
+                                                  deployment, provisioner,
+                                                  deployment_args["branch"])
+            deployment.nodes.append(chef_node)
         return deployment
 
     @staticmethod

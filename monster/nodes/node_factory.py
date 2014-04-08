@@ -7,8 +7,8 @@ from monster import util
 
 class NodeFactory:
     @classmethod
-    def from_chef_node(cls, node, product, environment, deployment,
-                       provisioner, branch):
+    def get_chef_node(cls, node, product, environment, deployment,
+                      provisioner, branch):
         """
         Restores node from chef node
         """
