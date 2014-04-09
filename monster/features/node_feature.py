@@ -279,7 +279,7 @@ class ChefServer(NodeFeature):
 
     def _remote_other_nodes(self):
         for node in self.node.deployment.nodes:
-            if not node.feature_in("chefserver"):
+            if not node.has_feature("chefserver"):
                 remote_feature = Remote(node)
                 node.features.insert(0, remote_feature)
                 node.save_to_node()
@@ -406,7 +406,7 @@ class Metrics(NodeFeature):
         self.role = None
 
     def pre_configure(self):
-        if self.node.feature_in('controller'):
+        if self.node.has_feature('controller'):
             self.role = 'controller'
         else:
             self.role = 'compute'

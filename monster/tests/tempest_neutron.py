@@ -100,7 +100,7 @@ class TempestNeutron(Test):
         tempest['public_router_id'] = ids.get('router_id')
 
         # discover enabled features
-        featured = lambda x: self.deployment.feature_in(x)
+        featured = lambda x: self.deployment.has_feature(x)
         tempest['cinder_enabled'] = False
         if featured('cinder'):
             tempest['cinder_enabled'] = True
@@ -125,7 +125,7 @@ class TempestNeutron(Test):
         """
 
         # template values
-        is_neutron = self.deployment.feature_in("neutron")
+        is_neutron = self.deployment.has_feature("neutron")
         creds = {
             "USER": user,
             "PASSWORD": password,

@@ -72,7 +72,7 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
     if not tempest and not ha:
         tempest = True
         ha = True
-    if not deployment.feature_in("highavailability"):
+    if not deployment.has_feature("highavailability"):
         ha = False
     if ha:
         ha = HATest(deployment, progress)

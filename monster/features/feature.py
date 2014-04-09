@@ -21,7 +21,6 @@ class Feature(object):
         Prints out class name
         :rtype: String
         """
-
         return self.__class__.__name__.lower()
 
     def update_environment(self):

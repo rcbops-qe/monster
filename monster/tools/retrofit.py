@@ -132,7 +132,7 @@ class Retrofit(object):
         """
         Check to make sure neutron is in the deployment
         """
-        if not self.deployment.feature_in('neutron'):
+        if not self.deployment.has_feature('neutron'):
             error = "This build doesnt have Neutron/Quantum, cannot retrofit"
             util.logger.info(error)
             raise Exception(error)

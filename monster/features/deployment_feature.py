@@ -493,7 +493,7 @@ class Keystone(DeploymentFeature):
             # Add the service user passwords
             for user, value in util.config['secrets'][
                     self.rpcs_feature].items():
-                if self.deployment.feature_in(user):
+                if self.deployment.has_feature(user):
                     env.override_attributes[user]['service_pass'] = \
                         value['service_pass']
             self.deployment.environment.save()
@@ -516,7 +516,7 @@ class Nova(DeploymentFeature):
         """
         determines network choice
         """
-        if self.deployment.feature_in('neutron'):
+        if self.deployment.has_feature('neutron'):
             for feature in self.deployment.features:
                 if feature.__class__.__name__ == 'Neutron':
                     return feature.rpcs_feature

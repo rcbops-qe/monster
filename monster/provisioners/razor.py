@@ -56,7 +56,7 @@ class Razor(Provisioner):
         raise Exception("No more nodes!!")
 
     def power_down(self, node):
-        if node.feature_in('controller'):
+        if node.has_feature('controller'):
             # rabbit can cause the node to not actually reboot
             kill = ("for i in `ps -U rabbitmq | tail -n +2 | "
                     "awk '{print $1}' `; do kill -9 $i; done")

@@ -75,7 +75,7 @@ class CloudCafe(Test):
             admin_user, admin_password, admin_tenant)
         second_user, second_password, second_tenant = self.get_non_admin_user()
         primary_image_id, secondary_image_id = self.get_image_ids()
-        if self.deployment.feature_in("neutron"):
+        if self.deployment.has_feature("neutron"):
             network_id = self.get_network_id(network_name)
             networks = "{'%s':{'v4': True, 'v6': False}}" % network_name
         else:

@@ -130,10 +130,9 @@ class Deployment(object):
         :type feature_name: str
         :rtype: Iterator (Nodes)
         """
-        return (node for node in self.nodes if feature_name in
-                (str(f).lower() for f in node.features))
+        return (node for node in self.nodes if self.has_feature(feature_name))
 
-    def feature_in(self, feature):
+    def has_feature(self, feature):
         """
         Boolean function to determine if a feature exists in deployment
         :param feature: feature to be searched for
@@ -163,8 +162,7 @@ class Deployment(object):
         Returns list of features as strings
         :rtype: list (str)
         """
-        return [feature.__class__.__name__.lower() for feature in
-                self.features]
+        return [str(feature) for feature in self.features]
 
     @property
     def node_names(self):
@@ -184,7 +182,6 @@ class Deployment(object):
 
         retrofit = Retrofit(self)
 
-        # if old port exists, remove it
         if old_port_to_delete:
             retrofit.remove_port_from_bridge(ovs_bridge, old_port_to_delete)
 
