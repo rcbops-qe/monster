@@ -22,6 +22,9 @@ console_handler.setFormatter(console_formatter)
 
 # File logging setup
 
+if not os.path.exists('logs'):
+    os.makedirs('logs')
+
 file_handler = logging.FileHandler("logs/{0}-{1}.log".format(name, time))
 file_format = '%(asctime)s %(name)s %(levelname)s %(module)s: %(message)s'
 file_formatter = logging.Formatter(file_format)
