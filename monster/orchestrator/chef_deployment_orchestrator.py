@@ -5,7 +5,7 @@ from chef import Environment as ChefEnvironment
 from monster import util
 from monster.config import Config
 from monster.orchestrator.deployment_orchestrator import DeploymentOrchestrator
-from monster.nodes.node_factory import NodeFactory
+from monster.nodes.node_wrapper_factory import ChefNodeWrapperFactory
 from monster.provisioners.util import get_provisioner
 from monster.features.node_feature import ChefServer
 from monster.deployments.chef_deployment import ChefDeployment
@@ -51,16 +51,8 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
                                     provisioner, "provisioning", product)
         deployment.add_features(features)
 
-        # provision nodes
-        base_nodes = provisioner.provision(template, deployment)
-        for node in base_nodes:
-            chef_node = NodeFactory.get_chef_node_wrapper(node, product,
-                                                          environment,
-                                                          deployment,
-                                                          provisioner,
-                                                          branch)
-            provisioner.post_provision(chef_node)
-            deployment.nodes.append(chef_node)
+        deployment.nodes = provisioner.build_nodes(template, deployment,
+                                                   ChefNodeWrapperFactory)
 
         for node, features in zip(deployment.nodes, template['nodes']):
             node.add_features(features)
@@ -111,7 +103,7 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
                 util.logger.error("Non-existent chef node: {0}".
                                   format(node.name))
                 continue
-            chef_node = NodeFactory.get_chef_node_wrapper(
+            chef_node = ChefNodeWrapperFactory.wrap_node(
                 node, product, environment, deployment, provisioner,
                 deployment_args["branch"])
             deployment.nodes.append(chef_node)

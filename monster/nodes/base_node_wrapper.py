@@ -9,7 +9,7 @@ from monster.server_helper import ssh_cmd, scp_to, scp_from
 from monster.features import node_feature
 
 
-class BaseNode(object):
+class BaseNodeWrapper(object):
     """
     A individual computation entity to deploy a part OpenStack onto
     Provides server related functions

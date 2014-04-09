@@ -17,7 +17,7 @@ class Provisioner(object):
         :type template: dict
         :param deployment: Deployment to provision for
         :type deployment: Deployment
-        :rtype: list
+        :rtype: list (chef.Node)
         """
         raise NotImplementedError
 
@@ -25,7 +25,7 @@ class Provisioner(object):
         """
         Tasks to be done after a node is provisioned
         :param node: Node object to be tasked
-        :type node: Monster.Node
+        :type node: nodes.BaseNodeWrapper
         """
         pass
 
@@ -33,7 +33,7 @@ class Provisioner(object):
         """
         Destroys node
         :param node: node to destroy
-        :type node: Monster.Node
+        :type node: nodes.BaseNodeWrapper
         """
         raise NotImplementedError
 
@@ -47,7 +47,7 @@ class Provisioner(object):
         """
         Turns a node off
         :param node: node to power off
-        :type node: Monster.Node
+        :type node: nodes.BaseNodeWrapper
         """
         raise NotImplementedError
 
@@ -55,6 +55,15 @@ class Provisioner(object):
         """
         Turns a node on
         :param node: node to power on
-        :type node: Monster.Node
+        :type node: nodes.BaseNodeWrapper
         """
         raise NotImplementedError
+
+    def build_nodes(self, template, deployment, node_wrapper_factory):
+        product = template.fetch('product')
+        nodes_to_wrap = self.provision(template, deployment)
+        for node in nodes_to_wrap:
+            wrapped_nodes = node_wrapper_factory.wrap_node(
+                node, product, deployment.environment, deployment,
+                provisioner=self, branch=deployment.branch)
+            self.post_provision(wrapped_nodes)

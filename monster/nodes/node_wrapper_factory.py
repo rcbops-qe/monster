@@ -1,16 +1,15 @@
 from chef import Node
 
 from monster.provisioners.util import get_provisioner
-from monster.nodes.chef_node import ChefNodeWrapper
+from monster.nodes.chef_node_wrapper import ChefNodeWrapper
 from monster import util
 
 
-class NodeFactory:
-    @classmethod
-    def get_chef_node_wrapper(cls, node, product, environment, deployment,
-                      provisioner, branch):
+class ChefNodeWrapperFactory:
+    @staticmethod
+    def wrap_node(node, product, environment, deployment, provisioner, branch):
         """
-        Restores node from chef node
+
         """
         remote_api = None
         if deployment:

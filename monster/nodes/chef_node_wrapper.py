@@ -1,10 +1,10 @@
 from chef import Node, Client
 
 from monster import util
-from monster.nodes.basenode import BaseNode
+from monster.nodes.base_node_wrapper import BaseNodeWrapper
 
 
-class ChefNodeWrapper(BaseNode):
+class ChefNodeWrapper(BaseNodeWrapper):
     """
     A Chef entity
     Provides chef related server functions
