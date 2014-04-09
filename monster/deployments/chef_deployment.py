@@ -20,11 +20,11 @@ class ChefDeployment(Deployment):
     """
 
     def __init__(self, name, os_name, branch, environment, provisioner,
-                 status=None, product=None, clients=None):
+                 status=None, product=None, clients=None, features=None):
         status = status or "provisioning"
         super(ChefDeployment, self).__init__(name, os_name, branch,
                                              provisioner, status, product,
-                                             clients)
+                                             clients, features)
         self.environment = environment
         self.has_controller = False
         self.has_orch_master = False

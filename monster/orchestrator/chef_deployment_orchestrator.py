@@ -48,9 +48,8 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
         os, product, features = template.fetch('os', 'product', 'features')
 
         deployment = ChefDeployment(name, os, branch, environment,
-                                    provisioner, "provisioning", product)
-        deployment.add_features(features)
-
+                                    provisioner, "provisioning", product,
+                                    features=features)
         deployment.nodes = provisioner.build_nodes(template, deployment,
                                                    ChefNodeWrapperFactory)
 

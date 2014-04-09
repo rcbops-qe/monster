@@ -62,8 +62,11 @@ class Provisioner(object):
     def build_nodes(self, template, deployment, node_wrapper_factory):
         product = template.fetch('product')
         nodes_to_wrap = self.provision(template, deployment)
+        built_nodes = []
         for node in nodes_to_wrap:
-            wrapped_nodes = node_wrapper_factory.wrap_node(
+            wrapped_node = node_wrapper_factory.wrap_node(
                 node, product, deployment.environment, deployment,
                 provisioner=self, branch=deployment.branch)
-            self.post_provision(wrapped_nodes)
+            self.post_provision(wrapped_node)
+            built_nodes.append(wrapped_node)
+        return built_nodes

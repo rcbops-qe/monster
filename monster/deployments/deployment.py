@@ -16,7 +16,7 @@ class Deployment(object):
     """
 
     def __init__(self, name, os_name, branch, provisioner, status, product,
-                 clients=None):
+                 clients=None, features=None):
         self.name = name
         self.os_name = os_name
         self.branch = branch
@@ -26,6 +26,8 @@ class Deployment(object):
         self.provisioner = str(provisioner)
         self.product = product
         self.clients = clients
+        if features:
+            self.add_features(features)
 
     def __repr__(self):
         """
