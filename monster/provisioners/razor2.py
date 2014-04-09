@@ -4,7 +4,7 @@ import requests
 
 from time import sleep
 from provisioner import Provisioner
-from chef import Node, Client, Search, autoconfigure
+from chef import Search, autoconfigure
 
 from monster import util
 
@@ -58,48 +58,48 @@ class Razor2(Provisioner):
         util.logger.info("Cannot build, no more available_nodes")
         sys.exit(1)
 
-    def power_down(self, node):
-        if node.has_feature('controller'):
+    def power_down(self, node_wrapper):
+        if node_wrapper.has_feature('controller'):
             # rabbit can cause the node to not actually reboot
             kill = ("for i in `ps -U rabbitmq | tail -n +2 | "
                     "awk '{print $1}' `; do kill -9 $i; done")
-            node.run_cmd(kill)
-        node.run_cmd("shutdown -r now")
+            node_wrapper.run_cmd(kill)
+        node_wrapper.run_cmd("shutdown -r now")
 
     def power_up(self, node):
         pass
 
-    def destroy_node(self, node):
+    def destroy_node(self, node_wrapper):
         """
         Destroys a node provisioned by razor
-        :param node: Node to destroy
-        :type node: ChefNodeWrapper
+        :param node_wrapper: Node to destroy
+        :type node_wrapper: ChefNodeWrapper
         """
-        cnode = Node(node.name, node.environment.local_api)
-        in_use = node['in_use']
+        node = node_wrapper.local_node
+        in_use = node_wrapper['in_use']
         if in_use == "provisioning" or in_use == 0:
             # Return to pool if the node is clean
-            cnode['in_use'] = 0
-            cnode['archive'] = {}
-            cnode.chef_environment = "_default"
-            cnode.save()
+            node['in_use'] = 0
+            node['archive'] = {}
+            node.chef_environment = "_default"
+            node.save()
         else:
             # Reinstall node if the node is dirty
-            razor_node = cnode.name.split("-")[0]
+            razor_node = node.name.split("-")[0]
             try:
-                if node.has_feature('controller'):
+                if node_wrapper.has_feature('controller'):
                     # rabbit can cause the node to not actually reboot
                     kill = ("for i in `ps -U rabbitmq | tail -n +2 | "
                             "awk '{print $1}' `; do kill -9 $i; done")
-                    node.run_cmd(kill)
-                node.run_cmd("shutdown -r now")
+                    node_wrapper.run_cmd(kill)
+                node_wrapper.run_cmd("shutdown -r now")
                 self.api.reinstall_node(razor_node)
-                Client(node.name).delete()
-                cnode.delete()
+                node_wrapper.client.delete()
+                node.delete()
             except:
                 util.logger.error("Node unreachable. "
                                   "Manual restart required:{0}".
-                                  format(str(node)))
+                                  format(str(node_wrapper)))
 
     @classmethod
     def node_search(cls, query, environment=None, tries=10):

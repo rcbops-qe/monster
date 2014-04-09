@@ -139,6 +139,10 @@ class ChefNodeWrapper(BaseNode):
                 raise Exception("Chef client failure")
 
     @property
+    def client(self):
+        return Client(self.name, self.local_api)
+
+    @property
     def local_node(self):
         return Node(self.name, self.local_api)
 
@@ -153,7 +157,3 @@ class ChefNodeWrapper(BaseNode):
     @property
     def remote_api(self):
         return self.environment.remote_api
-
-    @property
-    def client(self):
-        return Client(self.name, self.local_api)
