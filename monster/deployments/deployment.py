@@ -5,6 +5,7 @@ OpenStack deployments
 import types
 import tmuxp
 
+from monster.features import deployment_feature as deployment_features
 from monster.tools.retrofit import Retrofit
 from monster import util
 
@@ -138,6 +139,19 @@ class Deployment(object):
         :rtype: bool
         """
         return feature_name in self.feature_names
+
+    def add_features(self, features):
+        """
+        Adds a dictionary of features to deployment
+        :param features: dictionary of features {"monitoring": "default", ...}
+        :type features: dict
+        """
+        # stringify and lowercase classes in deployment features
+        classes = util.module_classes(deployment_features)
+        for feature, rpcs_feature in features.items():
+            util.logger.debug("feature: {0}, rpcs_feature: {1}".format(
+                feature, rpcs_feature))
+            self.features.append(classes[feature](self, rpcs_feature))
 
     def tmux(self):
         """

@@ -9,7 +9,6 @@ from monster import util
 from monster.upgrades.util import int2word
 from monster.clients.openstack import Creds, Clients
 from monster.deployments.deployment import Deployment
-from monster.features import deployment_feature as deployment_features
 
 from pyrabbit.api import Client as RabbitClient
 
@@ -94,19 +93,6 @@ class ChefDeployment(Deployment):
         self.save_to_environment()
         with open("{0}.json".format(self.name), "w") as f:
             f.write(str(self.environment))
-
-    def add_features(self, features):
-        """
-        Adds a dictionary of features to deployment
-        :param features: dictionary of features {"monitoring": "default", ...}
-        :type features: dict
-        """
-        # stringify and lowercase classes in deployment features
-        classes = util.module_classes(deployment_features)
-        for feature, rpcs_feature in features.items():
-            util.logger.debug("feature: {0}, rpcs_feature: {1}".format(
-                feature, rpcs_feature))
-            self.features.append(classes[feature](self, rpcs_feature))
 
     def destroy(self):
         """
