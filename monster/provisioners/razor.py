@@ -2,8 +2,8 @@ import json
 import requests
 
 from time import sleep
+from monster.nodes.util import node_search
 from provisioner import Provisioner
-from chef import Search, autoconfigure
 
 from monster import util
 
@@ -43,7 +43,7 @@ class Razor(Provisioner):
         """
         # TODO: Should probably search on system name node attributes
         # Avoid specific naming of razor nodes, not portable
-        nodes = self.node_search("name:qa-%s-pool*" % image)
+        nodes = node_search("name:qa-%s-pool*" % image)
         for node in nodes:
             is_default = node.chef_environment == "_default"
             iface_in_run_list = "recipe[network-interfaces]" in node.run_list
@@ -98,26 +98,6 @@ class Razor(Provisioner):
                 util.logger.error("Node unreachable. "
                                   "Manual restart required:{0}".
                                   format(str(node_wrapper)))
-
-    @classmethod
-    def node_search(cls, query, environment=None, tries=10):
-        """
-        Performs a node search query on the chef server
-        :param query: search query to request
-        :type query: string
-        :param environment: Environment the query should be
-        :type environment: ChefEnvironment
-        :rtype: Iterator (chef.Node)
-        """
-        api = autoconfigure()
-        if environment:
-            api = environment.local_api
-        search = None
-        while not search and tries > 0:
-            search = Search("node", api=api).query(query)
-            sleep(10)
-            tries -= 1
-        return (n.object for n in search)
 
 
 class RazorAPI(object):

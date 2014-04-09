@@ -53,7 +53,7 @@ class DeploymentOrchestrator:
         # provision nodes
         base_nodes = provisioner.provision(template, deployment)
         for node in base_nodes:
-            chef_node = NodeFactory.get_chef_node(node, product, environment,
+            chef_node = NodeFactory.get_chef_node_wrapper(node, product, environment,
                                                   deployment, provisioner,
                                                   branch)
             provisioner.post_provision(chef_node)
@@ -108,7 +108,7 @@ class DeploymentOrchestrator:
                 util.logger.error("Non-existent chef node: {0}".
                                   format(node.name))
                 continue
-            chef_node = NodeFactory.get_chef_node(node, product, environment,
+            chef_node = NodeFactory.get_chef_node_wrapper(node, product, environment,
                                                   deployment, provisioner,
                                                   deployment_args["branch"])
             deployment.nodes.append(chef_node)

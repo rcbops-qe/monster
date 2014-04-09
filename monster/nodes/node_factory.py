@@ -7,7 +7,7 @@ from monster import util
 
 class NodeFactory:
     @classmethod
-    def get_chef_node(cls, node, product, environment, deployment,
+    def get_chef_node_wrapper(cls, node, product, environment, deployment,
                       provisioner, branch):
         """
         Restores node from chef node
