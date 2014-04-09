@@ -115,11 +115,9 @@ class Deployment(object):
         """
         Artifacts OpenStack and its dependant services for a deployment
         """
-        # Run each features archive
         for feature in self.features:
             feature.archive()
-
-        # Run each nodes archive
+            
         for node in self.nodes:
             node.archive()
 
