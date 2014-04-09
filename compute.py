@@ -4,18 +4,21 @@ Command-line interface for building OpenStack clusters
 """
 
 import os
-import argh
 import subprocess
 import traceback
 import webbrowser
+
+import argh
+
 from monster import util
 from monster.color import Color
 from monster.config import Config
 from monster.tests.ha import HATest
 from monster.tests.cloudcafe import CloudCafe
+from monster.orchestrator.util import get_orchestrator
 from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
-from monster.deployments.deployment_orchestrator import DeploymentOrchestrator
+
 
 if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
     util.logger.warning("You are not using the virtual environment! We "
@@ -25,19 +28,22 @@ if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
 
 
 # Logger needs to be rewritten to accept a log filename
+
+
 def build(name="autotest", template="ubuntu-default", branch="master",
           template_path=None, config="pubcloud-neutron.yaml",
           dry=False, log=None, log_level="INFO", provisioner_name="rackspace",
-          secret_path=None):
+          secret_path=None, orchestrator_name="chef"):
     """
     Build an OpenStack Cluster
     """
     util.set_log_level(log_level)
     _load_config(config, secret_path)
 
-    orchestrator = DeploymentOrchestrator()
-    deployment = orchestrator.get_deployment_from_file(name, template, branch,
-                                                       provisioner_name)
+    orchestrator = get_orchestrator(orchestrator_name)
+    deployment = orchestrator.create_deployment_from_file(name, template,
+                                                          branch,
+                                                          provisioner_name)
 
     if dry:
         try:
@@ -213,11 +219,12 @@ def _load_config(config, secret_path):
     util.config = Config(config, secret_file_name=secret_path)
 
 
-def _load(name="autotest", config="config.yaml", secret_path=None):
+def _load(name="autotest", config="config.yaml", orchestrator_name="chef",
+          secret_path=None):
     # Load deployment and source openrc
     _load_config(config, secret_path)
-    orchestrator = DeploymentOrchestrator()
-    deployment = orchestrator.get_deployment_from_chef_env(name)
+    orchestrator = get_orchestrator(orchestrator_name)
+    deployment = orchestrator.load_deployment_from_name(name)
     return deployment
 
 

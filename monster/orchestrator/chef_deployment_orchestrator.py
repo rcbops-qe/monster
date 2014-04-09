@@ -4,6 +4,7 @@ from chef import Environment as ChefEnvironment
 
 from monster import util
 from monster.config import Config
+from monster.orchestrator.deployment_orchestrator import DeploymentOrchestrator
 from monster.nodes.node_factory import NodeFactory
 from monster.provisioners.util import get_provisioner
 from monster.features.node_feature import ChefServer
@@ -12,14 +13,14 @@ from monster.environments.chef_environment import Chef as \
     MonsterChefEnvironment
 
 
-class DeploymentOrchestrator:
+class ChefDeploymentOrchestrator(DeploymentOrchestrator):
 
     @property
     def local_api(self):
         return autoconfigure()
 
-    def get_deployment_from_file(self, name, template, branch,
-                                 provisioner_name):
+    def create_deployment_from_file(self, name, template, branch,
+                                    provisioner_name):
         """
         Returns a new deployment given a deployment template at path
         :param name: name for the deployment
@@ -39,7 +40,7 @@ class DeploymentOrchestrator:
         if ChefEnvironment(name, api=self.local_api).exists:
             # Use previous dry build if exists
             util.logger.info("Using previous deployment:{0}".format(name))
-            return self.get_deployment_from_chef_env(name)
+            return self.load_deployment_from_name(name)
         environment = MonsterChefEnvironment(name, self.local_api,
                                              description=name)
         template = Config.fetch_template(template, branch)
@@ -53,9 +54,11 @@ class DeploymentOrchestrator:
         # provision nodes
         base_nodes = provisioner.provision(template, deployment)
         for node in base_nodes:
-            chef_node = NodeFactory.get_chef_node_wrapper(node, product, environment,
-                                                  deployment, provisioner,
-                                                  branch)
+            chef_node = NodeFactory.get_chef_node_wrapper(node, product,
+                                                          environment,
+                                                          deployment,
+                                                          provisioner,
+                                                          branch)
             provisioner.post_provision(chef_node)
             deployment.nodes.append(chef_node)
 
@@ -64,7 +67,7 @@ class DeploymentOrchestrator:
 
         return deployment
 
-    def get_deployment_from_chef_env(self, environment):
+    def load_deployment_from_name(self, environment):
         """
         Rebuilds a Deployment given a chef environment
         :param environment: name of environment
@@ -108,8 +111,8 @@ class DeploymentOrchestrator:
                 util.logger.error("Non-existent chef node: {0}".
                                   format(node.name))
                 continue
-            chef_node = NodeFactory.get_chef_node_wrapper(node, product, environment,
-                                                  deployment, provisioner,
-                                                  deployment_args["branch"])
+            chef_node = NodeFactory.get_chef_node_wrapper(
+                node, product, environment, deployment, provisioner,
+                deployment_args["branch"])
             deployment.nodes.append(chef_node)
         return deployment

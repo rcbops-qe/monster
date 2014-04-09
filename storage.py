@@ -4,12 +4,13 @@
 Command Line interface for Building Openstack Swift clusters
 """
 import sys
-import argh
 import traceback
+
+import argh
 
 from monster import util
 from monster.config import Config
-from monster.deployments.deployment_orchestrator import DeploymentOrchestrator
+from monster.orchestrator.chef_deployment_orchestrator import ChefDeploymentOrchestrator
 from monster.provisioners import provisioner as provisioners
 
 
@@ -25,7 +26,7 @@ def build(name="autotest", branch="master", provisioner="rackspace",
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    deployment = DeploymentOrchestrator.get_deployment_from_file(name, branch,
+    deployment = ChefDeploymentOrchestrator.create_deployment_from_file(name, branch,
                                                                  cprovisioner,
                                                                  template_path)
     if dry:
@@ -92,7 +93,7 @@ def _load(name="autotest", config=None, provisioner="razor"):
     util.config = Config(config)
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
-    return DeploymentOrchestrator.get_deployment_from_chef_env(
+    return ChefDeploymentOrchestrator.load_deployment_from_name(
         environment=cprovisioner)
 
 
