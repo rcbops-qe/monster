@@ -84,7 +84,7 @@ class Razor(Provisioner):
             # Remove active model if the node is dirty
             active_model = cnode['razor_metadata']['razor_active_model_uuid']
             try:
-                if node.feature_in('controller'):
+                if node.has_feature('controller'):
                     # rabbit can cause the node to not actually reboot
                     kill = ("for i in `ps -U rabbitmq | tail -n +2 | "
                             "awk '{print $1}' `; do kill -9 $i; done")

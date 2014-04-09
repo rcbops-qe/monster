@@ -62,7 +62,7 @@ class ChefNode(BaseNode):
         """
         self.branch = self.deployment.branch
         super(ChefNode, self).upgrade()
-        if not self.feature_in("chefserver"):
+        if not self.has_feature("chefserver"):
             try:
                 self.run(times=times)
             except Exception as e:
@@ -77,7 +77,7 @@ class ChefNode(BaseNode):
         Runs chef client before apply features on node
         """
         self.status = "apply-feature"
-        if not self.feature_in("chefserver"):
+        if not self.has_feature("chefserver"):
             self.run()
         super(ChefNode, self).apply_feature()
 

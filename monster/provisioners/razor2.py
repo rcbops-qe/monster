@@ -87,7 +87,7 @@ class Razor2(Provisioner):
             # Reinstall node if the node is dirty
             razor_node = cnode.name.split("-")[0]
             try:
-                if node.feature_in('controller'):
+                if node.has_feature('controller'):
                     # rabbit can cause the node to not actually reboot
                     kill = ("for i in `ps -U rabbitmq | tail -n +2 | "
                             "awk '{print $1}' `; do kill -9 $i; done")

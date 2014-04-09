@@ -13,8 +13,12 @@ from monster.environments.chef_environment import Chef as \
 
 
 class DeploymentOrchestrator:
-    @classmethod
-    def get_deployment_from_file(cls, name, template, branch,
+
+    @property
+    def local_api(self):
+        return autoconfigure()
+
+    def get_deployment_from_file(self, name, template, branch,
                                  provisioner_name):
         """
         Returns a new deployment given a deployment template at path
@@ -28,16 +32,16 @@ class DeploymentOrchestrator:
         :type provisioner_name: str
         :rtype: ChefDeployment
         """
-        local_api = autoconfigure()
         provisioner = get_provisioner(provisioner_name)
 
         util.logger.info("Building deployment object for {0}".format(name))
 
-        if ChefEnvironment(name, api=local_api).exists:
+        if ChefEnvironment(name, api=self.local_api).exists:
             # Use previous dry build if exists
             util.logger.info("Using previous deployment:{0}".format(name))
-            return cls.get_deployment_from_chef_env(name)
-        environment = MonsterChefEnvironment(name, local_api, description=name)
+            return self.get_deployment_from_chef_env(name)
+        environment = MonsterChefEnvironment(name, self.local_api,
+                                             description=name)
         template = Config.fetch_template(template, branch)
 
         os, product, features = template.fetch('os', 'product', 'features')
@@ -60,17 +64,14 @@ class DeploymentOrchestrator:
 
         return deployment
 
-    @classmethod
-    def get_deployment_from_chef_env(cls, environment):
+    def get_deployment_from_chef_env(self, environment):
         """
         Rebuilds a Deployment given a chef environment
         :param environment: name of environment
         :type environment: string
         :rtype: ChefDeployment
         """
-
-        local_api = autoconfigure()
-        environ = ChefEnvironment(environment, api=local_api)
+        environ = ChefEnvironment(environment, api=self.local_api)
         if not environ.exists:
             util.logger.error("The specified environment, {0}, does not"
                               "exist.".format(environment))
@@ -85,7 +86,7 @@ class DeploymentOrchestrator:
             override = renv.override_attributes
             default = renv.default_attributes
         environment = MonsterChefEnvironment(
-            environ.name, local_api, description=environ.name,
+            environ.name, self.local_api, description=environ.name,
             default=default, override=override, remote_api=remote_api)
 
         name = environ.name
@@ -102,7 +103,7 @@ class DeploymentOrchestrator:
         deployment.add_features(features)
 
         nodes = deployment_args.get('nodes', [])
-        for node in (ChefNode(n, local_api) for n in nodes):
+        for node in (ChefNode(n, self.local_api) for n in nodes):
             if not node.exists:
                 util.logger.error("Non-existent chef node: {0}".
                                   format(node.name))

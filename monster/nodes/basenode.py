@@ -256,7 +256,7 @@ class BaseNode(object):
         self.provisioner.destroy_node(self)
         self.status = "Destroyed"
 
-    def feature_in(self, feature):
+    def has_feature(self, feature):
         return feature in self.feature_names
 
     @property
