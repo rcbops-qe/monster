@@ -42,8 +42,9 @@ class DeploymentOrchestrator:
 
         os, product, features = template.fetch('os', 'product', 'features')
 
-        deployment = cls.deployment_config(features, name, os, branch,
-                                           environment, provisioner, product)
+        deployment = ChefDeployment(name, os, branch, environment,
+                                    provisioner, "provisioning", product)
+        deployment.add_features(features)
 
         # provision nodes
         base_nodes = provisioner.provision(template, deployment)
@@ -96,8 +97,9 @@ class DeploymentOrchestrator:
         provisioner_name = deployment_args.get('provisioner', "razor2")
         provisioner = get_provisioner(provisioner_name)
 
-        deployment = cls.deployment_config(features, name, os_name, branch,
-                                           environment, provisioner, product)
+        deployment = ChefDeployment(name, os_name, branch, environment,
+                                    provisioner, "provisioning", product)
+        deployment.add_features(features)
 
         nodes = deployment_args.get('nodes', [])
         for node in (ChefNode(n, local_api) for n in nodes):
@@ -109,32 +111,4 @@ class DeploymentOrchestrator:
                                                   deployment, provisioner,
                                                   deployment_args["branch"])
             deployment.nodes.append(chef_node)
-        return deployment
-
-    @staticmethod
-    def deployment_config(features, name, os_name, branch, environment,
-                          provisioner, product=None):
-        """
-        Returns deployment given dictionaries of features
-        :param features: dictionary of features {"monitoring": "default", ...}
-        :type features: dict
-        :param name: name of deployment
-        :type name: string
-        :param os_name: name of operating system
-        :type os_name: string
-        :param branch: branch of rcbops chef cookbooks to use
-        :type branch: string
-        :param environment: ChefEnvironment for deployment
-        :type environment: ChefEnvironment
-        :param provisioner: provisioner to deploy nodes
-        :type provisioner: Provisioner
-        :param product: name of rcbops product - compute, storage
-        :type product: string
-        :rtype: ChefDeployment
-        """
-
-        status = "provisioning"
-        deployment = ChefDeployment(name, os_name, branch, environment,
-                                    provisioner, status, product)
-        deployment.add_features(features)
         return deployment
