@@ -18,4 +18,4 @@ def load(name, config="config.yaml"):
     Load function for iPython
     """
     util.config = Config(config)
-    return DeploymentOrchestrator.get_deployment_from_chef_env(name)
+    return DeploymentOrchestrator().get_deployment_from_chef_env(name)

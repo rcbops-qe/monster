@@ -35,7 +35,7 @@ def build(name="autotest", template="ubuntu-default", branch="master",
     util.set_log_level(log_level)
     _load_config(config, secret_path)
 
-    orchestrator = DeploymentOrchestrator
+    orchestrator = DeploymentOrchestrator()
     deployment = orchestrator.get_deployment_from_file(name, template, branch,
                                                        provisioner_name)
 
@@ -216,7 +216,7 @@ def _load_config(config, secret_path):
 def _load(name="autotest", config="config.yaml", secret_path=None):
     # Load deployment and source openrc
     _load_config(config, secret_path)
-    orchestrator = DeploymentOrchestrator
+    orchestrator = DeploymentOrchestrator()
     deployment = orchestrator.get_deployment_from_chef_env(name)
     return deployment
 
