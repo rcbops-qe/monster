@@ -1,6 +1,6 @@
 chef:
     server:
-        install_script: https://raw.github.com/rcbops-qa/monster/master/files/install-chef-server.sh
+        install_script: https://raw.githubusercontent.com/rcbops/support-tools/master/chef-install/install-chef-server.sh
         install_dir: /opt/rcbops
         upgrade_dir: /opt/upgrade
     client:
