@@ -297,7 +297,6 @@ upgrade:
     stop-services: for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit stop $i; done; service keepalived stop
     start-services: for i in `monit status | grep Process | awk '{print $2}' | grep -v mysql | sed "s/'//g"`; do monit start $i; done; service keepalived restart
   supported:
-  supported:
     v4.1.2:
       - v4.1.3rc
       - v4.1.3
