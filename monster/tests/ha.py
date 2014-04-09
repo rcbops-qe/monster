@@ -41,7 +41,7 @@ class Build(object):
         self.ip_info = None
         self.router_id = None
 
-    def destroy(self, nova, neutron, progress):
+    def destroy(self, nova, neutron, progress, node1, node2):
         """
         Cleans up build state from OpenStack
         """
@@ -68,10 +68,43 @@ class Build(object):
         deleted = False
         while not deleted:
             try:
+                # Run server deletion command
+                util.logger.debug("Attempting server deletion")
+                progress.update("Progress")
                 nova.servers.delete(self.server)
-                deleted = True
+
             except:
                 deleted = False
+
+            max_tries = 60
+            current_try = 1
+            # If "No server" is not found in the return, then the server
+            # has not yet been deleted...
+            deleted = True
+            really_deleted = False
+            while not really_deleted:
+                try:
+                    nova.servers.get(self.server)
+                    if current_try > max_tries:
+                        # Force kill RabbitMQ server and start it back up
+                        util.logger.error(Color.red("Server deletion is hung"))
+                        progress.update("Progress")
+                        self.kill_rabbit(node1, node2)
+                        deleted = False
+                        break
+
+                    util.logger.warning(Color.yellow("Waiting for server "
+                                                     "to be deleted: {0}".
+                                                     format(current_try)))
+                    progress.update("Progress")
+                    sleep(1)
+                    current_try += 1
+                except:
+                    util.logger.debug(Color.green("{0} has been deleted "
+                                                  "(really)".
+                                                  format(self.name)))
+                    really_deleted = True
+                    deleted = True
 
         util.logger.debug('Deleting router interface')
         progress.update("Progress")
@@ -262,7 +295,16 @@ class HATest(Test):
         Restore a node
         """
         util.logger.info('Powering on node...')
-        node.power_on()
+        rebootable = False
+        # In casae node is not in bootable state
+        while not rebootable:
+            try:
+                node.power_on()
+                rebootable = True
+            except:
+                util.logger.warning(Color.yellow("Unable to boot {0}".
+                                                 format(node.name)))
+                sleep(5)
 
     def failover(self, progress, node_up, node_down):
         """
@@ -277,6 +319,7 @@ class HATest(Test):
         for i in range(4):
             util.logger.debug("Checking replication status on {0}".
                               format(node_down.name))
+            progress.update("Progress")
             rep_statd = node_down.run_cmd("mysql -e 'show slave status\G' | "
                                           "grep 'Seconds_Behind_Master' | "
                                           "awk '{print $2}'"
@@ -284,6 +327,7 @@ class HATest(Test):
 
             util.logger.debug("Checking replication status on {0}".
                               format(node_up.name))
+            progress.update("Progress")
             rep_statu = node_up.run_cmd("mysql -e 'show slave status\G' | "
                                         "grep 'Seconds_Behind_Master' | "
                                         "awk '{print $2}'")['return'].rstrip()
@@ -291,19 +335,22 @@ class HATest(Test):
             if rep_statd == "0" and rep_statu == "0":
                 util.logger.debug("Replication seems to be complete. "
                                   "Waiting 2 seconds and rechecking: {0}/4".
-                                  format(i))
+                                  format(i + 1))
+                progress.update("Progress")
                 sleep(2)
             else:
                 util.logger.warning(Color.yellow("Replication has not finished"
                                                  " - Down:{0} Up:{1}".
                                                  format(rep_statd,
                                                         rep_statu)))
+                progress.update("Progress")
                 sleep(2)
                 i = 0
 
         util.logger.debug(Color.cyan("Replication has finished - "
                                      "Down:{0} Up:{1}".
                                      format(rep_statd, rep_statu)))
+        progress.update("Progress")
 
 #        util.logger.debug('Sleeping for 10 seconds...')
         for i in range(5):
@@ -529,10 +576,22 @@ class HATest(Test):
             sleep(1)
 
         # Checks if RS Cloud libvirt issue has been resolved
-        libvirt = node_up.run_cmd(";".join(["source openrc",
-                                  ("nova service-list | awk '{print $2}' "
-                                   "| grep 'nova-compute'")]))['return']
-        assert "compute" in libvirt, "The compute nodes are not checked in!"
+        computes_reporting = False
+        while not computes_reporting:
+            util.logger.debug("Checking if compute nodes are checked in")
+            progress.update("Progress")
+            libvirt = node_up.run_cmd(";".join(["source openrc",
+                                     ("nova service-list | "
+                                      "grep 'nova-compute' "
+                                      "| awk '{print $10}'")]))['return']
+            if "down" in libvirt:
+                util.logger.warning(Color.yellow("The compute nodes are not "
+                                                 "checked in!"))
+                continue
+            elif "up" in libvirt:
+                util.logger.debug(Color.green("The compute nodes are "
+                                              "checked in!"))
+                computes_reporting = True
         progress.update("Progress", 1)
 
         # Check RPCS services (ha_proxy, keepalived, rpc daemon)
@@ -627,7 +686,7 @@ class HATest(Test):
 ###########################################################################
 
         # Check rabbitmq
-        self.test_rabbit_status(progress)
+        self.test_rabbit_status(progress, node_up, node_down)
         progress.update("Progress", 1)
 
 ###########################################################################
@@ -636,11 +695,11 @@ class HATest(Test):
         #SELECTIVE TEMPEST RUN
 ###########################################################################
 
-###########################################################################
-#       NEED TO DETERMINE NUMBER OF COMPUTE NODES TO VERIFY!!!
-###########################################################################
+        ###################################################################
+        # Verifies that the compute nodes are able to report
+        ###################################################################
         nova_status = "down"
-        while nova_status == "down":
+        while "down" in nova_status:
             util.logger.debug("Checking if nova is up on compute")
             progress.update("Progress")
             nova_status = node_up.run_cmd(";".join(["source openrc", "nova "
@@ -648,7 +707,11 @@ class HATest(Test):
                                                     "compute | awk '{print "
                                                     "$10}'"
                                                     ""]))['return'].rstrip()
-            util.logger.debug("Nova has a state of {0}".format(nova_status))
+            if "down" in nova_status:
+                util.logger.warning(Color.yellow("At least one compute node "
+                                                 "is not reporting properly"))
+            else:
+                util.logger.debug("All compute nodes are reporting properly")
         progress.update("Progress", 1)
 
     def wait_dhcp_agent_alive(self, net, progress, wait=240):
@@ -829,7 +892,8 @@ class HATest(Test):
         progress.display("Iteration")
 
         for build in builds:
-            build.destroy(self.nova, self.neutron, progress)
+            build.destroy(self.nova, self.neutron, progress, node_up,
+                          node_down)
 
         progress.advance("Iteration")
         progress.display("Iteration")
@@ -837,19 +901,48 @@ class HATest(Test):
         #tempest.test_node = node_up
         #tempest.test()
 
-    def test_rabbit_status(self, progress):
+    def kill_rabbit(self, node1, node2=None):
+        util.logger.warning(Color.yellow("Remidiation: Forcefully killing "
+                                         "and restarting RabbitMQ server on "
+                                         "{0}!".format(node1.name)))
+        node1.run_cmd(";".
+                      join([("for i in `ps aux | grep [r]abbitmq | "
+                            "awk '{print $2}'`"), "do kill -9 $i", "done",
+                            "service rabbitmq-server start"]))
+        if node2:
+            util.logger.warning(Color.yellow("Remidiation: Forcefully killing"
+                                             " and restarting RabbitMQ server"
+                                             " on {0}!".format(node2.name)))
+            node2.run_cmd(";".
+                          join([("for i in `ps aux | grep [r]abbitmq | "
+                                 "awk '{print $2}'`"), "do kill -9 $i",
+                                "done",
+                                "service rabbitmq-server start"]))
+        else:
+            util.logger.error(Color.red("Remidiation: Rabbit had to be "
+                                        "restarted during a failover event!"))
+
+    def test_rabbit_status(self, progress, node1, node2=None):
         """
         Assures rabbit is alive
         """
         status = False
+        cycle = 1
+        max_cycle = 120
         while not status:
-            util.logger.debug("Testing if RabbitMQ is alive")
+            util.logger.debug("Testing if RabbitMQ is alive: {0}".
+                              format(cycle))
             progress.update("Progress")
             try:
                 status = self.rabbit.is_alive()
                 util.logger.debug("RabbitMQ is alive")
             except:
                 status = False
+                cycle += 1
+                if cycle > max_cycle:
+                    self.kill_rabbit(node1, node2)
+                    cycle = 1
+                sleep(1)
 
     def test_list_queues(self):
         """
@@ -926,7 +1019,7 @@ class Progress(object):
             else:
                 self.print_bar(bar, bar['size'], 0)
         sys.stdout.flush()
-        call("tail -n 40 {0}-{1}.log | sed 's/^.*RPC-QE //' | cut -c-118".
+        call("tail -n 50 logs/{0}-{1}.log | sed 's/^.*RPC-QE //' | cut -c-118".
              format(util.name, util.time), shell=True)
 
     def set_stages(self, bar_name, stages):

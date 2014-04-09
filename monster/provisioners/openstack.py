@@ -123,6 +123,31 @@ class Openstack(Provisioner):
         node.save()
         return node
 
+    def get_flavor(self, flavor):
+        try:
+            flavor_name = self.config['flavors'][flavor]
+        except KeyError:
+            raise Exception("Flavor not supported:{0}".format(flavor))
+        return self._client_search(self.compute_client.flavors.list,
+                                   "name", flavor_name, attempts=10)
+
+    def get_image(self, image):
+        try:
+            image_name = self.config['images'][image]
+        except KeyError:
+            raise Exception("Image not supported:{0}".format(image))
+        return self._client_search(self.compute_client.images.list, "name",
+                                   image_name, attempts=10)
+
+    def get_networks(self):
+        desired_networks = util.config[str(self)]['networks']
+        networks = []
+        for network in desired_networks:
+            obj = self._client_search(self.neutron.list, "label",
+                                      network, attempts=10)
+            networks.append({"net-id": obj.id})
+        return networks
+
     def build_instance(self, name="server", image="ubuntu",
                        flavor="2GBP"):
         """
@@ -137,31 +162,12 @@ class Openstack(Provisioner):
         :type flavor: string
         :rtype: Server
         """
-        config = util.config[str(self)]
+        self.config = util.config[str(self)]
 
-        # get flavor
-        try:
-            flavor_name = config['flavors'][flavor]
-        except KeyError:
-            raise Exception("Flavor not supported:{0}".format(flavor))
-        flavor_obj = self._client_search(self.compute_client.flavors.list,
-                                         "name", flavor_name, attempts=10)
-
-        # get image
-        try:
-            image_name = config['images'][image]
-        except KeyError:
-            raise Exception("Image not supported:{0}".format(image))
-        image_obj = self._client_search(self.compute_client.images.list,
-                                        "name", image_name, attempts=10)
-
-        # gather networks
-        desired_networks = util.config[str(self)]['networks']
-        networks = []
-        for network in desired_networks:
-            obj = self._client_search(self.neutron.list, "label",
-                                      network, attempts=10)
-            networks.append({"net-id": obj.id})
+        # gather attribute objects
+        flavor_obj = self.get_flavor(flavor)
+        image_obj = self.get_image(image)
+        networks = self.get_networks()
 
         # build instance
         server = self.compute_client.servers.create(name, image_obj.id,
