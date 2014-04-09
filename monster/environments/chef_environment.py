@@ -64,7 +64,7 @@ class Chef(MonsterEnvironment):
                 util.logger.error("Remote env error:{0}".format(e))
 
     def destroy(self):
-        ChefEnvironment(self.name).delete()
+        ChefEnvironment(self.name, self.local_api).delete()
 
     def __repr__(self):
         """
