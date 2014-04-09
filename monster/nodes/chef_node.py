@@ -1,4 +1,4 @@
-from chef import Node
+from chef import Node, Client
 
 from monster import util
 from monster.nodes.basenode import BaseNode
@@ -153,3 +153,7 @@ class ChefNodeWrapper(BaseNode):
     @property
     def remote_api(self):
         return self.environment.remote_api
+
+    @property
+    def client(self):
+        return Client(self.name, self.local_api)

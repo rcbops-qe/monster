@@ -1,6 +1,6 @@
 import socket
 
-from chef import Client, Node
+from chef import Node
 from provisioner import Provisioner
 from gevent import spawn, joinall, sleep
 
@@ -67,17 +67,17 @@ class Openstack(Provisioner):
         self.nodes += [event.value for event in events]
         return self.nodes
 
-    def destroy_node(self, node):
+    def destroy_node(self, node_wrapper):
         """
         Destroys Chef node from OpenStack
-        :param node: node to destroy
-        :type node: ChefNodeWrapper
+        :param node_wrapper: node to destroy
+        :type node_wrapper: ChefNodeWrapper
         """
-        node = node.local_node
+        client = node_wrapper.client
+        node = node_wrapper.local_node
         if node.exists:
             self.compute_client.servers.get(node['uuid']).delete()
             node.delete()
-        client = Client(node.name, node.environment.local_api)
         if client.exists:
             client.delete()
 

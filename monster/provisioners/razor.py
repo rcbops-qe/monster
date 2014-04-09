@@ -3,7 +3,7 @@ import requests
 
 from time import sleep
 from provisioner import Provisioner
-from chef import Node, Client, Search, autoconfigure
+from chef import Search, autoconfigure
 
 from monster import util
 
@@ -66,38 +66,38 @@ class Razor(Provisioner):
     def power_up(self, node):
         pass
 
-    def destroy_node(self, node):
+    def destroy_node(self, node_wrapper):
         """
         Destroys a node provisioned by razor
-        :param node: Node to destroy
-        :type node: ChefNodeWrapper
+        :param node_wrapper: Node to destroy
+        :type node_wrapper: ChefNodeWrapper
         """
-        cnode = Node(node.name, node.environment.local_api)
-        in_use = node['in_use']
+        node = node_wrapper.local_node
+        in_use = node_wrapper['in_use']
         if in_use == "provisioning" or in_use == 0:
             # Return to pool if the node is clean
-            cnode['in_use'] = 0
-            cnode['archive'] = {}
-            cnode.chef_environment = "_default"
-            cnode.save()
+            node['in_use'] = 0
+            node['archive'] = {}
+            node.chef_environment = "_default"
+            node.save()
         else:
             # Remove active model if the node is dirty
-            active_model = cnode['razor_metadata']['razor_active_model_uuid']
+            active_model = node['razor_metadata']['razor_active_model_uuid']
             try:
-                if node.has_feature('controller'):
+                if node_wrapper.has_feature('controller'):
                     # rabbit can cause the node to not actually reboot
                     kill = ("for i in `ps -U rabbitmq | tail -n +2 | "
                             "awk '{print $1}' `; do kill -9 $i; done")
-                    node.run_cmd(kill)
-                node.run_cmd("shutdown -r now")
+                    node_wrapper.run_cmd(kill)
+                node_wrapper.run_cmd("shutdown -r now")
                 self.api.remove_active_model(active_model)
-                Client(node.name).delete()
-                cnode.delete()
+                node_wrapper.client.delete()
+                node.delete()
                 sleep(15)
             except:
                 util.logger.error("Node unreachable. "
                                   "Manual restart required:{0}".
-                                  format(str(node)))
+                                  format(str(node_wrapper)))
 
     @classmethod
     def node_search(cls, query, environment=None, tries=10):
