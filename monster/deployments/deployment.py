@@ -117,7 +117,7 @@ class Deployment(object):
         """
         for feature in self.features:
             feature.archive()
-            
+
         for node in self.nodes:
             node.archive()
 

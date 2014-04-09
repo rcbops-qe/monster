@@ -47,17 +47,15 @@ def remove_chef(node):
     Removes chef from the given node
 
     :param node: Node object to remove chef from
-    :type node: object
+    :type node: basenode.BaseNode
     :rtype: function
     """
-
     if node.os_name == "ubuntu":
         commands = ["apt-get remove --purge -y chef",
                     "rm -rf /etc/chef"]
     if node.os_name in ["centos", "rhel"]:
         commands = ["yum remove -y chef",
                     "rm -rf /etc/chef /var/chef"]
-
     command = "; ".join(commands)
 
     return node.run_cmd(command)

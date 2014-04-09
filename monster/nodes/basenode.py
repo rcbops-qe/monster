@@ -46,10 +46,6 @@ class BaseNode(object):
                     outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
         return "\n".join([outl, features])
 
-    @property
-    def os_name(self):
-        return self['platform']
-
     def get_creds(self):
         return self.ipaddress, self.user, self.password
 
@@ -246,6 +242,10 @@ class BaseNode(object):
         Return the iface that our vm data network will live on
         """
         return util.config['environments']['bridge_devices']['data']
+
+    @property
+    def os_name(self):
+        return self['platform']
 
     def destroy(self):
         util.logger.info("Destroying node:{0}".format(self.name))
