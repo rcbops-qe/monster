@@ -40,7 +40,7 @@ class Razor2(Provisioner):
         :type image: string
         :param deployment: ChefDeployment to add node to
         :type deployment: ChefDeployment
-        :rtype: ChefNode
+        :rtype: ChefNodeWrapper
         """
 
         # TODO: Should probably search on system name node attributes
@@ -73,7 +73,7 @@ class Razor2(Provisioner):
         """
         Destroys a node provisioned by razor
         :param node: Node to destroy
-        :type node: ChefNode
+        :type node: ChefNodeWrapper
         """
         cnode = Node(node.name, node.environment.local_api)
         in_use = node['in_use']

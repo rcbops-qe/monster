@@ -95,7 +95,6 @@ class ChefDeployment(Deployment):
         with open("{0}.json".format(self.name), "w") as f:
             f.write(str(self.environment))
 
-
     def add_features(self, features):
         """
         Adds a dictionary of features to deployment

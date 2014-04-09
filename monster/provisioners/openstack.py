@@ -1,6 +1,6 @@
 import socket
 
-from chef import Node, Client
+from chef import Client, Node
 from provisioner import Provisioner
 from gevent import spawn, joinall, sleep
 
@@ -71,12 +71,12 @@ class Openstack(Provisioner):
         """
         Destroys Chef node from OpenStack
         :param node: node to destroy
-        :type node: ChefNode
+        :type node: ChefNodeWrapper
         """
-        cnode = Node(node.name, node.environment.local_api)
-        if cnode.exists:
+        node = node.local_node
+        if node.exists:
             self.compute_client.servers.get(node['uuid']).delete()
-            cnode.delete()
+            node.delete()
         client = Client(node.name, node.environment.local_api)
         if client.exists:
             client.delete()
@@ -90,7 +90,7 @@ class Openstack(Provisioner):
         :type name: string
         :param flavor: desired flavor for node
         :type flavor: string
-        :rtype: ChefNode
+        :rtype: chef.Node
         """
         image = deployment.os_name
         server, password = self.build_instance(name=name, image=image,
@@ -111,6 +111,7 @@ class Openstack(Provisioner):
         while not run_cmd(command)['success']:
             util.logger.warning("Epic failure. Retrying...")
             sleep(1)
+
         node = Node(name, api=deployment.environment.local_api)
         node.chef_environment = deployment.environment.name
         node['in_use'] = "provisioning"

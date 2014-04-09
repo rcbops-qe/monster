@@ -4,15 +4,15 @@ from monster import util
 from monster.nodes.basenode import BaseNode
 
 
-class ChefNode(BaseNode):
+class ChefNodeWrapper(BaseNode):
     """
     A Chef entity
     Provides chef related server functions
     """
     def __init__(self, name, ip, user, password, product, deployment,
                  provisioner, environment, branch, run_list=None):
-        super(ChefNode, self).__init__(name, ip, user, password, product,
-                                       deployment, provisioner)
+        super(ChefNodeWrapper, self).__init__(name, ip, user, password,
+                                              product, deployment, provisioner)
         self.environment = environment
         self.branch = branch
         self.run_list = run_list or []
@@ -29,7 +29,7 @@ class ChefNode(BaseNode):
         Node has access to chef attributes
         """
         util.logger.debug("getting {0} on {1}".format(item, self.name))
-        return Node(self.name, api=self.environment.local_api)[item]
+        return self.local_node[item]
 
     def __setitem__(self, item, value):
         """
@@ -37,9 +37,9 @@ class ChefNode(BaseNode):
         """
         util.logger.debug("setting {0} to {1} on {2}".format(item, value,
                                                              self.name))
-        lnode = Node(self.name, api=self.environment.local_api)
-        lnode[item] = value
-        self.save(lnode)
+        local_node = self.local_node
+        local_node[item] = value
+        self.save(local_node)
 
     def build(self):
         """ Builds the node
@@ -47,10 +47,10 @@ class ChefNode(BaseNode):
 
         # clear run_list
         self.run_list = []
-        node = Node(self.name, self.environment.local_api)
+        node = self.local_node
         node.run_list = []
         node.save()
-        super(ChefNode, self).build()
+        super(ChefNodeWrapper, self).build()
 
     def upgrade(self, times=1, accept_failure=False):
         """
@@ -61,7 +61,7 @@ class ChefNode(BaseNode):
         :type accept_failure: boolean
         """
         self.branch = self.deployment.branch
-        super(ChefNode, self).upgrade()
+        super(ChefNodeWrapper, self).upgrade()
         if not self.has_feature("chefserver"):
             try:
                 self.run(times=times)
@@ -79,32 +79,31 @@ class ChefNode(BaseNode):
         self.status = "apply-feature"
         if not self.has_feature("chefserver"):
             self.run()
-        super(ChefNode, self).apply_feature()
+        super(ChefNodeWrapper, self).apply_feature()
 
-    def save(self, chef_node=None):
+    def save(self, node=None):
         """
         Saves a chef node to local and remote chef server
         """
         util.logger.debug("Saving chef_node:{0}".format(self.name))
-        chef_node = chef_node or Node(self.name, self.environment.local_api)
-        chef_node.save(self.environment.local_api)
-        if self.environment.remote_api:
+        node = node or self.local_node
+        node.save(self.local_api)
+        if self.remote_api:
             # syncs to remote chef server if available
-            chef_node.save(self.environment.remote_api)
+            node.save(self.remote_api)
 
-    def save_locally(self, chef_node=None):
+    def save_locally(self, node=None):
         """
         Syncs the remote chef nodes attribute to the local chef server
         """
         util.logger.debug("Syncing chef node from remote:{0}".format(
             self.name))
-        if self.environment.remote_api:
-            chef_node = chef_node or Node(self.name,
-                                          self.environment.remote_api)
-            chef_node.save(self.environment.local_api)
+        if self.remote_api:
+            node = node or self.remote_node
+            node.save(self.local_api)
 
     def get_run_list(self):
-        return Node(self.name, self.environment.local_api).run_list
+        return self.local_node.run_list
 
     def add_run_list_item(self, items):
         """
@@ -112,9 +111,9 @@ class ChefNode(BaseNode):
         """
         util.logger.debug("run_list:{0} add:{1}".format(self.run_list, items))
         self.run_list.extend(items)
-        cnode = Node(self.name, api=self.environment.local_api)
-        cnode.run_list = self.run_list
-        self.save(cnode)
+        node = self.local_node
+        node.run_list = self.run_list
+        self.save(node)
 
     def remove_run_list_item(self, item):
         """
@@ -123,9 +122,9 @@ class ChefNode(BaseNode):
         util.logger.debug("run_list:{0} remove:{1}".format(self.run_list,
                                                            item))
         self.run_list.pop(self.run_list.index(item))
-        cnode = Node(self.name, api=self.environment.local_api)
-        cnode.run_list = self.run_list
-        self.save(cnode)
+        node = self.local_node
+        node.run_list = self.run_list
+        self.save(node)
 
     def run(self, times=1, debug=True, accept_failure=True):
         cmd = util.config['chef']['client']['run_cmd']
@@ -138,3 +137,19 @@ class ChefNode(BaseNode):
             self.save_locally()
             if not chef_run['success'] and not accept_failure:
                 raise Exception("Chef client failure")
+
+    @property
+    def local_node(self):
+        return Node(self.name, self.local_api)
+
+    @property
+    def remote_node(self):
+        return Node(self.name, self.remote_api)
+
+    @property
+    def local_api(self):
+        return self.environment.local_api
+
+    @property
+    def remote_api(self):
+        return self.environment.remote_api

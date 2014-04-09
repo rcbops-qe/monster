@@ -1,7 +1,7 @@
 from chef import Node
 
 from monster.provisioners.util import get_provisioner
-from monster.nodes.chef_node import ChefNode
+from monster.nodes.chef_node import ChefNodeWrapper
 from monster import util
 
 
@@ -29,8 +29,8 @@ class NodeFactory:
             provisioner_name = archive.get('provisioner', 'razor2')
             provisioner = get_provisioner(provisioner_name)
         run_list = node.run_list
-        chef_remote_node = ChefNode(name, ip, user, password, product,
-                                    deployment, provisioner, environment,
-                                    branch, run_list)
+        chef_remote_node = ChefNodeWrapper(name, ip, user, password, product,
+                                           deployment, provisioner,
+                                           environment, branch, run_list)
         chef_remote_node.add_features(archive.get('features', []))
         return chef_remote_node
