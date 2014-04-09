@@ -256,13 +256,12 @@ class BaseNode(object):
         self.provisioner.destroy_node(self)
         self.status = "Destroyed"
 
-    def has_feature(self, feature):
-        return feature in self.feature_names
+    def has_feature(self, feature_name):
+        return feature_name in self.feature_names
 
     @property
     def feature_names(self):
-        return [feature.__class__.__name__.lower() for feature in
-                self.features]
+        return [str(feature) for feature in self.features]
 
     def power_off(self):
         self.provisioner.power_down(self)

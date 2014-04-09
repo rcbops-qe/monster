@@ -128,16 +128,16 @@ class Deployment(object):
         :type feature_name: str
         :rtype: Iterator (Nodes)
         """
-        return (node for node in self.nodes if self.has_feature(feature_name))
+        return (node for node in self.nodes if node.has_feature(feature_name))
 
-    def has_feature(self, feature):
+    def has_feature(self, feature_name):
         """
         Boolean function to determine if a feature exists in deployment
-        :param feature: feature to be searched for
-        :type feature: str
+        :param feature_name: feature to be searched for
+        :type feature_name: str
         :rtype: bool
         """
-        return feature in self.feature_names
+        return feature_name in self.feature_names
 
     def tmux(self):
         """
@@ -168,7 +168,7 @@ class Deployment(object):
         Returns list of nodes as strings
         :rtype: list (str)
         """
-        return [str(node) for node in self.nodes]
+        return [node.name for node in self.nodes]
 
     def retrofit(self, branch, ovs_bridge, lx_bridge, iface,
                  old_port_to_delete=None):
