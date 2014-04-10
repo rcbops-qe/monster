@@ -40,7 +40,7 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
 
         environment = ChefEnvironmentWrapper(name, self.local_api,
                                              description=name)
-        
+
         template = Config.fetch_template(template, branch)
 
         os, product, features = template.fetch('os', 'product', 'features')
