@@ -78,17 +78,12 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
         return deployment
 
     def load_environment_attributes(self, name):
-        local_env = Environment(name, api=self.local_api)
-        if not local_env.exists:
-            util.logger.error("The specified environment, {0}, does not"
-                              "exist.".format(name))
-            exit(1)
-
+        local_env = Environment(name, self.local_api)
         chef_auth = local_env.override_attributes.get('remote_chef', None)
 
         if chef_auth and chef_auth['key']:
             remote_api = ChefServer._remote_chef_api(chef_auth)
-            remove_env = Environment(name, api=remote_api)
+            remove_env = Environment(name, remote_api)
             default = remove_env.default_attributes
             override = remove_env.override_attributes
         else:
