@@ -16,12 +16,12 @@ class Command(object):
         self.exception = None
 
 
-def check_ssh(host, timeout=2):
-    util.logger.debug("Testing SSH connection to: {0}".format(host))
+def check_port(host, port, timeout=2):
+    util.logger.debug("Testing connection to : {0}:{1}".format(host, port))
     ssh_up = False
     while not ssh_up:
         try:
-            s = socket.create_connection((host, 22), timeout)
+            s = socket.create_connection((host, port), timeout)
             s.close()
             ssh_up = True
         except socket.error:

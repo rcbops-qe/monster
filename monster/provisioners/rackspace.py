@@ -4,7 +4,7 @@ from time import sleep
 from monster import util
 from openstack import Openstack
 from monster.clients.openstack import Creds
-from monster.server_helper import check_ssh
+from monster.server_helper import check_port
 
 
 class Rackspace(Openstack):
@@ -66,7 +66,7 @@ class Rackspace(Openstack):
         if version not in node.run_cmd("uname -r")['return']:
             node.run_cmd(install)
             node.run_cmd("reboot now")
-            check_ssh(node.ipaddress)
+            check_port(node.ipaddress, 22)
 
     def hosts(self, node):
         """

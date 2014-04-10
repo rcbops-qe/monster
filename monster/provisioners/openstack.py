@@ -6,7 +6,7 @@ from gevent import spawn, joinall, sleep
 
 from monster import util
 from monster.clients.openstack import Creds, Clients
-from monster.server_helper import run_cmd, check_ssh
+from monster.server_helper import run_cmd, check_port
 
 
 class Openstack(Provisioner):
@@ -182,8 +182,7 @@ class Openstack(Provisioner):
             server.delete()
             return self.build_instance(name=name, image=image, flavor=flavor)
         host = server.accessIPv4
-        check_ssh(host, timeout=2)
-        util.logger.debug("Server object: {0}".format(dir(server)))
+        check_port(host, 22, timeout=2)
         return (server, password)
 
     def _client_search(self, collection_fun, attr, desired, attempts=None,
