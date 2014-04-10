@@ -224,7 +224,7 @@ def _load(name="autotest", config="config.yaml", orchestrator_name="chef",
     # Load deployment and source openrc
     _load_config(config, secret_path)
     orchestrator = get_orchestrator(orchestrator_name)
-    deployment = orchestrator.load_deployment_from_name(name)
+    deployment = orchestrator.load_deployment_from_name(orchestrator_name)
     return deployment
 
 
