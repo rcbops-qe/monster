@@ -11,9 +11,10 @@ def node_search(query, environment=None, tries=10):
     :type environment: ChefEnvironment
     :rtype: Iterator (chef.Node)
     """
-    api = autoconfigure()
     if environment:
         api = environment.local_api
+    else:
+        api = autoconfigure()
     search = None
     while not search and tries > 0:
         search = Search("node", api=api).query(query)
