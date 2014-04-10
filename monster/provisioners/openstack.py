@@ -260,3 +260,6 @@ class Openstack(Provisioner):
         uuid = node['uuid']
         server = self.compute_client.servers.get(uuid)
         server.reboot("hard")
+
+    def reload_node_list(self, node_list, api):
+        return [Node(node_name, api) for node_name in node_list]

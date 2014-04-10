@@ -59,6 +59,9 @@ class Provisioner(object):
         """
         raise NotImplementedError
 
+    def reload_node_list(self, node_list, api):
+        raise NotImplementedError
+
     def build_nodes(self, template, deployment, node_wrapper_factory):
         product = template['product']
         nodes_to_wrap = self.provision(template, deployment)
@@ -70,3 +73,17 @@ class Provisioner(object):
             self.post_provision(wrapped_node)
             built_nodes.append(wrapped_node)
         return built_nodes
+
+    def load_nodes(self, env, deployment, node_wrapper_factory):
+        loaded_nodes = []
+        nodes_to_load = self.reload_node_list(env.nodes, env.local_api)
+        for node in nodes_to_load:
+            if not node.exists:
+                util.logger.error("Non-existent chef node: {0}".
+                                  format(node.name))
+                continue
+            wrapped_node = node_wrapper_factory.wrap_node(
+                node, env.product, env, deployment, self,
+                env.branch)
+            loaded_nodes.append(wrapped_node)
+        return loaded_nodes

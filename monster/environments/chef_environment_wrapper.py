@@ -22,6 +22,22 @@ class ChefEnvironmentWrapper(MonsterEnvironment):
         self.chef_server_name = chef_server_name
         self.save()
 
+    def __repr__(self):
+        """
+        Exclude unserializable chef objects
+        """
+
+        chef_dict = {
+            "chef_type": self.chef_type,
+            "cookbook_versions": self.cookbook_versions,
+            "description": self.description,
+            "json_class": self.json_class,
+            "name": self.name,
+            "default_attributes": self.default_attributes,
+            "override_attributes": self.override_attributes
+        }
+        return str(chef_dict)
+
     def add_override_attr(self, key, value):
         self.override_attributes[key] = value
         self.save()
@@ -66,18 +82,30 @@ class ChefEnvironmentWrapper(MonsterEnvironment):
     def destroy(self):
         ChefEnvironment(self.name, self.local_api).delete()
 
-    def __repr__(self):
-        """
-        Exclude unserializable chef objects
-        """
+    @property
+    def deployment_attributes(self):
+        return self.override_attributes.get('deployment', {})
 
-        chef_dict = {
-            "chef_type": self.chef_type,
-            "cookbook_versions": self.cookbook_versions,
-            "description": self.description,
-            "json_class": self.json_class,
-            "name": self.name,
-            "default_attributes": self.default_attributes,
-            "override_attributes": self.override_attributes
-        }
-        return str(chef_dict)
+    @property
+    def features(self):
+        return self.deployment_attributes.get('features', {})
+
+    @property
+    def branch(self):
+        return self.deployment_attributes.get('branch', None)
+
+    @property
+    def os_name(self):
+        return self.deployment_attributes.get('os_name', None)
+
+    @property
+    def nodes(self):
+        return self.deployment_attributes.get('nodes', [])
+
+    @property
+    def provisioner(self):
+        return self.deployment_attributes.get('provisioner', "razor2")
+
+    @property
+    def product(self):
+        return self.deployment_attributes.get('product', None)
