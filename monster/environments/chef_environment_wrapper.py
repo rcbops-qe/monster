@@ -4,14 +4,14 @@ Chef Environment
 
 from monster import util
 from chef import Environment as ChefEnvironment
-from environment import Environment as MonsterEnvironment
+from base_environment_wrapper import BaseEnvironmentWrapper as MonsterEnvironment
 
 
-class Chef(MonsterEnvironment):
+class ChefEnvironmentWrapper(MonsterEnvironment):
 
     def __init__(self, name, local_api, chef_server_name=None, remote_api=None,
                  description='', default=None, override=None):
-        super(Chef, self).__init__(name, description)
+        super(ChefEnvironmentWrapper, self).__init__(name, description)
         self.cookbook_versions = {}
         self.json_class = "Chef::Environment"
         self.chef_type = "environment"

@@ -3,10 +3,10 @@ Base environment
 """
 
 
-class Environment(dict):
+class BaseEnvironmentWrapper(dict):
 
     def __init__(self, name, description):
-        super(Environment, self).__init__({})
+        super(BaseEnvironmentWrapper, self).__init__({})
         self.name = name
         self.description = description
 

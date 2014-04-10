@@ -1,6 +1,4 @@
-from chef import autoconfigure
-from chef import Node as ChefNode
-from chef import Environment as ChefEnvironment
+from chef import autoconfigure, Node, Environment
 
 from monster import util
 from monster.config import Config
@@ -9,9 +7,8 @@ from monster.nodes.node_wrapper_factory import ChefNodeWrapperFactory
 from monster.provisioners.util import get_provisioner
 from monster.features.node_feature import ChefServer
 from monster.deployments.chef_deployment import ChefDeployment
-from monster.environments.chef_environment import Chef as \
-    MonsterChefEnvironment
-
+from monster.environments.chef_environment_wrapper import \
+    ChefEnvironmentWrapper
 
 class ChefDeploymentOrchestrator(DeploymentOrchestrator):
 
@@ -37,11 +34,11 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
 
         util.logger.info("Building deployment object for {0}".format(name))
 
-        if ChefEnvironment(name, api=self.local_api).exists:
+        if Environment(name, api=self.local_api).exists:
             # Use previous dry build if exists
             util.logger.info("Using previous deployment:{0}".format(name))
             return self.load_deployment_from_name(name)
-        environment = MonsterChefEnvironment(name, self.local_api,
+        environment = ChefEnvironmentWrapper(name, self.local_api,
                                              description=name)
         template = Config.fetch_template(template, branch)
 
@@ -58,17 +55,17 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
 
         return deployment
 
-    def load_deployment_from_name(self, environment):
+    def load_deployment_from_name(self, name):
         """
-        Rebuilds a Deployment given a chef environment
-        :param environment: name of environment
-        :type environment: string
+        Rebuilds a Deployment given a deployment name
+        :param name: name of deployment
+        :type name: string
         :rtype: ChefDeployment
         """
-        environ = ChefEnvironment(environment, api=self.local_api)
+        environ = Environment(name, api=self.local_api)
         if not environ.exists:
             util.logger.error("The specified environment, {0}, does not"
-                              "exist.".format(environment))
+                              "exist.".format(name))
             exit(1)
         override = environ.override_attributes
         default = environ.default_attributes
@@ -76,28 +73,31 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
         remote_api = None
         if chef_auth and chef_auth["key"]:
             remote_api = ChefServer._remote_chef_api(chef_auth)
-            renv = ChefEnvironment(environment, api=remote_api)
+            renv = Environment(name, api=remote_api)
             override = renv.override_attributes
             default = renv.default_attributes
-        environment = MonsterChefEnvironment(
-            environ.name, self.local_api, description=environ.name,
-            default=default, override=override, remote_api=remote_api)
 
-        name = environ.name
+        env_name = environ.name
         deployment_args = override.get('deployment', {})
         features = deployment_args.get('features', {})
         os_name = deployment_args.get('os_name', None)
         branch = deployment_args.get('branch', None)
         product = deployment_args.get('product', None)
         provisioner_name = deployment_args.get('provisioner', "razor2")
+
+        environment = ChefEnvironmentWrapper(
+            environ.name, self.local_api, description=environ.name,
+            default=default, override=override, remote_api=remote_api)
+        from IPython import embed; embed()
+
         provisioner = get_provisioner(provisioner_name)
 
-        deployment = ChefDeployment(name, os_name, branch, environment,
+        deployment = ChefDeployment(env_name, os_name, branch, environment,
                                     provisioner, "provisioning", product)
         deployment.add_features(features)
 
         nodes = deployment_args.get('nodes', [])
-        for node in (ChefNode(n, self.local_api) for n in nodes):
+        for node in (Node(n, self.local_api) for n in nodes):
             if not node.exists:
                 util.logger.error("Non-existent chef node: {0}".
                                   format(node.name))

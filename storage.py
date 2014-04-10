@@ -94,7 +94,7 @@ def _load(name="autotest", config=None, provisioner="razor"):
     class_name = util.config["provisioners"][provisioner]
     cprovisioner = util.module_classes(provisioners)[class_name]()
     return ChefDeploymentOrchestrator.load_deployment_from_name(
-        environment=cprovisioner)
+        name=cprovisioner)
 
 
 # Main
