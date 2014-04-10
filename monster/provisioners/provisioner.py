@@ -60,7 +60,7 @@ class Provisioner(object):
         raise NotImplementedError
 
     def build_nodes(self, template, deployment, node_wrapper_factory):
-        product = template.fetch('product')
+        product = template['product']
         nodes_to_wrap = self.provision(template, deployment)
         built_nodes = []
         for node in nodes_to_wrap:
