@@ -6,7 +6,7 @@ from gevent import spawn, joinall, sleep
 
 from monster import util
 from monster.clients.openstack import Creds, Clients
-from monster.server_helper import run_cmd
+from monster.server_helper import run_cmd, check_ssh
 
 
 class Openstack(Provisioner):
@@ -174,26 +174,16 @@ class Openstack(Provisioner):
                                                     flavor_obj.id,
                                                     nics=networks)
         password = server.adminPass
-        util.logger.info("Building:{0}".format(name))
+        util.logger.info("Building: {0}".format(name))
         server = self.wait_for_state(self.compute_client.servers.get, server,
                                      "status", ["ACTIVE", "ERROR"])
         if server.status == "ERROR":
             util.logger.error("Instance entered error state. Retrying...")
             server.delete()
             return self.build_instance(name=name, image=image, flavor=flavor)
-        ip = server.accessIPv4
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        sshup = False
-        while not sshup:
-            try:
-                s.settimeout(2)
-                s.connect((ip, 22))
-                s.close()
-                sshup = True
-            except socket.error:
-                sshup = False
-                util.logger.debug("Waiting for ssh connection...")
-                sleep(1)
+        host = server.accessIPv4
+        check_ssh(host, timeout=2)
+        util.logger.debug("Server object: {0}".format(dir(server)))
         return (server, password)
 
     def _client_search(self, collection_fun, attr, desired, attempts=None,
