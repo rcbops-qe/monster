@@ -219,12 +219,12 @@ def _load_config(config, secret_path):
     util.config = Config(config, secret_file_name=secret_path)
 
 
-def _load(name="autotest", config="config.yaml", orchestrator_name="chef",
-          secret_path=None):
+def _load(name="autotest", config="config.yaml", secret_path=None,
+          orchestrator_name="chef"):
     # Load deployment and source openrc
     _load_config(config, secret_path)
     orchestrator = get_orchestrator(orchestrator_name)
-    deployment = orchestrator.load_deployment_from_name(orchestrator_name)
+    deployment = orchestrator.load_deployment_from_name(name)
     return deployment
 
 
