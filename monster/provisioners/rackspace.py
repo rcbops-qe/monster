@@ -28,6 +28,22 @@ class Rackspace(Openstack):
         self.compute_client = pyrax.cloudservers
         self.neutron = pyrax.cloud_networks
 
+    def get_networks(self):
+        rackspace = util.config[str(self)]
+        desired_networks = rackspace['networks']
+        networks = []
+        for network in desired_networks:
+            try:
+                obj = self._client_search(self.neutron.list, "label",
+                                          network, attempts=10)
+            except:
+                obj = self.neutron.create(
+                    network,
+                    cidr=rackspace['network'][network]['cidr']
+                )
+            networks.append({"net-id": obj.id})
+        return networks
+
     def post_provision(self, node):
         """
         Tasks to be done after a rackspace node is provisioned
