@@ -1,4 +1,5 @@
-from chef import autoconfigure, Node, Environment
+from chef import autoconfigure
+from chef import Environment
 
 from monster import util
 from monster.config import Config
@@ -30,16 +31,16 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
         :type provisioner_name: str
         :rtype: ChefDeployment
         """
+        util.logger.info("Building deployment object for {0}".format(name))
         provisioner = get_provisioner(provisioner_name)
 
-        util.logger.info("Building deployment object for {0}".format(name))
-
         if Environment(name, api=self.local_api).exists:
-            # Use previous dry build if exists
             util.logger.info("Using previous deployment:{0}".format(name))
             return self.load_deployment_from_name(name)
+
         environment = ChefEnvironmentWrapper(name, self.local_api,
                                              description=name)
+        
         template = Config.fetch_template(template, branch)
 
         os, product, features = template.fetch('os', 'product', 'features')
@@ -49,10 +50,6 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
                                     features=features)
         deployment.nodes = provisioner.build_nodes(template, deployment,
                                                    ChefNodeWrapperFactory)
-
-        for node, features in zip(deployment.nodes, template['nodes']):
-            node.add_features(features)
-
         return deployment
 
     def load_deployment_from_name(self, name):
@@ -70,9 +67,8 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
         provisioner = get_provisioner(env.provisioner)
 
         deployment = ChefDeployment(name, env.os_name, env.branch, env,
-                                    provisioner, "provisioning", env.product)
-
-        deployment.add_features(env.features)
+                                    provisioner, "provisioning", env.product,
+                                    features=env.features)
         deployment.nodes = provisioner.load_nodes(env, deployment,
                                                   ChefNodeWrapperFactory)
         return deployment
