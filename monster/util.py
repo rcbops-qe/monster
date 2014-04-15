@@ -1,51 +1,58 @@
 import os
 import logging
+import logging.handlers
 import subprocess
+
+from datetime import datetime
 from glob import glob
 from string import Template
 from xml.etree import ElementTree
 from inspect import getmembers, isclass
 
 
-# Gets RPC-QE logger
-name = 'Monster'
-time_cmd = subprocess.Popen(['date', '+%F_%T'],
-                            stdout=subprocess.PIPE)
-time = time_cmd.stdout.read().rstrip()
-logger = logging.getLogger(name)
-
-# Console logging setup
-console_handler = logging.StreamHandler()
-console_format = '%(asctime)s %(name)s %(levelname)s %(module)s: %(message)s'
-console_formatter = logging.Formatter(console_format)
-console_handler.setFormatter(console_formatter)
-
 # File logging setup
-
 if not os.path.exists('logs'):
     os.makedirs('logs')
 
-file_handler = logging.FileHandler("logs/{0}-{1}.log".format(name, time))
-file_format = '%(asctime)s %(name)s %(levelname)s %(module)s: %(message)s'
-file_formatter = logging.Formatter(file_format)
-file_handler.setFormatter(file_formatter)
+# https://github.com/cloudnull/turbolift/blob/master/turbolift/logger/logger.py
+class Logger(object):
 
-critical = logger.critical
-error = logger.error
-warning = logger.warning
-info = logger.info
-debug = logger.debug
+    def __init__(self, log_level='WARN', log_file=None):
+        self.log_level = log_level
+        self.log_file = log_file
 
-# Sets logging level to the file
-logger.setLevel(logging.DEBUG)
-logger.addHandler(file_handler)
+    def logger_setup(self):
+        logger = logging.getLogger(__name__)
 
+        avail_level = {
+            'DEBUG': logging.DEBUG,
+            'INFO': logging.INFO,
+            'CRITICAL': logging.CRITICAL,
+            'WARN': logging.WARN,
+            'ERROR': logging.ERROR
+        }
 
-def set_log_level(level):
-    log_level = getattr(logging, level, logging.DEBUG)
-    # Sets logging level to the console
-    console_handler.setLevel(log_level)
-    logger.addHandler(console_handler)
+        _log_level = self.log_level.upper()
+        if _log_level in avail_level:
+            lvl = avail_level[_log_level]
+            logger.setLevel(lvl)
+            formatter = logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            )
+
+        if self.log_file:
+            handler = logging.handlers.RotatingFileHandler(
+                self.log_file,
+                maxBytes=150000000,
+                backupCount=5
+            )
+        else:
+            handler = logging.StreamHandler()
+
+        handler.setLevel(lvl)
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+        return logger
 
 
 def module_classes(module):

@@ -4,7 +4,6 @@
 """
 import sys
 import argh
-import traceback
 
 from monster import util
 from monster.config import Config
@@ -30,7 +29,7 @@ def build(name="autotest", branch="master", provisioner="rackspace",
         try:
             deployment.update_environment()
         except Exception:
-            util.logger.error(traceback.print_exc())
+            util.logger.error(exc_info=True)
             deployment.destroy()
             sys.exit(1)
 
@@ -40,7 +39,7 @@ def build(name="autotest", branch="master", provisioner="rackspace",
         try:
             deployment.build()
         except Exception:
-            util.logger.error(traceback.print_exc())
+            util.logger.error(exc_info=True)
             deployment.destroy()
             sys.exit(1)
 

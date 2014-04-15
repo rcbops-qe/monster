@@ -6,8 +6,8 @@ Command-line interface for building OpenStack clusters
 import os
 import argh
 import subprocess
-import traceback
 import webbrowser
+
 from monster import util
 from monster.color import Color
 from monster.config import Config
@@ -18,28 +18,21 @@ from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
 from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
 
-if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
-    util.logger.warning("You are not using the virtual environment! We "
-                        "cannot guarantee that your monster will be well"
-                        "-behaved.  To load the virtual environment, use "
-                        "the command \"source .venv/bin/activate\"")
-
 
 # Logger needs to be rewritten to accept a log filename
 def build(name="autotest", template="ubuntu-default", branch="master",
           template_path=None, config="pubcloud-neutron.yaml",
-          dry=False, log=None, log_level="INFO", provisioner="rackspace",
-          secret_path=None):
+          dry=False, log=None, log_level="INFO", log_file="logs/monster.log",
+          provisioner="rackspace", secret_path=None):
     """
     Build an OpenStack Cluster
     """
-    util.set_log_level(log_level)
 
     # Provision deployment
     _load_config(config, secret_path)
     cprovisioner = get_provisioner(provisioner)
 
-    util.logger.info("Building deployment object for {0}".format(name))
+    logger.info("Building deployment object for {0}".format(name))
     deployment = MonsterChefDeployment.fromfile(
         name, template, branch, cprovisioner, template_path)
 
@@ -47,31 +40,29 @@ def build(name="autotest", template="ubuntu-default", branch="master",
         try:
             deployment.update_environment()
         except Exception:
-            error = traceback.print_exc()
-            util.logger.error(error)
+            logger.error(error, exc_info=True)
             raise
 
     else:
-        util.logger.info(deployment)
+        logger.info(deployment)
         try:
             deployment.build()
         except Exception:
-            error = traceback.print_exc()
-            util.logger.error(error)
+            logger.error(error, exc_info=True)
             raise
 
-    util.logger.info(deployment)
+    logger.info(deployment)
 
 
 def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
-         log_level="DEBUG", tempest=False, ha=False, secret_path=None,
-         deployment=None, iterations=1, progress=False):
+         log_level="DEBUG", log_file="logs/monster.log", tempest=False,
+         ha=False, secret_path=None, deployment=None, iterations=1,
+         progress=False):
     """
     Test an OpenStack deployment
     """
     if progress:
         log_level = "ERROR"
-    util.set_log_level(log_level)
     if not deployment:
         deployment = _load(name, config, secret_path)
     if not tempest and not ha:
@@ -97,21 +88,21 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
         getFile(ip, user, password, remote, local)
 
     for i in range(iterations):
-        util.logger.info(Color.cyan('Running iteration {0} of {1}!'
+        logger.info(Color.cyan('Running iteration {0} of {1}!'
                          .format(i + 1, iterations)))
 
         #Prepare directory for xml files to be SCPed over
         subprocess.call(['mkdir', '-p', '{0}'.format(local)])
 
         if ha:
-            util.logger.info(Color.cyan('Running High Availability test!'))
+            logger.info(Color.cyan('Running High Availability test!'))
             ha.test(iterations)
         if tempest:
-            util.logger.info(Color.cyan('Running Tempest test!'))
+            logger.info(Color.cyan('Running Tempest test!'))
             tempest.test()
 
-    util.logger.info(Color.cyan("Tests have been completed with {0} "
-                                "iterations".format(iterations)))
+    logger.info(Color.cyan("Tests have been completed with {0} "
+                           "iterations".format(iterations)))
 
 
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
@@ -121,9 +112,8 @@ def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
     """
     Retrofit a deployment
     """
-    util.set_log_level(log_level)
     deployment = _load(name, config, secret_path)
-    util.logger.info(deployment)
+    logger.info(deployment)
     deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
 
 
@@ -132,9 +122,8 @@ def upgrade(name='autotest', upgrade_branch='v4.1.3rc',
     """
     Upgrade a current deployment to the new branch / tag
     """
-    util.set_log_level(log_level)
     deployment = _load(name, config, secret_path)
-    util.logger.info(deployment)
+    logger.info(deployment)
     deployment.upgrade(upgrade_branch)
 
 
@@ -143,9 +132,8 @@ def destroy(name="autotest", config=None, log=None, log_level="INFO",
     """
     Destroy an existing OpenStack deployment
     """
-    util.set_log_level(log_level)
     deployment = _load(name, config, secret_path)
-    util.logger.info(deployment)
+    logger.info(deployment)
     deployment.destroy()
 
 
@@ -165,7 +153,6 @@ def artifact(name="autotest", config=None, log=None, secret_path=None,
     Artifact a deployment (configs/running services)
     """
 
-    util.set_log_level(log_level)
     deployment = _load(name, config, secret_path)
     deployment.artifact()
 
@@ -175,7 +162,6 @@ def openrc(name="autotest", config=None, log=None, secret_path=None,
     """
     Load OpenStack credentials into shell env
     """
-    util.set_log_level(log_level)
     deployment = _load(name, config, secret_path)
     deployment.openrc()
 
@@ -185,7 +171,6 @@ def tmux(name="autotest", config=None, log=None, secret_path=None,
     """
     Load OpenStack nodes into new tmux session
     """
-    util.set_log_level(log_level)
     deployment = _load(name, config, secret_path)
     deployment.tmux()
 
@@ -195,7 +180,6 @@ def horizon(name="autotest", config=None, log=None, secret_path=None,
     """
     Open Horizon in a browser tab
     """
-    util.set_log_level(log_level)
     deployment = _load(name, config, secret_path)
     ip = deployment.horizon_ip()
     url = "https://{0}".format(ip)
@@ -210,7 +194,7 @@ def show(name="autotest", config=None, log=None, secret_path=None,
     util.set_log_level(log_level)
     # load deployment and source openrc
     deployment = _load(name, config, secret_path)
-    util.logger.info(str(deployment))
+    logger.info(str(deployment))
 
 
 def _load_config(config, secret_path):
@@ -227,7 +211,6 @@ def _load(name="autotest", config="config.yaml", secret_path=None):
 
 def cloudcafe(cmd, name="autotest", network=None, config=None,
               secret_path=None, log_level="INFO"):
-    util.set_log_level(log_level)
     deployment = _load(name, config, secret_path)
     CloudCafe(deployment).config(cmd, network_name=network)
 
@@ -237,4 +220,10 @@ if __name__ == "__main__":
     parser.add_commands([build, retrofit, upgrade,
                         destroy, openrc, horizon,
                          show, test, tmux, cloudcafe])
+    logger = util.Logger(log_level="DEBUG").logger_setup()
     parser.dispatch()
+    if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
+        logger.warning("You are not using the virtual environment! We "
+                       "cannot guarantee that your monster will be well"
+                       "-behaved.  To load the virtual environment, use "
+                       "the command \"source .venv/bin/activate\"")

@@ -1,5 +1,5 @@
 import sys
-import traceback
+
 from monster.util import module_classes
 from monster.provisioners import *
 from monster import util
@@ -16,8 +16,7 @@ def get_provisioner(provisioner):
     try:
         identifier = getattr(sys.modules['monster'].provisioners, provisioner)
     except AttributeError:
-        print(traceback.print_exc())
-        util.logger.error("The provisioner \"{0}\" was not found."
-                          .format(provisioner))
+        util.logger.error("Provisioner '{0}' not found.".format(provisioner),
+                          exc_info=True)
         exit(1)
     return module_classes(identifier)[provisioner]()
