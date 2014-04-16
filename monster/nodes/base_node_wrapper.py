@@ -5,6 +5,7 @@ Provides classes of nodes (server entities)
 import types
 from time import sleep
 from monster import util
+from monster.nodes.os_node_strategy import OS
 from monster.server_helper import ssh_cmd, scp_to, scp_from
 from monster.features import node_feature
 
@@ -26,6 +27,7 @@ class BaseNodeWrapper(object):
         self.features = []
         self._cleanups = []
         self.status = "Unknown"
+        self.os = OS(self.os_name)
 
     def __repr__(self):
         """ Print out current instance
@@ -46,20 +48,23 @@ class BaseNodeWrapper(object):
                     outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
         return "\n".join([outl, features])
 
-    def get_creds(self):
-        return self.ipaddress, self.user, self.password
+    def __getitem__(self, item):
+        raise NotImplementedError()
+
+    def __setitem__(self, item, value):
+        raise NotImplementedError()
 
     def run_cmd(self, remote_cmd, user='root', password=None, attempts=None):
         """
         Runs a command on the node
         :param remote_cmd: command to run on the node
-        :type remote_cmd: string
+        :type remote_cmd: str
         :param user: user to run the command as
-        :type user: string
+        :type user: str
         :param password: password to authenticate with
-        :type password:: string
+        :type password:: str
         :param attempts: number of times
-        :type attempts: number of times to attempt a successfully run cmd
+        :type attempts: int
         :rtype: dict
         """
         user = user or self.user
@@ -73,7 +78,6 @@ class BaseNodeWrapper(object):
                           user=user, password=password)
             count -= 1
             if not ret['success']:
-                # sleep for a few seconds, allows services time to do things
                 sleep(5)
 
         if not ret['success'] and attempts:
@@ -185,24 +189,9 @@ class BaseNodeWrapper(object):
         """
         Updates installed packages
         """
-
-        upgrade_cmds = []
-
-        if 'ubuntu' in self.os_name:
-            upgrade_cmds.append('apt-get update')
-            if dist_upgrade:
-                upgrade_cmds.append('apt-get dist-upgrade -y')
-            else:
-                upgrade_cmds.append('apt-get upgrade -y')
-        elif self.os_name in ['centos', 'redhat']:
-            upgrade_cmds.append('yum update -y')
-        else:
-            raise NotImplementedError(
-                "{0} is a non supported platform".format(self.os_name))
-        upgrade_cmd = '; '.join(upgrade_cmds)
-
         util.logger.info('Updating Distribution Packages')
-        self.run_cmd(upgrade_cmd)
+        upgrade_command = self.os.update_dist(dist_upgrade)
+        self.run_cmd(upgrade_command)
 
     def install_package(self, package):
         """
@@ -212,40 +201,15 @@ class BaseNodeWrapper(object):
         :type package: String
         :rtype: function
         """
-        # Need to make this more machine agnostic (jwagner)
-        command = ""
-        if self.os_name == "ubuntu":
-            command = 'apt-get install -y {0}'.format(package)
-        if self.os_name in ["centos", "rhel"]:
-            command = 'yum install -y {0}'.format(package)
-
-        return self.run_cmd(command)
+        install_command = self.os.install_package(package)
+        return self.run_cmd(install_command)
 
     def check_package(self, package):
         """
         Checks to see if a package is installed
         """
-        chk_cmd = ""
-        if self.os_name == "ubuntu":
-            chk_cmd = "dpkg -l | grep {0}".format(package)
-        if self.os_name in ["centos", "rhel"]:
-            chk_cmd = "rpm -a | grep {0}".format(package)
-        else:
-            util.logger.info(
-                "Operating system not supported at this time")
-
-        return self.run_cmd(chk_cmd)
-
-    @property
-    def vmnet_iface(self):
-        """
-        Return the iface that our vm data network will live on
-        """
-        return util.config['environments']['bridge_devices']['data']
-
-    @property
-    def os_name(self):
-        return self['platform']
+        check_package_command = self.os.check_package(package)
+        return self.run_cmd(check_package_command)
 
     def destroy(self):
         util.logger.info("Destroying node:{0}".format(self.name))
@@ -256,6 +220,12 @@ class BaseNodeWrapper(object):
         self.provisioner.destroy_node(self)
         self.status = "Destroyed"
 
+    def power_off(self):
+        self.provisioner.power_down(self)
+
+    def power_on(self):
+        self.provisioner.power_up(self)
+
     def has_feature(self, feature_name):
         return feature_name in self.feature_names
 
@@ -263,8 +233,17 @@ class BaseNodeWrapper(object):
     def feature_names(self):
         return [str(feature) for feature in self.features]
 
-    def power_off(self):
-        self.provisioner.power_down(self)
+    @property
+    def creds(self):
+        return self.ipaddress, self.user, self.password
 
-    def power_on(self):
-        self.provisioner.power_up(self)
+    @property
+    def os_name(self):
+        return self['platform']
+
+    @property
+    def vmnet_iface(self):
+        """
+        Return the iface that our vm data network will live on
+        """
+        return util.config['environments']['bridge_devices']['data']

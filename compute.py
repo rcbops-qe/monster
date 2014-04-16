@@ -93,7 +93,7 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
     local = "./results/{0}/".format(env)
     controllers = deployment.search_role('controller')
     for controller in controllers:
-        ip, user, password = controller.get_creds()
+        ip, user, password = controller.creds
         remote = "{0}@{1}:~/*.xml".format(user, ip)
         get_file(ip, user, password, remote, local)
 
