@@ -69,7 +69,6 @@ class Provisioner(object):
         product = template['product']
         nodes_to_wrap = self.provision(template, deployment)
         built_nodes = []
-
         for node in nodes_to_wrap:
             wrapped_node = node_wrapper_factory.wrap_node(
                 node, product, deployment.environment, deployment,

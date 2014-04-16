@@ -10,7 +10,8 @@ Use:
 
 from monster import util
 from monster.config import Config
-from monster.orchestrator.chef_deployment_orchestrator import ChefDeploymentOrchestrator
+from monster.orchestrator.chef_deployment_orchestrator import \
+    ChefDeploymentOrchestrator
 
 
 def load(name, config="config.yaml"):

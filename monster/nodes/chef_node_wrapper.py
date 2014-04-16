@@ -17,13 +17,6 @@ class ChefNodeWrapper(BaseNodeWrapper):
         self.branch = branch
         self.run_list = run_list or []
 
-    def __str__(self):
-        features = ", ".join(self.feature_names)
-        node = ("Node - name:{0}, os:{1}, branch:{2}, ip:{3}, status:{4}\n\t\t"
-                "Features: {5}").format(self.name, self.os_name, self.branch,
-                                        self.ipaddress, self.status, features)
-        return node
-
     def __getitem__(self, item):
         """
         Node has access to chef attributes

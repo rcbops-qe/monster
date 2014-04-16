@@ -4,10 +4,10 @@ Chef Environment
 
 from monster import util
 from chef import Environment as ChefEnvironment
-from base_environment_wrapper import BaseEnvironmentWrapper as MonsterEnvironment
+from base_environment_wrapper import BaseEnvironmentWrapper
 
 
-class ChefEnvironmentWrapper(MonsterEnvironment):
+class ChefEnvironmentWrapper(BaseEnvironmentWrapper):
 
     def __init__(self, name, local_api, chef_server_name=None, remote_api=None,
                  description='', default=None, override=None):
