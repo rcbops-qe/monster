@@ -30,7 +30,8 @@ class BaseNodeWrapper(object):
         self.os = OS(self.os_name)
 
     def __repr__(self):
-        """ Print out current instance
+        """
+        Print out current instance
         :rtype: string
         """
         features = []
@@ -119,7 +120,9 @@ class BaseNodeWrapper(object):
                         local_path=local_path)
 
     def pre_configure(self):
-        """Pre configures node for each feature"""
+        """
+        Pre configures node for each feature
+        """
         self.status = "pre-configure"
 
         util.logger.info("Updating node dist / packages")
@@ -155,15 +158,19 @@ class BaseNodeWrapper(object):
         self.save_to_node()
 
     def apply_feature(self):
+        """
+        Applies each feature
+        """
         self.status = "apply-feature"
-        """Applies each feature"""
         for feature in self.features:
             log = "Node feature: apply: {0}".format(str(feature))
             util.logger.debug(log)
             feature.apply_feature()
 
     def post_configure(self):
-        """Post configures node for each feature"""
+        """
+        Post configures node for each feature
+        """
         self.status = "post-configure"
         for feature in self.features:
             log = "Node feature: post-configure: {0}".format(str(feature))
@@ -171,7 +178,9 @@ class BaseNodeWrapper(object):
             feature.post_configure()
 
     def build(self):
-        """Runs build steps for node's features"""
+        """
+        Runs build steps for node's features
+        """
         self['in_use'] = ",".join(map(str, self.features))
         self.pre_configure()
         self.apply_feature()
@@ -179,7 +188,9 @@ class BaseNodeWrapper(object):
         self.status = "done"
 
     def upgrade(self):
-        """Upgrades node based on features"""
+        """
+        Upgrades node based on features
+        """
         for feature in self.features:
             log = "Node feature: upgrade: {0}".format(str(feature))
             util.logger.info(log)
@@ -195,10 +206,8 @@ class BaseNodeWrapper(object):
 
     def install_package(self, package):
         """
-        Installs given package
-
         :param package: package to install
-        :type package: String
+        :type package: str
         :rtype: function
         """
         install_command = self.os.install_package(package)
