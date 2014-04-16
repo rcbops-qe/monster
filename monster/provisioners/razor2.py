@@ -1,12 +1,15 @@
-import sys
 import json
+import logging
 import requests
+import sys
 
 from time import sleep
 from provisioner import Provisioner
 from chef import Node, Client, Search, autoconfigure
 
 from monster import util
+
+logger = logging.getLogger(__name__)
 
 
 class Razor2(Provisioner):
@@ -28,7 +31,7 @@ class Razor2(Provisioner):
         :rtype: list
         """
 
-        util.logger.info("Provisioning with Razor!")
+        logger.info("Provisioning with Razor!")
         image = deployment.os_name
         return [self.available_node(image, deployment)
                 for _ in template['nodes']]
@@ -55,7 +58,7 @@ class Razor2(Provisioner):
                 node.save()
                 return node
         deployment.destroy()
-        util.logger.info("Cannot build, no more available_nodes")
+        logger.info("Cannot build, no more available_nodes")
         sys.exit(1)
 
     def power_down(self, node):
@@ -97,9 +100,8 @@ class Razor2(Provisioner):
                 Client(node.name).delete()
                 cnode.delete()
             except:
-                util.logger.error("Node unreachable. "
-                                  "Manual restart required:{0}".
-                                  format(str(node)))
+                logger.error("Node unreachable. "
+                             "Manual restart required:{0}".format(str(node)))
 
     @classmethod
     def node_search(cls, query, environment=None, tries=10):

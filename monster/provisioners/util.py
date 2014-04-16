@@ -1,8 +1,11 @@
+import logging
 import sys
 
 from monster.util import module_classes
 from monster.provisioners import *
 from monster import util
+
+logger = logging.getLogger(__name__)
 
 
 def get_provisioner(provisioner):
@@ -16,7 +19,7 @@ def get_provisioner(provisioner):
     try:
         identifier = getattr(sys.modules['monster'].provisioners, provisioner)
     except AttributeError:
-        util.logger.error("Provisioner '{0}' not found.".format(provisioner),
-                          exc_info=True)
+        logger.error("Provisioner not found: {0}".format(provisioner,
+                                                         exc_info=True))
         exit(1)
     return module_classes(identifier)[provisioner]()

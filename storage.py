@@ -2,13 +2,16 @@
 
 """ Command Line interface for Building Openstack Swift clusters
 """
-import sys
 import argh
+import logging
+import sys
 
 from monster import util
 from monster.config import Config
 from monster.deployments.chef_deployment import Chef
 from monster.provisioners import provisioner as provisioners
+
+logger = logging.getLogger(__name__)
 
 
 def build(name="autotest", branch="master", provisioner="rackspace",
@@ -29,21 +32,21 @@ def build(name="autotest", branch="master", provisioner="rackspace",
         try:
             deployment.update_environment()
         except Exception:
-            util.logger.error(exc_info=True)
+            logger.error("Unable to update environment", exc_info=True)
             deployment.destroy()
             sys.exit(1)
 
     else:
-        util.logger.info(deployment)
+        logger.info(deployment)
         # build deployment
         try:
             deployment.build()
         except Exception:
-            util.logger.error(exc_info=True)
+            logger.error("Unable to build deployment", exc_info=True)
             deployment.destroy()
             sys.exit(1)
 
-    util.logger.info(deployment)
+    logger.info(deployment)
     if destroy:
         deployment.destroy()
 
@@ -54,7 +57,7 @@ def destroy(name="autotest", config=None, log=None, log_level="INFO"):
 
     util.set_log_level(log_level)
     deployment = _load(name, config)
-    util.logger.info(deployment)
+    logger.info(deployment)
     deployment.destroy()
 
 
@@ -83,7 +86,7 @@ def load(name="autotest", config=None, log=None, log_level="INFO"):
     util.set_log_level(log_level)
     # load deployment and source openrc
     deployment = _load(name, config)
-    util.logger.info(str(deployment))
+    logger.info(str(deployment))
 
 
 def _load(name="autotest", config=None, provisioner="razor"):

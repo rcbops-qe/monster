@@ -2,9 +2,12 @@
 Chef Environment
 """
 
-from monster import util
+import logging
+
 from chef import Environment as ChefEnvironment
 from environment import Environment as MonsterEnvironment
+
+logger = logging.getLogger(__name__)
 
 
 class Chef(MonsterEnvironment):
@@ -52,7 +55,7 @@ class Chef(MonsterEnvironment):
 
         # update chef env with local object info
         for attr in self.__dict__:
-            util.logger.debug("{0}: {1}".format(attr, self.__dict__[attr]))
+            logger.debug("{0}: {1}".format(attr, self.__dict__[attr]))
             setattr(env, attr, self.__dict__[attr])
 
         # Save local/remote
@@ -61,7 +64,7 @@ class Chef(MonsterEnvironment):
             try:
                 env.save(self.remote_api)
             except Exception as e:
-                util.logger.error("Remote env error:{0}".format(e))
+                logger.error("Remote env error:{0}".format(e))
 
     def destroy(self):
         ChefEnvironment(self.name).delete()

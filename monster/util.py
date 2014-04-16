@@ -14,6 +14,7 @@ from inspect import getmembers, isclass
 if not os.path.exists('logs'):
     os.makedirs('logs')
 
+
 # https://github.com/cloudnull/turbolift/blob/master/turbolift/logger/logger.py
 class Logger(object):
 
@@ -47,7 +48,7 @@ class Logger(object):
                 backupCount=5
             )
         else:
-            handler = logging.StreamHandler()
+            handler = logging.StreamHandler(stream=sys.stdout)
 
         handler.setLevel(lvl)
         handler.setFormatter(formatter)

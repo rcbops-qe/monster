@@ -40,7 +40,7 @@ def build(name="autotest", template="ubuntu-default", branch="master",
         try:
             deployment.update_environment()
         except Exception:
-            logger.error(error, exc_info=True)
+            logger.error("Unable to build deployment", exc_info=True)
             raise
 
     else:
@@ -48,7 +48,7 @@ def build(name="autotest", template="ubuntu-default", branch="master",
         try:
             deployment.build()
         except Exception:
-            logger.error(error, exc_info=True)
+            logger.error("Unable to build deployment", exc_info=True)
             raise
 
     logger.info(deployment)

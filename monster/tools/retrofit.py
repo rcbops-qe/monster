@@ -1,8 +1,11 @@
 """
 Tool to retrofit a install
 """
+import logging
 
 from monster import util
+
+logger = logging.getLogger(__name__)
 
 
 class Retrofit(object):
@@ -27,7 +30,7 @@ class Retrofit(object):
         Installs the retrofit tool on the nodes
         """
 
-        util.logger.info("Installing Retrofit")
+        logger.info("Installing Retrofit")
 
         # Check for support
         self._check_os()
@@ -45,7 +48,7 @@ class Retrofit(object):
         Bootstraps a node with retrofit
         """
 
-        util.logger.info("Bootstraping to seperate plane")
+        logger.info("Bootstraping to seperate plane")
 
         # bootstrap cmd
         bstrap_cmds = ['cd /opt/retrofit',
@@ -64,7 +67,7 @@ class Retrofit(object):
         Converts a deployment to a seperate plane
         """
 
-        util.logger.info("Converting to seperate plane")
+        logger.info("Converting to seperate plane")
 
         conv_cmds = ["cd '/opt/retrofit",
                      "./retrofit.py convert -i {0} -l {1} -o {2}".format(
@@ -82,7 +85,7 @@ class Retrofit(object):
         Reverts a deployment to a single plane
         """
 
-        util.logger.info("Reverting to a single plane")
+        logger.info("Reverting to a single plane")
 
         revt_cmds = ["cd '/opt/retrofit",
                      "./retrofit.py revert -i {0} -l {1} -o {2}".format(
@@ -100,7 +103,7 @@ class Retrofit(object):
         Removes a port from a bridge for the deployment
         """
 
-        util.logger.info(
+        logger.info(
             ("Removing old OVS port:{0} from OVS bridge: "
              "{1} on deployment: {2}".format(
                  del_port, ovs_bridge, self.deployment.name)))
@@ -123,7 +126,7 @@ class Retrofit(object):
 
         if branch not in branches:
             error = "{0} not a supported branch in retrofit".format(branch)
-            util.logger.info(error)
+            logger.info(error)
             raise Exception(error)
 
         # clone repo
@@ -142,7 +145,7 @@ class Retrofit(object):
 
         if not self.deployment.feature_in('neutron'):
             error = "This build doesnt have Neutron/Quantum, cannot Retrofit"
-            util.logger.info(error)
+            logger.info(error)
             raise Exception(error)
 
     def _check_os(self):
@@ -155,7 +158,7 @@ class Retrofit(object):
         if not self.deployment.os_name in supported:
             error = "{0} is not a retrofit supported OS".format(
                 self.deployment.os_name)
-            util.logger.info(error)
+            logger.info(error)
             raise NotImplementedError(error)
 
     def _check_brctl(self):
