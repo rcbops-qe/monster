@@ -56,22 +56,25 @@ class ChefEnvironmentWrapper(BaseEnvironmentWrapper):
 
     def save_locally(self):
         if self.remote_api:
-            env = ChefEnvironment(self.name, api=self.remote_api)
+            env = self._remote_chef_env
             self.override_attributes = env.override_attributes
             self.default_attributes = env.default_attributes
             self.save()
 
+    def destroy(self):
+        self._local_chef_env.delete()
+
     def save(self):
+        env = self._local_chef_env
+        self._update_chef_env_with_local_object_info(env)
+        self._save_local_and_remote(env)
 
-        # Load local chef env
-        env = ChefEnvironment(self.name, api=self.local_api)
-
-        # update chef env with local object info
+    def _update_chef_env_with_local_object_info(self, env):
         for attr in self.__dict__:
             util.logger.debug("{0}: {1}".format(attr, self.__dict__[attr]))
             setattr(env, attr, self.__dict__[attr])
 
-        # Save local/remote
+    def _save_local_and_remote(self, env):
         env.save(self.local_api)
         if self.remote_api:
             try:
@@ -79,8 +82,19 @@ class ChefEnvironmentWrapper(BaseEnvironmentWrapper):
             except Exception as e:
                 util.logger.error("Remote env error:{0}".format(e))
 
-    def destroy(self):
-        ChefEnvironment(self.name, self.local_api).delete()
+    @property
+    def _local_chef_env(self):
+        if self.local_api:
+            return ChefEnvironment(self.name, self.local_api)
+        else:
+            return None
+
+    @property
+    def _remote_chef_env(self):
+        if self.remote_api:
+            return ChefEnvironment(self.name, self.remote_api)
+        else:
+            return None
 
     @property
     def deployment_attributes(self):
