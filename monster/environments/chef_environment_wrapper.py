@@ -123,3 +123,16 @@ class ChefEnvironmentWrapper(BaseEnvironmentWrapper):
     @property
     def product(self):
         return self.deployment_attributes.get('product', None)
+
+    @property
+    def is_high_availability(self):
+        return 'vips' in self.override_attributes
+
+    @property
+    def rabbit_mq_queue_ip(self):
+        try:
+            ip = self.override_attributes['vips']['rabbitmq-queue']
+        except KeyError:
+            return None
+        else:
+            return ip

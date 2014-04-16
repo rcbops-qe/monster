@@ -21,6 +21,18 @@ class ChefDeployment(Deployment):
 
     def __init__(self, name, os_name, branch, environment, provisioner,
                  status=None, product=None, clients=None, features=None):
+
+        """
+        :param name:
+        :param os_name:
+        :param branch:
+        :type environment: ChefEnvironmentWrapper
+        :param provisioner:
+        :param status:
+        :param product:
+        :param clients:
+        :param features:
+        """
         status = status or "provisioning"
         super(ChefDeployment, self).__init__(name, os_name, branch,
                                              provisioner, status, product,
@@ -158,7 +170,6 @@ class ChefDeployment(Deployment):
         """
         Setup OpenStack clients generator for deployment
         """
-
         override = self.environment.override_attributes
         keystone = override['keystone']
         users = keystone['users']
@@ -177,12 +188,9 @@ class ChefDeployment(Deployment):
         """
         Return rabbitmq management client
         """
-        overrides = self.environment.override_attributes
-        if 'vips' in overrides:
-            # HA
-            ip = overrides['vips']['rabbitmq-queue']
+        if self.environment.is_high_availability:
+            ip = self.environment.rabbit_mq_queue_ip
         else:
-            # Non HA
             controller = next(self.search_role("controller"))
             ip = controller.ipaddress
         url = "{ip}:15672".format(ip=ip)
