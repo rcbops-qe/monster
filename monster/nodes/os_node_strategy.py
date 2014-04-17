@@ -3,13 +3,12 @@ from monster import util
 
 class OS:
     def __init__(self, os_name):
-        if os_name == 'ubuntu':
+        if os_name in ['ubuntu']:
             self.__class__ = DebianOS
         elif os_name in ['rhel', 'centos']:
             self.__class__ = RHEL
         else:
-            util.logger.exception(
-                "Operating system not supported at this time")
+            util.logger.exception("OS not supported at this time!")
 
     def check_package(self, package):
         raise NotImplementedError()

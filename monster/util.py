@@ -2,9 +2,21 @@ import os
 import logging
 import subprocess
 from glob import glob
-from string import Template
 from xml.etree import ElementTree
 from inspect import getmembers, isclass
+
+
+class lazyproperty:
+    def __init__(self, func):
+        self.func = func
+
+    def __get__(self, instance, cls):
+        if instance is None:
+            return self
+        else:
+            value = self.func(instance)
+            setattr(instance, self.func.__name__, value)
+            return value
 
 
 # Gets RPC-QE logger
@@ -73,15 +85,3 @@ def xunit_merge(path="."):
         with open("results.xunit", "w") as f:
             f.write(ElementTree.tostring(tree))
     [os.remove(file) for file in files]
-
-
-def template_file(source, destination=None, args=None):
-    with open(source) as f:
-        template = Template(f.read()).substitute(args)
-        logger.debug("Templated:{0}". format(template))
-
-    if not destination:
-        destination = "{0}.templated".format(source)
-    with open(destination, 'w') as f:
-        f.write(template)
-        logger.debug("Writing template to:{0}".format(destination))

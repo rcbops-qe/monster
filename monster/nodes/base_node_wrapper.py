@@ -8,7 +8,7 @@ from monster import util
 from monster.nodes.os_node_strategy import OS
 from monster.server_helper import ssh_cmd, scp_to, scp_from
 from monster.features import node_feature
-
+from monster.util import lazyproperty
 
 class BaseNodeWrapper(object):
     """
@@ -27,7 +27,6 @@ class BaseNodeWrapper(object):
         self.features = []
         self._cleanups = []
         self.status = "Unknown"
-        self.os = OS(self.os_name)
 
     def __repr__(self):
         """
@@ -256,3 +255,8 @@ class BaseNodeWrapper(object):
         Return the iface that our vm data network will live on
         """
         return util.config['environments']['bridge_devices']['data']
+
+    @lazyproperty
+    def os(self):
+        print "in os~~~"
+        return OS(self.os_name)
