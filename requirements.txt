@@ -2,6 +2,7 @@ argcomplete
 argh
 fabric
 gevent
+lazy
 paramiko
 pychef
 pyrabbit

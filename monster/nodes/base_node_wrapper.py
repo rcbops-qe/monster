@@ -3,12 +3,13 @@ Provides classes of nodes (server entities)
 """
 
 import types
+from lazy import lazy
 from time import sleep
 from monster import util
 from monster.nodes.os_node_strategy import OS
 from monster.server_helper import ssh_cmd, scp_to, scp_from
 from monster.features import node_feature
-from monster.util import lazyproperty
+
 
 class BaseNodeWrapper(object):
     """
@@ -180,7 +181,7 @@ class BaseNodeWrapper(object):
         """
         Runs build steps for node's features
         """
-        self['in_use'] = ",".join(map(str, self.features))
+        self['in_use'] = ", ".join(map(str, self.features))
         self.pre_configure()
         self.apply_feature()
         self.post_configure()
@@ -256,7 +257,6 @@ class BaseNodeWrapper(object):
         """
         return util.config['environments']['bridge_devices']['data']
 
-    @lazyproperty
+    @lazy
     def os(self):
-        print "in os~~~"
         return OS(self.os_name)
