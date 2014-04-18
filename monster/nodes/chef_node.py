@@ -7,6 +7,8 @@ from monster.nodes.node import Node
 from monster.features import node as node_features
 from monster.provisioners.util import get_provisioner
 
+logger = logging.getLogger(__name__)
+
 
 class Chef(Node):
     """

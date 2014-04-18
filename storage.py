@@ -3,15 +3,12 @@
 """ Command Line interface for Building Openstack Swift clusters
 """
 import argh
-import logging
 import sys
 
 from monster import util
 from monster.config import Config
 from monster.deployments.chef_deployment import Chef
 from monster.provisioners import provisioner as provisioners
-
-logger = logging.getLogger(__name__)
 
 
 def build(name="autotest", branch="master", provisioner="rackspace",
@@ -101,4 +98,7 @@ def _load(name="autotest", config=None, provisioner="razor"):
 if __name__ == "__main__":
     parser = argh.ArghParser()
     parser.add_commands([build, destroy, openrc, load])
+
+    logger = util.Logger().logger_setup()
+
     parser.dispatch()

@@ -324,7 +324,7 @@ class HATest(Test):
                 "awk '{print $2}'"
             )['return'].rstrip()
             logger.debug("{0} status: {1}".format(node.name, status))
-            return int(status)
+            return status
 
         progress.update("Progress")
         for node in [node_down, node_up]:
@@ -333,7 +333,7 @@ class HATest(Test):
             ))
             for attempt in range(attempts):
                 status = check_repl_status(node)
-                if status is 0:
+                if status is "0":
                     logger.debug("Replication complete.")
                     progress.update("Progress")
                     break
@@ -997,8 +997,9 @@ class Progress(object):
             else:
                 self.print_bar(bar, bar['size'], 0)
         sys.stdout.flush()
-        call("tail -n 50 logs/{0}-{1}.log | sed 's/^.*RPC-QE //' | cut -c-118".
-             format(util.name, util.time), shell=True)
+        call(["tail -n 50 logs/monster.log | ",
+              "sed 's/^.*RPC-QE //' | ",
+              "cut -c-118"], shell=True)
 
     def set_stages(self, bar_name, stages):
         if not self.progress:

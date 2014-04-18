@@ -1,29 +1,32 @@
 import os
 import logging
 import logging.handlers
-import subprocess
+import sys
 
 from datetime import datetime
 from glob import glob
+from os.path import dirname, join
 from string import Template
 from xml.etree import ElementTree
 from inspect import getmembers, isclass
 
 
 # File logging setup
-if not os.path.exists('logs'):
-    os.makedirs('logs')
+LOG_DIR = join(dirname(dirname(__file__)), 'logs')
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
 
 
 # https://github.com/cloudnull/turbolift/blob/master/turbolift/logger/logger.py
 class Logger(object):
 
-    def __init__(self, log_level='WARN', log_file=None):
+    def __init__(self, log_level="DEBUG",
+                 log_file=join(LOG_DIR, "monster.log")):
         self.log_level = log_level
         self.log_file = log_file
 
     def logger_setup(self):
-        logger = logging.getLogger(__name__)
+        logger = logging.getLogger("monster")
 
         avail_level = {
             'DEBUG': logging.DEBUG,
@@ -36,23 +39,25 @@ class Logger(object):
         _log_level = self.log_level.upper()
         if _log_level in avail_level:
             lvl = avail_level[_log_level]
-            logger.setLevel(lvl)
             formatter = logging.Formatter(
                 "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
             )
+            logger.setLevel(lvl)
 
         if self.log_file:
-            handler = logging.handlers.RotatingFileHandler(
+            file_handler = logging.handlers.RotatingFileHandler(
                 self.log_file,
                 maxBytes=150000000,
                 backupCount=5
             )
-        else:
-            handler = logging.StreamHandler(stream=sys.stdout)
+            file_handler.setLevel(avail_level['DEBUG'])
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
 
-        handler.setLevel(lvl)
-        handler.setFormatter(formatter)
-        logger.addHandler(handler)
+        stream_handler = logging.StreamHandler(stream=sys.stdout)
+        stream_handler.setFormatter(formatter)
+        logger.addHandler(stream_handler)
+
         return logger
 
 

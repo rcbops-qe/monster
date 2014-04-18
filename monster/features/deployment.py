@@ -406,8 +406,7 @@ class Glance(Deployment):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Glance, self).__init__(deployment, rpcs_feature)
-        self.environment = util.config['environments'][str(
-                                                       self)][rpcs_feature]
+        self.environment = util.config['environments'][str(self)][rpcs_feature]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -430,9 +429,7 @@ class Glance(Deployment):
         response = requests.post(url, data=data, headers=head, verify=False)
 
         if not response.ok:
-            logger.info(
-                "Unable to authorize your cloudfiles credentials, "
-                "please check your secrets file")
+            logger.info("Unauthorized with provided credentials.")
             sys.exit(1)
         try:
             services = response.json()['access']['serviceCatalog']

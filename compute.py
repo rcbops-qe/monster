@@ -19,11 +19,9 @@ from monster.tests.tempest_quantum import TempestQuantum
 from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
 
 
-# Logger needs to be rewritten to accept a log filename
 def build(name="autotest", template="ubuntu-default", branch="master",
-          template_path=None, config="pubcloud-neutron.yaml",
-          dry=False, log=None, log_level="INFO", log_file="logs/monster.log",
-          provisioner="rackspace", secret_path=None):
+          template_path=None, config="pubcloud-neutron.yaml", dry=False,
+          log_level="DEBUG", provisioner="rackspace", secret_path=None):
     """
     Build an OpenStack Cluster
     """
@@ -33,8 +31,8 @@ def build(name="autotest", template="ubuntu-default", branch="master",
     cprovisioner = get_provisioner(provisioner)
 
     logger.info("Building deployment object for {0}".format(name))
-    deployment = MonsterChefDeployment.fromfile(
-        name, template, branch, cprovisioner, template_path)
+    deployment = MonsterChefDeployment.fromfile(name, template, branch,
+                                                cprovisioner, template_path)
 
     if dry:
         try:
@@ -97,9 +95,13 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
         if ha:
             logger.info(Color.cyan('Running High Availability test!'))
             ha.test(iterations)
+        else:
+            logger.debug('Skipped HA')
         if tempest:
             logger.info(Color.cyan('Running Tempest test!'))
             tempest.test()
+        else:
+            logger.debug('Skipped Tempest')
 
     logger.info(Color.cyan("Tests have been completed with {0} "
                            "iterations".format(iterations)))
@@ -217,13 +219,15 @@ def cloudcafe(cmd, name="autotest", network=None, config=None,
 
 if __name__ == "__main__":
     parser = argh.ArghParser()
-    parser.add_commands([build, retrofit, upgrade,
-                        destroy, openrc, horizon,
+    parser.add_commands([build, retrofit, upgrade, destroy, openrc, horizon,
                          show, test, tmux, cloudcafe])
-    logger = util.Logger(log_level="DEBUG").logger_setup()
-    parser.dispatch()
+
+    logger = util.Logger().logger_setup()
+
     if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
         logger.warning("You are not using the virtual environment! We "
                        "cannot guarantee that your monster will be well"
                        "-behaved.  To load the virtual environment, use "
                        "the command \"source .venv/bin/activate\"")
+
+    parser.dispatch()
