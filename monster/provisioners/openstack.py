@@ -1,3 +1,4 @@
+import socket
 import logging
 
 from chef import Node
