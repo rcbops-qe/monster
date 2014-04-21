@@ -3,7 +3,6 @@ import logging
 import logging.handlers
 import sys
 
-from datetime import datetime
 from glob import glob
 from os.path import dirname, join
 from string import Template
@@ -86,15 +85,3 @@ def xunit_merge(path="."):
         with open("results.xunit", "w") as f:
             f.write(ElementTree.tostring(tree))
     [os.remove(file) for file in files]
-
-
-def template_file(source, destination=None, args=None):
-    with open(source) as f:
-        template = Template(f.read()).substitute(args)
-        logger.debug("Templated:{0}". format(template))
-
-    if not destination:
-        destination = "{0}.templated".format(source)
-    with open(destination, 'w') as f:
-        f.write(template)
-        logger.debug("Writing template to:{0}".format(destination))

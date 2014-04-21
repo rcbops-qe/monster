@@ -21,7 +21,7 @@ from monster.deployments.chef_deployment import Chef as MonsterChefDeployment
 
 def build(name="autotest", template="ubuntu-default", branch="master",
           template_path=None, config="pubcloud-neutron.yaml", dry=False,
-          log_level="DEBUG", provisioner="rackspace", secret_path=None):
+          provisioner="rackspace", secret_path=None):
     """
     Build an OpenStack Cluster
     """
@@ -53,14 +53,12 @@ def build(name="autotest", template="ubuntu-default", branch="master",
 
 
 def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
-         log_level="DEBUG", log_file="logs/monster.log", tempest=False,
+         log_file="logs/monster.log", tempest=False,
          ha=False, secret_path=None, deployment=None, iterations=1,
          progress=False):
     """
     Test an OpenStack deployment
     """
-    if progress:
-        log_level = "ERROR"
     if not deployment:
         deployment = _load(name, config, secret_path)
     if not tempest and not ha:
@@ -109,7 +107,7 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
 
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
              x_bridge='lxb-mgmt', iface='eth0', del_port=None, config=None,
-             log=None, log_level='INFO', secret_path=None):
+             log=None, secret_path=None):
 
     """
     Retrofit a deployment
@@ -120,7 +118,7 @@ def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
 
 
 def upgrade(name='autotest', upgrade_branch='v4.1.3rc',
-            config=None, log=None, log_level="INFO", secret_path=None):
+            config=None, log=None, secret_path=None):
     """
     Upgrade a current deployment to the new branch / tag
     """
@@ -129,8 +127,7 @@ def upgrade(name='autotest', upgrade_branch='v4.1.3rc',
     deployment.upgrade(upgrade_branch)
 
 
-def destroy(name="autotest", config=None, log=None, log_level="INFO",
-            secret_path=None):
+def destroy(name="autotest", config=None, log=None, secret_path=None):
     """
     Destroy an existing OpenStack deployment
     """
@@ -149,8 +146,7 @@ def getFile(ip, user, password, remote, local, remote_delete=False):
         subprocess.call(cmd2, shell=True)
 
 
-def artifact(name="autotest", config=None, log=None, secret_path=None,
-             log_level="INFO"):
+def artifact(name="autotest", config=None, log=None, secret_path=None):
     """
     Artifact a deployment (configs/running services)
     """
@@ -159,8 +155,7 @@ def artifact(name="autotest", config=None, log=None, secret_path=None,
     deployment.artifact()
 
 
-def openrc(name="autotest", config=None, log=None, secret_path=None,
-           log_level="INFO"):
+def openrc(name="autotest", config=None, log=None, secret_path=None):
     """
     Load OpenStack credentials into shell env
     """
@@ -168,8 +163,7 @@ def openrc(name="autotest", config=None, log=None, secret_path=None,
     deployment.openrc()
 
 
-def tmux(name="autotest", config=None, log=None, secret_path=None,
-         log_level="INFO"):
+def tmux(name="autotest", config=None, log=None, secret_path=None):
     """
     Load OpenStack nodes into new tmux session
     """
@@ -177,8 +171,7 @@ def tmux(name="autotest", config=None, log=None, secret_path=None,
     deployment.tmux()
 
 
-def horizon(name="autotest", config=None, log=None, secret_path=None,
-            log_level="INFO"):
+def horizon(name="autotest", config=None, log=None, secret_path=None):
     """
     Open Horizon in a browser tab
     """
@@ -188,12 +181,10 @@ def horizon(name="autotest", config=None, log=None, secret_path=None,
     webbrowser.open_new_tab(url)
 
 
-def show(name="autotest", config=None, log=None, secret_path=None,
-         log_level="INFO"):
+def show(name="autotest", config=None, log=None, secret_path=None):
     """
     Show details about an OpenStack deployment
     """
-    util.set_log_level(log_level)
     # load deployment and source openrc
     deployment = _load(name, config, secret_path)
     logger.info(str(deployment))
@@ -212,7 +203,7 @@ def _load(name="autotest", config="config.yaml", secret_path=None):
 
 
 def cloudcafe(cmd, name="autotest", network=None, config=None,
-              secret_path=None, log_level="INFO"):
+              secret_path=None):
     deployment = _load(name, config, secret_path)
     CloudCafe(deployment).config(cmd, network_name=network)
 

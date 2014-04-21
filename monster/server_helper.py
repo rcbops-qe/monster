@@ -8,8 +8,6 @@ from paramiko import SSHClient, WarningPolicy
 from subprocess import check_call, CalledProcessError
 from time import sleep
 
-from monster import util
-
 logger = logging.getLogger(__name__)
 
 

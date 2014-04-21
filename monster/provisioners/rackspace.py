@@ -1,8 +1,6 @@
 import logging
 import pyrax
 
-from time import sleep
-
 from monster import util
 from openstack import Openstack
 from monster.clients.openstack import Creds

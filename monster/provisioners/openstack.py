@@ -1,5 +1,4 @@
 import logging
-import socket
 
 from chef import Node, Client
 from provisioner import Provisioner

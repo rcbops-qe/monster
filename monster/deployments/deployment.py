@@ -8,7 +8,6 @@ import tmuxp
 from pyrabbit.api import Client
 
 from monster.tools.retrofit import Retrofit
-from monster import util
 
 logger = logging.getLogger(__name__)
 

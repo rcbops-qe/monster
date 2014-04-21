@@ -3,7 +3,6 @@ import sys
 
 from monster.util import module_classes
 from monster.provisioners import *
-from monster import util
 
 logger = logging.getLogger(__name__)
 
