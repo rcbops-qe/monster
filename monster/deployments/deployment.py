@@ -8,6 +8,10 @@ import tmuxp
 from monster.features import deployment_feature as deployment_features
 from monster.tools.retrofit import Retrofit
 from monster import util
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class Deployment(object):

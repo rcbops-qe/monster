@@ -1,4 +1,3 @@
-import logging
 import os
 import sys
 
@@ -12,8 +11,6 @@ from monster.clients.openstack import Creds, Clients
 from monster.deployments.deployment import Deployment
 
 from pyrabbit.api import Client as RabbitClient
-
-logger = logging.getLogger(__name__)
 
 
 class ChefDeployment(Deployment):
