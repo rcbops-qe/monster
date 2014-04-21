@@ -1,7 +1,8 @@
+import logging
 import sys
 import traceback
 from monster.util import module_classes
-import logging
+from monster.provisioners import *
 
 
 logger = logging.getLogger(__name__)
