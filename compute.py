@@ -13,7 +13,7 @@ import argh
 from monster import util
 from monster.color import Color
 from monster.config import Config
-from monster.orchestrator.deployment_orchestrator import get_orchestrator
+from monster.orchestrator.util import get_orchestrator
 from monster.tests.ha import HATest
 from monster.tests.cloudcafe import CloudCafe
 from monster.tests.tempest_neutron import TempestNeutron
