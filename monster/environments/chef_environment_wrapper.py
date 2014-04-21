@@ -2,9 +2,12 @@
 Chef Environment
 """
 
-from monster import util
+import logging
+
 from chef import Environment as ChefEnvironment
 from base_environment_wrapper import BaseEnvironmentWrapper
+
+logger = logging.getLogger(__name__)
 
 
 class ChefEnvironmentWrapper(BaseEnvironmentWrapper):
@@ -71,7 +74,7 @@ class ChefEnvironmentWrapper(BaseEnvironmentWrapper):
 
     def _update_chef_env_with_local_object_info(self, env):
         for attr in self.__dict__:
-            util.logger.debug("{0}: {1}".format(attr, self.__dict__[attr]))
+            logger.debug("{0}: {1}".format(attr, self.__dict__[attr]))
             setattr(env, attr, self.__dict__[attr])
 
     def _save_local_and_remote(self, env):
@@ -80,7 +83,7 @@ class ChefEnvironmentWrapper(BaseEnvironmentWrapper):
             try:
                 env.save(self.remote_api)
             except Exception as e:
-                util.logger.error("Remote env error:{0}".format(e))
+                logger.error("Remote env error:{0}".format(e))
 
     @property
     def _local_chef_env(self):

@@ -1,9 +1,14 @@
+import logging
 import os
+import socket
 import sys
+
 from cStringIO import StringIO
 from paramiko import SSHClient, WarningPolicy
 from subprocess import check_call, CalledProcessError
-from monster import util
+from time import sleep
+
+logger = logging.getLogger(__name__)
 
 
 class Command(object):
@@ -14,12 +19,27 @@ class Command(object):
         self.exception = None
 
 
+def check_port(host, port, timeout=2):
+    logger.debug("Testing connection to : {0}:{1}".format(host, port))
+    ssh_up = False
+    while not ssh_up:
+        try:
+            s = socket.create_connection((host, port), timeout)
+            s.close()
+            ssh_up = True
+        except socket.error:
+            ssh_up = False
+            logger.debug("Waiting for ssh connection...")
+            sleep(1)
+    return ssh_up
+
+
 def run_cmd(command):
     """
     @param command
     @return A map based on pass / fail run info
     """
-    util.logger.info("Running: {0}".format(command))
+    logger.info("Running: {0}".format(command))
     try:
         ret = check_call(command, shell=True, env=os.environ)
         return {'success': True, 'return': ret, 'exception': None}
@@ -46,13 +66,13 @@ def ssh_cmd(server_ip, remote_cmd, user='root', password=None):
     stdin, stdout, stderr = ssh.exec_command(remote_cmd)
     stdin.close()
     for line in stdout:
-        if util.logger < 10:
-            util.logger.debug(line)
+        if logger < 10:
+            logger.debug(line)
             sys.stdout.write(line)
-        util.logger.info(line.strip())
+        logger.info(line.strip())
         output.write(line)
     for line in stderr:
-        util.logger.error(line.strip())
+        logger.error(line.strip())
         error.write(line)
     exit_status = stdout.channel.recv_exit_status()
     ret = {'success': True if exit_status == 0 else False,

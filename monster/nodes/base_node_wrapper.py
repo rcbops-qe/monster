@@ -1,7 +1,7 @@
 """
 Provides classes of nodes (server entities)
 """
-
+import logging
 import types
 from lazy import lazy
 from time import sleep
@@ -9,6 +9,8 @@ from monster import util
 from monster.nodes.os_node_strategy import OS
 from monster.server_helper import ssh_cmd, scp_to, scp_from
 from monster.features import node_feature
+
+logger = logging.getLogger(__name__)
 
 
 class BaseNodeWrapper(object):
@@ -70,7 +72,7 @@ class BaseNodeWrapper(object):
         """
         user = user or self.user
         password = password or self.password
-        util.logger.info("Running: {0} on {1}".format(remote_cmd, self.name))
+        logger.info("Running: {0} on {1}".format(remote_cmd, self.name))
         count = attempts or 1
         ret = ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
                       user=user, password=password)
@@ -97,8 +99,8 @@ class BaseNodeWrapper(object):
         """
         user = user or self.user
         password = password or self.password
-        util.logger.info("SCP: {0} to {1}:{2}".format(local_path, self.name,
-                                                      remote_path))
+        logger.info("SCP: {0} to {1}:{2}".format(local_path, self.name,
+                                                 remote_path))
         return scp_to(self.ipaddress,
                       local_path,
                       user=user,
@@ -111,8 +113,8 @@ class BaseNodeWrapper(object):
         """
         user = user or self.user
         password = password or self.password
-        util.logger.info("SCP: {0}:{1} to {2}".format(self.name, remote_path,
-                                                      local_path))
+        logger.info("SCP: {0}:{1} to {2}".format(self.name, remote_path,
+                                                 local_path))
         return scp_from(self.ipaddress,
                         remote_path,
                         user=user,
@@ -125,12 +127,12 @@ class BaseNodeWrapper(object):
         """
         self.status = "pre-configure"
 
-        util.logger.info("Updating node dist / packages")
+        logger.info("Updating node dist / packages")
         self.update_packages(True)
 
         for feature in self.features:
             log = "Node feature: pre-configure: {0}".format(str(feature))
-            util.logger.debug(log)
+            logger.debug(log)
             feature.pre_configure()
 
     def save_to_node(self):
@@ -147,8 +149,7 @@ class BaseNodeWrapper(object):
         """
         Adds a list of feature classes
         """
-        util.logger.debug("node:{0} feature add:{1}".format(self.name,
-                                                            features))
+        logger.debug("node:{0} feature add:{1}".format(self.name, features))
         classes = util.module_classes(node_feature)
         for feature in features:
             feature_class = classes[feature](self)
@@ -164,7 +165,7 @@ class BaseNodeWrapper(object):
         self.status = "apply-feature"
         for feature in self.features:
             log = "Node feature: apply: {0}".format(str(feature))
-            util.logger.debug(log)
+            logger.debug(log)
             feature.apply_feature()
 
     def post_configure(self):
@@ -174,7 +175,7 @@ class BaseNodeWrapper(object):
         self.status = "post-configure"
         for feature in self.features:
             log = "Node feature: post-configure: {0}".format(str(feature))
-            util.logger.debug(log)
+            logger.debug(log)
             feature.post_configure()
 
     def build(self):
@@ -193,14 +194,14 @@ class BaseNodeWrapper(object):
         """
         for feature in self.features:
             log = "Node feature: upgrade: {0}".format(str(feature))
-            util.logger.info(log)
+            logger.info(log)
             feature.upgrade()
 
     def update_packages(self, dist_upgrade=False):
         """
         Updates installed packages
         """
-        util.logger.info('Updating Distribution Packages')
+        logger.info('Updating Distribution Packages')
         upgrade_command = self.os.update_dist(dist_upgrade)
         self.run_cmd(upgrade_command)
 
@@ -221,10 +222,10 @@ class BaseNodeWrapper(object):
         return self.run_cmd(check_package_command)
 
     def destroy(self):
-        util.logger.info("Destroying node:{0}".format(self.name))
+        logger.info("Destroying node:{0}".format(self.name))
         for feature in self.features:
             log = "Node feature: destroy: {0}".format(str(feature))
-            util.logger.debug(log)
+            logger.debug(log)
             feature.destroy()
         self.provisioner.destroy_node(self)
         self.status = "Destroyed"

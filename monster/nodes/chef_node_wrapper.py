@@ -3,6 +3,8 @@ from chef import Node, Client
 from monster import util
 from monster.nodes.base_node_wrapper import BaseNodeWrapper
 
+logger = logging.getLogger(__name__)
+
 
 class ChefNodeWrapper(BaseNodeWrapper):
     """
@@ -21,15 +23,15 @@ class ChefNodeWrapper(BaseNodeWrapper):
         """
         Node has access to chef attributes
         """
-        util.logger.debug("getting {0} on {1}".format(item, self.name))
+        logger.debug("getting {0} on {1}".format(item, self.name))
         return self.local_node[item]
 
     def __setitem__(self, item, value):
         """
         Node can set chef attributes
         """
-        util.logger.debug("setting {0} to {1} on {2}".format(item, value,
-                                                             self.name))
+        logger.debug("setting {0} to {1} on {2}".format(item, value,
+                                                        self.name))
         local_node = self.local_node
         local_node[item] = value
         self.save(local_node)
@@ -78,7 +80,7 @@ class ChefNodeWrapper(BaseNodeWrapper):
         """
         Saves a chef node to local and remote chef server
         """
-        util.logger.debug("Saving chef_node:{0}".format(self.name))
+        logger.debug("Saving chef_node:{0}".format(self.name))
         node = node or self.local_node
         node.save(self.local_api)
         if self.remote_api:
@@ -89,7 +91,7 @@ class ChefNodeWrapper(BaseNodeWrapper):
         """
         Syncs the remote chef nodes attribute to the local chef server
         """
-        util.logger.debug("Syncing chef node from remote:{0}".format(
+        logger.debug("Syncing chef node from remote:{0}".format(
             self.name))
         if self.remote_api:
             node = node or self.remote_node
@@ -102,7 +104,7 @@ class ChefNodeWrapper(BaseNodeWrapper):
         """
         Adds list of items to run_list
         """
-        util.logger.debug("run_list:{0} add:{1}".format(self.run_list, items))
+        logger.debug("run_list:{0} add:{1}".format(self.run_list, items))
         self.run_list.extend(items)
         node = self.local_node
         node.run_list = self.run_list
@@ -112,8 +114,7 @@ class ChefNodeWrapper(BaseNodeWrapper):
         """
         Adds list of items to run_list
         """
-        util.logger.debug("run_list:{0} remove:{1}".format(self.run_list,
-                                                           item))
+        logger.debug("run_list:{0} remove:{1}".format(self.run_list, item))
         self.run_list.pop(self.run_list.index(item))
         node = self.local_node
         node.run_list = self.run_list

@@ -1,26 +1,25 @@
 #! /usr/bin/env python
 
+""" Command Line interface for Building Openstack Swift clusters
 """
-Command Line interface for Building Openstack Swift clusters
-"""
+import argh
 import sys
 import traceback
 
-import argh
 
 from monster import util
 from monster.config import Config
 from monster.orchestrator.deployment_orchestrator import get_orchestrator
 
 
-def build(name="autotest", template="ubuntu-default", branch="master",
-          template_path=None, config="pubcloud-neutron.yaml",
-          dry=False, log=None, log_level="INFO", provisioner_name="rackspace",
-          secret_path=None, orchestrator_name="chef"):
+def build(name="autotest", branch="master", provisioner_name="rackspace",
+          template=None, config=None, destroy=False,
+          secret_path="secret.yaml", dry=False, log=None,
+          orchestrator_name="chef"):
+
+    """ Builds an OpenStack Swift storage cluster
     """
-    Build an OpenStack Cluster
-    """
-    util.set_log_level(log_level)
+    # provisiong deployment
     _load_config(config, secret_path)
 
     orchestrator = get_orchestrator(orchestrator_name)
@@ -33,43 +32,50 @@ def build(name="autotest", template="ubuntu-default", branch="master",
             deployment.update_environment()
         except Exception:
             error = traceback.print_exc()
-            util.logger.error(error)
-            raise
+            logger.exception(error)
 
     else:
         try:
             deployment.build()
         except Exception:
             error = traceback.print_exc()
-            util.logger.error(error)
-            raise
+            logger.exception(error)
 
-    util.logger.info(deployment)
+    logger.info(deployment)
+
+    if destroy:
+        deployment.destroy()
 
 
-def destroy(name="autotest", config=None, log=None, log_level="INFO"):
+def destroy(name="autotest", config=None, log=None):
+    """ Tears down a OpenStack Storage cluster
     """
-    Tears down a OpenStack Storage cluster
-    """
-    util.set_log_level(log_level)
     deployment = _load(name, config)
-    util.logger.info(deployment)
+    logger.info(deployment)
     deployment.destroy()
 
 
-def test(name="autotest", config=None, log=None, log_level="INFO"):
+def test(name="autotest", config=None, log=None):
     """ Tests a OpenStack Storage cluster
     """
-    raise NotImplementedError
+    deployment = _load(name, config)
+    deployment.test()
 
 
-def openrc(name="autotest", config=None, log=None, log_level="INFO"):
+def openrc(name="autotest", config=None, log=None):
     """ Loads the admin environment locally for a OpenStack Storage cluster
     """
-
-    util.set_log_level(log_level)
     deployment = _load(name, config)
     deployment.openrc()
+
+
+def load(name="autotest", config=None, log=None):
+    """ Loads a preconfigured OpenStack Storage cluster
+    """
+
+    # load deployment and source openrc
+    deployment = _load(name, config)
+    logger.info(str(deployment))
 
 
 def _load_config(config, secret_path):
@@ -90,5 +96,8 @@ def _load(name="autotest", config="config.yaml", secret_path=None,
 # Main
 if __name__ == "__main__":
     parser = argh.ArghParser()
-    parser.add_commands([build, destroy, openrc])
+    parser.add_commands([build, destroy, openrc, load])
+
+    logger = util.Logger().logger_setup()
+
     parser.dispatch()

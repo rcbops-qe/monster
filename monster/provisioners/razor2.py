@@ -1,11 +1,14 @@
-import sys
 import json
+import logging
 import requests
+import sys
 
 from monster.nodes.util import node_search
 from provisioner import Provisioner
 
 from monster import util
+
+logger = logging.getLogger(__name__)
 
 
 class Razor2(Provisioner):
@@ -26,7 +29,7 @@ class Razor2(Provisioner):
         :type deployment: ChefDeployment
         :rtype: list
         """
-        util.logger.info("Provisioning with Razor!")
+        logger.info("Provisioning with Razor!")
         image = deployment.os_name
         self.nodes += [self.available_node(image, deployment)
                        for _ in template['nodes']]
@@ -54,7 +57,7 @@ class Razor2(Provisioner):
                 node.save()
                 return node
         deployment.destroy()
-        util.logger.info("Cannot build, no more available_nodes")
+        logger.info("Cannot build, no more available_nodes")
         sys.exit(1)
 
     def power_down(self, node_wrapper):
@@ -96,9 +99,8 @@ class Razor2(Provisioner):
                 node_wrapper.client.delete()
                 node.delete()
             except:
-                util.logger.error("Node unreachable. "
-                                  "Manual restart required:{0}".
-                                  format(str(node_wrapper)))
+                logger.error("Node unreachable. "
+                             "Manual restart required:{0}".format(str(node)))
 
 
 class RazorAPI2(object):

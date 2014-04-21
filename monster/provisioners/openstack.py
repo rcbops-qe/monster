@@ -1,4 +1,4 @@
-import socket
+import logging
 
 from chef import Node
 from provisioner import Provisioner
@@ -6,7 +6,9 @@ from gevent import spawn, joinall, sleep
 
 from monster import util
 from monster.clients.openstack import Creds, Clients
-from monster.server_helper import run_cmd
+from monster.server_helper import run_cmd, check_port
+
+logger = logging.getLogger(__name__)
 
 
 class Openstack(Provisioner):
@@ -50,7 +52,7 @@ class Openstack(Provisioner):
         :type deployment: ChefDeployment
         :rtype: list
         """
-        util.logger.info("Provisioning in the cloud!")
+        logger.info("Provisioning in the cloud!")
         # acquire connection
 
         # create instances concurrently
@@ -109,7 +111,7 @@ class Openstack(Provisioner):
                                                      run_list_arg,
                                                      client_version))
         while not run_cmd(command)['success']:
-            util.logger.warning("Epic failure. Retrying...")
+            logger.warning("Epic failure. Retrying...")
             sleep(1)
 
         node = Node(name, api=deployment.environment.local_api)
@@ -171,11 +173,11 @@ class Openstack(Provisioner):
                                                     flavor_obj.id,
                                                     nics=networks)
         password = server.adminPass
-        util.logger.info("Building:{0}".format(name))
+        logger.info("Building: {0}".format(name))
         server = self.wait_for_state(self.compute_client.servers.get, server,
                                      "status", ["ACTIVE", "ERROR"])
         if server.status == "ERROR":
-            util.logger.error("Instance entered error state. Retrying...")
+            logger.error("Instance entered error state. Retrying...")
             server.delete()
             return self.build_instance(name=name, image=image, flavor=flavor)
         ip = server.accessIPv4
@@ -189,8 +191,10 @@ class Openstack(Provisioner):
                 ssh_up = True
             except socket.error:
                 ssh_up = False
-                util.logger.debug("Waiting for ssh connection...")
+                logger.debug("Waiting for ssh connection...")
                 sleep(1)
+        host = server.accessIPv4
+        check_port(host, 22, timeout=2)
         return server, password
 
     @staticmethod
@@ -218,11 +222,10 @@ class Openstack(Provisioner):
                 obj_collection = collection_fun()
                 break
             except Exception as e:
-                util.logger.error("Wait: Request error:{0}-{1}".
-                                  format(desired, e))
+                logger.error("Wait: Request error:{0}-{1}".format(desired, e))
                 continue
         get_attr = lambda x: getattr(x, attr)
-        util.logger.debug("Search:{0} for {1} in {2}".format(
+        logger.debug("Search:{0} for {1} in {2}".format(
             attr, desired, ",".join(map(get_attr, obj_collection))))
         for obj in obj_collection:
             if getattr(obj, attr) == desired:
@@ -251,8 +254,8 @@ class Openstack(Provisioner):
         attempt = 0
         in_attempt = lambda x: not attempts or attempts > x
         while getattr(obj, attr) not in desired and in_attempt(attempt):
-            util.logger.info("Waiting:{0} {1}:{2}".format(obj, attr,
-                                                          getattr(obj, attr)))
+            logger.info("Waiting:{0} {1}:{2}".format(obj, attr,
+                                                     getattr(obj, attr)))
             sleep(interval)
             obj = fun(obj.id)
             attempt += 1
