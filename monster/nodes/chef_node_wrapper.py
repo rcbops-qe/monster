@@ -1,5 +1,7 @@
 from chef import Node, Client
 
+import logging
+
 from monster import util
 from monster.nodes.base_node_wrapper import BaseNodeWrapper
 
