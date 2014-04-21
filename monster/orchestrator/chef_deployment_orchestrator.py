@@ -1,7 +1,6 @@
 from chef import autoconfigure
 from chef import Environment
 
-from monster import util
 from monster.config import Config
 from monster.orchestrator.deployment_orchestrator import DeploymentOrchestrator
 from monster.nodes.chef_node_wrapper_factory import ChefNodeWrapperFactory
@@ -10,6 +9,11 @@ from monster.features.node_feature import ChefServer
 from monster.deployments.chef_deployment import ChefDeployment
 from monster.environments.chef_environment_wrapper import \
     ChefEnvironmentWrapper
+
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class ChefDeploymentOrchestrator(DeploymentOrchestrator):
