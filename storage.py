@@ -3,9 +3,7 @@
 """ Command Line interface for Building Openstack Swift clusters
 """
 import argh
-import sys
 import traceback
-
 
 from monster import util
 from monster.config import Config
