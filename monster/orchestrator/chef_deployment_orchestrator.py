@@ -27,11 +27,11 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
         :type provisioner_name: str
         :rtype: ChefDeployment
         """
-        util.logger.info("Building deployment object for {0}".format(name))
+        logger.info("Building deployment object for {0}".format(name))
         provisioner = get_provisioner(provisioner_name)
 
         if Environment(name, api=self.local_api).exists:
-            util.logger.info("Using previous deployment:{0}".format(name))
+            logger.info("Using previous deployment:{0}".format(name))
             return self.load_deployment_from_name(name)
 
         environment = ChefEnvironmentWrapper(name, self.local_api,
