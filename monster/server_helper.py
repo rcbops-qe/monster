@@ -1,8 +1,12 @@
 import os
+import socket
 import sys
+
 from cStringIO import StringIO
 from paramiko import SSHClient, WarningPolicy
 from subprocess import check_call, CalledProcessError
+from time import sleep
+
 from monster import util
 
 
@@ -12,6 +16,21 @@ class Command(object):
         self.successful = False
         self.output = None
         self.exception = None
+
+
+def check_port(host, port, timeout=2):
+    util.logger.debug("Testing connection to : {0}:{1}".format(host, port))
+    ssh_up = False
+    while not ssh_up:
+        try:
+            s = socket.create_connection((host, port), timeout)
+            s.close()
+            ssh_up = True
+        except socket.error:
+            ssh_up = False
+            util.logger.debug("Waiting for ssh connection...")
+            sleep(1)
+    return ssh_up
 
 
 def run_cmd(command):

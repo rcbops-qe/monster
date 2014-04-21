@@ -1,9 +1,9 @@
 import pyrax
-from time import sleep
 
 from monster import util
 from openstack import Openstack
 from monster.clients.openstack import Creds
+from monster.server_helper import check_port
 
 
 class Rackspace(Openstack):
@@ -52,19 +52,20 @@ class Rackspace(Openstack):
         """
         self.mkswap(node)
         self.update(node)
+        if "centos" in node.os_name:
+            self.rdo(node)
         if "controller" in node.name:
             self.hosts(node)
-            if node.os_name == "centos":
-                self.rdo(node)
 
     def rdo(self, node):
-        kernel = util.config['rcbops']['compute']['kernel']
-        version = kernel['centos']['version']
-        install = kernel['centos']['install']
+        util.logger.info("Installing RDO kernel.")
+        kernel = util.config['rcbops']['compute']['kernel']['centos']
+        version = kernel['version']
+        install = kernel['install']
         if version not in node.run_cmd("uname -r")['return']:
             node.run_cmd(install)
             node.run_cmd("reboot now")
-            sleep(30)
+            check_port(node.ipaddress, 22)
 
     def hosts(self, node):
         """
