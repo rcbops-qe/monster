@@ -4,13 +4,13 @@ from chef import Environment
 from monster.config import Config
 from monster.orchestrator.deployment_orchestrator import DeploymentOrchestrator
 from monster.nodes.chef_node_wrapper_factory import ChefNodeWrapperFactory
-from monster.provisioners.provisioner import get_provisioner
 from monster.features.node_feature import ChefServer
 from monster.deployments.chef_deployment import ChefDeployment
 from monster.environments.chef_environment_wrapper import \
     ChefEnvironmentWrapper
 
 import logging
+from monster.provisioners.util import get_provisioner
 
 
 logger = logging.getLogger(__name__)
