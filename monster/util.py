@@ -5,7 +5,6 @@ import sys
 
 from glob import glob
 from os.path import dirname, join
-from string import Template
 from xml.etree import ElementTree
 from inspect import getmembers, isclass
 
