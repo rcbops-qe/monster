@@ -1,5 +1,4 @@
 import pyrax
-from time import sleep
 
 from monster import util
 from openstack import Openstack

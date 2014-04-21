@@ -1,5 +1,3 @@
-import socket
-
 from chef import Node, Client
 from provisioner import Provisioner
 from gevent import spawn, joinall, sleep
