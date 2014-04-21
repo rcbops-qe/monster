@@ -1,7 +1,10 @@
 import sys
 import traceback
-from monster import util
 from monster.util import module_classes
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class Provisioner(object):
@@ -89,8 +92,7 @@ class Provisioner(object):
         nodes_to_load = self.reload_node_list(env.nodes, env.local_api)
         for node in nodes_to_load:
             if not node.exists:
-                util.logger.error("Non-existent chef node: {0}".
-                                  format(node.name))
+                logger.error("Non-existent chef node: {0}".format(node.name))
                 continue
             wrapped_node = node_wrapper_factory.wrap_node(
                 node, env.product, env, deployment, self,
@@ -112,8 +114,8 @@ def get_provisioner(provisioner_name):
                              provisioner_name)
     except AttributeError:
         print(traceback.print_exc())
-        util.logger.error("The provisioner \"{0}\" was not found."
-                          .format(provisioner_name))
+        logger.error("The provisioner \"{0}\" was not found."
+                     .format(provisioner_name))
         exit(1)
     else:
         return module_classes(identifier)[provisioner_name]()
