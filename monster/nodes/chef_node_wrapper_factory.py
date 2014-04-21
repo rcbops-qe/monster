@@ -1,6 +1,5 @@
 from chef import Node
-
-from monster.provisioners.util import get_provisioner
+from monster.provisioners.provisioner import get_provisioner
 from monster.nodes.chef_node_wrapper import ChefNodeWrapper
 from monster import util
 

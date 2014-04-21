@@ -5,7 +5,7 @@ from monster import util
 from monster.config import Config
 from monster.orchestrator.deployment_orchestrator import DeploymentOrchestrator
 from monster.nodes.chef_node_wrapper_factory import ChefNodeWrapperFactory
-from monster.provisioners.util import get_provisioner
+from monster.provisioners.provisioner import get_provisioner
 from monster.features.node_feature import ChefServer
 from monster.deployments.chef_deployment import ChefDeployment
 from monster.environments.chef_environment_wrapper import \
@@ -13,10 +13,6 @@ from monster.environments.chef_environment_wrapper import \
 
 
 class ChefDeploymentOrchestrator(DeploymentOrchestrator):
-    @property
-    def local_api(self):
-        return autoconfigure()
-
     def create_deployment_from_file(self, name, template, branch,
                                     provisioner_name):
         """
@@ -88,3 +84,7 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
             override = local_env.override_attributes
 
         return default, override, remote_api
+
+    @property
+    def local_api(self):
+        return autoconfigure()
