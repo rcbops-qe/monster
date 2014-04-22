@@ -178,7 +178,8 @@ class Openstack(Provisioner):
         password = server.adminPass
         logger.info("Building: {0}".format(name))
         server = self.wait_for_state(self.compute_client.servers.get, server,
-                                     "status", ["ACTIVE", "ERROR"])
+                                     "status", ["ACTIVE", "ERROR"],
+                                     attempts=10)
         if server.status == "ERROR":
             logger.error("Instance entered error state. Retrying...")
             server.delete()
@@ -242,8 +243,8 @@ class Openstack(Provisioner):
         attempt = 0
         in_attempt = lambda x: not attempts or attempts > x
         while getattr(obj, attr) not in desired and in_attempt(attempt):
-            logger.info("Waiting:{0} {1}:{2}".format(obj, attr,
-                                                     getattr(obj, attr)))
+            logger.info("Waiting: {0} {1}:{2}".format(obj, attr,
+                                                      getattr(obj, attr)))
             sleep(interval)
             obj = fun(obj.id)
             attempt = attempt + 1
