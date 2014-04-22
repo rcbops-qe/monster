@@ -2,19 +2,20 @@
 Chef Environment
 """
 
+from chef import Environment as ChefEnvironment
 import logging
 
-from chef import Environment as ChefEnvironment
-from base_environment_wrapper import BaseEnvironmentWrapper
 
 logger = logging.getLogger(__name__)
 
 
-class ChefEnvironmentWrapper(BaseEnvironmentWrapper):
+class ChefEnvironmentWrapper(dict):
 
     def __init__(self, name, local_api, chef_server_name=None, remote_api=None,
                  description='', default=None, override=None):
-        super(ChefEnvironmentWrapper, self).__init__(name, description)
+        super(ChefEnvironmentWrapper, self).__init__({})
+        self.name = name
+        self.description = description
         self.cookbook_versions = {}
         self.json_class = "Chef::Environment"
         self.chef_type = "environment"
