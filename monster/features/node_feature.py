@@ -1,27 +1,18 @@
-"""
-A nodes features
-"""
 from chef import ChefAPI
 from monster import util
 from monster.features.feature import Feature
 
 
 class NodeFeature(Feature):
-    """ Represents a feature on a node
-    """
+    """Represents a feature on a node."""
 
     def __init__(self, node):
-        """
-        Initialize Node object
+        """Initialize Node object
         :type: node: monster.nodes.base_node_wrapper.BaseNodeWrapper
         """
         self.node = node
 
     def __repr__(self):
-        """
-        Print out current class instance
-        :rtype: String
-        """
         return 'class: ' + self.__class__.__name__
 
     def pre_configure(self):
@@ -40,9 +31,7 @@ class NodeFeature(Feature):
         pass
 
     def set_run_list(self):
-        """
-        Sets the nodes run list based on the feature
-        """
+        """Sets the nodes run list based on the feature."""
 
         # have to add logic for controllers
         if hasattr(self, "number"):
@@ -59,9 +48,7 @@ class NodeFeature(Feature):
         self.node.add_run_list_item(run_list)
 
     def build_archive(self):
-        """
-        Builds an archive to save Node information
-        """
+        """Builds an archive to save node information."""
         self.log_path = '/tmp/archive/var/log'
         self.etc_path = '/tmp/archive/etc'
         self.misc_path = '/tmp/archive/misc'
@@ -74,16 +61,13 @@ class NodeFeature(Feature):
         self.node.run_cmd(build_archive_cmd)
 
     def save_node_running_services(self):
-        """
-        Saves the nodes running services
-        """
         store_running_services = "{0} > {1}/running-services.out".format(
             self.deployment.list_packages_cmd, self.misc_path)
         self.run_cmd(store_running_services)
 
 
 class Berkshelf(NodeFeature):
-    """ Represents a node with berks installed """
+    """Represents a node with berks installed."""
 
     def pre_configure(self):
         self._install_berkshelf()
@@ -97,7 +81,7 @@ class Berkshelf(NodeFeature):
                         "configs": [""]}
 
     def _install_berkshelf(self):
-        """ Installs Berkshelf and correct rvms/gems """
+        """Installs Berkshelf and correct rvms/gems."""
 
         dependencies = ['libxml2-dev', 'libxslt-dev', 'libz-dev']
         rvm_install = ("curl -L https://get.rvm.io | bash -s -- stable "
@@ -124,7 +108,7 @@ class Berkshelf(NodeFeature):
         self.node.run_cmd(command)
 
     def _run_berks(self):
-        """ This will run berkshelf to apply the feature """
+        """This will run berkshelf to apply the feature """
         commands = ['cd /opt/rcbops/swift-private-cloud',
                     'source /usr/local/rvm/scripts/rvm',
                     'berks install',
@@ -133,8 +117,7 @@ class Berkshelf(NodeFeature):
 
 
 class ChefServer(NodeFeature):
-    """ Represents a chef server
-    """
+    """Represents a chef server."""
 
     def __init__(self, node):
         super(ChefServer, self).__init__(node)
@@ -160,9 +143,7 @@ class ChefServer(NodeFeature):
                         "configs": [""]}
 
     def upgrade(self):
-        """
-        Upgrades the Chef Server Cookbooks
-        """
+        """Upgrades the Chef Server Cookbooks."""
         self._upgrade_cookbooks()
 
     def destroy(self):
@@ -170,18 +151,14 @@ class ChefServer(NodeFeature):
         self.node.environment.remote_api = None
 
     def _install(self):
-        """
-        Installs chef server on the given node
-        """
+        """Installs chef server on the given node."""
 
         self.node.run_cmd(self.script_download, attempts=5)
         command = "; ".join(self.install_commands)
         self.node.run_cmd(command)
 
     def _install_cookbooks(self, directory=None):
-        """
-        Installs cookbooks
-        """
+        """Installs cookbooks """
 
         cookbook_url = util.config['rcbops'][self.node.product]['git']['url']
         cookbook_branch = self.node.branch
@@ -218,8 +195,7 @@ class ChefServer(NodeFeature):
         return self._install_cookbooks(directory=install_dir)
 
     def _set_up_remote(self):
-        """
-        Sets up and saves a remote api and dict to the nodes environment
+        """Sets up and saves a remote api and dict to the nodes environment.
         """
 
         remote_chef = {
@@ -240,16 +216,12 @@ class ChefServer(NodeFeature):
 
     @classmethod
     def _remote_chef_api(cls, chef_api_dict):
-        """
-        Builds a remote chef API object
-        """
+        """Builds a remote chef API object."""
 
         return ChefAPI(**chef_api_dict)
 
     def _get_admin_pem(self):
-        """
-        Gets the admin pem from the chef server
-        """
+        """Gets the admin pem from the chef server."""
 
         command = 'cat ~/.chef/admin.pem'
         pem = self.node.run_cmd(command)['return']
@@ -266,8 +238,7 @@ class ChefServer(NodeFeature):
 
 
 class Cinder(NodeFeature):
-    """ Enables cinder with local lvm backend
-    """
+    """Enables cinder with local lvm backend."""
 
     def pre_configure(self):
         self.set_run_list()
@@ -278,24 +249,19 @@ class Cinder(NodeFeature):
 
 
 class Compute(NodeFeature):
-    """ Represents a RPCS compute
-    """
+    """Represents a RPCS compute """
 
     def pre_configure(self):
         self.set_run_list()
 
     def archive(self):
-        """
-        Archives all services on a compute node
-        """
+        """Archives all services on a compute node."""
 
         self.save_node_running_services()
         self._set_node_archive()
 
     def post_configure(self):
-        """
-        Run chef-client a second time to lay down host keys
-        """
+        """Run chef-client a second time to lay down host keys."""
         self.node.run()
 
     def _set_node_archive(self):
@@ -305,19 +271,15 @@ class Compute(NodeFeature):
 
 
 class Controller(NodeFeature):
-    """ Represents a RPCS Controller
-    """
+    """Represents a RPCS Controller """
 
     def __init__(self, node):
-        """
-        Initialize node
-        """
+        """Initializes node."""
         super(Controller, self).__init__(node)
         self.number = None
 
     def pre_configure(self):
-        """
-        Set controller number and run list based on single or HA features
+        """Set controller number and run list based on single or HA features.
         """
         if self.node.deployment.has_controller:
             self.number = 2
@@ -327,9 +289,7 @@ class Controller(NodeFeature):
             self.set_run_list()
 
     def apply_feature(self):
-        """
-        Run chef client on controler1 after controller2's completes
-        """
+        """Run chef client on controller1 after controller2's completes."""
         self.node.deployment.has_controller = True
 
         if self.number == 2:
@@ -338,18 +298,14 @@ class Controller(NodeFeature):
             controller1.run()
 
     def archive(self):
-        """
-        Services on a controller to archive
-        """
+        """Services on a controller to archive."""
 
         self.build_archive()
         self.save_node_running_services()
         self._set_node_archive()
 
     def _set_node_archive(self):
-        """
-        Sets a dict in the node object of services and their logs
-        """
+        """Sets a dict in the node object of services and their logs."""
 
         self.archive = {"log": ["apache2",
                                 "apt",
@@ -378,8 +334,7 @@ class Controller(NodeFeature):
 
 
 class Metrics(NodeFeature):
-    """ Represents a Metrics Node
-    """
+    """Represents a Metrics Node."""
 
     def __init__(self, node):
         super(Metrics, self).__init__(node)
@@ -398,9 +353,7 @@ class Metrics(NodeFeature):
                         "configs": [""]}
 
     def _set_run_list(self):
-        """
-        Metrics run list set
-        """
+        """Metrics run list set."""
 
         role = self.__class__.__name__.lower()
 
@@ -413,8 +366,7 @@ class Metrics(NodeFeature):
 
 
 class Network(NodeFeature):
-    """ Sets the node to be a Network
-    """
+    """Sets the node to be a network."""
 
     def pre_configure(self):
         self.set_run_list()
@@ -435,8 +387,7 @@ class NetworkManager(NodeFeature):
 
 
 class OpenLDAP(NodeFeature):
-    """ Represents a LDAP server
-    """
+    """Represents a LDAP server."""
 
     def pre_configure(self):
         self.set_run_list()
@@ -477,8 +428,7 @@ class Orchestration(NodeFeature):
 
 
 class Proxy(NodeFeature):
-    """ Represents a RPCS proxy node
-    """
+    """Represents a RPCS proxy node."""
 
     def pre_configure(self):
         self.set_run_list()
@@ -489,11 +439,10 @@ class Proxy(NodeFeature):
 
 
 class Remote(NodeFeature):
-    """ Represents the deployment having a remote chef server
-    """
+    """Represents the deployment having a remote chef server."""
 
     def pre_configure(self):
-        self.node.remove_chef()
+        self.node
         self._bootstrap_chef()
 
     def archive(self):
@@ -501,9 +450,7 @@ class Remote(NodeFeature):
                         "configs": [""]}
 
     def _bootstrap_chef(self):
-        """
-        Bootstraps the node to a chef server
-        """
+        """Bootstraps the node to a chef server. """
 
         # Gather the info for the chef server
         chef_server = next(self.node.deployment.search_role('chefserver'))
@@ -519,8 +466,7 @@ class Remote(NodeFeature):
 
 
 class Storage(NodeFeature):
-    """ Represents a RPCS proxy node
-    """
+    """Represents a RPCS proxy node."""
 
     def pre_configure(self):
         self.set_run_list()
