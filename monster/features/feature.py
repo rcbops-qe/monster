@@ -1,11 +1,7 @@
-""" Base Feature """
+"""Base feature."""
 
 
 class Feature(object):
-    """
-    Represents a OpenStack Feature
-    """
-
     def __repr__(self):
         """Prints out current instance.
         :rtype: String

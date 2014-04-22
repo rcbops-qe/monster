@@ -4,6 +4,7 @@ Provides classes of nodes (server entities)
 import logging
 import types
 from time import sleep
+
 from lazy import lazy
 
 from monster import util
@@ -16,9 +17,8 @@ logger = logging.getLogger(__name__)
 
 
 class BaseNodeWrapper(object):
-    """
-    A individual computation entity to deploy a part OpenStack onto
-    Provides server related functions
+    """An individual computation entity to deploy a part OpenStack onto.
+    Provides server-related functions.
     """
     def __init__(self, name, ip, user, password, product,
                  deployment, provisioner):
@@ -34,10 +34,6 @@ class BaseNodeWrapper(object):
         self.status = "Unknown"
 
     def __repr__(self):
-        """
-        Print out current instance
-        :rtype: string
-        """
         features = []
         outl = 'class: ' + self.__class__.__name__
         for attr in self.__dict__:
@@ -60,8 +56,7 @@ class BaseNodeWrapper(object):
         raise NotImplementedError()
 
     def run_cmd(self, remote_cmd, user='root', password=None, attempts=None):
-        """
-        Runs a command on the node
+        """Runs a command on the node.
         :param remote_cmd: command to run on the node
         :type remote_cmd: str
         :param user: user to run the command as
@@ -95,10 +90,9 @@ class BaseNodeWrapper(object):
         self.run_cmd(cmd, user, password, attempts)
 
     def scp_to(self, local_path, user=None, password=None, remote_path=""):
-        """
-        Sends a file to the node
+        """Sends a file to the node.
         :param user: user to run the command as
-        :type user: string
+        :type user: str
         :param password: password to authenticate with
         :type password:: string
         """
@@ -113,9 +107,7 @@ class BaseNodeWrapper(object):
                       remote_path=remote_path)
 
     def scp_from(self, remote_path, user=None, password=None, local_path=""):
-        """
-        Retrieves a file from the node
-        """
+        """Retrieves a file from the node."""
         user = user or self.user
         password = password or self.password
         logger.info("SCP: {0}:{1} to {2}".format(self.name, remote_path,
@@ -127,9 +119,7 @@ class BaseNodeWrapper(object):
                         local_path=local_path)
 
     def pre_configure(self):
-        """
-        Preconfigures node for each feature
-        """
+        """Preconfigures node for each feature."""
         self.status = "pre-configure"
 
         logger.info("Updating node dist / packages")
@@ -141,9 +131,7 @@ class BaseNodeWrapper(object):
             feature.pre_configure()
 
     def save_to_node(self):
-        """
-        Save deployment restore attributes to chef environment
-        """
+        """Save deployment restore attributes to chef environment."""
         features = [str(f).lower() for f in self.features]
         node = {'features': features,
                 'status': self.status,
@@ -151,9 +139,7 @@ class BaseNodeWrapper(object):
         self['archive'] = node
 
     def add_features(self, features):
-        """
-        Adds a list of feature classes
-        """
+        """Adds a list of feature classes."""
         logger.debug("node:{0} feature add:{1}".format(self.name, features))
         classes = util.module_classes(node_feature)
         for feature in features:
@@ -164,9 +150,7 @@ class BaseNodeWrapper(object):
         self.save_to_node()
 
     def apply_feature(self):
-        """
-        Applies each feature
-        """
+        """Applies each feature."""
         self.status = "apply-feature"
         for feature in self.features:
             log = "Node feature: apply: {0}".format(str(feature))
@@ -184,9 +168,7 @@ class BaseNodeWrapper(object):
             feature.post_configure()
 
     def build(self):
-        """
-        Runs build steps for node's features
-        """
+        """Runs build steps for node's features."""
         self['in_use'] = ", ".join(map(str, self.features))
         self.pre_configure()
         self.apply_feature()
@@ -194,23 +176,19 @@ class BaseNodeWrapper(object):
         self.status = "done"
 
     def upgrade(self):
-        """
-        Upgrades node based on features
-        """
+        """Upgrades node based on features."""
         for feature in self.features:
             log = "Node feature: upgrade: {0}".format(str(feature))
             logger.info(log)
             feature.upgrade()
 
     def update_packages(self, dist_upgrade=False):
-        """
-        Updates installed packages
-        """
+        """Updates installed packages."""
         logger.info('Updating Distribution Packages')
         self.run_cmd(self.os.update_dist(dist_upgrade))
 
     def install_package(self, package):
-        """
+        """Installs a package on an Ubuntu, CentOS, or RHEL node.
         :param package: package to install
         :type package: str
         :rtype: function
@@ -218,15 +196,13 @@ class BaseNodeWrapper(object):
         return self.run_cmd(self.os.install_package(package))
 
     def install_packages(self, packages):
-        """
+        """Installs multiple packages.
         :type packages list(str)
         """
         return self.install_package(" ".join(packages))
 
     def check_package(self, package):
-        """
-        Checks to see if a package is installed
-        """
+        """Checks to see if a package is installed."""
         return self.run_cmd(self.os.check_package(package))
 
     def install_ruby_gem(self, gem):
@@ -268,9 +244,7 @@ class BaseNodeWrapper(object):
 
     @property
     def vmnet_iface(self):
-        """
-        Return the iface that our vm data network will live on
-        """
+        """Return the iface that our VM data network will live on."""
         return util.config['environments']['bridge_devices']['data']
 
     @lazy
