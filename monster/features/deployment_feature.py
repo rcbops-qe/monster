@@ -1,5 +1,3 @@
-""" A Deployment Features
-"""
 import logging
 import requests
 import sys
@@ -11,17 +9,13 @@ logger = logging.getLogger(__name__)
 
 
 class DeploymentFeature(Feature):
-    """ Represents a feature across a deployment
-    """
+    """Represents a feature across a deployment."""
 
     def __init__(self, deployment, rpcs_feature):
         self.rpcs_feature = rpcs_feature
         self.deployment = deployment
 
     def __repr__(self):
-        """
-        Print out current instance
-        """
         outl = 'class: ' + self.__class__.__name__
         return outl
 
@@ -43,12 +37,10 @@ class DeploymentFeature(Feature):
 
 
 class Neutron(DeploymentFeature):
-    """ Represents a neutron network cluster
-    """
+    """Represents a Neutron network cluster."""
 
     def __init__(self, deployment, provider):
-        """
-        Create neutron feature in deployment
+        """Create Neutron feature in deployment.
 
         :param deployment: The deployment to add neutron feature
         :type deployment: Object
@@ -65,27 +57,21 @@ class Neutron(DeploymentFeature):
         self.provider = provider
 
     def update_environment(self):
-        """
-        Updates environment file to include feature
-        """
+        """Updates environment file to include feature."""
         self.deployment.environment.add_override_attr(self.provider,
                                                       self.environment)
 
     def post_configure(self):
-        """
-        Runs cluster post configure commands
-        """
+        """Runs cluster post-configure commands."""
 
         # Build OVS bridge for networking
         self._build_bridges()
 
-        # Auto add default icmp and tcp sec rules
+        # Auto add default ICMP and TCP security rules
         #self._add_security_rules()
 
     def _add_security_rules(self):
-        """
-        Auto adds sec rules for ping and ssh
-        """
+        """Auto adds security rules for ping and SSH."""
 
         icmp_command = ("source openrc admin; "
                         "{0} security-group-rule-create "
@@ -116,9 +102,7 @@ class Neutron(DeploymentFeature):
         controller.run_cmd(tcp_command2)
 
     def _build_bridges(self):
-        """
-        Build the subnets
-        """
+        """Builds the subnets."""
 
         logger.info("### Beginning of Networking Block ###")
 
@@ -133,7 +117,7 @@ class Neutron(DeploymentFeature):
             logger.debug("Running {0} on {1}".format(command, controller))
             controller.run_cmd(command)
 
-        # loop through computes and run
+        # loop through compute nodes and run
         for compute in computes:
             iface = compute.vmnet_iface
             command = self.iface_bb_cmd(iface)
@@ -151,9 +135,7 @@ class Neutron(DeploymentFeature):
         return command
 
     def clear_bridge_iface(self):
-        """
-        Clear the configured iface for neutron use
-        """
+        """Clears configured interface for Neutron use."""
 
         controllers = self.deployment.search_role('controller')
         computes = self.deployment.search_role('compute')
@@ -175,8 +157,7 @@ class Neutron(DeploymentFeature):
 
 
 class Swift(DeploymentFeature):
-    """ Represents a block storage cluster enabled by swift
-    """
+    """Represents a Block Storage cluster enabled by Swift."""
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Swift, self).__init__(deployment, rpcs_feature)
@@ -193,9 +174,7 @@ class Swift(DeploymentFeature):
         self._build_rings(build_rings)
 
     def _set_keystone_urls(self):
-        """
-        Gets the controllers ip and sets the url for the env accordingly
-        """
+        """Gets the controller's IP and sets the url for the env."""
         proxy_ip = next(
             self.deployment.search_role('proxy')).ipaddress
 
@@ -211,9 +190,8 @@ class Swift(DeploymentFeature):
         env.save()
 
     def _fix_environment(self):
-        """
-        This is needed to make the environment for swift line up to the
-        requirements from rpcs.
+        """This is needed to make the environment for Swift line up to the
+        requirements from Rackspace Private Cloud Software.
         """
 
         env = self.deployment.environment
@@ -232,8 +210,7 @@ class Swift(DeploymentFeature):
         env.save()
 
     def _build_rings(self, auto=False):
-        """
-        This will either build the rings or print how to build the rings.
+        """This will either build the rings or print how to build the rings.
 
         :param auto: Whether or not to auto build the rings
         :type auto: bool
@@ -312,7 +289,7 @@ class Swift(DeploymentFeature):
             for index, node in enumerate(storage_nodes):
 
                 # if the current index of the node is % num_rings = 0,
-                # reset num so we dont add anymore rings past num_rings
+                # reset num so we don't add anymore rings past num_rings
                 if index % num_rings is 0:
                     num = 0
 
@@ -377,7 +354,7 @@ class Swift(DeploymentFeature):
                 logger.info(command)
 
         #####################################################################
-        ############### Finalize by running chef on controler ###############
+        ############### Finalize by running chef on controller ##############
         #####################################################################
 
         if auto:
@@ -401,8 +378,7 @@ class Swift(DeploymentFeature):
 
 
 class Glance(DeploymentFeature):
-    """ Represents a glance with cloud files backend
-    """
+    """Represents a Glance with CloudFiles backend."""
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Glance, self).__init__(deployment, rpcs_feature)
@@ -448,8 +424,7 @@ class Glance(DeploymentFeature):
 
 
 class Keystone(DeploymentFeature):
-    """ Represents the keystone feature
-    """
+    """Represents the Keystone feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Keystone, self).__init__(deployment, rpcs_feature)
@@ -460,7 +435,7 @@ class Keystone(DeploymentFeature):
             str(self), self.environment)
 
         # Check to see if we need to add the secret info to
-        # connect to AD/ldap
+        # connect to AD/LDAP
         if 'actived' in self.rpcs_feature or 'openldap' in self.rpcs_feature:
             # grab values from secrets file
             url = util.config['secrets'][self.rpcs_feature]['url']
@@ -468,25 +443,21 @@ class Keystone(DeploymentFeature):
             password = util.config['secrets'][self.rpcs_feature]['password']
             users = util.config['secrets'][self.rpcs_feature]['users']
 
-            # Grab environment
             env = self.deployment.environment
 
-            # Override the attrs
             env.override_attributes['keystone']['ldap']['url'] = url
             env.override_attributes['keystone']['ldap']['user'] = user
             env.override_attributes['keystone']['ldap']['password'] = password
             env.override_attributes['keystone']['users'] = users
 
-            # Save the Environment
             self.deployment.environment.save()
 
     def pre_configure(self):
 
-        # Grab environment
         env = self.deployment.environment
 
         # Check to see if we need to add the secret info to
-        # connect to AD/ldap
+        # connect to AD/LDAP
         if 'actived' in self.rpcs_feature or 'openldap' in self.rpcs_feature:
 
             # Add the service user passwords
@@ -499,22 +470,18 @@ class Keystone(DeploymentFeature):
 
 
 class Nova(DeploymentFeature):
-    """ Represents the monitoring feature
-    """
+    """Represents the Monitoring feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
-        """
-        Decides nova block
-        nova networks: when neutron or quantum is not a deployment feature
+        """Decides nova block.
+        nova-networks: when neutron or quantum is not a deployment feature
         neutron: when neutron is a deployment feature
         quantum: when quantum is neutron's rpcs feature
         """
         super(Nova, self).__init__(deployment, rpcs_feature)
 
     def get_net_choice(self):
-        """
-        determines network choice
-        """
+        """Determines network choice."""
         if self.deployment.has_feature('neutron'):
             for feature in self.deployment.features:
                 if feature.__class__.__name__ == 'Neutron':
@@ -532,8 +499,7 @@ class Nova(DeploymentFeature):
 
 
 class Horizon(DeploymentFeature):
-    """ Represents the monitoring feature
-    """
+    """Represents the Dashboard feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Horizon, self).__init__(deployment, rpcs_feature)
@@ -545,8 +511,7 @@ class Horizon(DeploymentFeature):
 
 
 class Cinder(DeploymentFeature):
-    """ Represents the Cinder feature
-    """
+    """Represents the Cinder feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Cinder, self).__init__(deployment, rpcs_feature)
@@ -563,8 +528,7 @@ class Cinder(DeploymentFeature):
 
 
 class Ceilometer(DeploymentFeature):
-    """ Represents the Ceilometer feature
-    """
+    """Represents the Ceilometer feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Ceilometer, self).__init__(deployment, rpcs_feature)
@@ -581,8 +545,7 @@ class Ceilometer(DeploymentFeature):
 
 
 class RPCS(DeploymentFeature):
-    """ Represents a Rackspace Private Cloud Software Feature
-    """
+    """Represents a Rackspace Private Cloud Software Feature."""
 
     def __init__(self, deployment, rpcs_feature, name):
         super(RPCS, self).__init__(deployment, rpcs_feature)
@@ -593,8 +556,7 @@ class RPCS(DeploymentFeature):
 
 
 class Monitoring(RPCS):
-    """ Represents the monitoring feature
-    """
+    """Represents a Monitoring feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Monitoring, self).__init__(deployment, rpcs_feature,
@@ -607,8 +569,7 @@ class Monitoring(RPCS):
 
 
 class MySql(RPCS):
-    """ Represents the monitoring feature
-    """
+    """Represents a MySQL feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(MySql, self).__init__(deployment, rpcs_feature,
@@ -621,8 +582,7 @@ class MySql(RPCS):
 
 
 class OsOps(RPCS):
-    """ Represents the monitoring feature
-    """
+    """Represents an OpenStack Ops feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(OsOps, self).__init__(deployment, rpcs_feature,
@@ -635,8 +595,7 @@ class OsOps(RPCS):
 
 
 class DeveloperMode(RPCS):
-    """ Represents the monitoring feature
-    """
+    """Represents developer mode feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(DeveloperMode, self).__init__(deployment, rpcs_feature,
@@ -649,8 +608,7 @@ class DeveloperMode(RPCS):
 
 
 class OsOpsNetworks(RPCS):
-    """ Represents the monitoring feature
-    """
+    """Represents OpenStack Ops Networking feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(OsOpsNetworks, self).__init__(deployment, rpcs_feature,
@@ -664,8 +622,7 @@ class OsOpsNetworks(RPCS):
 
 
 class HighAvailability(RPCS):
-    """ Represents a highly available cluster
-    """
+    """Represents a 'Highly Available' cluster."""
 
     def __init__(self, deployment, rpcs_feature):
         super(HighAvailability, self).__init__(deployment, rpcs_feature,
@@ -678,8 +635,7 @@ class HighAvailability(RPCS):
 
 
 class OpenLDAP(RPCS):
-    """ Represents a keystone with an openldap backend
-    """
+    """Represents a keystone with an OpenLDAP backend."""
 
     def __init__(self, deployment, rpcs_feature):
         super(OpenLDAP, self).__init__(deployment, rpcs_feature,
@@ -705,8 +661,7 @@ class OpenLDAP(RPCS):
 
 
 class Openssh(RPCS):
-    """ Configures OpenSSH
-    """
+    """Configures OpenSSH."""
 
     def __init__(self, deployment, rpcs_feature):
         super(Openssh, self).__init__(deployment, rpcs_feature, str(self))

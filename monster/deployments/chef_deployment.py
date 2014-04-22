@@ -14,24 +14,22 @@ from pyrabbit.api import Client as RabbitClient
 
 
 class ChefDeployment(Deployment):
-    """
-    Deployment mechanisms specific to deployment using
-    Opscode's Chef as configuration management
+    """Deployment mechanisms specific to deployment using Opscode's Chef
+    as configuration management
     """
 
     def __init__(self, name, os_name, branch, environment, provisioner,
                  status=None, product=None, clients=None, features=None):
 
-        """
-        :param name:
-        :param os_name:
-        :param branch:
+        """Initializes a ChefDeployment object.
+        :type name: str
+        :type os_name: str
+        :type branch: str
         :type environment: ChefEnvironmentWrapper
-        :param provisioner:
-        :param status:
-        :param product:
-        :param clients:
-        :param features:
+        :type provisioner: Provisioner
+        :type status: str
+        :type product: str
+        :type features: Feature
         """
         status = status or "provisioning"
         super(ChefDeployment, self).__init__(name, os_name, branch,
@@ -45,23 +43,18 @@ class ChefDeployment(Deployment):
         return str(self.to_dict)
 
     def build(self):
-        """
-        Saves deployment for restore after build
-        """
+        """Saves deployment for restore after build."""
 
         super(ChefDeployment, self).build()
         self.save_to_environment()
 
     def save_to_environment(self):
-        """
-        Save deployment restore attributes to chef environment
-        """
+        """Save deployment restore attributes to chef environment."""
         deployment = self.to_dict
         self.environment.add_override_attr('deployment', deployment)
 
     def get_upgrade(self, branch_name):
-        """
-        This will return an instance of the correct upgrade class
+        """This will return an instance of the correct upgrade class.
         :param branch_name: The name of the provisioner
         :type branch_name: str
         :rtype: ChefDeployment
@@ -86,9 +79,7 @@ class ChefDeployment(Deployment):
         return util.module_classes(identifier)[up_class](self)
 
     def upgrade(self, branch_name):
-        """
-        Upgrades the deployment (very chefy, rcbopsy)
-        """
+        """Upgrades the deployment."""
 
         rc = "rc" in branch_name
         upgrade_branch_name = branch_name.rstrip("rc")
@@ -97,9 +88,7 @@ class ChefDeployment(Deployment):
         upgrade.upgrade(rc)
 
     def update_environment(self):
-        """
-        Saves deployment for restore after update environment
-        """
+        """Saves deployment for restore after update environment."""
 
         super(ChefDeployment, self).update_environment()
         self.save_to_environment()
@@ -107,9 +96,7 @@ class ChefDeployment(Deployment):
             f.write(str(self.environment))
 
     def destroy(self):
-        """
-        Destroys Chef Deployment
-        """
+        """Destroys Chef Deployment."""
 
         self.status = "Destroying"
         # Nullify remote api so attributes are not sent remotely
@@ -123,9 +110,7 @@ class ChefDeployment(Deployment):
         self.status = "Destroyed"
 
     def openrc(self):
-        """
-        Opens a new shell with variables loaded for nova-client
-        """
+        """Opens a new shell with variables loaded for nova-client."""
 
         user_name = self.environment.override_attributes['keystone'][
             'admin_user']
@@ -144,8 +129,7 @@ class ChefDeployment(Deployment):
         os.system(os.environ['SHELL'])
 
     def horizon_ip(self):
-        """
-        Returns ip of horizon
+        """Returns IP of Horizon.
         :rtype: String
         """
 
@@ -167,9 +151,7 @@ class ChefDeployment(Deployment):
 
     @property
     def openstack_clients(self):
-        """
-        Setup OpenStack clients generator for deployment
-        """
+        """Setup OpenStack clients generator for deployment."""
         override = self.environment.override_attributes
         keystone = override['keystone']
         users = keystone['users']
@@ -185,9 +167,7 @@ class ChefDeployment(Deployment):
 
     @property
     def rabbitmq_mgmt_client(self):
-        """
-        Return rabbitmq management client
-        """
+        """Return rabbitmq management client."""
         if self.environment.is_high_availability:
             ip = self.environment.rabbit_mq_queue_ip
         else:

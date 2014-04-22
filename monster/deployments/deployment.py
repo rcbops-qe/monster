@@ -113,7 +113,7 @@ class Deployment(object):
         """Returns nodes the have the desired role.
         :param feature_name: feature to be searched for
         :type feature_name: str
-        :rtype: Iterator (Nodes)
+        :rtype: Iterator (monster.nodes.base_node_wrapper.BaseNodeWrapper)
         """
         return (node for node in self.nodes if node.has_feature(feature_name))
 
