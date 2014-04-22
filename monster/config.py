@@ -1,6 +1,5 @@
 """Gathers application config"""
 
-import os
 from os.path import dirname, join
 from yaml import load
 from collections import defaultdict
