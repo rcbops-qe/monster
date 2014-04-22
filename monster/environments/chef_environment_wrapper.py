@@ -27,9 +27,7 @@ class ChefEnvironmentWrapper(dict):
         self.save()
 
     def __repr__(self):
-        """
-        Exclude unserializable chef objects
-        """
+        """(Excludes unserializable chef objects.)"""
 
         chef_dict = {
             "chef_type": self.chef_type,

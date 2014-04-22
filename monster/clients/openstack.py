@@ -9,9 +9,7 @@ logger = logging.getLogger(__name__)
 
 
 class Creds(object):
-    """
-    Credentials to authenticate with OpenStack
-    """
+    """Credentials to authenticate with OpenStack."""
     def __init__(self, username=None, password=None, apikey=None,
                  region=None, auth_url=None, auth_system="keystone",
                  tenant_name=None, project_id=None, insecure=False,
@@ -29,9 +27,7 @@ class Creds(object):
 
 
 class Clients(object):
-    """
-    Openstack client generator
-    """
+    """Openstack client generator."""
     def __init__(self, creds):
         self.creds = creds.__dict__
         if not self.creds["tenant_name"]:
@@ -39,9 +35,7 @@ class Clients(object):
 
     @property
     def keystoneclient(self):
-        """
-        Openstack keystone client
-        """
+        """Openstack keystone client."""
 
         logger.debug(
             "keystone connection created using token {0} and url {1}".format(
@@ -51,9 +45,7 @@ class Clients(object):
 
     @property
     def novaclient(self):
-        """
-        Openstack novaclient generator
-        """
+        """Openstack novaclient generator."""
         logger.debug(
             'novaclient connection created using token "%s" and url "%s"'
             % (self.creds['username'], self.creds['auth_url'])
@@ -64,9 +56,7 @@ class Clients(object):
 
     @property
     def cinderclient(self):
-        """
-        Openstack cinderclient generator
-        """
+        """Openstack cinderclient generator."""
         logger.debug(
             'cinderclient connection created using token "%s" and url "%s"'
             % (self.creds['username'], self.creds['auth_url'])
@@ -76,9 +66,7 @@ class Clients(object):
 
     @property
     def neutronclient(self):
-        """
-        Openstack neutronclient generator
-        """
+        """Openstack neutronclient generator."""
         logger.debug(
             'neutron connection created using token "%s" and url "%s"'
             % (self.creds['username'], self.creds['auth_url'])
@@ -88,8 +76,7 @@ class Clients(object):
         return neutron_client(**self.build_args(args))
 
     def get_client(self, client):
-        """
-        Client generator
+        """Client generator.
         :param client: desired client
         :type client: str
         """

@@ -7,16 +7,14 @@ class Feature(object):
     """
 
     def __repr__(self):
-        """
-        Print out current instance
+        """Prints out current instance.
         :rtype: String
         """
         outl = 'class: ' + self.__class__.__name__
         return outl
 
     def __str__(self):
-        """
-        Prints out class name
+        """Prints out class name.
         :rtype: String
         """
         return self.__class__.__name__.lower()
