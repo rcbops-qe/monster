@@ -6,8 +6,7 @@ class DeploymentOrchestrator:
 
     def create_deployment_from_file(self, name, template, branch,
                                     provisioner_name):
-        """
-        Returns a new deployment given a deployment template at path
+        """Returns a new deployment given a deployment template at path.
         :param name: name for the deployment
         :type name: string
         :param name: name of template to use
@@ -21,8 +20,7 @@ class DeploymentOrchestrator:
         raise NotImplementedError
 
     def load_deployment_from_name(self, environment):
-        """
-        Rebuilds a Deployment given a deployment name
+        """Rebuilds a Deployment given a deployment name.
         :param environment: name of deployment
         :type environment: string
         :rtype: Deployment

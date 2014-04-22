@@ -5,10 +5,8 @@ logger = logging.getLogger(__name__)
 
 
 class Provisioner(object):
-    """
-    Provisioner class template
-
-    Enforce implementation of provision and destroy_node and naming convention
+    """Provisioner class template.
+    Enforce implementation of provision and destroy_node and naming convention.
     """
 
     nodes = []
@@ -17,8 +15,7 @@ class Provisioner(object):
         return self.__class__.__name__.lower()
 
     def provision(self, template, deployment):
-        """
-        Provisions nodes
+        """Provisions nodes.
         :param template: template for cluster
         :type template: dict
         :param deployment: Deployment to provision for
@@ -28,24 +25,21 @@ class Provisioner(object):
         raise NotImplementedError
 
     def post_provision(self, node):
-        """
-        Tasks to be done after a node is provisioned
+        """Tasks to be done after a node is provisioned.
         :param node: Node object to be tasked
         :type node: nodes.BaseNodeWrapper
         """
         pass
 
     def destroy_node(self, node):
-        """
-        Destroys node
+        """Destroys node.
         :param node: node to destroy
         :type node: nodes.BaseNodeWrapper
         """
         raise NotImplementedError
 
     def destroy_all_nodes(self):
-        """
-        Destroys all Chef nodes from an OpenStack deployment
+        """Destroys all Chef nodes from an OpenStack deployment
         """
         [self.destroy_node(node) for node in self.nodes]
 

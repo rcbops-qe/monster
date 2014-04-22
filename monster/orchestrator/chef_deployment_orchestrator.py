@@ -19,8 +19,7 @@ logger = logging.getLogger(__name__)
 class ChefDeploymentOrchestrator(DeploymentOrchestrator):
     def create_deployment_from_file(self, name, template, branch,
                                     provisioner_name):
-        """
-        Returns a new deployment given a deployment template at path
+        """Returns a new deployment given a deployment template at path.
         :param name: name for the deployment
         :type name: string
         :param name: name of template to use
@@ -53,8 +52,7 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
         return deployment
 
     def load_deployment_from_name(self, name):
-        """
-        Rebuilds a Deployment given a deployment name
+        """Rebuilds a Deployment given a deployment name.
         :param name: name of deployment
         :type name: string
         :rtype: ChefDeployment

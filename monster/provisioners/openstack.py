@@ -13,9 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class Openstack(Provisioner):
-    """
-    Provisions Chef nodes in OpenStack vms
-    """
+    """Provisions Chef nodes in OpenStack VMS"""
     def __init__(self):
         self.names = []
         self.name_index = {}
@@ -24,8 +22,7 @@ class Openstack(Provisioner):
         self.compute_client = Clients(self.creds).get_client("novaclient")
 
     def name(self, name, deployment, number=None):
-        """
-        Helper for naming nodes
+        """Helper for naming nodes.
         :param name: name for node
         :type name: String
         :param deployment: deployment object
@@ -45,8 +42,7 @@ class Openstack(Provisioner):
         return "{0}-{1}".format(deployment.name, name)
 
     def provision(self, template, deployment):
-        """
-        Provisions a ChefNode using OpenStack
+        """Provisions a ChefNode using OpenStack.
         :param template: template for cluster
         :type template: dict
         :param deployment: ChefDeployment to provision for
@@ -71,8 +67,7 @@ class Openstack(Provisioner):
         return self.nodes
 
     def destroy_node(self, node_wrapper):
-        """
-        Destroys Chef node from OpenStack
+        """Destroys Chef node from OpenStack.
         :param node_wrapper: node to destroy
         :type node_wrapper: ChefNodeWrapper
         """
@@ -85,8 +80,7 @@ class Openstack(Provisioner):
             client.delete()
 
     def chef_instance(self, deployment, name, flavor="2GBP"):
-        """
-        Builds an instance with desired specs and initializes it with Chef
+        """Builds an instance with desired specs and initializes it with Chef.
         :param deployment: deployment to add to
         :type deployment: ChefDeployment
         :param name: name for instance
@@ -152,8 +146,7 @@ class Openstack(Provisioner):
 
     def build_instance(self, name="server", image="ubuntu",
                        flavor="2GBP"):
-        """
-        Builds an instance with desired specs
+        """Builds an instance with desired specs.
         :param name: name of server
         :type name: string
         :param image: desired image for server
@@ -201,8 +194,7 @@ class Openstack(Provisioner):
     @staticmethod
     def _client_search(collection_fun, attr, desired, attempts=None,
                        interval=1):
-        """
-        Searches for a desired attribute in a list of objects
+        """Searches for a desired attribute in a list of objects.
         :param collection_fun: function to get list of objects
         :type collection_fun: function
         :param attr: attribute of object to check
@@ -236,8 +228,7 @@ class Openstack(Provisioner):
     @staticmethod
     def wait_for_state(fun, obj, attr, desired, interval=15,
                        attempts=None):
-        """
-        Waits for a desired state of an object using gevent sleep
+        """Waits for a desired state of an object using gevent sleep.
         :param fun: function to update object
         :type fun: function
         :param obj: object which to check state

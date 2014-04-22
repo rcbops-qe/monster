@@ -3,9 +3,6 @@
 
 class Feature(object):
     def __repr__(self):
-        """Prints out current instance.
-        :rtype: String
-        """
         outl = 'class: ' + self.__class__.__name__
         return outl
 
