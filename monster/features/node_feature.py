@@ -3,10 +3,7 @@ A nodes features
 """
 from chef import ChefAPI
 from monster import util
-from monster.features.feature import (Feature,
-                                      remove_chef,
-                                      install_packages,
-                                      install_ruby_gems)
+from monster.features.feature import Feature
 
 
 class NodeFeature(Feature):
@@ -16,9 +13,7 @@ class NodeFeature(Feature):
     def __init__(self, node):
         """
         Initialize Node object
-
-        :param node: node object
-        :type: Node
+        :type: node: monster.nodes.base_node_wrapper.BaseNodeWrapper
         """
         self.node = node
 
@@ -88,8 +83,7 @@ class NodeFeature(Feature):
 
 
 class Berkshelf(NodeFeature):
-    """ Represents a node with berks installed
-    """
+    """ Represents a node with berks installed """
 
     def pre_configure(self):
         self._install_berkshelf()
@@ -103,25 +97,17 @@ class Berkshelf(NodeFeature):
                         "configs": [""]}
 
     def _install_berkshelf(self):
-        """
-        Installs Berkshelf and correct rvms/gems
-        """
+        """ Installs Berkshelf and correct rvms/gems """
 
-        # Install needed server packages for berkshelf
-        packages = ['libxml2-dev', 'libxslt-dev', 'libz-dev']
+        dependencies = ['libxml2-dev', 'libxslt-dev', 'libz-dev']
         rvm_install = ("curl -L https://get.rvm.io | bash -s -- stable "
                        "--ruby=1.9.3 --autolibs=enable --auto-dotfiles")
         gems = ['berkshelf', 'chef']
 
-        # Install OS packages
-        install_packages(self.node, packages)
-
-        # Install RVM
+        self.node.install_packages(dependencies)
         # We commonly see issues with rvms servers, so loop
         self.node.run_cmd(rvm_install, attempts=10)
-
-        # Install Ruby Gems
-        install_ruby_gems(self.node, gems)
+        self.node.install_ruby_gems(gems)
 
     def _write_berks_config(self):
         """
@@ -138,18 +124,12 @@ class Berkshelf(NodeFeature):
         self.node.run_cmd(command)
 
     def _run_berks(self):
-        """
-        This will run berksheld to apply the feature
-        """
-
-        # Run berkshelf on server
+        """ This will run berkshelf to apply the feature """
         commands = ['cd /opt/rcbops/swift-private-cloud',
                     'source /usr/local/rvm/scripts/rvm',
                     'berks install',
                     'berks upload']
-        command = "; ".join(commands)
-
-        self.node.run_cmd(command)
+        self.node.run_cmds(commands)
 
 
 class ChefServer(NodeFeature):
@@ -166,7 +146,7 @@ class ChefServer(NodeFeature):
                                  './{0}'.format(self.iscript_name)]
 
     def pre_configure(self):
-        remove_chef(self.node)
+        self.node.remove_chef()
 
     def apply_feature(self):
         self._install()
@@ -513,7 +493,7 @@ class Remote(NodeFeature):
     """
 
     def pre_configure(self):
-        remove_chef(self.node)
+        self.node.remove_chef()
         self._bootstrap_chef()
 
     def archive(self):

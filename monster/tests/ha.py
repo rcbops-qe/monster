@@ -219,7 +219,6 @@ class HATest(Test):
         Creates a neutron subnet
         """
         logger.debug("Creating subnetwork: {0}".format(subnet_name))
-        new_subnet = ""
         if pnet:
             new_subnet = {"subnet": {
                 "name": subnet_name, "network_id": network_id,

@@ -236,7 +236,7 @@ class Swift(DeploymentFeature):
         This will either build the rings or print how to build the rings.
 
         :param auto: Whether or not to auto build the rings
-        :type auto: Boolean
+        :type auto: bool
         """
 
         # Gather all the nodes

@@ -3,12 +3,14 @@ Provides classes of nodes (server entities)
 """
 import logging
 import types
-from lazy import lazy
 from time import sleep
+from lazy import lazy
+
 from monster import util
+from monster.features import node_feature
 from monster.nodes.os_node_strategy import OS
 from monster.server_helper import ssh_cmd, scp_to, scp_from
-from monster.features import node_feature
+
 
 logger = logging.getLogger(__name__)
 
@@ -86,8 +88,11 @@ class BaseNodeWrapper(object):
         if not ret['success'] and attempts:
             raise Exception("Failed to run {0} after {1} attempts".format(
                 remote_cmd, attempts))
-
         return ret
+
+    def run_cmds(self, remote_cmds, user='root', password=None, attempts=None):
+        cmd = "; ".join(remote_cmds)
+        self.run_cmd(cmd, user, password, attempts)
 
     def scp_to(self, local_path, user=None, password=None, remote_path=""):
         """
@@ -123,7 +128,7 @@ class BaseNodeWrapper(object):
 
     def pre_configure(self):
         """
-        Pre configures node for each feature
+        Preconfigures node for each feature
         """
         self.status = "pre-configure"
 
@@ -202,8 +207,7 @@ class BaseNodeWrapper(object):
         Updates installed packages
         """
         logger.info('Updating Distribution Packages')
-        upgrade_command = self.os.update_dist(dist_upgrade)
-        self.run_cmd(upgrade_command)
+        self.run_cmd(self.os.update_dist(dist_upgrade))
 
     def install_package(self, package):
         """
@@ -211,15 +215,30 @@ class BaseNodeWrapper(object):
         :type package: str
         :rtype: function
         """
-        install_command = self.os.install_package(package)
-        return self.run_cmd(install_command)
+        return self.run_cmd(self.os.install_package(package))
+
+    def install_packages(self, packages):
+        """
+        :type packages list(str)
+        """
+        return self.install_package(" ".join(packages))
 
     def check_package(self, package):
         """
         Checks to see if a package is installed
         """
-        check_package_command = self.os.check_package(package)
-        return self.run_cmd(check_package_command)
+        return self.run_cmd(self.os.check_package(package))
+
+    def install_ruby_gem(self, gem):
+        commands = ['source /usr/local/rvm/scripts/rvm',
+                    'gem install --no-rdoc --no-ri {0}'.format(gem)]
+        self.run_cmds(commands)
+
+    def install_ruby_gems(self, gems):
+        self.install_ruby_gem(" ".join(gems))
+
+    def remove_chef(self):
+        self.run_cmd(self.os.remove_chef())
 
     def destroy(self):
         logger.info("Destroying node:{0}".format(self.name))
@@ -240,10 +259,6 @@ class BaseNodeWrapper(object):
         return feature_name in self.feature_names
 
     @property
-    def feature_names(self):
-        return [str(feature) for feature in self.features]
-
-    @property
     def creds(self):
         return self.ipaddress, self.user, self.password
 
@@ -257,6 +272,10 @@ class BaseNodeWrapper(object):
         Return the iface that our vm data network will live on
         """
         return util.config['environments']['bridge_devices']['data']
+
+    @lazy
+    def feature_names(self):
+        return [str(feature) for feature in self.features]
 
     @lazy
     def os(self):

@@ -1,4 +1,7 @@
-from monster import util
+import logging
+
+
+logger = logging.getLogger(__name__)
 
 
 class OS:
@@ -8,7 +11,7 @@ class OS:
         elif os_name in ['rhel', 'centos']:
             self.__class__ = RHEL
         else:
-            util.logger.exception("OS not supported at this time!")
+            logger.exception("OS not supported at this time!")
 
     def check_package(self, package):
         raise NotImplementedError()
@@ -33,6 +36,9 @@ class DebianOS(OS):
     def install_package(self, package):
         return 'apt-get install -y {0}'.format(package)
 
+    def remove_chef(self):
+        return "apt-get remove --purge -y chef; rm -rf /etc/chef"
+
 
 class RHEL(OS):
     def check_package(self, package):
@@ -43,3 +49,6 @@ class RHEL(OS):
 
     def install_package(self, package):
         return 'yum install -y {0}'.format(package)
+
+    def remove_chef(self):
+        return "yum remove -y chef; rm -rf /etc/chef /var/chef"
