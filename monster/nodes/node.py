@@ -1,11 +1,14 @@
 """
 Provides classes of nodes (server entities)
 """
-
+import logging
 import types
+
 from time import sleep
 from monster import util
 from monster.server_helper import ssh_cmd, scp_to, scp_from
+
+logger = logging.getLogger(__name__)
 
 
 class Node(object):
@@ -66,7 +69,7 @@ class Node(object):
         """
         user = user or self.user
         password = password or self.password
-        util.logger.info("Running: {0} on {1}".format(remote_cmd, self.name))
+        logger.info("Running: {0} on {1}".format(remote_cmd, self.name))
         count = attempts or 1
         ret = ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
                       user=user, password=password)
@@ -94,8 +97,8 @@ class Node(object):
         """
         user = user or self.user
         password = password or self.password
-        util.logger.info("SCP: {0} to {1}:{2}".format(local_path, self.name,
-                                                      remote_path))
+        logger.info("SCP: {0} to {1}:{2}".format(local_path, self.name,
+                                                 remote_path))
         return scp_to(self.ipaddress,
                       local_path,
                       user=user,
@@ -108,8 +111,8 @@ class Node(object):
         """
         user = user or self.user
         password = password or self.password
-        util.logger.info("SCP: {0}:{1} to {2}".format(self.name, remote_path,
-                                                      local_path))
+        logger.info("SCP: {0}:{1} to {2}".format(self.name, remote_path,
+                                                 local_path))
         return scp_from(self.ipaddress,
                         remote_path,
                         user=user,
@@ -120,12 +123,12 @@ class Node(object):
         """Pre configures node for each feature"""
         self.status = "pre-configure"
 
-        util.logger.info("Updating node dist / packages")
+        logger.info("Updating node dist / packages")
         self.update_packages(True)
 
         for feature in self.features:
             log = "Node feature: pre-configure: {0}".format(str(feature))
-            util.logger.debug(log)
+            logger.debug(log)
             feature.pre_configure()
 
     def apply_feature(self):
@@ -133,7 +136,7 @@ class Node(object):
         """Applies each feature"""
         for feature in self.features:
             log = "Node feature: apply: {0}".format(str(feature))
-            util.logger.debug(log)
+            logger.debug(log)
             feature.apply_feature()
 
     def post_configure(self):
@@ -141,7 +144,7 @@ class Node(object):
         self.status = "post-configure"
         for feature in self.features:
             log = "Node feature: post-configure: {0}".format(str(feature))
-            util.logger.debug(log)
+            logger.debug(log)
             feature.post_configure()
 
     def build(self):
@@ -156,7 +159,7 @@ class Node(object):
         """Upgrades node based on features"""
         for feature in self.features:
             log = "Node feature: upgrade: {0}".format(str(feature))
-            util.logger.info(log)
+            logger.info(log)
             feature.upgrade()
 
     def update_packages(self, dist_upgrade=False):
@@ -179,7 +182,7 @@ class Node(object):
                 "{0} is a non supported platform".format(self.os_name))
         upgrade_cmd = '; '.join(upgrade_cmds)
 
-        util.logger.info('Updating Distribution Packages')
+        logger.info('Updating Distribution Packages')
         self.run_cmd(upgrade_cmd)
 
     def install_package(self, package):
@@ -209,7 +212,7 @@ class Node(object):
         if self.os_name in ["centos", "rhel"]:
             chk_cmd = "rpm -a | grep {0}".format(package)
         else:
-            util.logger.info(
+            logger.info(
                 "Operating system not supported at this time")
 
         return self.run_cmd(chk_cmd)
@@ -221,10 +224,10 @@ class Node(object):
         return util.config['environments']['bridge_devices']['data']
 
     def destroy(self):
-        util.logger.info("Destroying node:{0}".format(self.name))
+        logger.info("Destroying node:{0}".format(self.name))
         for feature in self.features:
             log = "Node feature: destroy: {0}".format(str(feature))
-            util.logger.debug(log)
+            logger.debug(log)
             feature.destroy()
         self.provisioner.destroy_node(self)
         self.status = "Destroyed"

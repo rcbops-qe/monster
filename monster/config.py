@@ -1,26 +1,20 @@
 """Gathers application config"""
 
-import os
+from os.path import dirname, join
 from yaml import load
 from collections import defaultdict
 
 
 class Config(object):
     """Application config object"""
-    def __init__(self, template_path_from_project_root=None,
-                 secret_file_name=None):
-        secret_path = secret_file_name or os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "secret.yaml")
+    def __init__(self, config, secret_path=None):
+        template_path = join(dirname(dirname(__file__)), config)
+        with open(template_path, 'r') as template:
+            self.config = defaultdict(None, load(template.read()))
 
-        template_path = os.path.join(os.path.dirname(os.path.dirname(
-            __file__)), template_path_from_project_root)
-
-        template_file = open(template_path)
-        self.config = defaultdict(None, load(template_file))
-
-        secret_file = open(secret_path)
-        secrets = load(secret_file)
-        self.config['secrets'] = secrets
+        if secret_path:
+            with open(secret_path, 'r') as secret:
+                self.config['secrets'] = load(secret.read())
 
     def __getitem__(self, name):
         return self.config[name]

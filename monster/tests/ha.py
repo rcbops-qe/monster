@@ -1,18 +1,21 @@
 """
 Module to test High Availability in RPC
 """
+import logging
 import os
 import sys
 import socket
+
 from time import sleep
 from subprocess import call
 from novaclient.v1_1 import client as nova_client
 from neutronclient.v2_0.client import Client as neutron_client
 
-from monster import util
 from monster.color import Color
 from monster.util import xunit_merge
 from monster.tests.test import Test
+
+logger = logging.getLogger(__name__)
 
 
 class Creds(object):
@@ -51,9 +54,9 @@ class Build(object):
 #router    neutron router-delete [router-id]
 #subnet    neutron subnet-delete [subnet-id]
 #network   neutron net-delete [network-id]
-        util.logger.info('Cleaning up instance and network clutter...')
+        logger.info('Cleaning up instance and network clutter...')
 
-        util.logger.debug('Deleting floating IP')
+        logger.debug('Deleting floating IP')
         progress.update("Progress")
         deleted = False
         while not deleted:
@@ -63,13 +66,13 @@ class Build(object):
             except:
                 deleted = False
 
-        util.logger.debug('Deleting server {0}'.format(self.name))
+        logger.debug('Deleting server {0}'.format(self.name))
         progress.update("Progress")
         deleted = False
         while not deleted:
             try:
                 # Run server deletion command
-                util.logger.debug("Attempting server deletion")
+                logger.debug("Attempting server deletion")
                 progress.update("Progress")
                 nova.servers.delete(self.server)
 
@@ -87,26 +90,23 @@ class Build(object):
                     nova.servers.get(self.server)
                     if current_try > max_tries:
                         # Force kill RabbitMQ server and start it back up
-                        util.logger.error(Color.red("Server deletion is hung"))
+                        logger.error(Color.red("Server deletion is hung"))
                         progress.update("Progress")
                         self.kill_rabbit(node1, node2)
                         deleted = False
                         break
 
-                    util.logger.warning(Color.yellow("Waiting for server "
-                                                     "to be deleted: {0}".
-                                                     format(current_try)))
+                    logger.warning(Color.yellow("Deleting server: {0}".format(
+                        current_try)))
                     progress.update("Progress")
                     sleep(1)
                     current_try += 1
                 except:
-                    util.logger.debug(Color.green("{0} has been deleted "
-                                                  "(really)".
-                                                  format(self.name)))
+                    logger.debug(Color.green("Server deleted."))
                     really_deleted = True
                     deleted = True
 
-        util.logger.debug('Deleting router interface')
+        logger.debug('Deleting router interface')
         progress.update("Progress")
         deleted = False
         while not deleted:
@@ -117,7 +117,7 @@ class Build(object):
             except:
                 deleted = False
 
-        util.logger.debug("Deleting router")
+        logger.debug("Deleting router")
         progress.update("Progress")
         deleted = False
         while not deleted:
@@ -127,7 +127,7 @@ class Build(object):
             except:
                 deleted = False
 
-        util.logger.debug("Deleting subnet")
+        logger.debug("Deleting subnet")
         progress.update("Progress")
         deleted = False
         while not deleted:
@@ -137,7 +137,7 @@ class Build(object):
             except:
                 deleted = False
 
-        util.logger.debug("Deleting network")
+        logger.debug("Deleting network")
         progress.update("Progress")
         deleted = False
         while not deleted:
@@ -205,20 +205,20 @@ class HATest(Test):
         """
         Creates a neutron network
         """
-        util.logger.debug("Creating network: {0}".format(network_name))
+        logger.debug("Creating network: {0}".format(network_name))
         new_net = {"network": {"name": network_name,
                                "router:external": router_external,
                                "shared": shared}}
         net = self.neutron.create_network(new_net)
         network_id = net['network']['id']
-        util.logger.debug("Network ({0}) created".format(network_id))
+        logger.debug("Network ({0}) created".format(network_id))
         return network_id
 
     def create_subnet(self, subnet_name, network_id, subnet_cidr, pnet=False):
         """
         Creates a neutron subnet
         """
-        util.logger.debug("Creating subnetwork: {0}".format(subnet_name))
+        logger.debug("Creating subnetwork: {0}".format(subnet_name))
         new_subnet = ""
         if pnet:
             new_subnet = {"subnet": {
@@ -234,31 +234,31 @@ class HATest(Test):
                 "cidr": subnet_cidr, "ip_version": "4"}}
         subnet = self.neutron.create_subnet(new_subnet)
         subnet_id = subnet['subnet']['id']
-        util.logger.debug("Subnet ({0}) created".format(subnet_id))
+        logger.debug("Subnet ({0}) created".format(subnet_id))
         return subnet_id
 
     def create_router(self, router_name, admin_state_up=True):
         """
         Creates a neutron router
         """
-        util.logger.debug("Creating router: {0}".format(router_name))
+        logger.debug("Creating router: {0}".format(router_name))
         new_router = {"router": {
                       "name": router_name,
                       "admin_state_up": admin_state_up}}
         router = self.neutron.create_router(new_router)
         router_id = router['router']['id']
-        util.logger.debug("Router ({0}) created".format(router_id))
+        logger.debug("Router ({0}) created".format(router_id))
         return router_id
 
     def add_router_interface(self, router_id, subnet_id):
         """
         Adds an interface to a given router
         """
-        util.logger.debug('Creating router interface')
+        logger.debug('Creating router interface')
         subnet_iface = {"subnet_id": subnet_id}
         iface = self.neutron.add_interface_router(router_id, subnet_iface)
         iface_port = iface['port_id']
-        util.logger.debug("Interface port: {0}".format(iface_port))
+        logger.debug("Interface port: {0}".format(iface_port))
         return iface_port
 
     def keepalived_fail(self, node):
@@ -277,7 +277,7 @@ class HATest(Test):
         """
         Moves vips from controller using keepalived
         """
-        util.logger.info('Restarting keepalived...')
+        logger.info('Restarting keepalived...')
         self.keepalived_fail(node_up)
         sleep(5)
         self.keepalived_restore(node_up)
@@ -287,14 +287,14 @@ class HATest(Test):
         """
         Failover a node
         """
-        util.logger.info('Powering off node...')
+        logger.info('Powering off node...')
         node.power_off()
 
     def restore_node(self, node):
         """
         Restore a node
         """
-        util.logger.info('Powering on node...')
+        logger.info('Powering on node...')
         rebootable = False
         # In casae node is not in bootable state
         while not rebootable:
@@ -302,63 +302,50 @@ class HATest(Test):
                 node.power_on()
                 rebootable = True
             except:
-                util.logger.warning(Color.yellow("Unable to boot {0}".
-                                                 format(node.name)))
+                logger.warning(Color.yellow("Unable to boot: {0}".format(
+                    node.name
+                )))
                 sleep(5)
 
-    def failover(self, progress, node_up, node_down):
+    def failover(self, progress, node_up, node_down, attempts=4):
         """
         Move vips on to first controller and fail it
         """
         progress.set_stages("Progress", 7)
         progress.update("Progress", 0)
 
-        util.logger.info("Entering Failover Stage for {0}".
-                         format(node_down.name))
+        logger.info("Entering Failover Stage: {0}".format(node_down.name))
 
-        for i in range(4):
-            util.logger.debug("Checking replication status on {0}".
-                              format(node_down.name))
-            progress.update("Progress")
-            rep_statd = node_down.run_cmd("mysql -e 'show slave status\G' | "
-                                          "grep 'Seconds_Behind_Master' | "
-                                          "awk '{print $2}'"
-                                          "")['return'].rstrip()
+        def check_repl_status(node):
+            status = node.run_cmd(
+                "mysql -e 'show slave status\G' | "
+                "grep 'Seconds_Behind_Master' | "
+                "awk '{print $2}'"
+            )['return'].rstrip()
+            logger.debug("{0} status: {1}".format(node.name, status))
+            return status
 
-            util.logger.debug("Checking replication status on {0}".
-                              format(node_up.name))
-            progress.update("Progress")
-            rep_statu = node_up.run_cmd("mysql -e 'show slave status\G' | "
-                                        "grep 'Seconds_Behind_Master' | "
-                                        "awk '{print $2}'")['return'].rstrip()
-
-            if rep_statd == "0" and rep_statu == "0":
-                util.logger.debug("Replication seems to be complete. "
-                                  "Waiting 2 seconds and rechecking: {0}/4".
-                                  format(i + 1))
-                progress.update("Progress")
-                sleep(2)
-            else:
-                util.logger.warning(Color.yellow("Replication has not finished"
-                                                 " - Down:{0} Up:{1}".
-                                                 format(rep_statd,
-                                                        rep_statu)))
-                progress.update("Progress")
-                sleep(2)
-                i = 0
-
-        util.logger.debug(Color.cyan("Replication has finished - "
-                                     "Down:{0} Up:{1}".
-                                     format(rep_statd, rep_statu)))
         progress.update("Progress")
+        for node in [node_down, node_up]:
+            logger.debug("Checking replication status: {0}".format(
+                node.name
+            ))
+            for attempt in range(attempts):
+                status = check_repl_status(node)
+                if status is "0":
+                    logger.debug("Replication complete.")
+                    progress.update("Progress")
+                    break
+                else:
+                    logger.debug("Replication incomplete; retrying.")
+                    sleep(2)
 
-#        util.logger.debug('Sleeping for 10 seconds...')
         for i in range(5):
             progress.update("Progress", 1)
 
         self.move_vips_from(node_up)
         progress.update("Progress", 1)
-        util.logger.debug('Powering down node')
+        logger.debug('Powering down node')
         progress.update("Progress")
         self.fail_node(node_down)
         progress.update("Progress", 1)
@@ -370,14 +357,16 @@ class HATest(Test):
         progress.set_stages("Progress", 2)
         progress.update("Progress", 0)
 
-        util.logger.info("Performing Failback operation...")
+        logger.info("Performing Failback operation...")
         self.restore_node(node_down)
         progress.update("Progress", 1)
         count = 1
         while not self.is_online(node_down.ipaddress):
             progress.update("Progress")
-            util.logger.debug("Waiting for {0} to boot - s:{1}".
-                              format(node_down.name, count))
+            logger.debug("Waiting for {0} to boot - s:{1}".format(
+                node_down.name,
+                count
+            ))
             sleep(1)
             count += 1
         progress.update("Progress", 1)
@@ -386,16 +375,16 @@ class HATest(Test):
         """
         Returns true if a connection can be made with ssh
         """
-        util.logger.info("Checking if {0} is online".format(ip))
+        logger.info("Checking if {0} is online".format(ip))
         s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         try:
             s.settimeout(2)
             s.connect((ip, 22))
             s.close()
         except socket.error:
-            util.logger.debug('There was a socket error')
+            logger.debug('There was a socket error')
             return False
-        util.logger.debug("{0} is online".format(ip))
+        logger.debug("{0} is online".format(ip))
         return True
 
     def build(self, server_name, server_image, server_flavor, network_name,
@@ -406,7 +395,7 @@ class HATest(Test):
         progress.set_stages("Progress", 14)
         progress.update("Progress", 0)
 
-        util.logger.info("Configuring network and building instance...")
+        logger.info("Configuring network and building instance...")
 
         network_id = self.create_network(network_name)
         progress.update("Progress", 1)
@@ -433,20 +422,20 @@ class HATest(Test):
                 break
         progress.update("Progress", 1)
         if not pnet:
-            util.logger.debug("Creating PROVIDER_NET")
+            logger.debug("Creating PROVIDER_NET")
             provider_net_id = self.create_network("PROVIDER_NET",
                                                   router_external=True,
                                                   shared=False)
-            util.logger.debug("PROVIDER_NET created: {0}".
-                              format(provider_net_id))
+            logger.debug("PROVIDER_NET created: {0}".format(provider_net_id))
 
-            util.logger.debug("Creating PROVIDER_SUBNET")
+            logger.debug("Creating PROVIDER_SUBNET")
             provider_subnet_id = self.create_subnet("PROVIDER_SUBNET",
                                                     provider_net_id,
                                                     "192.168.4.0/24",
                                                     pnet=True)
-            util.logger.debug("PROVIDER_SUBNET created: {0}".
-                              format(provider_subnet_id))
+            logger.debug("PROVIDER_SUBNET created: {0}".format(
+                provider_subnet_id
+            ))
         progress.update("Progress", 1)
 
         self.neutron.add_gateway_router(router_id,
@@ -456,7 +445,7 @@ class HATest(Test):
 #
 #-----------------------------------------------------------------------------
         networks = [{"net-id": network_id}]
-        util.logger.debug("Building server with above network configuration")
+        logger.debug("Building server with above network configuration")
         server = False
 
         ##########################
@@ -467,18 +456,16 @@ class HATest(Test):
             while not server:
                 progress.update("Progress")
                 try:
-                    util.logger.debug("Executing server creation command")
+                    logger.debug("Executing server creation command")
                     server = self.nova.servers.create(server_name,
                                                       server_image,
                                                       server_flavor,
                                                       nics=networks,
                                                       availability_zone=zone)
-                    util.logger.debug("Server creation command executed")
+                    logger.debug("Server creation command executed")
                 except:
                     server = False
-                    util.logger.debug("Server creation command failed epicly!")
-                    util.logger.debug("The epicness of its failure was truly "
-                                      "a sight to behold...")
+                    logger.debug("Server creation command failed.")
                     sleep(1)
             progress.update("Progress", 1)
 
@@ -486,23 +473,26 @@ class HATest(Test):
                 try:
                     build_status = self.nova.servers.get(server.id).status
                 except:
-                    util.logger.error("Failed to communicate with Nova!")
+                    logger.error("Failed to communicate with Nova!")
                     continue
             progress.update("Progress", 1)
             if build_status == "ACTIVE":
-                util.logger.debug("Server ({0}) status is now ACTIVE!".
-                                  format(server_name))
+                logger.debug("Server ({0}) status is now ACTIVE!".format(
+                    server_name
+                ))
             elif build_status == "ERROR":
-                util.logger.error("Server ({0}) entered ERROR status!".
-                                  format(server_name))
+                logger.error("Server ({0}) entered ERROR status!".format(
+                    server_name
+                ))
                 #assert (build_status == "ACTIVE"),
                 #        "Server failed to initialize!"
                 server.delete()
                 progress.update("Progress", -2)
             else:
-                util.logger.warning("Server ({0}) entered an unrecognized "
-                                    "state: {1}".format(server_name,
-                                                        build_status))
+                logger.warning("Server in unrecognized state: {1}".format(
+                    server_name,
+                    build_status
+                ))
                 assert (build_status == "ACTIVE"), ("Server is in an "
                                                     "unrecognized state!")
         ##########################
@@ -519,7 +509,7 @@ class HATest(Test):
         port_id = ""
         while not port_id:
             progress.update("Progress")
-            util.logger.debug("Attempting to get a valid port id...")
+            logger.debug("Attempting to get a valid port id...")
             port_id = self.get_port_id(build)
         progress.update("Progress", 1)
 
@@ -546,28 +536,28 @@ class HATest(Test):
     def wait_service(self, service, node, retry=10):
         service_up = False
         while not service_up:
-            util.logger.debug("Checking {0} on {1}".format(service, node.name))
+            logger.debug("Checking {0} on {1}".format(service, node.name))
             service_up = node.run_cmd("pgrep -fl {0}".format(
                                       service))['return'].rstrip()
             if not service_up:
-                util.logger.debug("{0} is not running on {1}".format(
+                logger.debug("{0} is not running on {1}".format(
                     service, node.name))
                 retry -= 1
                 #==============================================
                 # Manually restart service if retries exceeded
                 #==============================================
                 #if retry == 0:
-                #    util.logger.warning("Manually starting {0}".format(
+                #    logger.warning("Manually starting {0}".format(
                 #        service))
                 #    node.run_cmd("service {0} start".format(service))
                 sleep(1)
-        util.logger.debug("{0} is up on {1}!".format(service, node.name))
+        logger.debug("{0} is up on {1}!".format(service, node.name))
 
     def verify(self, builds, progress, node_up, node_down=None):
         """
         Verifies state persistence
         """
-        util.logger.info("Verifying cluster integrity...")
+        logger.info("Verifying cluster integrity...")
         progress.set_stages("Progress", 14)
         progress.update("Progress", 0)
 
@@ -578,19 +568,17 @@ class HATest(Test):
         # Checks if RS Cloud libvirt issue has been resolved
         computes_reporting = False
         while not computes_reporting:
-            util.logger.debug("Checking if compute nodes are checked in")
+            logger.debug("Checking if compute nodes are checked in")
             progress.update("Progress")
             libvirt = node_up.run_cmd(";".join(["source openrc",
                                      ("nova service-list | "
                                       "grep 'nova-compute' "
                                       "| awk '{print $10}'")]))['return']
             if "down" in libvirt:
-                util.logger.warning(Color.yellow("The compute nodes are not "
-                                                 "checked in!"))
+                logger.warning(Color.yellow("Compute nodes are unchecked"))
                 continue
             elif "up" in libvirt:
-                util.logger.debug(Color.green("The compute nodes are "
-                                              "checked in!"))
+                logger.debug(Color.green("Compute nodes are checked in."))
                 computes_reporting = True
         progress.update("Progress", 1)
 
@@ -608,12 +596,12 @@ class HATest(Test):
             progress.update("Progress", 3)
 
         # Check that the VIPS moved over to node_up
-        util.logger.debug("Checking for vips on {0}".format(node_up.name))
+        logger.debug("Checking for vips on {0}".format(node_up.name))
         exec_vips = node_up.run_cmd("ip netns exec vips ip a")['return']
         progress.update("Progress", 1)
         exec_vips_down = " "
         if node_down:
-            util.logger.debug("Checking for vips on {0}".format(
+            logger.debug("Checking for vips on {0}".format(
                 node_down.name))
             exec_vips_down = node_down.run_cmd("ip netns exec vips ip a")[
                 'return']
@@ -623,14 +611,10 @@ class HATest(Test):
             'vips']['config'].keys()
         progress.update("Progress", 1)
         for vip in vips:
-            util.logger.debug("VIP: {0}".format(vip))
-        for vip in vips:
-            util.logger.debug(("Verifying that {0} is in the vips "
-                               "namespace...").format(vip))
+            logger.debug("VIP: {0}".format(vip))
+            logger.debug("Verifying VIP namespace.")
             # Checks if the vips are absent from both controllers
             while (vip not in exec_vips) and (vip not in exec_vips_down):
-                util.logger.debug(("{0} is not found in the vips "
-                                   "namespace").format(vip))
                 sleep(1)
                 exec_vips = node_up.run_cmd("ip netns exec vips "
                                             "ip a")['return']
@@ -643,11 +627,11 @@ class HATest(Test):
                                               "controllers").format(vip)
             # Checks for the vips on node_up controller
             elif vip in exec_vips:
-                util.logger.debug("{0} vip found in {1}...".format(
+                logger.debug("{0} vip found in {1}...".format(
                     vip, node_up.name))
             # Checks for the vips on the node_down controller
             else:
-                util.logger.debug("{0} vip found on {1}...".format(
+                logger.debug("{0} vip found on {1}...".format(
                     vip, node_down.name))
         progress.update("Progress", 1)
 
@@ -658,23 +642,22 @@ class HATest(Test):
 
         # Check networks rescheduled
         for build in builds:
-            util.logger.debug("Checking DHCP on {0}".format(build.name))
+            logger.debug("Checking DHCP on {0}".format(build.name))
             self.wait_dhcp_agent_alive(build.network_id, progress)
         progress.update("Progress", 1)
 #-----------------------------------------------------------------
         # Check connectivity to builds
-        util.logger.info("Checking connectivity to builds...")
+        logger.info("Checking connectivity to builds...")
         for build in builds:
-            util.logger.debug("Skipping connectivity test for build {0}".
-                              format(build.name))
+            logger.debug("Skipping connectivity test: {0}".format(build.name))
         #    while not self.is_online(build.ip_info['floating_ip_address']):
-        #        util.logger.debug("Build {0} with IP {1} IS NOT "
+        #        logger.debug("Build {0} with IP {1} IS NOT "
         #                          "responding...".
         #                          format(build.name,
         #                                 build.ip_info[
         #                                     'floating_ip_address']))
         #        progress.update("Progress")
-        #    util.logger.debug("Build {0} with IP {1} IS responding...".
+        #    logger.debug("Build {0} with IP {1} IS responding...".
         #                      format(build.name,
         #                             build.ip_info['floating_ip_address']))
             progress.update("Progress")
@@ -700,7 +683,7 @@ class HATest(Test):
         ###################################################################
         nova_status = "down"
         while "down" in nova_status:
-            util.logger.debug("Checking if nova is up on compute")
+            logger.debug("Checking if nova is up on compute")
             progress.update("Progress")
             nova_status = node_up.run_cmd(";".join(["source openrc", "nova "
                                                     "service-list | grep "
@@ -708,10 +691,10 @@ class HATest(Test):
                                                     "$10}'"
                                                     ""]))['return'].rstrip()
             if "down" in nova_status:
-                util.logger.warning(Color.yellow("At least one compute node "
-                                                 "is not reporting properly"))
+                logger.warning(Color.yellow(
+                    "At least one compute node isn't properly reporting"))
             else:
-                util.logger.debug("All compute nodes are reporting properly")
+                logger.debug("All compute nodes are properly reporting")
         progress.update("Progress", 1)
 
     def wait_dhcp_agent_alive(self, net, progress, wait=240):
@@ -725,11 +708,11 @@ class HATest(Test):
                 dhcp_stat = self.neutron.list_dhcp_agent_hosting_networks(net)
                 neutron_up = True
             except:
-                util.logger.warning("Neutron is not up yet")
+                logger.warning("Neutron is not up yet")
         in_time = lambda x: wait > x
 
         while not dhcp_stat['agents'] and in_time(count):
-            util.logger.debug("Waiting for agents to populate {0}".format(
+            logger.debug("Waiting for agents to populate {0}".format(
                 count))
             progress.update("Progress")
             sleep(1)
@@ -739,7 +722,7 @@ class HATest(Test):
 
         alive = False
         while not alive and in_time(count):
-            util.logger.debug("Waiting for agents to arise {0}".format(
+            logger.debug("Waiting for agents to arise {0}".format(
                 count))
             progress.update("Progress")
             sleep(1)
@@ -748,12 +731,11 @@ class HATest(Test):
             try:
                 alive = dhcp_stat['agents'][0]['alive']
             except IndexError:
-                util.logger.warning("There was an index error during a dhcp "
-                                    "agent alive check!")
+                logger.warning("Failed to retrieve alive DCHP agent.")
                 alive = False
                 continue
         assert in_time(count), "Agents failed to rise in time"
-        util.logger.debug("DHCP is alive")
+        logger.debug("DHCP is alive")
 
     def run_tests(self):
         """
@@ -902,25 +884,21 @@ class HATest(Test):
         #tempest.test()
 
     def kill_rabbit(self, node1, node2=None):
-        util.logger.warning(Color.yellow("Remidiation: Forcefully killing "
-                                         "and restarting RabbitMQ server on "
-                                         "{0}!".format(node1.name)))
-        node1.run_cmd(";".
-                      join([("for i in `ps aux | grep [r]abbitmq | "
-                            "awk '{print $2}'`"), "do kill -9 $i", "done",
-                            "service rabbitmq-server start"]))
+        logger.warning(Color.yellow("Remidiation: Hard restarting RabbitMQ"))
+        node1.run_cmd(";".join([
+            "for i in `ps aux | grep [r]abbitmq | ",
+            "awk '{print $2}'`",
+            "do kill -9 $i", "done",
+            "service rabbitmq-server start"
+        ]))
         if node2:
-            util.logger.warning(Color.yellow("Remidiation: Forcefully killing"
-                                             " and restarting RabbitMQ server"
-                                             " on {0}!".format(node2.name)))
-            node2.run_cmd(";".
-                          join([("for i in `ps aux | grep [r]abbitmq | "
-                                 "awk '{print $2}'`"), "do kill -9 $i",
-                                "done",
-                                "service rabbitmq-server start"]))
-        else:
-            util.logger.error(Color.red("Remidiation: Rabbit had to be "
-                                        "restarted during a failover event!"))
+            node2.run_cmd(";".join([
+                "for i in `ps aux | grep [r]abbitmq | ",
+                "awk '{print $2}'`",
+                "do kill -9 $i",
+                "done",
+                "service rabbitmq-server start"
+            ]))
 
     def test_rabbit_status(self, progress, node1, node2=None):
         """
@@ -930,12 +908,11 @@ class HATest(Test):
         cycle = 1
         max_cycle = 120
         while not status:
-            util.logger.debug("Testing if RabbitMQ is alive: {0}".
-                              format(cycle))
+            logger.debug("Testing if RabbitMQ is alive: {0}".format(cycle))
             progress.update("Progress")
             try:
                 status = self.rabbit.is_alive()
-                util.logger.debug("RabbitMQ is alive")
+                logger.debug("RabbitMQ is alive")
             except:
                 status = False
                 cycle += 1
@@ -995,7 +972,7 @@ class Progress(object):
         self.progress = progress
 
     def advance(self, bar_name, adv_amount=1):
-        #util.logger.debug("Advancing {0}...".format(bar_name))
+        #logger.debug("Advancing {0}...".format(bar_name))
         if not self.progress:
             return
         for bar in self.bars:
@@ -1005,7 +982,7 @@ class Progress(object):
     def display(self, current_bar_name):
         if not self.progress:
             return
-        #util.logger.debug('Flushing print buffer for status bar...')
+        #logger.debug('Flushing print buffer for status bar...')
         self.current = current_bar_name
         #for i in range(210):
         #    sys.stdout.write("\b")
@@ -1019,8 +996,9 @@ class Progress(object):
             else:
                 self.print_bar(bar, bar['size'], 0)
         sys.stdout.flush()
-        call("tail -n 50 logs/{0}-{1}.log | sed 's/^.*RPC-QE //' | cut -c-118".
-             format(util.name, util.time), shell=True)
+        call(["tail -n 50 logs/monster.log | ",
+              "sed 's/^.*RPC-QE //' | ",
+              "cut -c-118"], shell=True)
 
     def set_stages(self, bar_name, stages):
         if not self.progress:
@@ -1043,7 +1021,7 @@ class Progress(object):
         self.display(self.current)
 
     def print_bar(self, bar, size, curr):
-        #util.logger.debug("Printing bar {0}...".format(bar['name']))
+        #logger.debug("Printing bar {0}...".format(bar['name']))
         #sys.stdout.write("   {0}:[".format(bar['name']))
         if len(bar['name']) < 8:
             sys.stdout.write("{0}:\t\t[".format(bar['name']))
@@ -1084,7 +1062,7 @@ class Progress(object):
         sys.stdout.write("]\n")
 
     def set_color(self, style):
-        #util.logger.debug("Changing output color to {0}...".format(style))
+        #logger.debug("Changing output color to {0}...".format(style))
         if style == "default":
             sys.stdout.write("\033[0m")
         elif style == "bold":

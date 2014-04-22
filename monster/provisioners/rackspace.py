@@ -1,9 +1,12 @@
+import logging
 import pyrax
 
 from monster import util
 from openstack import Openstack
 from monster.clients.openstack import Creds
 from monster.server_helper import check_port
+
+logger = logging.getLogger(__name__)
 
 
 class Rackspace(Openstack):
@@ -58,7 +61,7 @@ class Rackspace(Openstack):
             self.hosts(node)
 
     def rdo(self, node):
-        util.logger.info("Installing RDO kernel.")
+        logger.info("Installing RDO kernel.")
         kernel = util.config['rcbops']['compute']['kernel']['centos']
         version = kernel['version']
         install = kernel['install']
@@ -86,8 +89,8 @@ class Rackspace(Openstack):
         :param size: Size of swap file in GBs
         :type size: int
         """
-        util.logger.info("Making swap file on:{0} of {1}GBs".format(node.name,
-                                                                    size))
+        logger.info("Making swap file on:{0} of {1}GBs".format(node.name,
+                                                               size))
         size_b = 1048576 * size
         cmds = [
             "dd if=/dev/zero of=/mnt/swap bs=1024 count={0}".format(size_b),
@@ -105,7 +108,7 @@ class Rackspace(Openstack):
         :param node: Node to update
         :type node: monster.Node
         """
-        util.logger.info("Updating node:{0}".format(node.name))
+        logger.info("Updating node:{0}".format(node.name))
         cmds = ["apt-get update -y",
                 "apt-get upgrade -y",
                 "apt-get install openssh-client git curl -y"]

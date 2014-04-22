@@ -1,51 +1,62 @@
 import os
 import logging
-import subprocess
+import logging.handlers
+import sys
+
 from glob import glob
-from string import Template
+from os.path import dirname, join
 from xml.etree import ElementTree
 from inspect import getmembers, isclass
 
 
-# Gets RPC-QE logger
-name = 'Monster'
-time_cmd = subprocess.Popen(['date', '+%F_%T'],
-                            stdout=subprocess.PIPE)
-time = time_cmd.stdout.read().rstrip()
-logger = logging.getLogger(name)
-
-# Console logging setup
-console_handler = logging.StreamHandler()
-console_format = '%(asctime)s %(name)s %(levelname)s %(module)s: %(message)s'
-console_formatter = logging.Formatter(console_format)
-console_handler.setFormatter(console_formatter)
-
 # File logging setup
-
-if not os.path.exists('logs'):
-    os.makedirs('logs')
-
-file_handler = logging.FileHandler("logs/{0}-{1}.log".format(name, time))
-file_format = '%(asctime)s %(name)s %(levelname)s %(module)s: %(message)s'
-file_formatter = logging.Formatter(file_format)
-file_handler.setFormatter(file_formatter)
-
-critical = logger.critical
-error = logger.error
-warning = logger.warning
-info = logger.info
-debug = logger.debug
-
-# Sets logging level to the file
-logger.setLevel(logging.DEBUG)
-logger.addHandler(file_handler)
+LOG_DIR = join(dirname(dirname(__file__)), 'logs')
+if not os.path.exists(LOG_DIR):
+    os.makedirs(LOG_DIR)
 
 
-def set_log_level(level):
-    log_level = getattr(logging, level, logging.DEBUG)
-    # Sets logging level to the console
-    console_handler.setLevel(log_level)
-    logger.addHandler(console_handler)
+# https://github.com/cloudnull/turbolift/blob/master/turbolift/logger/logger.py
+class Logger(object):
+
+    def __init__(self, log_level="DEBUG",
+                 log_file=join(LOG_DIR, "monster.log")):
+        self.log_level = log_level
+        self.log_file = log_file
+
+    def logger_setup(self):
+        logger = logging.getLogger("monster")
+
+        avail_level = {
+            'DEBUG': logging.DEBUG,
+            'INFO': logging.INFO,
+            'CRITICAL': logging.CRITICAL,
+            'WARN': logging.WARN,
+            'ERROR': logging.ERROR
+        }
+
+        _log_level = self.log_level.upper()
+        if _log_level in avail_level:
+            lvl = avail_level[_log_level]
+            formatter = logging.Formatter(
+                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            )
+            logger.setLevel(lvl)
+
+        if self.log_file:
+            file_handler = logging.handlers.RotatingFileHandler(
+                self.log_file,
+                maxBytes=150000000,
+                backupCount=5
+            )
+            file_handler.setLevel(avail_level['DEBUG'])
+            file_handler.setFormatter(formatter)
+            logger.addHandler(file_handler)
+
+        stream_handler = logging.StreamHandler(stream=sys.stdout)
+        stream_handler.setFormatter(formatter)
+        logger.addHandler(stream_handler)
+
+        return logger
 
 
 def module_classes(module):
@@ -73,15 +84,3 @@ def xunit_merge(path="."):
         with open("results.xunit", "w") as f:
             f.write(ElementTree.tostring(tree))
     [os.remove(file) for file in files]
-
-
-def template_file(source, destination=None, args=None):
-    with open(source) as f:
-        template = Template(f.read()).substitute(args)
-        logger.debug("Templated:{0}". format(template))
-
-    if not destination:
-        destination = "{0}.templated".format(source)
-    with open(destination, 'w') as f:
-        f.write(template)
-        logger.debug("Writing template to:{0}".format(destination))

@@ -1,10 +1,13 @@
 """ A Deployment Features
 """
-import sys
+import logging
 import requests
+import sys
 
 from monster.features.feature import Feature
 from monster import util
+
+logger = logging.getLogger(__name__)
 
 
 class Deployment(Feature):
@@ -105,11 +108,11 @@ class Neutron(Deployment):
                         "default").format(self.provider)
 
         controller = next(self.deployment.search_role('controller'))
-        util.logger.info("## Setting up ICMP security rule ##")
+        logger.info("## Setting up ICMP security rule ##")
         controller.run_cmd(icmp_command)
-        util.logger.info("## Setting up TCP security rule ##")
+        logger.info("## Setting up TCP security rule ##")
         controller.run_cmd(tcp_command)
-        util.logger.info("## Setting up LBAAS testing security rule ##")
+        logger.info("## Setting up LBAAS testing security rule ##")
         controller.run_cmd(tcp_command2)
 
     def _build_bridges(self):
@@ -117,31 +120,30 @@ class Neutron(Deployment):
         Build the subnets
         """
 
-        util.logger.info("### Beginning of Networking Block ###")
+        logger.info("### Beginning of Networking Block ###")
 
         controllers = self.deployment.search_role('controller')
         computes = self.deployment.search_role('compute')
 
-        util.logger.info("### Building OVS Bridge and "
-                         "Ports on network nodes ###")
+        logger.info("### Building OVS Bridge and Ports on network nodes ###")
 
         for controller in controllers:
             iface = controller.get_vmnet_iface()
             command = self.iface_bb_cmd(iface)
-            util.logger.debug("Running {0} on {1}".format(command, controller))
+            logger.debug("Running {0} on {1}".format(command, controller))
             controller.run_cmd(command)
 
         # loop through computes and run
         for compute in computes:
             iface = compute.get_vmnet_iface()
             command = self.iface_bb_cmd(iface)
-            util.logger.debug("Running {0} on {1}".format(command, compute))
+            logger.debug("Running {0} on {1}".format(command, compute))
             compute.run_cmd(command)
 
-        util.logger.info("### End of Networking Block ###")
+        logger.info("### End of Networking Block ###")
 
     def iface_bb_cmd(self, iface):
-        util.logger.info("Using iface: {0}".format(iface))
+        logger.info("Using iface: {0}".format(iface))
         commands = ['ip a f {0}'.format(iface),
                     'ovs-vsctl add-port br-{0} {0}'.format(
                         iface)]
@@ -167,7 +169,7 @@ class Neutron(Deployment):
             compute.run_cmd(cmd)
 
     def iface_cb_cmd(self, iface):
-        util.logger.info("Using iface: {0}".format(iface))
+        logger.info("Using iface: {0}".format(iface))
         cmd = "ip a f {0}".format(iface)
         return cmd
 
@@ -220,8 +222,8 @@ class Swift(Deployment):
         swift = env.override_attributes['swift'][master_key]
         swift['keystone'] = keystone
 
-        util.logger.info("Matching environment: {0} to RPCS "
-                         "swift requirements".format(env.name))
+        logger.info("Matching environment: {0} to RPCS "
+                    "swift requirements".format(env.name))
 
         env.del_override_attr('keystone')
         env.del_override_attr('swift')
@@ -263,18 +265,18 @@ class Swift(Deployment):
                         "/dev/{0} /srv/node/{0}".format(label),
                         "chown -R swift:swift /srv/node"]
             if auto:
-                util.logger.info(
+                logger.info(
                     "## Configuring Disks on Storage Node @ {0} ##".format(
                         storage_node.ipaddress))
                 command = "; ".join(commands)
                 storage_node.run_cmd(command)
             else:
-                util.logger.info("## Info to setup drives for Swift ##")
-                util.logger.info(
+                logger.info("## Info to setup drives for Swift ##")
+                logger.info(
                     "## Log into root@{0} and run the following commands: "
                     "##".format(storage_node.ipaddress))
                 for command in commands:
-                    util.logger.info(command)
+                    logger.info(command)
 
         ####################################################################
         ## Setup partitions on storage nodes, (must run as swiftops user) ##
@@ -333,17 +335,17 @@ class Swift(Deployment):
         commands.extend(cmd_list)
 
         if auto:
-            util.logger.info(
+            logger.info(
                 "## Setting up swift rings for deployment ##")
             command = "; ".join(commands)
             controller.run_cmd(command)
         else:
-            util.logger.info("## Info to manually set up swift rings: ##")
-            util.logger.info(
+            logger.info("## Info to manually set up swift rings: ##")
+            logger.info(
                 "## Log into root@{0} and run the following commands: "
                 "##".format(controller.ipaddress))
             for command in commands:
-                util.logger.info(command)
+                logger.info(command)
 
         #####################################################################
         ############# Time to distribute the ring to all the boxes ##########
@@ -352,34 +354,34 @@ class Swift(Deployment):
         command = "/usr/bin/swift-ring-minion-server -f -o"
         for proxy_node in proxy_nodes:
             if auto:
-                util.logger.info(
+                logger.info(
                     "## Pulling swift ring down on proxy node @ {0}: "
                     "##".format(proxy_node.ipaddress))
                 proxy_node.run_cmd(command)
             else:
-                util.logger.info(
+                logger.info(
                     "## On node root@{0} run the following command: "
                     "##".format(proxy_node.ipaddress))
-                util.logger.info(command)
+                logger.info(command)
 
         for storage_node in storage_nodes:
             if auto:
-                util.logger.info(
+                logger.info(
                     "## Pulling swift ring down on storage node: {0} "
                     "##".format(storage_node.ipaddress))
                 storage_node.run_cmd(command)
             else:
-                util.logger.info(
+                logger.info(
                     "## On node root@{0} run the following command: "
                     "##".format(storage_node.ipaddress))
-                util.logger.info(command)
+                logger.info(command)
 
         #####################################################################
         ############### Finalize by running chef on controler ###############
         #####################################################################
 
         if auto:
-            util.logger.info("Finalizing install on all nodes")
+            logger.info("Finalizing install on all nodes")
             for proxy_node in proxy_nodes:
                 proxy_node.run()
             for storage_node in storage_nodes:
@@ -387,15 +389,15 @@ class Swift(Deployment):
             controller.run()
         else:
             for proxy_node in proxy_nodes:
-                util.logger.info("On node root@{0}, run: "
-                                 "chef client".format(proxy_node.ipaddress))
+                logger.info("On node root@{0}, run: "
+                            "chef client".format(proxy_node.ipaddress))
             for storage_node in storage_nodes:
-                util.logger.info("On node root@{0}, run: "
-                                 "chef client".format(storage_node.ipaddress))
-            util.logger.info("On node root@{0} run the following command: "
-                             "chef-client ##".format(controller.ipaddress))
+                logger.info("On node root@{0}, run: "
+                            "chef client".format(storage_node.ipaddress))
+            logger.info("On node root@{0} run the following command: "
+                        "chef-client ##".format(controller.ipaddress))
 
-        util.logger.info("## Done setting up swift rings ##")
+        logger.info("## Done setting up swift rings ##")
 
 
 class Glance(Deployment):
@@ -404,8 +406,7 @@ class Glance(Deployment):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Glance, self).__init__(deployment, rpcs_feature)
-        self.environment = util.config['environments'][str(
-                                                       self)][rpcs_feature]
+        self.environment = util.config['environments'][str(self)][rpcs_feature]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -428,14 +429,12 @@ class Glance(Deployment):
         response = requests.post(url, data=data, headers=head, verify=False)
 
         if not response.ok:
-            util.logger.info(
-                "Unable to authorize your cloudfiles credentials, "
-                "please check your secrets file")
+            logger.info("Unauthorized with provided credentials.")
             sys.exit(1)
         try:
             services = response.json()['access']['serviceCatalog']
         except KeyError:
-            util.logger.info(
+            logger.info(
                 "Response content for glance files has no key: serviceCatalog")
             sys.exit(1)
 

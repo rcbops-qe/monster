@@ -2,9 +2,8 @@
 
 """ Command Line interface for Building Openstack Swift clusters
 """
-import sys
 import argh
-import traceback
+import sys
 
 from monster import util
 from monster.config import Config
@@ -30,21 +29,21 @@ def build(name="autotest", branch="master", provisioner="rackspace",
         try:
             deployment.update_environment()
         except Exception:
-            util.logger.error(traceback.print_exc())
+            logger.error("Unable to update environment", exc_info=True)
             deployment.destroy()
             sys.exit(1)
 
     else:
-        util.logger.info(deployment)
+        logger.info(deployment)
         # build deployment
         try:
             deployment.build()
         except Exception:
-            util.logger.error(traceback.print_exc())
+            logger.error("Unable to build deployment", exc_info=True)
             deployment.destroy()
             sys.exit(1)
 
-    util.logger.info(deployment)
+    logger.info(deployment)
     if destroy:
         deployment.destroy()
 
@@ -55,7 +54,7 @@ def destroy(name="autotest", config=None, log=None, log_level="INFO"):
 
     util.set_log_level(log_level)
     deployment = _load(name, config)
-    util.logger.info(deployment)
+    logger.info(deployment)
     deployment.destroy()
 
 
@@ -84,7 +83,7 @@ def load(name="autotest", config=None, log=None, log_level="INFO"):
     util.set_log_level(log_level)
     # load deployment and source openrc
     deployment = _load(name, config)
-    util.logger.info(str(deployment))
+    logger.info(str(deployment))
 
 
 def _load(name="autotest", config=None, provisioner="razor"):
@@ -99,4 +98,7 @@ def _load(name="autotest", config=None, provisioner="razor"):
 if __name__ == "__main__":
     parser = argh.ArghParser()
     parser.add_commands([build, destroy, openrc, load])
+
+    logger = util.Logger().logger_setup()
+
     parser.dispatch()
