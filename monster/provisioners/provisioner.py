@@ -62,14 +62,22 @@ class Provisioner(object):
     def reload_node_list(self, node_list, api):
         raise NotImplementedError
 
-    def build_nodes(self, template, deployment, node_wrapper_factory):
+    def build_nodes(self, template, deployment, node_wrapper):
+        """
+        :param node_wrapper: Module that contains a wrap_node function.
+        See chef_node_wrapper.wrap_node for an example.
+        :type node_wrapper: module
+        """
         product = template['product']
         nodes_to_wrap = self.provision(template, deployment)
         built_nodes = []
         for node in nodes_to_wrap:
-            wrapped_node = node_wrapper_factory.wrap_node(
-                node, product, deployment.environment, deployment,
-                provisioner=self, branch=deployment.branch)
+            wrapped_node = node_wrapper.wrap_node(node=node, product=product,
+                                                  environment=
+                                                  deployment.environment,
+                                                  deployment=deployment,
+                                                  provisioner=self,
+                                                  branch=deployment.branch)
             self.post_provision(wrapped_node)
             built_nodes.append(wrapped_node)
 
@@ -78,15 +86,23 @@ class Provisioner(object):
 
         return built_nodes
 
-    def load_nodes(self, env, deployment, node_wrapper_factory):
+    def load_nodes(self, env, deployment, node_wrapper):
+        """
+        :param node_wrapper: Module that contains a wrap_node function
+        See chef_node_wrapper.wrap_node for an example.
+        :type node_wrapper: module
+        """
         loaded_nodes = []
         nodes_to_load = self.reload_node_list(env.nodes, env.local_api)
         for node in nodes_to_load:
             if not node.exists:
                 logger.error("Non-existent chef node: {0}".format(node.name))
                 continue
-            wrapped_node = node_wrapper_factory.wrap_node(
-                node, env.product, env, deployment, self,
-                env.branch)
+            wrapped_node = node_wrapper.wrap_node(node=node,
+                                                  product=env.product,
+                                                  environment=env,
+                                                  deployment=deployment,
+                                                  provisioner=self,
+                                                  branch=env.branch)
             loaded_nodes.append(wrapped_node)
         return loaded_nodes

@@ -144,8 +144,7 @@ class Openstack(Provisioner):
             networks.append({"net-id": obj.id})
         return networks
 
-    def build_instance(self, name="server", image="ubuntu",
-                       flavor="2GBP"):
+    def build_instance(self, name="server", image="ubuntu", flavor="2GBP"):
         """Builds an instance with desired specs.
         :param name: name of server
         :type name: string

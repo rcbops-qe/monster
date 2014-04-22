@@ -12,17 +12,14 @@ logger = logging.getLogger(__name__)
 
 
 class Razor(Provisioner):
-    """
-    Provisions chef nodes in a Razor environment
-    """
+    """Provisions chef nodes in a Razor environment."""
 
     def __init__(self, ip=None):
         self.ipaddress = ip or util.config['secrets']['razor']['ip']
         self.api = RazorAPI(self.ipaddress)
 
     def provision(self, template, deployment):
-        """
-        Provisions a ChefNode using Razor environment
+        """Provisions a ChefNode using Razor environment.
         :param template: template for cluster
         :type template: dict
         :param deployment: ChefDeployment to provision for
@@ -36,8 +33,7 @@ class Razor(Provisioner):
         return self.nodes
 
     def available_node(self, image, deployment):
-        """
-        Provides a free node from chef pool
+        """Provides a free node from chef pool.
         :param image: name of os image
         :type image: string
         :param deployment: ChefDeployment to add node to
@@ -70,8 +66,7 @@ class Razor(Provisioner):
         pass
 
     def destroy_node(self, node_wrapper):
-        """
-        Destroys a node provisioned by razor
+        """Destroys a node provisioned by Razor.
         :param node_wrapper: Node to destroy
         :type node_wrapper: ChefNodeWrapper
         """
@@ -105,18 +100,14 @@ class Razor(Provisioner):
 class RazorAPI(object):
 
     def __init__(self, rzrip, rzrport='8026'):
-        """
-        Initilizer for RazorAPI class
-        """
+        """Initializer for RazorAPI class."""
 
         self.ip = rzrip
         self.port = rzrport
         self.url = "http://{0}:{1}/razor/api".format(self.ip, self.port)
 
     def __repr__(self):
-        """
-        Print out current instnace of RazorAPI
-        """
+        """Print out current instance of RazorAPI."""
 
         outl = 'class: {0}'.format(self.__class__.__name__)
         for attr in self.__dict__:
@@ -397,9 +388,7 @@ class RazorAPI(object):
         return servers
 
     def remove_active_model(self, am_uuid):
-        """
-        This function will remove an active model from Razor.
-        """
+        """This method removes an active model from Razor."""
 
         # Call the Razor RESTful API to get a list of models
         headers = {'content-type': 'application/json'}
@@ -409,9 +398,7 @@ class RazorAPI(object):
         return {'status': r.status_code, 'content': json.loads(r.content)}
 
     def remove_active_models(self, am_uuids):
-        """
-        This function will loop through a list of am uuids and remove each one
-        """
+        """This method loops through a list of am uuids and removes each."""
 
         removed_servers = []
         for uuid in am_uuids:

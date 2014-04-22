@@ -12,17 +12,14 @@ logger = logging.getLogger(__name__)
 
 
 class Razor2(Provisioner):
-    """
-    Provisions chef nodes in a Razor environment
-    """
+    """Provisions chef nodes in a Razor environment."""
 
     def __init__(self, url=None):
         self.url = url or util.config['secrets']['razor']['url']
         self.api = RazorAPI2(self.url)
 
     def provision(self, template, deployment):
-        """
-        Provisions a ChefNode using Razor environment
+        """Provisions a ChefNode using Razor environment.
         :param template: template for cluster
         :type template: dict
         :param deployment: ChefDeployment to provision for
@@ -36,8 +33,7 @@ class Razor2(Provisioner):
         return self.nodes
 
     def available_node(self, image, deployment):
-        """
-        Provides a free node from chef pool
+        """Provides a free node from chef pool.
         :param image: name of os image
         :type image: string
         :param deployment: ChefDeployment to add node to
@@ -72,8 +68,7 @@ class Razor2(Provisioner):
         pass
 
     def destroy_node(self, node_wrapper):
-        """
-        Destroys a node provisioned by razor
+        """Destroys a node provisioned by razor.
         :param node_wrapper: Node to destroy
         :type node_wrapper: ChefNodeWrapper
         """
@@ -106,16 +101,12 @@ class Razor2(Provisioner):
 class RazorAPI2(object):
 
     def __init__(self, url=None):
-        """
-        Initilizer for RazorAPI class
-        """
+        """Initializer for RazorAPI class."""
 
         self.url = "{0}".format(url)
 
     def __repr__(self):
-        """
-        Print out current instnace of RazorAPI
-        """
+        """Print out current instance of RazorAPI."""
 
         outl = 'class: {0}'.format(self.__class__.__name__)
         for attr in self.__dict__:
@@ -123,9 +114,7 @@ class RazorAPI2(object):
         return outl
 
     def nodes(self):
-        """
-        Return all current nodes
-        """
+        """Return all current nodes."""
         # Call the Razor RESTful API to get a list of nodes
         headers = {'content-type': 'application/json'}
         r = requests.get(
@@ -139,9 +128,7 @@ class RazorAPI2(object):
                 str(r.status_code))
 
     def node(self, node):
-        """
-        Return a given node
-        """
+        """Return a given node."""
 
         # Call the Razor RESTful API to get a node
         headers = {'content-type': 'application/json'}
@@ -156,10 +143,9 @@ class RazorAPI2(object):
                 str(r.status_code))
 
     def reinstall_node(self, node):
-        """
-        Reinstalls a given node
+        """Reinstalls a given node.
         :param node: Razor node name to reinstall
-        :type node: string
+        :type node: str
         """
 
         # Call the Razor RESTful API to get a node
@@ -176,10 +162,9 @@ class RazorAPI2(object):
                 str(r.status_code))
 
     def delete_node(self, node):
-        """
-        Deletes a given node
+        """Deletes a given node.
         :param node: Razor node name to destroy
-        :type node: string
+        :type node: str
         """
 
         # Call the Razor RESTful API to get a node

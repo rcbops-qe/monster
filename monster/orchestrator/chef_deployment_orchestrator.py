@@ -1,15 +1,16 @@
+import logging
+
 from chef import autoconfigure
 from chef import Environment
 
+import monster.nodes.chef_node_wrapper as chef_node_wrapper
+
 from monster.config import Config
 from monster.orchestrator.deployment_orchestrator import DeploymentOrchestrator
-from monster.nodes.chef_node_wrapper_factory import ChefNodeWrapperFactory
 from monster.features.node_feature import ChefServer
 from monster.deployments.chef_deployment import ChefDeployment
 from monster.environments.chef_environment_wrapper import \
     ChefEnvironmentWrapper
-
-import logging
 from monster.provisioners.util import get_provisioner
 
 
@@ -21,11 +22,11 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
                                     provisioner_name):
         """Returns a new deployment given a deployment template at path.
         :param name: name for the deployment
-        :type name: string
+        :type name: str
         :param name: name of template to use
-        :type name: string
+        :type name: str
         :param branch: branch of the RCBOPS chef cookbook repo to use
-        :type branch:: string
+        :type branch:: str
         :param provisioner_name: provisioner to use for nodes
         :type provisioner_name: str
         :rtype: ChefDeployment
@@ -48,7 +49,7 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
                                     provisioner, "provisioning", product,
                                     features=features)
         deployment.nodes = provisioner.build_nodes(template, deployment,
-                                                   ChefNodeWrapperFactory)
+                                                   chef_node_wrapper)
         return deployment
 
     def load_deployment_from_name(self, name):
@@ -68,7 +69,7 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
                                     provisioner, "provisioning", env.product,
                                     features=env.features)
         deployment.nodes = provisioner.load_nodes(env, deployment,
-                                                  ChefNodeWrapperFactory)
+                                                  chef_node_wrapper)
         return deployment
 
     def load_environment_attributes(self, name):

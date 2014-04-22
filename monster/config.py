@@ -46,7 +46,7 @@ class Config(object):
         try:
             template = Template(Config(path)[template_name])
         except KeyError:
-            util.logger.critical("Looking for the template {0} in the file: "
+            logger.critical("Looking for the template {0} in the file: "
                                  "\n{1}\n The key was not found!"
                                  .format(template_file, path))
             exit(1)

@@ -4,6 +4,7 @@ import logging
 
 from monster import util
 from monster.nodes.base_node_wrapper import BaseNodeWrapper
+from monster.provisioners.util import get_provisioner
 
 logger = logging.getLogger(__name__)
 
@@ -136,3 +137,31 @@ class ChefNodeWrapper(BaseNodeWrapper):
     @property
     def remote_api(self):
         return self.environment.remote_api
+
+
+def wrap_node(node, product, environment, deployment, provisioner, branch):
+    """
+
+    """
+    remote_api = None
+    if deployment:
+        remote_api = deployment.environment.remote_api
+    if remote_api:
+        remote_node = Node(node.name, remote_api)
+        if remote_node.exists:
+            node = remote_node
+    ip = node['ipaddress']
+    user = node['current_user']
+    default_pass = util.config['secrets']['default_pass']
+    password = node.get('password', default_pass)
+    name = node.name
+    archive = node.get('archive', {})
+    if not provisioner:
+        provisioner_name = archive.get('provisioner', 'razor2')
+        provisioner = get_provisioner(provisioner_name)
+    run_list = node.run_list
+    chef_remote_node = ChefNodeWrapper(name, ip, user, password, product,
+                                       deployment, provisioner,
+                                       environment, branch, run_list)
+    chef_remote_node.add_features(archive.get('features', []))
+    return chef_remote_node
