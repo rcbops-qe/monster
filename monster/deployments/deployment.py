@@ -15,9 +15,7 @@ logger = logging.getLogger(__name__)
 
 
 class Deployment(object):
-    """
-    Base for OpenStack deployments
-    """
+    """Base for OpenStack deployments."""
 
     def __init__(self, name, os_name, branch, provisioner, status, product,
                  clients=None, features=None):
@@ -34,9 +32,6 @@ class Deployment(object):
             self.add_features(features)
 
     def __repr__(self):
-        """
-        Print out current instance
-        """
         features = "\tFeatures: %s" % self.feature_names
         nodes = "\tNodes: %s" % self.node_names
 
@@ -50,9 +45,7 @@ class Deployment(object):
         return "\n".join([output, features, nodes])
 
     def build(self):
-        """
-        Runs build steps for node's features
-        """
+        """Runs build steps for node's features."""
 
         logger.debug("Deployment step: update environment")
         self.update_environment()
@@ -66,9 +59,7 @@ class Deployment(object):
         logger.info(self)
 
     def update_environment(self):
-        """
-        Preconfigures node for each feature
-        """
+        """Preconfigures node for each feature."""
         logger.info("Building Configured Environment")
         self.status = "Loading environment..."
         for feature in self.features:
@@ -78,9 +69,7 @@ class Deployment(object):
         self.status = "Environment ready!"
 
     def pre_configure(self):
-        """
-        Preconfigures node for each feature
-        """
+        """Preconfigures node for each feature."""
         self.status = "Pre-configuring nodes for features..."
         for feature in self.features:
             logger.debug("Deployment feature: pre-configure: {0}"
@@ -88,9 +77,7 @@ class Deployment(object):
             feature.pre_configure()
 
     def build_nodes(self):
-        """
-        Builds each node
-        """
+        """Builds each node."""
         self.status = "Building nodes..."
         for node in self.nodes:
             logger.debug("Building node {0}!".format(str(node)))
@@ -98,9 +85,7 @@ class Deployment(object):
         self.status = "Nodes built!"
 
     def post_configure(self):
-        """
-        Post configures node for each feature
-        """
+        """Post configures node for each feature."""
         self.status = "Post-configuration..."
         for feature in self.features:
             log = "Deployment feature: post-configure: {0}"\
@@ -109,9 +94,7 @@ class Deployment(object):
             feature.post_configure()
 
     def destroy(self):
-        """
-        Destroys an OpenStack deployment
-        """
+        """Destroys an OpenStack deployment."""
         self.status = "Destroying..."
         logger.info("Destroying deployment: {0}".format(self.name))
         for node in self.nodes:
@@ -119,9 +102,7 @@ class Deployment(object):
         self.status = "Destroyed!"
 
     def artifact(self):
-        """
-        Artifacts OpenStack and its dependant services for a deployment
-        """
+        """Artifacts OpenStack and its dependent services for a deployment."""
         for feature in self.features:
             feature.archive()
 
@@ -129,8 +110,7 @@ class Deployment(object):
             node.archive()
 
     def search_role(self, feature_name):
-        """
-        Returns nodes the have the desired role
+        """Returns nodes the have the desired role.
         :param feature_name: feature to be searched for
         :type feature_name: str
         :rtype: Iterator (Nodes)
@@ -138,8 +118,7 @@ class Deployment(object):
         return (node for node in self.nodes if node.has_feature(feature_name))
 
     def has_feature(self, feature_name):
-        """
-        Boolean function to determine if a feature exists in deployment
+        """Boolean function to determine if a feature exists in deployment.
         :param feature_name: feature to be searched for
         :type feature_name: str
         :rtype: bool
@@ -147,8 +126,7 @@ class Deployment(object):
         return feature_name in self.feature_names
 
     def add_features(self, features):
-        """
-        Adds a dictionary of features to deployment
+        """Adds a dictionary of features to deployment.
         :param features: dictionary of features {"monitoring": "default", ...}
         :type features: dict
         """
@@ -160,9 +138,7 @@ class Deployment(object):
             self.features.append(classes[feature](self, rpcs_feature))
 
     def tmux(self):
-        """
-        Creates an new tmux session with an window for each node
-        """
+        """Creates an new tmux session with an window for each node."""
         server = tmuxp.Server()
         session = server.new_session(session_name=self.name)
         cmd = ("sshpass -p {1} ssh -o UserKnownHostsFile=/dev/null "
@@ -176,25 +152,21 @@ class Deployment(object):
 
     @property
     def feature_names(self):
-        """
-        Returns list of features as strings
+        """Returns list of features as strings.
         :rtype: list (str)
         """
         return [str(feature) for feature in self.features]
 
     @property
     def node_names(self):
-        """
-        Returns list of nodes as strings
+        """Returns list of nodes as strings.
         :rtype: list (str)
         """
         return [node.name for node in self.nodes]
 
     def retrofit(self, branch, ovs_bridge, lx_bridge, iface,
                  old_port_to_delete=None):
-        """
-        Retrofit the deployment
-        """
+        """Retrofit the deployment."""
 
         logger.info("Retrofit Deployment: {0}".format(self.name))
 
