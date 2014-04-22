@@ -7,9 +7,9 @@ from collections import defaultdict
 
 class Config(object):
     """Application config object"""
-    def __init__(self, template_path_from_project_root=None,
+    def __init__(self, secret_path, template_path_from_project_root=None,
                  secret_file_name=None):
-        secret_path = secret_file_name or os.path.join(
+        secret_path = secret_path or os.path.join(
             os.path.dirname(os.path.dirname(__file__)), "secret.yaml")
 
         template_path = os.path.join(os.path.dirname(os.path.dirname(
