@@ -38,22 +38,15 @@ class Provisioner(object):
         """
         raise NotImplementedError
 
-    def destroy_all_nodes(self):
-        """Destroys all Chef nodes from an OpenStack deployment
-        """
-        [self.destroy_node(node) for node in self.nodes]
-
     def power_down(self, node):
-        """
-        Turns a node off
+        """Turns a node off.
         :param node: node to power off
         :type node: nodes.BaseNodeWrapper
         """
         raise NotImplementedError
 
     def power_up(self, node):
-        """
-        Turns a node on
+        """Turns a node on.
         :param node: node to power on
         :type node: nodes.BaseNodeWrapper
         """
@@ -70,6 +63,7 @@ class Provisioner(object):
         """
         product = template['product']
         nodes_to_wrap = self.provision(template, deployment)
+
         built_nodes = []
         for node in nodes_to_wrap:
             wrapped_node = node_wrapper.wrap_node(node=node, product=product,
@@ -92,8 +86,9 @@ class Provisioner(object):
         See chef_node_wrapper.wrap_node for an example.
         :type node_wrapper: module
         """
-        loaded_nodes = []
         nodes_to_load = self.reload_node_list(env.nodes, env.local_api)
+
+        loaded_nodes = []
         for node in nodes_to_load:
             if not node.exists:
                 logger.error("Non-existent chef node: {0}".format(node.name))

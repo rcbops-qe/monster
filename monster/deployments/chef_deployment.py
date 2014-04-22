@@ -14,8 +14,8 @@ from pyrabbit.api import Client as RabbitClient
 
 
 class ChefDeployment(Deployment):
-    """Deployment mechanisms specific to deployment using Opscode's Chef
-    as configuration management
+    """Deployment mechanisms specific to a deployment using Opscode's Chef
+    as configuration management.
     """
 
     def __init__(self, name, os_name, branch, environment, provisioner,

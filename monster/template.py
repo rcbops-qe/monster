@@ -1,7 +1,5 @@
 class Template:
-    """
-    A wrapper class for the template dict
-    """
+    """A wrapper class for the template dict."""
     def __init__(self, template_dict):
         self.template_dict = template_dict
 
@@ -9,9 +7,8 @@ class Template:
         return self.template_dict[item]
 
     def fetch(self, *args):
-        """
-        Takes a series of keys and returns their values from the template
-        :param args:
-        :return:
+        """Takes a list of keys and returns their values from the template.
+        :type args: list(str)
+        :rtype tuple
         """
         return tuple([self.template_dict[x] for x in args])
