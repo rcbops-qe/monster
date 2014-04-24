@@ -6,7 +6,6 @@ Command-line interface for building OpenStack clusters
 import os
 import subprocess
 import traceback
-import webbrowser
 
 import argh
 
@@ -24,29 +23,21 @@ def build(name="autotest", template="ubuntu-default", branch="master",
           template_path=None, config="pubcloud-neutron.yaml",
           dry=False, log=None, provisioner_name="rackspace",
           secret_path=None, orchestrator_name="chef"):
-    """
-    Build an OpenStack Cluster
-    """
+    """Build an OpenStack cluster."""
     _load_config(config, secret_path)
 
     orchestrator = get_orchestrator(orchestrator_name)
     deployment = orchestrator.create_deployment_from_file(name, template,
                                                           branch,
                                                           provisioner_name)
-
-    if dry:
-        try:
+    try:
+        if dry:
             deployment.update_environment()
-        except Exception:
-            error = traceback.print_exc()
-            logger.exception(error)
-
-    else:
-        try:
+        else:
             deployment.build()
-        except Exception:
-            error = traceback.print_exc()
-            logger.exception(error)
+    except Exception:
+        error = traceback.print_exc()
+        logger.exception(error)
 
     logger.info(deployment)
 
@@ -54,9 +45,7 @@ def build(name="autotest", template="ubuntu-default", branch="master",
 def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
          tempest=False, ha=False, secret_path=None,
          deployment=None, iterations=1, progress=False):
-    """
-    Test an OpenStack deployment
-    """
+    """Test an OpenStack deployment."""
     if not deployment:
         deployment = _load(name, config, secret_path)
     if not tempest and not ha:
@@ -79,7 +68,7 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
     for controller in controllers:
         ip, user, password = controller.creds
         remote = "{0}@{1}:~/*.xml".format(user, ip)
-        get_file(ip, user, password, remote, local)
+        util.get_file(ip, user, password, remote, local)
 
     for i in range(iterations):
         logger.info(Color.cyan('Running iteration {0} of {1}!'
@@ -102,10 +91,7 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
              x_bridge='lxb-mgmt', iface='eth0', del_port=None, config=None,
              log=None, secret_path=None):
-
-    """
-    Retrofit a deployment
-    """
+    """Retrofit a deployment."""
     deployment = _load(name, config, secret_path)
     logger.info(deployment)
     deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
@@ -113,74 +99,53 @@ def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
 
 def upgrade(name='autotest', upgrade_branch='v4.1.3rc',
             config=None, log=None, secret_path=None):
-    """
-    Upgrade a current deployment to the new branch / tag
-    """
+    """Upgrade a current deployment to the new branch / tag."""
     deployment = _load(name, config, secret_path)
     logger.info(deployment)
     deployment.upgrade(upgrade_branch)
 
 
 def destroy(name="autotest", config=None, log=None, secret_path=None):
-    """
-    Destroy an existing OpenStack deployment
-    """
+    """Destroy an existing OpenStack deployment."""
     deployment = _load(name, config, secret_path=secret_path)
     logger.info(deployment)
     deployment.destroy()
 
 
-def get_file(ip, user, password, remote, local, remote_delete=False):
-    cmd1 = 'sshpass -p {0} scp -q {1} {2}'.format(password, remote, local)
-    subprocess.call(cmd1, shell=True)
-    if remote_delete:
-        cmd2 = ("sshpass -p {0} ssh -o UserKnownHostsFile=/dev/null "
-                "-o StrictHostKeyChecking=no -o LogLevel=quiet -l {1} {2}"
-                " 'rm *.xml;exit'".format(password, user, ip))
-        subprocess.call(cmd2, shell=True)
-
-
 def artifact(name="autotest", config=None, log=None, secret_path=None):
-    """
-    Artifact a deployment (configs/running services)
-    """
-
+    """Artifact a deployment (configs/running services)."""
     deployment = _load(name, config, secret_path)
     deployment.artifact()
 
 
 def openrc(name="autotest", config=None, log=None, secret_path=None):
-    """
-    Load OpenStack credentials into shell env
-    """
+    """Export OpenStack credentials into shell environment."""
     deployment = _load(name, config, secret_path)
     deployment.openrc()
 
 
 def tmux(name="autotest", config=None, log=None, secret_path=None):
-    """
-    Load OpenStack nodes into new tmux session
-    """
+    """Load OpenStack nodes into a new tmux session."""
     deployment = _load(name, config, secret_path)
     deployment.tmux()
 
 
 def horizon(name="autotest", config=None, log=None, secret_path=None):
-    """
-    Open Horizon in a browser tab
-    """
+    """Open Horizon in a browser tab."""
     deployment = _load(name, config, secret_path)
-    ip = deployment.horizon_ip()
-    url = "https://{0}".format(ip)
-    webbrowser.open_new_tab(url)
+    deployment.horizon()
 
 
 def show(name="autotest", config=None, log=None, secret_path=None):
-    """
-    Show details about an OpenStack deployment
-    """
+    """Show details about an OpenStack deployment."""
     deployment = _load(name, config, secret_path)
     logger.info(str(deployment))
+
+
+def cloudcafe(cmd, name="autotest", network=None, config=None,
+              secret_path=None):
+    deployment = _load(name, config, secret_path)
+    CloudCafe(deployment).config(cmd, network_name=network)
 
 
 def _load_config(config, secret_path):
@@ -196,12 +161,6 @@ def _load(name="autotest", config="config.yaml", secret_path=None,
     orchestrator = get_orchestrator(orchestrator_name)
     deployment = orchestrator.load_deployment_from_name(name)
     return deployment
-
-
-def cloudcafe(cmd, name="autotest", network=None, config=None,
-              secret_path=None):
-    deployment = _load(name, config, secret_path)
-    CloudCafe(deployment).config(cmd, network_name=network)
 
 
 if __name__ == "__main__":

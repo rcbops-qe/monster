@@ -1,6 +1,7 @@
 import os
 import logging
 import logging.handlers
+import subprocess
 import sys
 
 from glob import glob
@@ -84,3 +85,13 @@ def xunit_merge(path="."):
         with open("results.xunit", "w") as f:
             f.write(ElementTree.tostring(tree))
     [os.remove(file) for file in files]
+
+
+def get_file(ip, user, password, remote, local, remote_delete=False):
+    cmd1 = 'sshpass -p {0} scp -q {1} {2}'.format(password, remote, local)
+    subprocess.call(cmd1, shell=True)
+    if remote_delete:
+        cmd2 = ("sshpass -p {0} ssh -o UserKnownHostsFile=/dev/null "
+                "-o StrictHostKeyChecking=no -o LogLevel=quiet -l {1} {2}"
+                " 'rm *.xml;exit'".format(password, user, ip))
+        subprocess.call(cmd2, shell=True)

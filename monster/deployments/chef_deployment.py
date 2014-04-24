@@ -1,5 +1,6 @@
 import os
 import sys
+import webbrowser
 
 from chef import Node as ChefNode
 from pyrabbit.api import Client as RabbitClient
@@ -106,6 +107,10 @@ class ChefDeployment(Deployment):
         self.environment.destroy()
         self.status = "Destroyed"
 
+    def horizon(self):
+        url = "https://{0}".format(self.horizon_ip)
+        webbrowser.open_new_tab(url)
+
     def openrc(self):
         """Opens a new shell with variables loaded for nova-client."""
 
@@ -124,17 +129,6 @@ class ChefDeployment(Deployment):
         for key in openrc.keys():
             os.putenv(key, openrc[key])
         os.system(os.environ['SHELL'])
-
-    def horizon_ip(self):
-        """Returns IP of Horizon.
-        :rtype: String
-        """
-
-        controller = next(self.search_role('controller'))
-        ip = controller.ipaddress
-        if "vips" in self.environment.override_attributes:
-            ip = self.environment.override_attributes['vips']['nova-api']
-        return ip
 
     @property
     def to_dict(self):
@@ -176,3 +170,15 @@ class ChefDeployment(Deployment):
         password = "guest"
 
         return RabbitClient(url, user, password)
+
+    @property
+    def horizon_ip(self):
+        """Returns IP of Horizon.
+        :rtype: str
+        """
+
+        controller = next(self.search_role('controller'))
+        ip = controller.ipaddress
+        if "vips" in self.environment.override_attributes:
+            ip = self.environment.override_attributes['vips']['nova-api']
+        return ip
