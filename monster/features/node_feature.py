@@ -442,7 +442,7 @@ class Remote(NodeFeature):
     """Represents the deployment having a remote chef server."""
 
     def pre_configure(self):
-        self.node
+        self.node.remove_chef()
         self._bootstrap_chef()
 
     def archive(self):
