@@ -125,7 +125,7 @@ def destroy(name="autotest", config=None, log=None, secret_path=None):
     """
     Destroy an existing OpenStack deployment
     """
-    deployment = _load(name, config, secret_path)
+    deployment = _load(name, config, secret_path=secret_path)
     logger.info(deployment)
     deployment.destroy()
 
@@ -186,7 +186,7 @@ def show(name="autotest", config=None, log=None, secret_path=None):
 def _load_config(config, secret_path):
     if "configs/" not in config:
         config = "configs/{}".format(config)
-    util.config = Config(config, secret_file_name=secret_path)
+    util.config = Config(config, secret_path=secret_path)
 
 
 def _load(name="autotest", config="config.yaml", secret_path=None,

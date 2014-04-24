@@ -1,29 +1,26 @@
 """Gathers application config"""
 
-import os
+import logging
 
-from monster import util
+from os import path
 from yaml import load
 from collections import defaultdict
 from monster.template import Template
 
 
+logger = logging.getLogger(__name__)
+
+
 class Config(object):
     """Application config object"""
-    def __init__(self, template_path_from_project_root=None,
-                 secret_file_name=None):
-        secret_path = secret_file_name or os.path.join(
-            os.path.dirname(os.path.dirname(__file__)), "secret.yaml")
+    def __init__(self, config, secret_path=None):
+        template_path = path.join(path.dirname(path.dirname(__file__)), config)
+        with open(template_path, 'r') as template:
+            self.config = defaultdict(None, load(template.read()))
 
-        template_path = os.path.join(os.path.dirname(os.path.dirname(
-            __file__)), template_path_from_project_root)
-
-        template_file = open(template_path)
-        self.config = defaultdict(None, load(template_file))
-
-        secret_file = open(secret_path)
-        secrets = load(secret_file)
-        self.config['secrets'] = secrets
+        if secret_path:
+            with open(secret_path, 'r') as secret:
+                self.config['secrets'] = load(secret.read())
 
     def __getitem__(self, name):
         return self.config[name]
@@ -40,15 +37,15 @@ class Config(object):
         else:
             template_file = branch.lstrip('v').rstrip("rc").replace('.', '_')
 
-        path = os.path.join(os.path.dirname(__file__), os.pardir,
-                            "templates/{0}.yaml".format(template_file))
+        template_path = path.join(path.dirname(__file__), path.pardir,
+                                  "templates/{0}.yaml".format(template_file))
 
         try:
-            template = Template(Config(path)[template_name])
+            template = Template(Config(template_path)[template_name])
         except KeyError:
             logger.critical("Looking for the template {0} in the file: "
-                                 "\n{1}\n The key was not found!"
-                                 .format(template_file, path))
+                            "\n{1}\n The key was not found!"
+                            .format(template_file, template_path))
             exit(1)
         else:
             return template
