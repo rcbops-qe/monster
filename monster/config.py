@@ -12,8 +12,11 @@ logger = logging.getLogger(__name__)
 
 
 class Config(object):
-    """Application config object"""
     def __init__(self, config, secret):
+        """Initializes application config object.
+        :param config: configuration files, stored in configs directory.
+        :param secret: secret path, stored in project root.
+        """
         template_path = path.join(path.dirname(path.dirname(__file__)), config)
         with open(template_path, 'r') as template:
             self.config = defaultdict(None, load(template.read()))
