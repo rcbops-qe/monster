@@ -1,11 +1,7 @@
-"""
-OpenStack deployments
-"""
-
 import types
 import tmuxp
 
-from monster.features import deployment_feature as deployment_features
+from monster.features import deployment_features
 from monster.tools.retrofit import Retrofit
 from monster import util
 import logging

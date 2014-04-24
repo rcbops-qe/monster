@@ -7,7 +7,7 @@ import monster.nodes.chef_node_wrapper as chef_node_wrapper
 
 from monster.config import Config
 from monster.orchestrator.deployment_orchestrator import DeploymentOrchestrator
-from monster.features.node_feature import ChefServer
+from monster.features.node_features import ChefServer
 from monster.deployments.chef_deployment import ChefDeployment
 from monster.environments.chef_environment_wrapper import \
     ChefEnvironmentWrapper

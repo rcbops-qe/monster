@@ -1,6 +1,6 @@
 from chef import ChefAPI
 from monster import util
-from monster.features.feature import Feature
+from monster.features.base_feature import Feature
 
 
 class NodeFeature(Feature):
@@ -8,7 +8,7 @@ class NodeFeature(Feature):
 
     def __init__(self, node):
         """Initialize Node object.
-        :type: node: monster.nodes.base_node_wrapper.BaseNodeWrapper
+        :type node: monster.nodes.base_node_wrapper.BaseNodeWrapper
         """
         self.node = node
 

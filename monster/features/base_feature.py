@@ -3,12 +3,11 @@
 
 class Feature(object):
     def __repr__(self):
-        outl = 'class: ' + self.__class__.__name__
-        return outl
+        return 'class: ' + self.__class__.__name__
 
     def __str__(self):
-        """Prints out class name.
-        :rtype: String
+        """Prints out class name in lower case.
+        :rtype: str
         """
         return self.__class__.__name__.lower()
 

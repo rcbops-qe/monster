@@ -8,7 +8,7 @@ from time import sleep
 from lazy import lazy
 
 from monster import util
-from monster.features import node_feature
+from monster.features import node_features
 from monster.nodes.os_node_strategy import OS
 from monster.server_helper import ssh_cmd, scp_to, scp_from
 
@@ -141,7 +141,7 @@ class BaseNodeWrapper(object):
     def add_features(self, features):
         """Adds a list of feature classes."""
         logger.debug("node:{0} feature add:{1}".format(self.name, features))
-        classes = util.module_classes(node_feature)
+        classes = util.module_classes(node_features)
         for feature in features:
             feature_class = classes[feature](self)
             self.features.append(feature_class)

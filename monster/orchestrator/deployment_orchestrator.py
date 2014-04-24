@@ -8,11 +8,11 @@ class DeploymentOrchestrator:
                                     provisioner_name):
         """Returns a new deployment given a deployment template at path.
         :param name: name for the deployment
-        :type name: string
+        :type name: str
         :param name: name of template to use
-        :type name: string
+        :type name: str
         :param branch: branch of the RCBOPS chef cookbook repo to use
-        :type branch:: string
+        :type branch:: str
         :param provisioner_name: provisioner to use for nodes
         :type provisioner_name: str
         :rtype: Deployment

@@ -2,15 +2,12 @@ import os
 import sys
 
 from chef import Node as ChefNode
-
-from fabric.api import *
+from pyrabbit.api import Client as RabbitClient
 
 from monster import util
 from monster.upgrades.util import int2word
 from monster.clients.openstack import Creds, Clients
 from monster.deployments.deployment import Deployment
-
-from pyrabbit.api import Client as RabbitClient
 
 
 class ChefDeployment(Deployment):

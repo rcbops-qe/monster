@@ -2,7 +2,7 @@ import logging
 import requests
 import sys
 
-from monster.features.feature import Feature
+from monster.features.base_feature import Feature
 from monster import util
 
 logger = logging.getLogger(__name__)
@@ -16,8 +16,7 @@ class DeploymentFeature(Feature):
         self.deployment = deployment
 
     def __repr__(self):
-        outl = 'class: ' + self.__class__.__name__
-        return outl
+        return 'class: ' + self.__class__.__name__
 
     def update_environment(self):
         pass
