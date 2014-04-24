@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class Config(object):
-    def __init__(self, config, secret):
+    def __init__(self, config, secret=None):
         """Initializes application config object.
         :param config: configuration files, stored in configs directory.
         :param secret: secret path, stored in project root.
