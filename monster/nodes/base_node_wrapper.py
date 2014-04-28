@@ -123,7 +123,12 @@ class BaseNodeWrapper(object):
         self.status = "pre-configure"
 
         logger.info("Updating node dist / packages")
-        self.update_packages(True)
+        if 'rackspace' in str(self.provisioner):
+            dist_upgrade = False
+        else:
+            dist_upgrade = True
+
+        self.update_packages(dist_upgrade)
 
         for feature in self.features:
             log = "Node feature: pre-configure: {0}".format(str(feature))
