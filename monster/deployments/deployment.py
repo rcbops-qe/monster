@@ -106,7 +106,7 @@ class Deployment(object):
             node.archive()
 
     def search_role(self, feature_name):
-        """Returns nodes the have the desired role.
+        """Returns nodes that have the desired role.
         :param feature_name: feature to be searched for
         :type feature_name: str
         :rtype: Iterator (monster.nodes.base_node_wrapper.BaseNodeWrapper)
