@@ -20,17 +20,17 @@ class Command(object):
 
 
 def check_port(host, port, timeout=2):
-    logger.debug("Testing connection to : {0}:{1}".format(host, port))
+    logger.debug("Testing connection to - {0}:{1}".format(host, port))
     ssh_up = False
     while not ssh_up:
         try:
             s = socket.create_connection((host, port), timeout)
             s.close()
-            ssh_up = True
         except socket.error:
             ssh_up = False
             logger.debug("Waiting for ssh connection...")
             sleep(1)
+        ssh_up = True
     return ssh_up
 
 

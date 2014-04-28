@@ -175,19 +175,6 @@ class Openstack(Provisioner):
             logger.error("Instance entered error state. Retrying...")
             server.delete()
             return self.build_instance(name=name, image=image, flavor=flavor)
-        ip = server.accessIPv4
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        ssh_up = False
-        while not ssh_up:
-            try:
-                s.settimeout(2)
-                s.connect((ip, 22))
-                s.close()
-                ssh_up = True
-            except socket.error:
-                ssh_up = False
-                logger.debug("Waiting for ssh connection...")
-                sleep(1)
         host = server.accessIPv4
         check_port(host, 22, timeout=2)
         return server, password
@@ -247,6 +234,7 @@ class Openstack(Provisioner):
         attempt = 0
         in_attempt = lambda x: not attempts or attempts > x
         while getattr(obj, attr) not in desired and in_attempt(attempt):
+            logger.debug("Attempt: {0}/{1}".format(attempt, attempts))
             logger.info("Waiting: {0} {1}:{2}".format(obj, attr,
                                                       getattr(obj, attr)))
             sleep(interval)
