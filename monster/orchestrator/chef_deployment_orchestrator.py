@@ -59,9 +59,9 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
         :rtype: ChefDeployment
         """
         default, override, remote_api = self.load_environment_attributes(name)
-        env = ChefEnvironmentWrapper(name, self.local_api, description=name,
-                                     default=default, override=override,
-                                     remote_api=remote_api)
+        env = ChefEnvironmentWrapper(name, self.local_api,
+                                     remote_api=remote_api, description=name,
+                                     default=default, override=override)
 
         provisioner = get_provisioner(env.provisioner)
 

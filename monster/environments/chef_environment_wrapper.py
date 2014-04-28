@@ -1,28 +1,20 @@
-"""
-Chef Environment
-"""
-
 from chef import Environment as ChefEnvironment
-import logging
+
+from monster.environments.base_environment_wrapper import \
+    BaseEnvironmentWrapper, logger
 
 
-logger = logging.getLogger(__name__)
+class ChefEnvironmentWrapper(BaseEnvironmentWrapper):
 
-
-class ChefEnvironmentWrapper(dict):
-
-    def __init__(self, name, local_api, chef_server_name=None, remote_api=None,
+    def __init__(self, name, local_api, remote_api=None, chef_server_name=None,
                  description='', default=None, override=None):
-        super(ChefEnvironmentWrapper, self).__init__({})
-        self.name = name
-        self.description = description
+        super(ChefEnvironmentWrapper,
+              self).__init__(name=name, local_api=local_api,
+                             remote_api=remote_api, description=description,
+                             default=default, override=override)
         self.cookbook_versions = {}
         self.json_class = "Chef::Environment"
         self.chef_type = "environment"
-        self.default_attributes = default or {}
-        self.override_attributes = override or {}
-        self.local_api = local_api
-        self.remote_api = remote_api
         self.chef_server_name = chef_server_name
         self.save()
 
@@ -40,43 +32,33 @@ class ChefEnvironmentWrapper(dict):
         }
         return str(chef_dict)
 
-    def add_override_attr(self, key, value):
-        self.override_attributes[key] = value
-        self.save()
+    @property
+    def _local_env(self):
+        if self.local_api:
+            return ChefEnvironment(self.name, self.local_api)
+        else:
+            return None
 
-    def add_default_attr(self, key, value):
-        self.default_attributes[key] = value
-        self.save()
-
-    def del_override_attr(self, key):
-        del self.override_attributes[key]
-        self.save()
-
-    def del_default_attr(self, key):
-        del self.default_attributes[key]
-        self.save()
-
-    def save_locally(self):
+    @property
+    def _remote_env(self):
         if self.remote_api:
-            env = self._remote_chef_env
+            return ChefEnvironment(self.name, self.remote_api)
+        else:
+            return None
+
+    def save(self):
+        env = self._local_env
+        self._update_env_with_local_object_info(env)
+        self.save_env_to_local_and_to_remote(env)
+
+    def save_remote_to_local(self):
+        if self.remote_api:
+            env = self._remote_env
             self.override_attributes = env.override_attributes
             self.default_attributes = env.default_attributes
             self.save()
 
-    def destroy(self):
-        self._local_chef_env.delete()
-
-    def save(self):
-        env = self._local_chef_env
-        self._update_chef_env_with_local_object_info(env)
-        self._save_local_and_remote(env)
-
-    def _update_chef_env_with_local_object_info(self, env):
-        for attr in self.__dict__:
-            logger.debug("{0}: {1}".format(attr, self.__dict__[attr]))
-            setattr(env, attr, self.__dict__[attr])
-
-    def _save_local_and_remote(self, env):
+    def save_env_to_local_and_to_remote(self, env):
         env.save(self.local_api)
         if self.remote_api:
             try:
@@ -84,19 +66,13 @@ class ChefEnvironmentWrapper(dict):
             except Exception as e:
                 logger.error("Remote env error:{0}".format(e))
 
-    @property
-    def _local_chef_env(self):
-        if self.local_api:
-            return ChefEnvironment(self.name, self.local_api)
-        else:
-            return None
+    def _update_env_with_local_object_info(self, env):
+        for attr in self.__dict__:
+            logger.debug("{0}: {1}".format(attr, self.__dict__[attr]))
+            setattr(env, attr, self.__dict__[attr])
 
-    @property
-    def _remote_chef_env(self):
-        if self.remote_api:
-            return ChefEnvironment(self.name, self.remote_api)
-        else:
-            return None
+    def destroy(self):
+        self._local_env.delete()
 
     @property
     def deployment_attributes(self):
