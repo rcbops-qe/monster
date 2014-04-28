@@ -61,18 +61,17 @@ An OpenStack Orchestration Engine
     Deploys an OpenStack cluster
 
     #+BEGIN_SRC sh
-      compute.py build -n ubuntu-default --branch master --template ubuntu-default --config config.yaml --secret-path secret.yaml --log log.txt --log-level DEBUG --provisioner rackspace
+      ./compute.py build -n my_build --template ubuntu-ha-neutron -c pubcloud-neutron.yaml -b v4.1.5 -p rackspace
     #+END_SRC
 
 **** Arguments
      - name: name of the deployment
      - branch: branch rcbops cookbooks
      - template: name of template to use
-     - config: path to config file
+     - config: config file
      - secret-path: path to secret config file
      - dry: only build environment (will provision in cloud)
      - log: path to log file
-     - log-level: level to log - INFO, DEBUG
      - provisioner: provisioner to use - razor, rackspace, openstack
 
 *** Show
@@ -80,30 +79,28 @@ An OpenStack Orchestration Engine
     Shows details about an OpenStack deployment
 
     #+BEGIN_SRC sh
-      compute.py show -n ubuntu-default
+      compute.py show -n my_build -c pubcloud-neutron.yaml
     #+END_SRC
 
 **** Arguments
      - name: name of the deployment
-     - config: path to config file
+     - config: config file
      - secret-path: path to secret config file
      - log: path to log file
-     - log-level: level to log - INFO, DEBUG
 
 *** Destroy
 
     Destroys an OpenStack deployment
 
     #+BEGIN_SRC sh
-      compute.py destroy -n ubuntu-default --config config.yaml --log log.txt --log-level DEBUG
+      compute.py destroy -n my_build -c pubcloud-neutron.yaml
     #+END_SRC
 
 **** Arguments
      - name: name of the deployment
-     - config: path to config file
+     - config: config file
      - secret-path: path to secret config file
      - log: path to log file
-     - log-level: level to log - INFO, DEBUG
 
 *** openrc
 
@@ -111,7 +108,7 @@ An OpenStack Orchestration Engine
     openstack cli commands will communicate to cluster.
 
     #+BEGIN_SRC sh
-      compute.py openrc -n precise-default
+      compute.py openrc -n my_build -c pubcloud-neutron.yaml
     #+END_SRC
 
     #+BEGIN_SRC sh
@@ -120,42 +117,39 @@ An OpenStack Orchestration Engine
 
 **** Arguments
      - name: name of the deployment
-     - config: path to config file
+     - config: config file
      - secret-path: path to secret config file
      - log: path to log file
-     - log-level: level to log - INFO, DEBUG
 
 *** Horizon
 
     Attempts to open Horizon in browser
 
     #+BEGIN_SRC sh
-      compute.py horizon -n ubuntu-default
+      compute.py horizon -n my_build -c pubcloud-neutron.yaml
     #+END_SRC
 
 **** Arguments
      - name: name of the deployment
-     - config: path to config file
+     - config: config file
      - secret-path: path to secret config file
      - log: path to log file
-     - log-level: level to log - INFO, DEBUG
 
 *** Test
 
     Runs tests on a running OpenStack cluster
 
     #+BEGIN_SRC sh
-      compute.py test --ha --tempest -n ubuntu-default --config config.yaml --log log.txt --log-level DEBUG --iterations 3
+      compute.py test --ha --tempest -n my_build -c pubcloud-neutron.yaml --iterations 3
     #+END_SRC
 
 **** Arguments
      - ha: enables high availability testing
      - tempest: enables the tempest testing suite
      - name: name of the deployment
-     - config: path to config file
+     - config: config file
      - secret-path: path to secret config file
      - log: path to log file
-     - log-level: level to log - INFO, DEBUG
      - iterations: number of full test runs
 
 *** Upgrade
@@ -163,23 +157,22 @@ An OpenStack Orchestration Engine
     Upgrades the deployment to the specified branch
 
     #+BEGIN_SRC sh
-      compute.py upgrade -n ubuntu-default -u v4.2.1 --log-level DEBUG
+      compute.py upgrade -n my_build -u v4.2.1 -c pubcloud-neutron.yaml
     #+END_SRC
 
 **** Arguments
      - name: name of the deployment
      - upgrade-branch: branch to upgrade to
-     - config: path to config file
+     - config: config file
      - secret-path: path to secret config file
      - log: path to log file
-     - log-level: level to log - INFO, DEBUG
 
 *** Tmux
 
     Opens an new tmux session with each node in a different window
 
     #+BEGIN_SRC sh
-      compute.py tmux -n ubuntu-default
+      compute.py tmux -n my_build -c pubcloud-neutron.yaml
     #+END_SRC
 
     *Requires tmux version >= 1.8*
@@ -194,10 +187,9 @@ An OpenStack Orchestration Engine
 
 **** Arguments
      - name: name of the deployment
-     - config: path to config file
+     - config: config file
      - secret-path: path to secret config file
      - log: path to log file
-     - log-level: level to log - INFO, DEBUG
 
 ** Development
 
@@ -209,7 +201,5 @@ An OpenStack Orchestration Engine
     2. Run
        #+BEGIN_SRC python
        from tools.ipython import load
-       deployment = load("yourdep")
+       deployment = load("my_build", "configs/pubcloud-neutron.yaml")
        #+END_SRC
-    3. ????
-    4. profit!!!

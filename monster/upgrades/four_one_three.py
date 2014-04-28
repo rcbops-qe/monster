@@ -60,7 +60,7 @@ class FourOneThree(Upgrade):
         except KeyError:
             pass
 
-        if self.deployment.feature_in('highavailability'):
+        if self.deployment.has_feature('highavailability'):
             controller2 = controllers[1]
             stop = util.config['upgrade']['commands']['stop-services']
             start = util.config['upgrade']['commands']['start-services']
@@ -104,8 +104,8 @@ class FourOneThree(Upgrade):
 
         # Fix OVS as per issue
         # https://github.com/rcbops/chef-cookbooks/issues/758
-        if self.deployment.feature_in('neutron'):
-            if self.deployment.feature_in('highavailability'):
+        if self.deployment.has_feature('neutron'):
+            if self.deployment.has_feature('highavailability'):
 
                 # Fix ovs
                 self.ovs_fix(controller1)
@@ -142,7 +142,7 @@ class FourOneThree(Upgrade):
         node.update_packages()
         commands = ['/usr/share/openvswitch/scripts/ovs-ctl force-reload-kmod']
 
-        if self.deployment.feature_in('highavailability'):
+        if self.deployment.has_feature('highavailability'):
             if 'controller' in node.name:
                 commands.append('service keepalived restart')
 

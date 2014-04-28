@@ -1,118 +1,47 @@
-"""
-OpenStack deployments
-"""
-import logging
 import types
 import tmuxp
 
-from pyrabbit.api import Client
-
+from monster.features import deployment_features
 from monster.tools.retrofit import Retrofit
+from monster import util
+import logging
+
 
 logger = logging.getLogger(__name__)
 
 
 class Deployment(object):
-    """Base for OpenStack deployments
-    """
+    """Base for OpenStack deployments."""
 
     def __init__(self, name, os_name, branch, provisioner, status, product,
-                 clients=None):
+                 clients=None, features=None):
         self.name = name
         self.os_name = os_name
         self.branch = branch
         self.features = []
         self.nodes = []
-        self.status = status or "Provisioning..."  # i don't like this default
+        self.status = status or "Provisioning..."
         self.provisioner = str(provisioner)
         self.product = product
         self.clients = clients
+        if features:
+            self.add_features(features)
 
     def __repr__(self):
-        """
-        Print out current instance
-        """
+        features = "\tFeatures: %s" % self.feature_names
+        nodes = "\tNodes: %s" % self.node_names
 
-        outl = 'class: ' + self.__class__.__name__
+        output = 'class: ' + self.__class__.__name__
         for attr in self.__dict__:
-            if attr == 'features':
-                features = "\tFeatures: {0}".format(
-                    ", ".join((str(f) for f in self.features)))
-            elif attr == 'nodes':
-                nodes = "\tNodes: {0}".format(
-                    "".join((str(n) for n in self.nodes)))
-            elif isinstance(getattr(self, attr), types.NoneType):
-                outl += '\n\t{0} : {1}'.format(attr, 'None')
+            if isinstance(getattr(self, attr), types.NoneType):
+                output += '\n\t{0} : {1}'.format(attr, 'None')
             else:
-                outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
+                output += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
 
-        return "\n".join([outl, features, nodes])
-
-    def destroy(self):
-        """
-        Destroys an OpenStack deployment
-        """
-
-        self.status = "Destroying..."
-        logger.info("Destroying deployment: {0}".format(self.name))
-        for node in self.nodes:
-            node.destroy()
-        self.status = "Destroyed!"
-
-    def update_environment(self):
-        """
-        Preconfigures node for each feature
-        """
-
-        logger.info("Building Configured Environment")
-        self.status = "Loading environment..."
-        for feature in self.features:
-            logger.debug("Deployment feature {0}: updating environment".format(
-                str(feature))
-            )
-            feature.update_environment()
-        logger.debug(self.environment)
-        self.status = "Environment ready!"
-
-    def pre_configure(self):
-        """
-        Preconfigures node for each feature
-        """
-
-        self.status = "Pre-configuring nodes for features..."
-        for feature in self.features:
-            logger.debug("Deployment feature: pre-configure: {0}".format(
-                str(feature))
-            )
-            feature.pre_configure()
-
-    def build_nodes(self):
-        """
-        Builds each node
-        """
-
-        self.status = "Building nodes..."
-        for node in self.nodes:
-            logger.debug("Building node {0}!".format(str(node)))
-            node.build()
-        self.status = "Nodes built!"
-
-    def post_configure(self):
-        """
-        Post configures node for each feature
-        """
-
-        self.status = "Post-configuration..."
-        for feature in self.features:
-            log = "Deployment feature: post-configure: {0}"\
-                .format(str(feature))
-            logger.debug(log)
-            feature.post_configure()
+        return "\n".join([output, features, nodes])
 
     def build(self):
-        """
-        Runs build steps for node's features
-        """
+        """Runs build steps for node's features."""
 
         logger.debug("Deployment step: update environment")
         self.update_environment()
@@ -125,58 +54,87 @@ class Deployment(object):
         self.status = "post-build"
         logger.info(self)
 
+    def update_environment(self):
+        """Preconfigures node for each feature."""
+        logger.info("Building Configured Environment")
+        self.status = "Loading environment..."
+        for feature in self.features:
+            logger.debug("Deployment feature {0}: updating environment!"
+                         .format(str(feature)))
+            feature.update_environment()
+        self.status = "Environment ready!"
+
+    def pre_configure(self):
+        """Preconfigures node for each feature."""
+        self.status = "Pre-configuring nodes for features..."
+        for feature in self.features:
+            logger.debug("Deployment feature: pre-configure: {0}"
+                         .format(str(feature)))
+            feature.pre_configure()
+
+    def build_nodes(self):
+        """Builds each node."""
+        self.status = "Building nodes..."
+        for node in self.nodes:
+            logger.debug("Building node {0}!".format(str(node)))
+            node.build()
+        self.status = "Nodes built!"
+
+    def post_configure(self):
+        """Post configures node for each feature."""
+        self.status = "Post-configuration..."
+        for feature in self.features:
+            log = "Deployment feature: post-configure: {0}"\
+                .format(str(feature))
+            logger.debug(log)
+            feature.post_configure()
+
+    def destroy(self):
+        """Destroys an OpenStack deployment."""
+        self.status = "Destroying..."
+        logger.info("Destroying deployment: {0}".format(self.name))
+        for node in self.nodes:
+            node.destroy()
+        self.status = "Destroyed!"
+
     def artifact(self):
-        """
-        Artifacts openstack and its dependant services for a deployment
-        """
-
-        self.log_path = "/var/log"
-        self.etc_path = "/etc/"
-        self.misc_path = "misc/"
-
-        if self.deployment.os_name == 'ubuntu':
-            self.list_packages_cmd = ["dpkg -l"]
-        else:
-            self.list_packages_cmd = ["rpm -qa"]
-
-        # Run each features archive
+        """Artifacts OpenStack and its dependent services for a deployment."""
         for feature in self.features:
             feature.archive()
 
-        # Run each nodes archive
         for node in self.nodes:
             node.archive()
 
-    def search_role(self, feature):
+    def search_role(self, feature_name):
+        """Returns nodes that have the desired role.
+        :param feature_name: feature to be searched for
+        :type feature_name: str
+        :rtype: Iterator (monster.nodes.base_node_wrapper.BaseNodeWrapper)
         """
-        Returns nodes the have the desired role
-        :param feature: feature to be searched for
-        :type feature: string
-        :rtype: Iterator (Nodes)
-        """
+        return (node for node in self.nodes if node.has_feature(feature_name))
 
-        return (node for node in
-                self.nodes if feature in
-                (str(f).lower() for f in node.features))
-
-    def feature_in(self, feature):
+    def has_feature(self, feature_name):
+        """Boolean function to determine if a feature exists in deployment.
+        :param feature_name: feature to be searched for
+        :type feature_name: str
+        :rtype: bool
         """
-        Boolean function to determine if a feature exists in deployment
-        :param feature: feature to be searched for
-        :type feature: string
-        :rtype: Boolean
-        """
+        return feature_name in self.feature_names
 
-        if feature in (feature.__class__.__name__.lower()
-                       for feature in self.features):
-            return True
-        return False
+    def add_features(self, features):
+        """Adds a dictionary of features to deployment.
+        :param features: dictionary of features {"monitoring": "default", ...}
+        :type features: dict
+        """
+        # stringify and lowercase classes in deployment features
+        classes = util.module_classes(deployment_features)
+        for feature, rpcs_feature in features.items():
+            logger.debug("feature: {0}, rpcs_feature: {1}".format(
+                feature, rpcs_feature))
+            self.features.append(classes[feature](self, rpcs_feature))
 
     def tmux(self):
-        """
-        Creates an new tmux session with an window for each node
-        """
-
+        """Creates an new tmux session with an window for each node."""
         server = tmuxp.Server()
         session = server.new_session(session_name=self.name)
         cmd = ("sshpass -p {1} ssh -o UserKnownHostsFile=/dev/null "
@@ -190,50 +148,28 @@ class Deployment(object):
 
     @property
     def feature_names(self):
+        """Returns list of features as strings.
+        :rtype: list (str)
         """
-        Returns list features as strings
-        :rtype: list (string)
-        """
+        return [str(feature) for feature in self.features]
 
-        return [feature.__class__.__name__.lower() for feature in
-                self.features]
+    @property
+    def node_names(self):
+        """Returns list of nodes as strings.
+        :rtype: list (str)
+        """
+        return [node.name for node in self.nodes]
 
-    def retrofit(self, branch, ovs_bridge, lx_bridge, iface, del_port=None):
-        """
-        Retrofit the deployment
-        """
+    def retrofit(self, branch, ovs_bridge, lx_bridge, iface,
+                 old_port_to_delete=None):
+        """Retrofit the deployment."""
 
         logger.info("Retrofit Deployment: {0}".format(self.name))
 
         retrofit = Retrofit(self)
 
-        # if old port exists, remove it
-        if del_port:
-            retrofit.remove_port_from_bridge(ovs_bridge, del_port)
+        if old_port_to_delete:
+            retrofit.remove_port_from_bridge(ovs_bridge, old_port_to_delete)
 
-        # Install
         retrofit.install(branch)
-
-        # Bootstrap
         retrofit.bootstrap(iface, lx_bridge, ovs_bridge)
-
-    @property
-    def rabbitmq_mgmt_client(self):
-        """
-        Return rabbitmq mgmt client
-        """
-        overrides = self.environment.override_attributes
-        if 'vips' in overrides:
-            # HA
-            ip = overrides['vips']['rabbitmq-queue']
-        else:
-            # Non HA
-            controller = next(self.search_role("controller"))
-            ip = controller.ipaddress
-        url = "{ip}:15672".format(ip=ip)
-
-        user = "guest"
-        password = "guest"
-
-        client = Client(url, user, password)
-        return client

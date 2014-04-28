@@ -19,9 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class Creds(object):
-    """
-    Openstack cred object
-    """
+    """Openstack cred object."""
     def __init__(self, user, password, url):
         self.user = user
         self.password = password
@@ -29,9 +27,7 @@ class Creds(object):
 
 
 class Build(object):
-    """
-    Build state to be verified after failover
-    """
+    """Builds state to be verified after failover."""
     def __init__(self, server, network_id, subnet_id, name, iface_port, image,
                  flavor):
         self.server = server
@@ -45,9 +41,7 @@ class Build(object):
         self.router_id = None
 
     def destroy(self, nova, neutron, progress, node1, node2):
-        """
-        Cleans up build state from OpenStack
-        """
+        """Cleans up build state from OpenStack."""
 #float     neutron floatingip-delete [floatingip-id]
 #instance  nova delete [instance-id]
 #iface     neutron router-interface-delete [router-id] [subnet-id]
@@ -219,7 +213,6 @@ class HATest(Test):
         Creates a neutron subnet
         """
         logger.debug("Creating subnetwork: {0}".format(subnet_name))
-        new_subnet = ""
         if pnet:
             new_subnet = {"subnet": {
                 "name": subnet_name, "network_id": network_id,

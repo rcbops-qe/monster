@@ -68,7 +68,7 @@ class FourTwoOne(Upgrade):
         controller1.add_run_list_item(['role[heat-all]'])
 
         # Upgrade nodes
-        if self.deployment.feature_in('highavailability'):
+        if self.deployment.has_feature('highavailability'):
             controller2 = controllers[1]
 
             # add heat

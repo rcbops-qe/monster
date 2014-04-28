@@ -1,98 +1,65 @@
-import logging
 import os
 import sys
-#import threading
+import webbrowser
 
-from chef import autoconfigure
 from chef import Node as ChefNode
-from chef import Environment as ChefEnvironment
-
-from fabric.api import *
-#from fabric.state import env
-#from threading import Thread
+from pyrabbit.api import Client as RabbitClient
 
 from monster import util
-from monster.config import Config
 from monster.upgrades.util import int2word
-from monster.features.node import ChefServer
-from monster.provisioners.razor import Razor
 from monster.clients.openstack import Creds, Clients
-from monster.provisioners.util import get_provisioner
 from monster.deployments.deployment import Deployment
-from monster.nodes.chef_node import Chef as MonsterChefNode
-from monster.features import deployment as deployment_features
-from monster.environments.chef_environment import Chef as \
-    MonsterChefEnvironment
-
-logger = logging.getLogger(__name__)
 
 
-class Chef(Deployment):
-    """
-    Deployment mechanisms specific to deployment using
-    Opscode's Chef as configuration management
+class ChefDeployment(Deployment):
+    """Deployment mechanisms specific to a deployment using Opscode's Chef
+    as configuration management.
     """
 
     def __init__(self, name, os_name, branch, environment, provisioner,
-                 status=None, product=None, clients=None):
+                 status=None, product=None, clients=None, features=None):
+
+        """Initializes a ChefDeployment object.
+        :type name: str
+        :type os_name: str
+        :type branch: str
+        :type environment: ChefEnvironmentWrapper
+        :type provisioner: Provisioner
+        :type status: str
+        :type product: str
+        :type features: Feature
+        """
         status = status or "provisioning"
-        super(Chef, self).__init__(name, os_name, branch,
-                                   provisioner, status, product,
-                                   clients)
+        super(ChefDeployment, self).__init__(name, os_name, branch,
+                                             provisioner, status, product,
+                                             clients, features)
         self.environment = environment
         self.has_controller = False
         self.has_orch_master = False
 
     def __str__(self):
-        nodes = "\n\t".join(str(node) for node in self.nodes)
-        features = ", ".join(self.feature_names)
-        deployment = ("Deployment - name:{0}, os:{1}, branch:{2}, status:{3}\n"
-                      "{4}\nFeatures: \n\t{5}\n"
-                      "Nodes: \n\t{6}".format(self.name, self.os_name,
-                                              self.branch, self.status,
-                                              self.environment, features,
-                                              nodes))
-        return deployment
-
-    def save_to_environment(self):
-        """
-        Save deployment restore attributes to chef environment
-        """
-
-        features = {key: value for (key, value) in
-                    ((str(x).lower(), x.rpcs_feature) for x in self.features)}
-        nodes = [n.name for n in self.nodes]
-        deployment = {'nodes': nodes,
-                      'features': features,
-                      'name': self.name,
-                      'os_name': self.os_name,
-                      'branch': self.branch,
-                      'status': self.status,
-                      'product': self.product,
-                      'provisioner': self.provisioner}
-        self.environment.add_override_attr('deployment', deployment)
+        return str(self.to_dict)
 
     def build(self):
-        """
-        Saves deployment for restore after build
-        """
+        """Saves deployment for restore after build."""
 
-        super(Chef, self).build()
+        super(ChefDeployment, self).build()
         self.save_to_environment()
 
-    def get_upgrade(self, upgrade):
-        """
-        This will return an instance of the correct upgrade class
-        :param upgrade: The name of the provisoner
-        :type upgrade: String
-        :rtype: object
+    def save_to_environment(self):
+        """Save deployment restore attributes to chef environment."""
+        deployment = self.to_dict
+        self.environment.add_override_attr('deployment', deployment)
+
+    def get_upgrade(self, branch_name):
+        """This will return an instance of the correct upgrade class.
+        :param branch_name: The name of the provisioner
+        :type branch_name: str
+        :rtype: ChefDeployment
         """
 
         # convert branch into a list of int strings
-        if 'v' in upgrade:
-            branch_i = [int(x) for x in upgrade.strip('v').split('.')]
-        else:
-            branch_i = [int(x) for x in upgrade.split('.')]
+        branch_i = [int(x) for x in branch_name.lstrip('v').split('.')]
 
         # convert list of int strings to their english counterpart
         word_b = [int2word(b) for b in branch_i]
@@ -109,241 +76,43 @@ class Chef(Deployment):
 
         return util.module_classes(identifier)[up_class](self)
 
-    def upgrade(self, upgrade_branch):
-        """
-        Upgrades the deployment (very chefy, rcbopsy)
-        """
+    def upgrade(self, branch_name):
+        """Upgrades the deployment."""
 
-        rc = False
+        rc = "rc" in branch_name
+        upgrade_branch_name = branch_name.rstrip("rc")
 
-        # if we are deploying a release candidate upgrade
-        if "rc" in upgrade_branch:
-            upgrade_branch = upgrade_branch.rstrip("rc")
-            rc = True
-
-        upgrade = self.get_upgrade(upgrade_branch)
+        upgrade = self.get_upgrade(upgrade_branch_name)
         upgrade.upgrade(rc)
 
     def update_environment(self):
-        """
-        Saves deployment for restore after update environment
-        """
+        """Saves deployment for restore after update environment."""
 
-        super(Chef, self).update_environment()
+        super(ChefDeployment, self).update_environment()
         self.save_to_environment()
         with open("{0}.json".format(self.name), "w") as f:
             f.write(str(self.environment))
 
-    @classmethod
-    def fromfile(cls, name, template, branch, provisioner, template_path):
-        """
-        Returns a new deployment given a deployment template at path
-        :param name: name for the deployment
-        :type name: string
-        :param name: name of template to use
-        :type name: string
-        :param branch: branch of the RCBOPS chef cookbook repo to use
-        :type branch:: string
-        :param provisioner: provisioner to use for nodes
-        :type provisioner: Provisioner
-        :param path: path to template
-        :type path: string
-        :rtype: Chef
-        """
-        local_api = autoconfigure()
-
-        template_file = ""
-        if branch == "master":
-            template_file = "default"
-        else:
-            template_file = branch.lstrip('v')
-            if "rc" in template_file:
-                template_file = template_file.rstrip("rc")
-            template_file = template_file.replace('.', '_')
-
-        if ChefEnvironment(name, api=local_api).exists:
-            # Use previous dry build if exists
-            logger.info("Using previous deployment:{0}".format(name))
-            return cls.from_chef_environment(name)
-
-        path = ""
-        if not template_path:
-            path = os.path.join(os.path.dirname(__file__),
-                                os.pardir, os.pardir,
-                                'templates/{0}.yaml'.format(
-                                    template_file))
-        else:
-            path = template_path
-        try:
-            template = Config(path)[template]
-        except KeyError:
-            logger.critical("Key not found: {0}".format(path))
-            sys.exit(1)
-
-        environment = MonsterChefEnvironment(name, local_api, description=name)
-
-        os_name = template['os']
-        product = template['product']
-
-        deployment = cls.deployment_config(template['features'], name, os_name,
-                                           branch, environment, provisioner,
-                                           product=product)
-
-        # provision nodes
-        chef_nodes = provisioner.provision(template, deployment)
-#        threads = []
-#        from time import sleep
-        for node in chef_nodes:
-#            cnode = MonsterChefNode.from_chef_node(node, product, environment,
-#                                                   deployment, provisioner,
-#                                                   branch)
-#            deployment.nodes.append(cnode)
-#            tx = Thread(target=cls.provision_nodes,
-#                        args=(provisioner, cnode, ))
-#            threads.append(tx)
-#            tx.start()
-#            sleep(2)
-
-            cnode = MonsterChefNode.from_chef_node(node, product, environment,
-                                                   deployment, provisioner,
-                                                   branch)
-            provisioner.post_provision(cnode)
-            deployment.nodes.append(cnode)
-#        for tx in threads:
-#            tx.join()
-        # add features
-        for node, features in zip(deployment.nodes, template['nodes']):
-            node.add_features(features)
-
-        return deployment
-
-#    @classmethod
-#    def provision_nodes(cls, provisioner, cnode):
-#        provisioner.post_provision(cnode)
-
-    @classmethod
-    def from_chef_environment(cls, environment):
-        """
-        Rebuilds a Deployment given a chef environment
-        :param environment: name of environment
-        :type environment: string
-        :rtype: Chef
-        """
-
-        local_api = autoconfigure()
-        environ = ChefEnvironment(environment, api=local_api)
-        if not environ.exists:
-            logger.error("Environment doesn't exist: {0}".format(environment))
-            exit(1)
-        override = environ.override_attributes
-        default = environ.default_attributes
-        chef_auth = override.get('remote_chef', None)
-        remote_api = None
-        if chef_auth and chef_auth["key"]:
-            remote_api = ChefServer._remote_chef_api(chef_auth)
-            renv = ChefEnvironment(environment, api=remote_api)
-            override = renv.override_attributes
-            default = renv.default_attributes
-        environment = MonsterChefEnvironment(
-            environ.name, local_api, description=environ.name,
-            default=default, override=override, remote_api=remote_api)
-
-        name = environ.name
-        deployment_args = override.get('deployment', {})
-        features = deployment_args.get('features', {})
-        os_name = deployment_args.get('os_name', None)
-        branch = deployment_args.get('branch', None)
-        status = deployment_args.get('status', "provisioning")
-        product = deployment_args.get('product', None)
-        provisioner_name = deployment_args.get('provisioner', "razor2")
-        provisioner = get_provisioner(provisioner_name)
-
-        deployment = cls.deployment_config(features, name, os_name, branch,
-                                           environment, provisioner, status,
-                                           product=product)
-
-        nodes = deployment_args.get('nodes', [])
-        for node in (ChefNode(n, local_api) for n in nodes):
-            if not node.exists:
-                logger.error("Chef node not found:{0}".format(node.name))
-                continue
-            cnode = MonsterChefNode.from_chef_node(node, product, environment,
-                                                   deployment, provisioner,
-                                                   deployment_args['branch'])
-            deployment.nodes.append(cnode)
-        return deployment
-
-    @classmethod
-    def deployment_config(cls, features, name, os_name, branch, environment,
-                          provisioner, status=None, product=None):
-        """
-        Returns deployment given dictionaries of features
-        :param features: dictionary of features {"monitoring": "default", ...}
-        :type features: dict
-        :param name: name of deployment
-        :type name: string
-        :param os_name: name of operating system
-        :type os_name: string
-        :param branch: branch of rcbops chef cookbooks to use
-        :type branch: string
-        :param environment: ChefEnvironment for deployment
-        :type environment: ChefEnvironment
-        :param provisioner: provisioner to deploy nodes
-        :type provisioner: Provisioner
-        :param status: initial status of deployment
-        :type status: string
-        :param product: name of rcbops product - compute, storage
-        :type product: string
-        :rtype: Chef
-        """
-
-        status = status or "provisioning"
-        deployment = cls(name, os_name, branch, environment,
-                         provisioner, status, product)
-        deployment.add_features(features)
-        return deployment
-
-    def add_features(self, features):
-        """
-        Adds a dictionary of features to deployment
-        :param features: dictionary of features {"monitoring": "default", ...}
-        :type features: dict
-        """
-
-        # stringify and lowercase classes in deployment features
-        classes = util.module_classes(deployment_features)
-        for feature, rpcs_feature in features.items():
-            logger.debug("feature: {0}, rpcs_feature: {1}".format(
-                feature, rpcs_feature))
-            self.features.append(classes[feature](self, rpcs_feature))
-
     def destroy(self):
-        """
-        Destroys Chef Deployment
-        """
+        """Destroys Chef Deployment."""
 
         self.status = "Destroying"
         # Nullify remote api so attributes are not sent remotely
         self.environment.remote_api = None
-        super(Chef, self).destroy()
+        super(ChefDeployment, self).destroy()
         # Destroy rogue nodes
         if not self.nodes:
-            nodes = Razor.node_search("chef_environment:{0}".
-                                      format(self.name),
-                                      tries=1)
-            for n in nodes:
-                MonsterChefNode.from_chef_node(n,
-                                               environment=self.environment).\
-                    destroy()
-
-        # Destroy Chef environment
+            pass
+            # destroy rouge nodes
         self.environment.destroy()
         self.status = "Destroyed"
 
+    def horizon(self):
+        url = "https://{0}".format(self.horizon_ip)
+        webbrowser.open_new_tab(url)
+
     def openrc(self):
-        """
-        Opens a new shell with variables loaded for novaclient
-        """
+        """Opens a new shell with variables loaded for nova-client."""
 
         user_name = self.environment.override_attributes['keystone'][
             'admin_user']
@@ -361,24 +130,19 @@ class Chef(Deployment):
             os.putenv(key, openrc[key])
         os.system(os.environ['SHELL'])
 
-    def horizon_ip(self):
-        """
-        Returns ip of horizon
-        :rtype: String
-        """
-
-        controller = next(self.search_role('controller'))
-        ip = controller.ipaddress
-        if "vips" in self.environment.override_attributes:
-            ip = self.environment.override_attributes['vips']['nova-api']
-        return ip
+    @property
+    def to_dict(self):
+        features = {key: value for (key, value) in
+                    ((str(x).lower(), x.rpcs_feature) for x in self.features)}
+        nodes = [n.name for n in self.nodes]
+        return {'nodes': nodes, 'features': features,
+                'name': self.name, 'os_name': self.os_name,
+                'branch': self.branch, 'status': self.status,
+                'product': self.product, 'provisioner': self.provisioner}
 
     @property
     def openstack_clients(self):
-        """
-        Setup openstack clients generator for deployment
-        """
-
+        """Setup OpenStack clients generator for deployment."""
         override = self.environment.override_attributes
         keystone = override['keystone']
         users = keystone['users']
@@ -391,3 +155,30 @@ class Chef(Deployment):
                       auth_url=auth_url, project_id=tenant_name,
                       tenant_name=tenant_name)
         return Clients(creds)
+
+    @property
+    def rabbitmq_mgmt_client(self):
+        """Return rabbitmq management client."""
+        if self.environment.is_high_availability:
+            ip = self.environment.rabbit_mq_queue_ip
+        else:
+            controller = next(self.search_role("controller"))
+            ip = controller.ipaddress
+        url = "{ip}:15672".format(ip=ip)
+
+        user = "guest"
+        password = "guest"
+
+        return RabbitClient(url, user, password)
+
+    @property
+    def horizon_ip(self):
+        """Returns IP of Horizon.
+        :rtype: str
+        """
+
+        controller = next(self.search_role('controller'))
+        ip = controller.ipaddress
+        if "vips" in self.environment.override_attributes:
+            ip = self.environment.override_attributes['vips']['nova-api']
+        return ip

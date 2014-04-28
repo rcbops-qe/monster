@@ -140,7 +140,7 @@ class Upgrade(object):
             "--auth-url https://127.0.0.1:443 all-nodes-in-env "
             "--name {0}".format(self.deployment.name)])
         chef_server.run_cmd("; ".join(munge))
-        self.deployment.environment.save_locally()
+        self.deployment.environment.save_remote_to_local()
 
     def pre_upgrade(self):
         """

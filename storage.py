@@ -3,95 +3,92 @@
 """ Command Line interface for Building Openstack Swift clusters
 """
 import argh
-import sys
+import traceback
 
 from monster import util
 from monster.config import Config
-from monster.deployments.chef_deployment import Chef
-from monster.provisioners import provisioner as provisioners
+from monster.orchestrator.util import get_orchestrator
 
 
-def build(name="autotest", branch="master", provisioner="rackspace",
-          template_path=None, config=None, destroy=False,
-          dry=False, log=None, log_level="INFO"):
+def build(name="autotest", branch="master", provisioner_name="rackspace",
+          template=None, config=None, destroy=False,
+          secret_path="secret.yaml", dry=False, log=None,
+          orchestrator_name="chef"):
 
     """ Builds an OpenStack Swift storage cluster
     """
-    util.set_log_level(log_level)
-
     # provisiong deployment
-    util.config = Config(config)
-    class_name = util.config["provisioners"][provisioner]
-    cprovisioner = util.module_classes(provisioners)[class_name]()
-    deployment = Chef.fromfile(name, branch, cprovisioner, template_path)
+    _load_config(config, secret_path)
+
+    orchestrator = get_orchestrator(orchestrator_name)
+    deployment = orchestrator.create_deployment_from_file(name, template,
+                                                          branch,
+                                                          provisioner_name)
+
     if dry:
-        # build environment
         try:
             deployment.update_environment()
         except Exception:
-            logger.error("Unable to update environment", exc_info=True)
-            deployment.destroy()
-            sys.exit(1)
+            error = traceback.print_exc()
+            logger.exception(error)
 
     else:
-        logger.info(deployment)
-        # build deployment
         try:
             deployment.build()
         except Exception:
-            logger.error("Unable to build deployment", exc_info=True)
-            deployment.destroy()
-            sys.exit(1)
+            error = traceback.print_exc()
+            logger.exception(error)
 
     logger.info(deployment)
+
     if destroy:
         deployment.destroy()
 
 
-def destroy(name="autotest", config=None, log=None, log_level="INFO"):
+def destroy(name="autotest", config=None, log=None):
     """ Tears down a OpenStack Storage cluster
     """
-
-    util.set_log_level(log_level)
     deployment = _load(name, config)
     logger.info(deployment)
     deployment.destroy()
 
 
-def test(name="autotest", config=None, log=None, log_level="INFO"):
+def test(name="autotest", config=None, log=None):
     """ Tests a OpenStack Storage cluster
     """
-
-    util.set_log_level(log_level)
     deployment = _load(name, config)
     deployment.test()
 
 
-def openrc(name="autotest", config=None, log=None, log_level="INFO"):
+def openrc(name="autotest", config=None, log=None):
     """ Loads the admin environment locally for a OpenStack Storage cluster
     """
-
-    util.set_log_level(log_level)
     deployment = _load(name, config)
     deployment.openrc()
 
 
-def load(name="autotest", config=None, log=None, log_level="INFO"):
+def load(name="autotest", config=None, log=None):
     """ Loads a preconfigured OpenStack Storage cluster
     """
 
-    util.set_log_level(log_level)
     # load deployment and source openrc
     deployment = _load(name, config)
     logger.info(str(deployment))
 
 
-def _load(name="autotest", config=None, provisioner="razor"):
-    # load deployment and source openrc
-    util.config = Config(config)
-    class_name = util.config["provisioners"][provisioner]
-    cprovisioner = util.module_classes(provisioners)[class_name]()
-    return Chef.from_chef_environment(environment=cprovisioner)
+def _load_config(config, secret_path):
+    if "configs/" not in config:
+        config = "configs/{}".format(config)
+    util.config = Config(config, secret_file_name=secret_path)
+
+
+def _load(name="autotest", config="config.yaml", secret_path=None,
+          orchestrator_name="chef"):
+    # Load deployment and source openrc
+    _load_config(config, secret_path)
+    orchestrator = get_orchestrator(orchestrator_name)
+    deployment = orchestrator.load_deployment_from_name(name)
+    return deployment
 
 
 # Main

@@ -70,7 +70,8 @@ class Rackspace(Openstack):
             node.run_cmd("reboot now")
             check_port(node.ipaddress, 22)
 
-    def hosts(self, node):
+    @staticmethod
+    def hosts(node):
         """
         remove /etc/hosts entries
         rabbitmq uses hostnames and don't listen on the existing public ifaces
@@ -81,7 +82,8 @@ class Rackspace(Openstack):
                "echo '127.0.0.1 localhost' >> /etc/hosts".format(node.name))
         node.run_cmd(cmd)
 
-    def mkswap(self, node, size=2):
+    @staticmethod
+    def mkswap(node, size=2):
         """
         Makes a swap file of size on the node
         :param node: Node to create swap file
@@ -102,7 +104,8 @@ class Rackspace(Openstack):
             "echo '/mnt/swap swap swap defaults 0 0' >> /etc/fstab"]
         node.run_cmd("; ".join(cmds))
 
-    def update(self, node):
+    @staticmethod
+    def update(node):
         """
         Pulls updates from the repos
         :param node: Node to update

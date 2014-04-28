@@ -19,9 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 class TempestNeutron(Test):
-    """
-    Tests a deployment with tempest
-    """
+    """Tests a deployment with tempest."""
 
     @property
     def name(self):
@@ -49,9 +47,7 @@ class TempestNeutron(Test):
         self.xunit_file = ""
 
     def tempest_configure(self):
-        """
-        Gather all the values for tempest config file
-        """
+        """Gathers all the values for tempest config file."""
         tempest = self.tempest_config
         override = self.deployment.environment.override_attributes
         controller = next(self.deployment.search_role("controller"))
@@ -104,7 +100,7 @@ class TempestNeutron(Test):
         tempest['public_router_id'] = ids.get('router_id')
 
         # discover enabled features
-        featured = lambda x: self.deployment.feature_in(x)
+        featured = lambda x: self.deployment.has_feature(x)
         tempest['cinder_enabled'] = False
         if featured('cinder'):
             tempest['cinder_enabled'] = True
@@ -117,8 +113,7 @@ class TempestNeutron(Test):
         tempest['heat_enabled'] = True if featured('orchestration') else False
 
     def tempest_ids(self, url, user, password):
-        """
-        Creates a router, network, and gets image, returns their ids
+        """Creates a router, network, and gets image, returns their ids.
         :param url: authentication url
         :type url: string
         :param user: user authenticate with
@@ -129,7 +124,7 @@ class TempestNeutron(Test):
         """
 
         # template values
-        is_neutron = self.deployment.feature_in("neutron")
+        is_neutron = self.deployment.has_feature("neutron")
         creds = {
             "USER": user,
             "PASSWORD": password,
@@ -172,10 +167,9 @@ class TempestNeutron(Test):
 
     def test_from(self, node, xunit=False, tags=None, exclude=None,
                   paths=None, config_path=None):
-        """
-        Runs tests from node
+        """Runs tests from node.
         @param xunit: Produce xunit report
-        @type xunit: Boolean
+        @type xunit: bool
         @param tags: Tags to pass the nosetests
         @type tags: list
         @param exclude: Expressions to exclude
@@ -224,9 +218,7 @@ class TempestNeutron(Test):
         node.run_cmd(command)
 
     def wait_for_results(self):
-        """
-        Wait for tempest results to come be reported
-        """
+        """Waits for tempest results to come be reported."""
         cmd = 'stat -c "%s" {0}.xml'.format(self.test_node.name)
         result = self.test_node.run_cmd(cmd)['return'].rstrip()
         while result == "0":
@@ -235,8 +227,7 @@ class TempestNeutron(Test):
             result = self.test_node.run_cmd(cmd)['return'].rstrip()
 
     def tempest_branch(self, branch):
-        """
-        Given rcbops branch, returns tempest branch
+        """Given rcbops branch, returns tempest branch.
         :param branch: branch of rcbops
         :type branch: string
         :rtype: string
@@ -254,8 +245,7 @@ class TempestNeutron(Test):
         return branch_format.format(tag_branch)
 
     def clone_repo(self, branch):
-        """
-        Clones repo onto node
+        """Clones repo onto node.
         :param branch: branch to clone
         :type branch: string
         """
@@ -265,9 +255,7 @@ class TempestNeutron(Test):
         self.test_node.run_cmd(clone)
 
     def install_package_requirements(self):
-        """
-        Installs requirements of tempest
-        """
+        """Installs requirements of tempest."""
         if self.deployment.os_name == "centos":
             self.test_node.run_cmd("yum install -y screen libxslt-devel "
                                    "postgresql-devel python-pip python-devel")
@@ -281,9 +269,7 @@ class TempestNeutron(Test):
         self.test_node.run_cmd(install_cmd)
 
     def build_config(self):
-        """
-        Builds tempest config files
-        """
+        """Builds tempest config files."""
         self.tempest_configure()
         # find template
         template_path = os.path.join(os.path.dirname(
@@ -302,18 +288,14 @@ class TempestNeutron(Test):
             w.write(template)
 
     def send_config(self):
-        """
-        Sends tempest config file to node
-        """
+        """Sends tempest config file to node."""
         tempest_dir = util.config['tests']['tempest']['dir']
         rem_config_path = "{0}/etc/tempest.conf".format(tempest_dir)
         self.test_node.run_cmd("rm {0}".format(rem_config_path))
         self.test_node.scp_to(self.path, remote_path=rem_config_path)
 
     def prepare(self):
-        """
-        Sets up tempest repo, python requirements, and config
-        """
+        """Sets up tempest repo, python requirements, and config."""
         branch = self.tempest_branch(self.deployment.branch)
         self.clone_repo(branch)
         self.install_package_requirements()
@@ -321,16 +303,12 @@ class TempestNeutron(Test):
         self.send_config()
 
     def run_tests(self):
-        """
-        Runs tempest
-        """
+        """Runs tempest."""
         exclude = ['volume', 'resize', 'floating']
         self.test_from(self.test_node, xunit=True, exclude=exclude)
 
     def collect_results(self):
-        """
-        Collects tempest report as xunit report
-        """
+        """Collects tempest report as xunit report."""
         self.wait_for_results()  # tests are run in screen
         self.xunit_file = self.test_node.name + "-" + self.time + ".xml"
         self.test_node.run_cmd("mv {0} {1}".format(self.test_node.name +

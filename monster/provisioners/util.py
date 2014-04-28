@@ -1,24 +1,25 @@
-import logging
 import sys
-
+import traceback
+from monster.provisioners.provisioner import logger
 from monster.util import module_classes
 from monster.provisioners import *
 
-logger = logging.getLogger(__name__)
 
-
-def get_provisioner(provisioner):
+def get_provisioner(provisioner_name):
     """
     This will return an instance of the correct provisioner class
-    :param provisioner: The name of the provisioner
-    :type provisioner: String
-    :rtype: object
+    :param provisioner_name: The name of the provisioner
+    :type provisioner_name: str
+    :rtype: Provisioner
     """
 
     try:
-        identifier = getattr(sys.modules['monster'].provisioners, provisioner)
+        identifier = getattr(sys.modules['monster'].provisioners,
+                             provisioner_name)
     except AttributeError:
-        logger.error("Provisioner not found: {0}".format(provisioner,
-                                                         exc_info=True))
+        print(traceback.print_exc())
+        logger.error("The provisioner \"{0}\" was not found."
+                     .format(provisioner_name))
         exit(1)
-    return module_classes(identifier)[provisioner]()
+    else:
+        return module_classes(identifier)[provisioner_name]()

@@ -1,6 +1,8 @@
+import socket
 import logging
 
-from chef import Node, Client
+from chef import Node
+
 from provisioner import Provisioner
 from gevent import spawn, joinall, sleep
 
@@ -12,9 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Openstack(Provisioner):
-    """
-    Provisions chef nodes in openstack vms
-    """
+    """Provisions Chef nodes in OpenStack VMS"""
     def __init__(self):
         self.names = []
         self.name_index = {}
@@ -23,8 +23,7 @@ class Openstack(Provisioner):
         self.compute_client = Clients(self.creds).get_client("novaclient")
 
     def name(self, name, deployment, number=None):
-        """
-        Helper for naming nodes
+        """Helper for naming nodes.
         :param name: name for node
         :type name: String
         :param deployment: deployment object
@@ -39,13 +38,12 @@ class Openstack(Provisioner):
             self.name_index[name] = num
             return "{0}-{1}{2}".format(deployment.name, name, num)
 
-        # Name doesn't exist initalize index use name
+        # Name doesn't exist initialize index use name
         self.name_index[name] = 1
         return "{0}-{1}".format(deployment.name, name)
 
     def provision(self, template, deployment):
-        """
-        Provisions a ChefNode using OpenStack
+        """Provisions a ChefNode using OpenStack.
         :param template: template for cluster
         :type template: dict
         :param deployment: ChefDeployment to provision for
@@ -66,35 +64,31 @@ class Openstack(Provisioner):
         joinall(events)
 
         # acquire chef nodes
-        chef_nodes = [event.value for event in events]
-        return chef_nodes
+        self.nodes += [event.value for event in events]
+        return self.nodes
 
-    def destroy_node(self, node):
+    def destroy_node(self, node_wrapper):
+        """Destroys Chef node from OpenStack.
+        :param node_wrapper: node to destroy
+        :type node_wrapper: ChefNodeWrapper
         """
-        Destroys chef node from openstack
-        :param node: node to destroy
-        :type node: ChefNode
-        """
-        cnode = Node(node.name, node.environment.local_api)
-        if cnode.exists:
+        client = node_wrapper.client
+        node = node_wrapper.local_node
+        if node.exists:
             self.compute_client.servers.get(node['uuid']).delete()
-            cnode.delete()
-        client = Client(node.name, node.environment.local_api)
+            node.delete()
         if client.exists:
             client.delete()
 
     def chef_instance(self, deployment, name, flavor="2GBP"):
-        """
-        Builds an instance with desired specs and inits it with chef
-        :param client: compute client object
-        :type client: novaclient.client.Client
-        :param deployment: deployement to add to
+        """Builds an instance with desired specs and initializes it with Chef.
+        :param deployment: deployment to add to
         :type deployment: ChefDeployment
         :param name: name for instance
         :type name: string
         :param flavor: desired flavor for node
         :type flavor: string
-        :rtype: ChefNode
+        :rtype: chef.Node
         """
         image = deployment.os_name
         server, password = self.build_instance(name=name, image=image,
@@ -115,6 +109,7 @@ class Openstack(Provisioner):
         while not run_cmd(command)['success']:
             logger.warning("Epic failure. Retrying...")
             sleep(1)
+
         node = Node(name, api=deployment.environment.local_api)
         node.chef_environment = deployment.environment.name
         node['in_use'] = "provisioning"
@@ -150,12 +145,8 @@ class Openstack(Provisioner):
             networks.append({"net-id": obj.id})
         return networks
 
-    def build_instance(self, name="server", image="ubuntu",
-                       flavor="2GBP"):
-        """
-        Builds an instance with desired specs
-        :param client: compute client object
-        :type client: novaclient.client.Client
+    def build_instance(self, name="server", image="ubuntu", flavor="2GBP"):
+        """Builds an instance with desired specs.
         :param name: name of server
         :type name: string
         :param image: desired image for server
@@ -184,21 +175,34 @@ class Openstack(Provisioner):
             logger.error("Instance entered error state. Retrying...")
             server.delete()
             return self.build_instance(name=name, image=image, flavor=flavor)
+        ip = server.accessIPv4
+        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        ssh_up = False
+        while not ssh_up:
+            try:
+                s.settimeout(2)
+                s.connect((ip, 22))
+                s.close()
+                ssh_up = True
+            except socket.error:
+                ssh_up = False
+                logger.debug("Waiting for ssh connection...")
+                sleep(1)
         host = server.accessIPv4
         check_port(host, 22, timeout=2)
-        return (server, password)
+        return server, password
 
-    def _client_search(self, collection_fun, attr, desired, attempts=None,
+    @staticmethod
+    def _client_search(collection_fun, attr, desired, attempts=None,
                        interval=1):
-        """
-        Searches for a desired attribute in a list of objects
+        """Searches for a desired attribute in a list of objects.
         :param collection_fun: function to get list of objects
         :type collection_fun: function
         :param attr: attribute of object to check
         :type attr: string
         :param desired: desired value of object's attribute
         :type desired: object
-        :param attempts: number of attempts to acheive state
+        :param attempts: number of attempts to achieve state
         :type attempts: int
         :param interval: time between attempts
         :type interval: int
@@ -222,23 +226,23 @@ class Openstack(Provisioner):
                 return obj
         raise Exception("Client search fail:{0} not found".format(desired))
 
-    def wait_for_state(self, fun, obj, attr, desired, interval=15,
+    @staticmethod
+    def wait_for_state(fun, obj, attr, desired, interval=15,
                        attempts=None):
-        """
-        Waits for a desired state of an object using gevented sleep
+        """Waits for a desired state of an object using gevent sleep.
         :param fun: function to update object
         :type fun: function
         :param obj: object which to check state
         :type obj: obj
         :param attr: attribute of object of which state resides
         :type attr: str
-        :param desired: desired state of attribute
-        :type desired: string
+        :param desired: desired states of attribute
+        :type desired: list of str
         :param interval: interval to check state in secs
         :param interval: int
-        :param attempts: number of attempts to acheive state
+        :param attempts: number of attempts to achieve state
         :type attempts: int
-        :rtype: object
+        :rtype: obj
         """
         attempt = 0
         in_attempt = lambda x: not attempts or attempts > x
@@ -247,7 +251,7 @@ class Openstack(Provisioner):
                                                       getattr(obj, attr)))
             sleep(interval)
             obj = fun(obj.id)
-            attempt = attempt + 1
+            attempt += 1
         return obj
 
     def power_down(self, node):
@@ -255,6 +259,9 @@ class Openstack(Provisioner):
                      "echo o > /proc/sysrq-trigger")
 
     def power_up(self, node):
-        id = node['uuid']
-        server = self.compute_client.servers.get(id)
+        uuid = node['uuid']
+        server = self.compute_client.servers.get(uuid)
         server.reboot("hard")
+
+    def reload_node_list(self, node_list, api):
+        return [Node(node_name, api) for node_name in node_list]

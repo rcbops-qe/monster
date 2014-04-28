@@ -20,7 +20,7 @@ logger = logging.getLogger(__name__)
 
 class TempestQuantum(Test):
     """
-    Tests a deployment with tempest
+    Tests a deployment with Tempest
     """
 
     @property
@@ -104,7 +104,7 @@ class TempestQuantum(Test):
         tempest['public_router_id'] = ids.get('router_id')
 
         # discover enabled features
-        featured = lambda x: self.deployment.feature_in(x)
+        featured = lambda x: self.deployment.has_feature(x)
         tempest['cinder_enabled'] = False
         if featured('cinder'):
             tempest['cinder_enabled'] = True
@@ -120,16 +120,16 @@ class TempestQuantum(Test):
         """
         Creates a router, network, and gets image, returns their ids
         :param url: authentication url
-        :type url: string
+        :type url: str
         :param user: user authenticate with
-        :type user: string
+        :type user: str
         :param password: password to authenticate user
-        :type password: string
+        :type password: str
         :rtype: dict
         """
 
         # template values
-        is_quantum = self.deployment.feature_in("neutron")
+        is_quantum = self.deployment.has_feature("neutron")
         creds = {
             "USER": user,
             "PASSWORD": password,
@@ -175,7 +175,7 @@ class TempestQuantum(Test):
         """
         Runs tests from node
         @param xunit: Produce xunit report
-        @type xunit: Boolean
+        @type xunit: bool
         @param tags: Tags to pass the nosetests
         @type tags: list
         @param exclude: Expressions to exclude
@@ -184,7 +184,7 @@ class TempestQuantum(Test):
         @param paths: list
         """
 
-        # clone tempest
+        # clone Tempest
         tempest_dir = util.config['tests']['tempest']['dir']
         checkout = "cd {0}; git checkout stable/grizzly".format(tempest_dir)
         node.run_cmd(checkout)
@@ -225,7 +225,7 @@ class TempestQuantum(Test):
 
     def wait_for_results(self):
         """
-        Wait for tempest results to come be reported
+        Wait for Tempest results to come be reported
         """
         cmd = 'stat -c "%s" {0}.xml'.format(self.test_node.name)
         result = self.test_node.run_cmd(cmd)['return'].rstrip()
@@ -245,15 +245,17 @@ class TempestQuantum(Test):
         clone = "git clone {0} -b {1} {2}".format(repo, branch, tempest_dir)
         self.test_node.run_cmd(clone)
 
-    def tempest_branch(self, branch):
+    @classmethod
+    def tempest_branch(cls, branch):
         """
-        Given rcbops branch, returns tempest branch
+        Given rcbops branch, returns Tempest branch
         :param branch: branch of rcbops
         :type branch: string
         :rtype: string
         """
         branches = util.config['rcbops']['compute']['git']['branches']
         branch_format = "stable/{0}"
+        tag_branch = ""
         if branch in branches.keys():
             tag_branch = branch_format.format(branch)
         else:
@@ -266,7 +268,7 @@ class TempestQuantum(Test):
 
     def install_package_requirements(self):
         """
-        Installs requirements of tempest
+        Installs requirements of Tempest
         """
         if self.deployment.os_name == "centos":
             self.test_node.run_cmd("yum install -y screen libxslt-devel "
@@ -275,7 +277,7 @@ class TempestQuantum(Test):
             self.test_node.run_cmd("apt-get install -y screen python-dev "
                                    "libxml2 libxslt1-dev libpq-dev python-pip")
 
-        # install python requirements for tempest
+        # install Python requirements for Tempest
         tempest_dir = util.config['tests']['tempest']['dir']
         install_cmd = ("pip install -r "
                        "{0}/tools/pip-requires").format(tempest_dir)
@@ -283,7 +285,7 @@ class TempestQuantum(Test):
 
     def build_config(self):
         """
-        Builds tempest config files
+        Builds Tempest config files
         """
         self.tempest_configure()
         # find template
@@ -304,7 +306,7 @@ class TempestQuantum(Test):
 
     def send_config(self):
         """
-        Sends tempest config file to node
+        Sends Tempest config file to node
         """
         tempest_dir = util.config['tests']['tempest']['dir']
         rem_config_path = "{0}/etc/tempest.conf".format(tempest_dir)
@@ -313,7 +315,7 @@ class TempestQuantum(Test):
 
     def prepare(self):
         """
-        Sets up tempest repo, python requirements, and config
+        Sets up Tempest repo, python requirements, and config
         """
         branch = self.tempest_branch(self.deployment.branch)
         self.clone_repo(branch)
@@ -323,7 +325,7 @@ class TempestQuantum(Test):
 
     def run_tests(self):
         """
-        Runs tempest
+        Runs Tempest
         """
         exclude = None
         self.test_from(self.test_node, xunit=True, exclude=exclude)

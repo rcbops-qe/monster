@@ -60,7 +60,7 @@ class FourOneFour(Upgrade):
         except KeyError:
             pass
 
-        if self.deployment.feature_in('highavailability'):
+        if self.deployment.has_feature('highavailability'):
             controller2 = controllers[1]
             stop = util.config['upgrade']['commands']['stop-services']
             start = util.config['upgrade']['commands']['start-services']
