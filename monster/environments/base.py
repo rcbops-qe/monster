@@ -4,34 +4,11 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-class BaseEnvironmentWrapper(dict):
+class Environment(dict):
 
-    def __init__(self, name, local_api, remote_api=None,
-                 description='', default=None, override=None):
-        super(BaseEnvironmentWrapper, self).__init__({})
+    def __init__(self, name, description=''):
         self.name = name
-        self.local_api = local_api
-        self.remote_api = remote_api
         self.description = description
-        self.default_attributes = default or {}
-        self.override_attributes = override or {}
-        self.save()
-
-    def add_override_attr(self, key, value):
-        self.override_attributes[key] = value
-        self.save()
-
-    def add_default_attr(self, key, value):
-        self.default_attributes[key] = value
-        self.save()
-
-    def del_override_attr(self, key):
-        del self.override_attributes[key]
-        self.save()
-
-    def del_default_attr(self, key):
-        del self.default_attributes[key]
-        self.save()
 
     @property
     def _local_env(self):
