@@ -1,11 +1,10 @@
 import logging
 
 import chef
-import monster.nodes.chef_node_wrapper as chef_node_wrapper
+import monster.nodes.chef_.node as chef_node_wrapper
 import monster.features.node_features as node_features
-import monster.environments.chef.environment as wrapper
+import monster.environments.chef_.environment as wrapper
 import monster.orchestrator.base as base
-
 import monster.deployments.rpcs.deployment as rpcs
 import monster.config as config
 import monster.provisioners.util as provisioner_util

@@ -1,6 +1,6 @@
 import logging
 
-import monster.orchestrator.chef.orchestrator as chef_orchestrator
+import monster.orchestrator.chef_.orchestrator as chef_orchestrator
 
 logger = logging.getLogger(__name__)
 

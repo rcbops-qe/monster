@@ -1,21 +1,20 @@
-from chef import Node, Client
-
+import chef
 import logging
 
-from monster import util
-from monster.nodes.base_node_wrapper import BaseNodeWrapper
-from monster.provisioners.util import get_provisioner
+import monster.util
+import monster.nodes.base as base
+import monster.provisioners.util as provisioner_util
 
 logger = logging.getLogger(__name__)
 
 
-class ChefNodeWrapper(BaseNodeWrapper):
+class Node(base.Node):
     """Wraps a Chef node.
     Provides chef related server functions."""
     def __init__(self, name, ip, user, password, product, deployment,
                  provisioner, environment, branch, run_list=None):
-        super(ChefNodeWrapper, self).__init__(name, ip, user, password,
-                                              product, deployment, provisioner)
+        super(Node, self).__init__(name, ip, user, password, product,
+                                   deployment, provisioner)
         self.environment = environment
         self.branch = branch
         self.run_list = run_list or []
@@ -36,7 +35,7 @@ class ChefNodeWrapper(BaseNodeWrapper):
     def build(self):
         """Builds the node."""
         self.clear_run_list()
-        super(ChefNodeWrapper, self).build()
+        super(Node, self).build()
 
     def upgrade(self, times=1, accept_failure=False):
         """Upgrade the node according to its features.
@@ -46,7 +45,7 @@ class ChefNodeWrapper(BaseNodeWrapper):
         :type accept_failure: boolean
         """
         self.branch = self.deployment.branch
-        super(ChefNodeWrapper, self).upgrade()
+        super(Node, self).upgrade()
         if not self.has_feature("chefserver"):
             try:
                 self.run(times=times)
@@ -62,7 +61,7 @@ class ChefNodeWrapper(BaseNodeWrapper):
         self.status = "apply-feature"
         if not self.has_feature("chefserver"):
             self.run()
-        super(ChefNodeWrapper, self).apply_feature()
+        super(Node, self).apply_feature()
 
     def save(self, node=None):
         """Saves a chef node to local and remote chef server."""
@@ -107,7 +106,7 @@ class ChefNodeWrapper(BaseNodeWrapper):
         node.save()
 
     def run(self, times=1, debug=True, accept_failure=True):
-        cmd = util.config['chef']['client']['run_cmd']
+        cmd = monster.util.config['chef']['client']['run_cmd']
         for i in xrange(times):
             if debug:
                 time = self.run_cmd("date +%F_%T")['return'].rstrip()
@@ -120,15 +119,15 @@ class ChefNodeWrapper(BaseNodeWrapper):
 
     @property
     def client(self):
-        return Client(self.name, self.local_api)
+        return chef.Client(self.name, self.local_api)
 
     @property
     def local_node(self):
-        return Node(self.name, self.local_api)
+        return chef.Node(self.name, self.local_api)
 
     @property
     def remote_node(self):
-        return Node(self.name, self.remote_api)
+        return chef.Node(self.name, self.remote_api)
 
     @property
     def local_api(self):
@@ -147,21 +146,20 @@ def wrap_node(node, product, environment, deployment, provisioner, branch):
     if deployment:
         remote_api = deployment.environment.remote_api
     if remote_api:
-        remote_node = Node(node.name, remote_api)
+        remote_node = chef.Node(node.name, remote_api)
         if remote_node.exists:
             node = remote_node
     ip = node['ipaddress']
     user = node['current_user']
-    default_pass = util.config['secrets']['default_pass']
+    default_pass = monster.util.config['secrets']['default_pass']
     password = node.get('password', default_pass)
     name = node.name
     archive = node.get('archive', {})
     if not provisioner:
         provisioner_name = archive.get('provisioner', 'razor2')
-        provisioner = get_provisioner(provisioner_name)
+        provisioner = provisioner_util.get_provisioner(provisioner_name)
     run_list = node.run_list
-    chef_remote_node = ChefNodeWrapper(name, ip, user, password, product,
-                                       deployment, provisioner,
-                                       environment, branch, run_list)
+    chef_remote_node = Node(name, ip, user, password, product, deployment,
+                            provisioner, environment, branch, run_list)
     chef_remote_node.add_features(archive.get('features', []))
     return chef_remote_node

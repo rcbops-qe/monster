@@ -3,20 +3,21 @@ Provides classes of nodes (server entities)
 """
 import logging
 import types
-from time import sleep
+import time
 
 from lazy import lazy
 
-from monster import util
-from monster.features import node_features
+import monster.util
+import monster.features.node_features as node_features
+import monster.server_helper as server_helper
+
 from monster.nodes.os_node_strategy import OS
-from monster.server_helper import ssh_cmd, scp_to, scp_from
 
 
 logger = logging.getLogger(__name__)
 
 
-class BaseNodeWrapper(object):
+class Node(object):
     """An individual computation entity to deploy a part OpenStack onto.
     Provides server-related functions.
     """
@@ -71,14 +72,14 @@ class BaseNodeWrapper(object):
         password = password or self.password
         logger.info("Running: {0} on {1}".format(remote_cmd, self.name))
         count = attempts or 1
-        ret = ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
-                      user=user, password=password)
+        ret = server_helper.ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
+                                    user=user, password=password)
         while not ret['success'] and count:
-            ret = ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
-                          user=user, password=password)
+            ret = server_helper.ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
+                                        user=user, password=password)
             count -= 1
             if not ret['success']:
-                sleep(5)
+                time.sleep(5)
 
         if not ret['success'] and attempts:
             raise Exception("Failed to run {0} after {1} attempts".format(
@@ -100,11 +101,11 @@ class BaseNodeWrapper(object):
         password = password or self.password
         logger.info("SCP: {0} to {1}:{2}".format(local_path, self.name,
                                                  remote_path))
-        return scp_to(self.ipaddress,
-                      local_path,
-                      user=user,
-                      password=password,
-                      remote_path=remote_path)
+        return server_helper.scp_to(self.ipaddress,
+                                    local_path,
+                                    user=user,
+                                    password=password,
+                                    remote_path=remote_path)
 
     def scp_from(self, remote_path, user=None, password=None, local_path=""):
         """Retrieves a file from the node."""
@@ -112,11 +113,11 @@ class BaseNodeWrapper(object):
         password = password or self.password
         logger.info("SCP: {0}:{1} to {2}".format(self.name, remote_path,
                                                  local_path))
-        return scp_from(self.ipaddress,
-                        remote_path,
-                        user=user,
-                        password=password,
-                        local_path=local_path)
+        return server_helper.scp_from(self.ipaddress,
+                                      remote_path,
+                                      user=user,
+                                      password=password,
+                                      local_path=local_path)
 
     def pre_configure(self):
         """Preconfigures node for each feature."""
@@ -146,7 +147,7 @@ class BaseNodeWrapper(object):
     def add_features(self, features):
         """Adds a list of feature classes."""
         logger.debug("node:{0} feature add:{1}".format(self.name, features))
-        classes = util.module_classes(node_features)
+        classes = monster.util.module_classes(node_features)
         for feature in features:
             feature_class = classes[feature](self)
             self.features.append(feature_class)
@@ -250,7 +251,7 @@ class BaseNodeWrapper(object):
     @property
     def vmnet_iface(self):
         """Return the iface that our VM data network will live on."""
-        return util.config['environments']['bridge_devices']['data']
+        return monster.util.config['environments']['bridge_devices']['data']
 
     @lazy
     def feature_names(self):

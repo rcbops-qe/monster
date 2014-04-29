@@ -70,7 +70,7 @@ class Openstack(Provisioner):
     def destroy_node(self, node_wrapper):
         """Destroys Chef node from OpenStack.
         :param node_wrapper: node to destroy
-        :type node_wrapper: ChefNodeWrapper
+        :type node_wrapper: Node
         """
         client = node_wrapper.client
         node = node_wrapper.local_node

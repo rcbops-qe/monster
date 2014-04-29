@@ -8,7 +8,7 @@ class NodeFeature(Feature):
 
     def __init__(self, node):
         """Initialize Node object.
-        :type node: monster.nodes.base_node_wrapper.BaseNodeWrapper
+        :type node: monster.nodes.base.Node
         """
         self.node = node
 

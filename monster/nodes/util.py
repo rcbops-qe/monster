@@ -1,5 +1,5 @@
-from time import sleep
-from chef import Search, autoconfigure
+import time
+import chef
 
 
 def node_search(query, environment=None, tries=10):
@@ -13,10 +13,10 @@ def node_search(query, environment=None, tries=10):
     if environment:
         api = environment.local_api
     else:
-        api = autoconfigure()
+        api = chef.autoconfigure()
     search = None
     while not search and tries > 0:
-        search = Search("node", api=api).query(query)
-        sleep(10)
+        search = chef.Search("node", api=api).query(query)
+        time.sleep(10)
         tries -= 1
     return (n.object for n in search)
