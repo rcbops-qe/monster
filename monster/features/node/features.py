@@ -1,9 +1,9 @@
-from chef import ChefAPI
-from monster import util
-from monster.features.base_feature import Feature
+import chef
+import monster.util as util
+import monster.features.base as base
 
 
-class NodeFeature(Feature):
+class Feature(base.Feature):
     """Represents a feature on a node."""
 
     def __init__(self, node):
@@ -66,7 +66,7 @@ class NodeFeature(Feature):
         self.run_cmd(store_running_services)
 
 
-class Berkshelf(NodeFeature):
+class Berkshelf(Feature):
     """Represents a node with berks installed."""
 
     def pre_configure(self):
@@ -116,7 +116,7 @@ class Berkshelf(NodeFeature):
         self.node.run_cmds(commands)
 
 
-class ChefServer(NodeFeature):
+class ChefServer(Feature):
     """Represents a chef server."""
 
     def __init__(self, node):
@@ -163,6 +163,7 @@ class ChefServer(NodeFeature):
         cookbook_url = util.config['rcbops'][self.node.product]['git']['url']
         cookbook_branch = self.node.branch
         cookbook_name = cookbook_url.split("/")[-1].split(".")[0]
+
         install_dir = directory or util.config['chef']['server']['install_dir']
 
         commands = ["mkdir -p {0}".format(install_dir),
@@ -218,7 +219,7 @@ class ChefServer(NodeFeature):
     def remote_chef_api(cls, chef_api_dict):
         """Builds a remote chef API object."""
 
-        return ChefAPI(**chef_api_dict)
+        return chef.ChefAPI(**chef_api_dict)
 
     def _get_admin_pem(self):
         """Gets the admin pem from the chef server."""
@@ -237,7 +238,7 @@ class ChefServer(NodeFeature):
                 node.save_to_node()
 
 
-class Cinder(NodeFeature):
+class Cinder(Feature):
     """Enables cinder with local lvm backend."""
 
     def pre_configure(self):
@@ -248,7 +249,7 @@ class Cinder(NodeFeature):
                         "configs": [""]}
 
 
-class Compute(NodeFeature):
+class Compute(Feature):
     """Represents a RPCS compute """
 
     def pre_configure(self):
@@ -270,7 +271,7 @@ class Compute(NodeFeature):
                         "configs": ["nova"]}
 
 
-class Controller(NodeFeature):
+class Controller(Feature):
     """Represents a RPCS Controller """
 
     def __init__(self, node):
@@ -333,7 +334,7 @@ class Controller(NodeFeature):
                                     "ufw"]}
 
 
-class Metrics(NodeFeature):
+class Metrics(Feature):
     """Represents a Metrics Node."""
 
     def __init__(self, node):
@@ -365,7 +366,7 @@ class Metrics(NodeFeature):
         self.node.add_run_list_item(run_list)
 
 
-class Network(NodeFeature):
+class Network(Feature):
     """Sets the node to be a network."""
 
     def pre_configure(self):
@@ -376,7 +377,7 @@ class Network(NodeFeature):
                         "configs": [""]}
 
 
-class NetworkManager(NodeFeature):
+class NetworkManager(Feature):
 
     def preconfigure(self):
         self.set_run_list()
@@ -386,7 +387,7 @@ class NetworkManager(NodeFeature):
                         "configs": [""]}
 
 
-class OpenLDAP(NodeFeature):
+class OpenLDAP(Feature):
     """Represents a LDAP server."""
 
     def pre_configure(self):
@@ -405,7 +406,7 @@ class OpenLDAP(NodeFeature):
         self.node.run_cmd(ldapadd)
 
 
-class Orchestration(NodeFeature):
+class Orchestration(Feature):
 
     def __init__(self, node):
         super(Orchestration, self).__init__(node)
@@ -427,7 +428,7 @@ class Orchestration(NodeFeature):
                         "configs": [""]}
 
 
-class Proxy(NodeFeature):
+class Proxy(Feature):
     """Represents a RPCS proxy node."""
 
     def pre_configure(self):
@@ -438,7 +439,7 @@ class Proxy(NodeFeature):
                         "configs": [""]}
 
 
-class Remote(NodeFeature):
+class Remote(Feature):
     """Represents the deployment having a remote chef server."""
 
     def pre_configure(self):
@@ -465,7 +466,7 @@ class Remote(NodeFeature):
         self.node.save()
 
 
-class Storage(NodeFeature):
+class Storage(Feature):
     """Represents a RPCS proxy node."""
 
     def pre_configure(self):

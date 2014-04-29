@@ -68,13 +68,13 @@ class Provisioner(base.Provisioner):
         self.nodes += [event.value for event in events]
         return self.nodes
 
-    def destroy_node(self, node_wrapper):
+    def destroy_node(self, node):
         """Destroys Chef node from OpenStack.
-        :param node_wrapper: node to destroy
-        :type node_wrapper: Node
+        :param node: node to destroy
+        :type node: monster.nodes.base.Node
         """
-        client = node_wrapper.client
-        node = node_wrapper.local_node
+        client = node.client
+        node = node.local_node
         if node.exists:
             self.compute_client.servers.get(node['uuid']).delete()
             node.delete()

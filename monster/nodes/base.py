@@ -8,9 +8,9 @@ import time
 from lazy import lazy
 
 import monster.util
-import monster.features.node_features as node_features
+import monster.features.node.features as node_features
 import monster.server_helper as server_helper
-from monster.nodes.utils.os_node_strategy import OS
+import monster.nodes.util as node_util
 
 
 logger = logging.getLogger(__name__)
@@ -258,4 +258,4 @@ class Node(object):
 
     @lazy
     def os(self):
-        return OS(self.os_name)
+        return node_util.OS.commands(self.os_name)

@@ -4,7 +4,7 @@ import time
 
 import requests
 
-from monster.nodes.utils.node_search import node_search
+import monster.nodes.util as node_utils
 import monster.provisioners.base as base
 import monster.util
 
@@ -43,7 +43,7 @@ class Provisioner(base.Provisioner):
         """
         # TODO: Should probably search on system name node attributes
         # Avoid specific naming of razor nodes, not portable
-        nodes = node_search("name:qa-%s-pool*" % image)
+        nodes = node_utils.node_search("name:qa-%s-pool*" % image)
         for node in nodes:
             is_default = node.chef_environment == "_default"
             iface_in_run_list = "recipe[network-interfaces]" in node.run_list

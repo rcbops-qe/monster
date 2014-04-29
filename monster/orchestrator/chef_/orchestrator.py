@@ -2,7 +2,7 @@ import logging
 
 import chef
 import monster.nodes.chef_.node as chef_node_wrapper
-import monster.features.node_features as node_features
+import monster.features.node.features as node_features
 import monster.environments.chef_.environment as wrapper
 import monster.orchestrator.base as base
 import monster.deployments.rpcs.deployment as rpcs
