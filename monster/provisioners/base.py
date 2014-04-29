@@ -27,28 +27,28 @@ class Provisioner(object):
     def post_provision(self, node):
         """Tasks to be done after a node is provisioned.
         :param node: Node object to be tasked
-        :type node: nodes.BaseNodeWrapper
+        :type node: monster.nodes.base.Node
         """
         pass
 
     def destroy_node(self, node):
         """Destroys node.
         :param node: node to destroy
-        :type node: nodes.BaseNodeWrapper
+        :type node: monster.nodes.base.Node
         """
         raise NotImplementedError
 
     def power_down(self, node):
         """Turns a node off.
         :param node: node to power off
-        :type node: nodes.BaseNodeWrapper
+        :type node: monster.nodes.base.Node
         """
         raise NotImplementedError
 
     def power_up(self, node):
         """Turns a node on.
         :param node: node to power on
-        :type node: nodes.BaseNodeWrapper
+        :type node: monster.nodes.base.Node
         """
         raise NotImplementedError
 
@@ -58,7 +58,7 @@ class Provisioner(object):
     def build_nodes(self, template, deployment, node_wrapper):
         """
         :param node_wrapper: Module that contains a wrap_node function.
-        See chef_node_wrapper.wrap_node for an example.
+        See monster.nodes.chef.node for an example.
         :type node_wrapper: module
         """
         product = template['product']
@@ -83,7 +83,7 @@ class Provisioner(object):
     def load_nodes(self, env, deployment, node_wrapper):
         """
         :param node_wrapper: Module that contains a wrap_node function
-        See chef_node_wrapper.wrap_node for an example.
+        See monster.nodes.chef.node for an example.
         :type node_wrapper: module
         """
         nodes_to_load = self.reload_node_list(env.nodes, env.local_api)

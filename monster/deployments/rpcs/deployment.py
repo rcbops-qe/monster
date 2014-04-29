@@ -30,8 +30,12 @@ class Deployment(base.Deployment):
         :type features: monster.features.base.Feature
         """
         status = status or "provisioning"
-        super(Deployment, self).__init__(name, os_name, branch, provisioner,
-                                         status, product, clients, features)
+        super(Deployment, self).__init__(name=name, os_name=os_name,
+                                         branch=branch,
+                                         environment=environment,
+                                         provisioner=provisioner,
+                                         status=status, product=product,
+                                         clients=clients, features=features)
         self.has_controller = False
         self.has_orch_master = False
 
@@ -53,7 +57,7 @@ class Deployment(base.Deployment):
         """This will return an instance of the correct upgrade class.
         :param branch_name: The name of the provisioner
         :type branch_name: str
-        :rtype: Deployment
+        :rtype: monster.deployments.base.Deployment
         """
 
         # convert branch into a list of int strings

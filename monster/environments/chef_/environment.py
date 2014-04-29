@@ -35,19 +35,21 @@ class Environment(base.Environment):
         }
         return str(chef_dict)
 
-    @property
-    def _local_env(self):
-        if self.local_api:
-            return chef.Environment(self.name, self.local_api)
-        else:
-            return None
+    def add_override_attr(self, key, value):
+        self.override_attributes[key] = value
+        self.save()
 
-    @property
-    def _remote_env(self):
-        if self.remote_api:
-            return chef.Environment(self.name, self.remote_api)
-        else:
-            return None
+    def add_default_attr(self, key, value):
+        self.default_attributes[key] = value
+        self.save()
+
+    def del_override_attr(self, key):
+        del self.override_attributes[key]
+        self.save()
+
+    def del_default_attr(self, key):
+        del self.default_attributes[key]
+        self.save()
 
     def save(self):
         env = self._local_env
@@ -80,6 +82,20 @@ class Environment(base.Environment):
     @property
     def deployment_attributes(self):
         return self.override_attributes.get('deployment', {})
+
+    @property
+    def _local_env(self):
+        if self.local_api:
+            return chef.Environment(self.name, self.local_api)
+        else:
+            return None
+
+    @property
+    def _remote_env(self):
+        if self.remote_api:
+            return chef.Environment(self.name, self.remote_api)
+        else:
+            return None
 
     @property
     def features(self):

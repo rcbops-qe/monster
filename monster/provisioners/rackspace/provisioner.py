@@ -28,6 +28,9 @@ class Provisioner(openstack.Provisioner):
         self.compute_client = pyrax.cloudservers
         self.neutron = pyrax.cloud_networks
 
+    def __str__(self):
+        return 'rackspace'
+
     def get_networks(self):
         rackspace = monster.util.config[str(self)]
         desired_networks = rackspace['networks']

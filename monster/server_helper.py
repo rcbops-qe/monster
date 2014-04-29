@@ -1,12 +1,12 @@
 import logging
 import os
 import socket
+import subprocess
 import sys
+import time
 
-from cStringIO import StringIO
-from paramiko import SSHClient, WarningPolicy
-from subprocess import check_call, CalledProcessError
-from time import sleep
+import paramiko
+import cStringIO
 
 logger = logging.getLogger(__name__)
 
@@ -29,8 +29,9 @@ def check_port(host, port, timeout=2):
         except socket.error:
             ssh_up = False
             logger.debug("Waiting for ssh connection...")
-            sleep(1)
-        ssh_up = True
+            time.sleep(1)
+        else:
+            ssh_up = True
     return ssh_up
 
 
@@ -41,9 +42,9 @@ def run_cmd(command):
     """
     logger.info("Running: {0}".format(command))
     try:
-        ret = check_call(command, shell=True, env=os.environ)
+        ret = subprocess.check_call(command, shell=True, env=os.environ)
         return {'success': True, 'return': ret, 'exception': None}
-    except CalledProcessError, cpe:
+    except subprocess.CalledProcessError, cpe:
         return {'success': False,
                 'return': None,
                 'exception': cpe,
@@ -52,16 +53,15 @@ def run_cmd(command):
 
 def ssh_cmd(server_ip, remote_cmd, user='root', password=None):
     """
-    @param server_ip
-    @param user
-    @param password
-    @param remote_cmd
-    @return A map based on pass / fail run info
+    :param server_ip
+    :param user
+    :param password
+    :param remote_cmd
+    :return A map based on pass / fail run info
     """
-    output = StringIO()
-    error = StringIO()
-    ssh = SSHClient()
-    ssh.set_missing_host_key_policy(WarningPolicy())
+    output = cStringIO.StringIO()
+    error = cStringIO.StringIO()
+    ssh = get_paramiko_ssh_client()
     ssh.connect(server_ip, username=user, password=password, allow_agent=False)
     stdin, stdout, stderr = ssh.exec_command(remote_cmd)
     stdin.close()
@@ -83,13 +83,11 @@ def ssh_cmd(server_ip, remote_cmd, user='root', password=None):
 
 
 def scp_to(ip, local_path, user='root', password=None, remote_path=""):
+    """Send a file to a server.
+    :param local_path: file on localhost to copy
+    :param remote_path: destination to copy to
     """
-    Send a file to a server
-    @param local_path: file on localhost to copy
-    @param remote_path: destination to copy to
-    """
-    ssh = SSHClient()
-    ssh.set_missing_host_key_policy(WarningPolicy())
+    ssh = get_paramiko_ssh_client()
     ssh.connect(ip, username=user, password=password, allow_agent=False)
     sftp = ssh.open_sftp()
     sftp.put(local_path, remote_path)
@@ -97,11 +95,16 @@ def scp_to(ip, local_path, user='root', password=None, remote_path=""):
 
 def scp_from(ip, remote_path, user='root', password=None, local_path=""):
     """
-    @param remote_path: file to copy
-    @param local_path: place on localhost to place file
+    :param remote_path: file to copy
+    :param local_path: place on localhost to place file
     """
-    ssh = SSHClient()
-    ssh.set_missing_host_key_policy(WarningPolicy())
+    ssh = get_paramiko_ssh_client()
     ssh.connect(ip, username=user, password=password, allow_agent=False)
     sftp = ssh.open_sftp()
     sftp.get(remote_path, local_path)
+
+
+def get_paramiko_ssh_client():
+    ssh = paramiko.SSHClient()
+    ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
+    return ssh

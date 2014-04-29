@@ -19,8 +19,11 @@ class Provisioner(base.Provisioner):
         self.ipaddress = ip or monster.util.config['secrets']['razor']['ip']
         self.api = RazorAPI(self.ipaddress)
 
+    def __str__(self):
+        return 'razor'
+
     def provision(self, template, deployment):
-        """Provisions a ChefNode using Razor environment.
+        """Provisions a chef node using Razor environment.
         :param template: template for cluster
         :type template: dict
         :param deployment: ChefDeployment to provision for
@@ -66,13 +69,13 @@ class Provisioner(base.Provisioner):
     def power_up(self, node):
         pass
 
-    def destroy_node(self, node_wrapper):
+    def destroy_node(self, node):
         """Destroys a node provisioned by Razor.
-        :param node_wrapper: Node to destroy
-        :type node_wrapper: Node
+        :param node: Node to destroy
+        :type node: monster.nodes.base.Node
         """
-        node = node_wrapper.local_node
-        in_use = node_wrapper['in_use']
+        node = node.local_node
+        in_use = node['in_use']
         if in_use == "provisioning" or in_use == 0:
             # Return to pool if the node is clean
             node['in_use'] = 0
@@ -83,14 +86,14 @@ class Provisioner(base.Provisioner):
             # Remove active model if the node is dirty
             active_model = node['razor_metadata']['razor_active_model_uuid']
             try:
-                if node_wrapper.has_feature('controller'):
+                if node.has_feature('controller'):
                     # rabbit can cause the node to not actually reboot
                     kill = ("for i in `ps -U rabbitmq | tail -n +2 | "
                             "awk '{print $1}' `; do kill -9 $i; done")
-                    node_wrapper.run_cmd(kill)
-                node_wrapper.run_cmd("shutdown -r now")
+                    node.run_cmd(kill)
+                node.run_cmd("shutdown -r now")
                 self.api.remove_active_model(active_model)
-                node_wrapper.client.delete()
+                node.client.delete()
                 node.delete()
                 time.sleep(15)
             except:
@@ -144,7 +147,7 @@ class RazorAPI(object):
         # Call the Razor RESTful API to get a list of models
         headers = {'content-type': 'application/json'}
         request = requests.get('{0}/model/templates'.format(self.url),
-                         headers=headers)
+                               headers=headers)
 
         # Check the status code and return appropriately
         if request.status_code == 200:

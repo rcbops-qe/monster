@@ -1,13 +1,13 @@
 import logging
 
 import chef
-import monster.nodes.chef_.node as chef_node_wrapper
-import monster.features.node.features as node_features
-import monster.environments.chef_.environment as wrapper
-import monster.orchestrator.base as base
-import monster.deployments.rpcs.deployment as rpcs
 import monster.config as config
+import monster.deployments.rpcs.deployment as rpcs
+import monster.environments.chef_.environment as env_wrapper
+import monster.features.node.features as node_features
+import monster.orchestrator.base as base
 import monster.provisioners.util as provisioner_util
+import monster.nodes.chef_.node as node_wrapper
 
 
 logger = logging.getLogger(__name__)
@@ -34,8 +34,9 @@ class Orchestrator(base.Orchestrator):
             logger.info("Using previous deployment:{0}".format(name))
             return self.load_deployment_from_name(name)
 
-        environment = wrapper.Environment(name=name, local_api=self.local_api,
-                                          description=name)
+        environment = env_wrapper.Environment(name=name,
+                                              local_api=self.local_api,
+                                              description=name)
 
         template = config.fetch_template(template, branch)
 
@@ -46,7 +47,7 @@ class Orchestrator(base.Orchestrator):
                                      features=features)
 
         deployment.nodes = provisioner.build_nodes(template, deployment,
-                                                   chef_node_wrapper)
+                                                   node_wrapper)
         return deployment
 
     def load_deployment_from_name(self, name):
@@ -56,10 +57,10 @@ class Orchestrator(base.Orchestrator):
         :rtype: Deployment
         """
         default, override, remote_api = self.load_environment_attributes(name)
-        env = wrapper.Environment(name=name, local_api=self.local_api,
-                                  remote_api=remote_api, description=name,
-                                  default_attributes=default,
-                                  override_attributes=override)
+        env = env_wrapper.Environment(name=name, local_api=self.local_api,
+                                      remote_api=remote_api, description=name,
+                                      default_attributes=default,
+                                      override_attributes=override)
 
         provisioner = provisioner_util.get_provisioner(env.provisioner)
 
@@ -68,7 +69,7 @@ class Orchestrator(base.Orchestrator):
                                      features=env.features)
 
         deployment.nodes = provisioner.load_nodes(env, deployment,
-                                                  chef_node_wrapper)
+                                                  node_wrapper)
         return deployment
 
     def load_environment_attributes(self, name):

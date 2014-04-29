@@ -1,4 +1,3 @@
-import socket
 import logging
 import gevent
 
@@ -23,6 +22,9 @@ class Provisioner(base.Provisioner):
         self.auth_client = openstack_clients.keystoneclient
         self.compute_client = openstack_clients.novaclient
 
+    def __str__(self):
+        return 'openstack'
+
     def name(self, name, deployment, number=None):
         """Helper for naming nodes.
         :param name: name for node
@@ -44,7 +46,7 @@ class Provisioner(base.Provisioner):
         return "{0}-{1}".format(deployment.name, name)
 
     def provision(self, template, deployment):
-        """Provisions a ChefNode using OpenStack.
+        """Provisions a chef node using OpenStack.
         :param template: template for cluster
         :type template: dict
         :param deployment: ChefDeployment to provision for

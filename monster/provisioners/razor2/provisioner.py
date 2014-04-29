@@ -19,6 +19,9 @@ class Provisioner(base.Provisioner):
         self.url = url or monster.util.config['secrets']['razor']['url']
         self.api = RazorAPI2(self.url)
 
+    def __str__(self):
+        return 'razor2'
+
     def provision(self, template, deployment):
         """Provisions nodes using Razor environment.
         :param template: template for cluster
@@ -57,13 +60,13 @@ class Provisioner(base.Provisioner):
         logger.info("Cannot build, no more available_nodes")
         sys.exit(1)
 
-    def power_down(self, node_wrapper):
-        if node_wrapper.has_feature('controller'):
+    def power_down(self, node):
+        if node.has_feature('controller'):
             # rabbit can cause the node to not actually reboot
             kill = ("for i in `ps -U rabbitmq | tail -n +2 | "
                     "awk '{print $1}' `; do kill -9 $i; done")
-            node_wrapper.run_cmd(kill)
-        node_wrapper.run_cmd("shutdown -r now")
+            node.run_cmd(kill)
+        node.run_cmd("shutdown -r now")
 
     def power_up(self, node):
         pass
