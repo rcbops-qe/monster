@@ -1,23 +1,23 @@
-import logging
-from chef import Environment as ChefEnvironment
-
-from monster.environments.base import Environment
-
-logger = logging.getLogger(__name__)
+import chef
+import monster.environments.base as base
 
 
-class Environment(Environment):
+logger = base.logger
+
+
+class Environment(base.Environment):
 
     def __init__(self, name, description, local_api, remote_api=None,
                  default_attributes=None, override_attributes=None,
-                 cookbook_versions={}):
-        super(Environment, self).__init__(name=name,
-                                          description=description)
+                 cookbook_versions=None):
+        """Initializes a Chef Environment wrapper."""
+        super(Environment, self).__init__(name=name, description=description)
+
         self.local_api = local_api
         self.remote_api = remote_api
-        self.default_attributes = default_attributes
-        self.override_attributes = override_attributes
-        self.cookbook_versions = cookbook_versions
+        self.default_attributes = default_attributes or {}
+        self.override_attributes = override_attributes or {}
+        self.cookbook_versions = cookbook_versions or {}
         self.json_class = "Chef::Environment"
         self.chef_type = "environment"
 
@@ -38,14 +38,14 @@ class Environment(Environment):
     @property
     def _local_env(self):
         if self.local_api:
-            return ChefEnvironment(self.name, self.local_api)
+            return chef.Environment(self.name, self.local_api)
         else:
             return None
 
     @property
     def _remote_env(self):
         if self.remote_api:
-            return ChefEnvironment(self.name, self.remote_api)
+            return chef.Environment(self.name, self.remote_api)
         else:
             return None
 

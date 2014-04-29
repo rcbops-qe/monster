@@ -1,12 +1,12 @@
 import logging
 
-
 logger = logging.getLogger(__name__)
 
 
 class Environment(dict):
 
     def __init__(self, name, description=''):
+        super(Environment, self).__init__()
         self.name = name
         self.description = description
 
