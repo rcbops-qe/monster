@@ -20,7 +20,7 @@ class Provisioner(base.Provisioner):
         self.api = RazorAPI2(self.url)
 
     def provision(self, template, deployment):
-        """Provisions a ChefNode using Razor environment.
+        """Provisions nodes using Razor environment.
         :param template: template for cluster
         :type template: dict
         :param deployment: ChefDeployment to provision for
@@ -68,13 +68,13 @@ class Provisioner(base.Provisioner):
     def power_up(self, node):
         pass
 
-    def destroy_node(self, node_wrapper):
-        """Destroys a node provisioned by razor.
-        :param node_wrapper: Node to destroy
-        :type node_wrapper: Node
+    def destroy_node(self, node):
+        """Destroys a node provisioned by Razor.
+        :param node: node to destroy
+        :type node: monster.nodes.chef_.node.Node
         """
-        node = node_wrapper.local_node
-        in_use = node_wrapper['in_use']
+        node = node.local_node
+        in_use = node['in_use']
         if in_use == "provisioning" or in_use == 0:
             # Return to pool if the node is clean
             node['in_use'] = 0
@@ -85,14 +85,14 @@ class Provisioner(base.Provisioner):
             # Reinstall node if the node is dirty
             razor_node = node.name.split("-")[0]
             try:
-                if node_wrapper.has_feature('controller'):
+                if node.has_feature('controller'):
                     # rabbit can cause the node to not actually reboot
                     kill = ("for i in `ps -U rabbitmq | tail -n +2 | "
                             "awk '{print $1}' `; do kill -9 $i; done")
-                    node_wrapper.run_cmd(kill)
-                node_wrapper.run_cmd("shutdown -r now")
+                    node.run_cmd(kill)
+                node.run_cmd("shutdown -r now")
                 self.api.reinstall_node(razor_node)
-                node_wrapper.client.delete()
+                node.client.delete()
                 node.delete()
             except Exception:
                 logger.error("Node unreachable. "
@@ -150,7 +150,7 @@ class RazorAPI2(object):
         headers = {'content-type': 'application/json'}
         data = '{{"name": "{0}"}}'.format(node)
         request = requests.post('{0}/commands/reinstall-node'.format(self.url),
-                          headers=headers, data=data)
+                                headers=headers, data=data)
 
         # Check the status code and return appropriately
         if request.status_code == 202 and 'no changes' not in request.content:
