@@ -23,11 +23,11 @@ class Deployment(base.Deployment):
         :type name: str
         :type os_name: str
         :type branch: str
-        :type environment: ChefEnvironmentWrapper
-        :type provisioner: Provisioner
+        :type environment: monster.environments.chef.environment.Environment
+        :type provisioner: monster.provisioners.base.Provisioner
         :type status: str
         :type product: str
-        :type features: Feature
+        :type features: monster.features.base.Feature
         """
         status = status or "provisioning"
         super(Deployment, self).__init__(name, os_name, branch, provisioner,
