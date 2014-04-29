@@ -7,7 +7,7 @@ def node_search(query, environment=None, tries=10):
     :param query: search query to request
     :type query: string
     :param environment: Environment the query should be
-    :type environment: ChefEnvironment
+    :type environment: monster.environments.chef.environment.Environment
     :rtype: Iterator (chef.Node)
     """
     if environment:

@@ -10,8 +10,7 @@ from lazy import lazy
 import monster.util
 import monster.features.node_features as node_features
 import monster.server_helper as server_helper
-
-from monster.nodes.os_node_strategy import OS
+from monster.nodes.utils.os_node_strategy import OS
 
 
 logger = logging.getLogger(__name__)

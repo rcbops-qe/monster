@@ -5,7 +5,7 @@ import webbrowser
 import chef
 import pyrabbit.api as rabbit
 
-import monster.util as util
+import monster.util
 import monster.upgrades.util as upgrades_util
 import monster.clients.openstack as openstack
 import monster.deployments.base as base
@@ -32,7 +32,6 @@ class Deployment(base.Deployment):
         status = status or "provisioning"
         super(Deployment, self).__init__(name, os_name, branch, provisioner,
                                          status, product, clients, features)
-        self.environment = environment
         self.has_controller = False
         self.has_orch_master = False
 
@@ -73,7 +72,7 @@ class Deployment(base.Deployment):
         except AttributeError:
             raise NameError("{0} doesn't exist.".format(up_class_module))
 
-        return util.module_classes(identifier)[up_class](self)
+        return monster.util.module_classes(identifier)[up_class](self)
 
     def upgrade(self, branch_name):
         """Upgrades the deployment."""

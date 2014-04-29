@@ -1,21 +1,22 @@
 import json
 import logging
-import requests
 import sys
 
-from monster.nodes.util import node_search
-from provisioner import Provisioner
+import requests
 
-from monster import util
+from monster.nodes.utils.node_search import node_search
+import monster.provisioners.base as base
+import monster.util
+
 
 logger = logging.getLogger(__name__)
 
 
-class Razor2(Provisioner):
+class Razor2(base.Provisioner):
     """Provisions chef nodes in a Razor environment."""
 
     def __init__(self, url=None):
-        self.url = url or util.config['secrets']['razor']['url']
+        self.url = url or monster.util.config['secrets']['razor']['url']
         self.api = RazorAPI2(self.url)
 
     def provision(self, template, deployment):
@@ -93,7 +94,7 @@ class Razor2(Provisioner):
                 self.api.reinstall_node(razor_node)
                 node_wrapper.client.delete()
                 node.delete()
-            except:
+            except Exception:
                 logger.error("Node unreachable. "
                              "Manual restart required:{0}".format(str(node)))
 

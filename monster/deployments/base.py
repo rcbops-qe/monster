@@ -12,11 +12,12 @@ logger = logging.getLogger(__name__)
 class Deployment(object):
     """Base for OpenStack deployments."""
 
-    def __init__(self, name, os_name, branch, provisioner, status, product,
-                 clients=None, features=None):
+    def __init__(self, name, os_name, branch, environment, provisioner, status,
+                 product, clients=None, features=None):
         self.name = name
         self.os_name = os_name
         self.branch = branch
+        self.environment = environment
         self.features = []
         self.nodes = []
         self.status = status or "Provisioning..."

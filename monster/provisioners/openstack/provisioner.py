@@ -1,33 +1,34 @@
 import socket
 import logging
 
-from chef import Node
+import chef
 
-from provisioner import Provisioner
-from gevent import spawn, joinall, sleep
-
-from monster import util
-from monster.clients.openstack import Creds, Clients
-from monster.server_helper import run_cmd, check_port
+import gevent
+import monster.util
+import monster.provisioners.base as base
+import monster.clients.openstack as openstack
+import monster.server_helper
 
 logger = logging.getLogger(__name__)
 
 
-class Openstack(Provisioner):
-    """Provisions Chef nodes in OpenStack VMS"""
+class Provisioner(base.Provisioner):
+    """Provisions Chef nodes in OpenStack VMS."""
     def __init__(self):
         self.names = []
         self.name_index = {}
-        self.creds = Creds()
-        self.auth_client = Clients(self.creds).get_client("keystoneclient")
-        self.compute_client = Clients(self.creds).get_client("novaclient")
+        self.creds = openstack.Creds()
+
+        openstack_clients = openstack.Clients(self.creds)
+        self.auth_client = openstack_clients.keystoneclient
+        self.compute_client = openstack_clients.novaclient
 
     def name(self, name, deployment, number=None):
         """Helper for naming nodes.
         :param name: name for node
         :type name: String
         :param deployment: deployment object
-        :type deployment: Deployment
+        :type deployment: monster.deployments.base.Deployment
         :param number: number to append to name
         :type number: int
         :rtype: string
@@ -47,7 +48,7 @@ class Openstack(Provisioner):
         :param template: template for cluster
         :type template: dict
         :param deployment: ChefDeployment to provision for
-        :type deployment: Deployment
+        :type deployment: monster.deployments.base.Deployment
         :rtype: list
         """
         logger.info("Provisioning in the cloud!")
@@ -58,10 +59,10 @@ class Openstack(Provisioner):
         for features in template['nodes']:
             name = self.name(features[0], deployment)
             self.names.append(name)
-            flavor = util.config['rackspace']['roles'][features[0]]
-            events.append(spawn(self.chef_instance, deployment, name,
-                                flavor=flavor))
-        joinall(events)
+            flavor = monster.util.config['rackspace']['roles'][features[0]]
+            events.append(gevent.spawn(self.chef_instance, deployment, name,
+                                       flavor=flavor))
+        gevent.joinall(events)
 
         # acquire chef nodes
         self.nodes += [event.value for event in events]
@@ -83,7 +84,7 @@ class Openstack(Provisioner):
     def chef_instance(self, deployment, name, flavor="2GBP"):
         """Builds an instance with desired specs and initializes it with Chef.
         :param deployment: deployment to add to
-        :type deployment: Deployment
+        :type deployment: monster.deployments.base.Deployment
         :param name: name for instance
         :type name: string
         :param flavor: desired flavor for node
@@ -94,23 +95,23 @@ class Openstack(Provisioner):
         server, password = self.build_instance(name=name, image=image,
                                                flavor=flavor)
         run_list = ""
-        if util.config[str(self)]['run_list']:
-            run_list = ",".join(util.config[str(self)]['run_list'])
+        if monster.util.config[str(self)]['run_list']:
+            run_list = ",".join(monster.util.config[str(self)]['run_list'])
         run_list_arg = ""
         if run_list:
             run_list_arg = "-r {0}".format(run_list)
-        client_version = util.config['chef']['client']['version']
+        client_version = monster.util.config['chef']['client']['version']
         command = ("knife bootstrap {0} -u root -P {1} -N {2} {3}"
                    " --bootstrap-version {4}".format(server.accessIPv4,
                                                      password,
                                                      name,
                                                      run_list_arg,
                                                      client_version))
-        while not run_cmd(command)['success']:
+        while not monster.server_helper.run_cmd(command)['success']:
             logger.warning("Epic failure. Retrying...")
-            sleep(1)
+            gevent.sleep(1)
 
-        node = Node(name, api=deployment.environment.local_api)
+        node = chef.Node(name, api=deployment.environment.local_api)
         node.chef_environment = deployment.environment.name
         node['in_use'] = "provisioning"
         node['ipaddress'] = server.accessIPv4
@@ -137,7 +138,7 @@ class Openstack(Provisioner):
                                    image_name, attempts=10)
 
     def get_networks(self):
-        desired_networks = util.config[str(self)]['networks']
+        desired_networks = monster.util.config[str(self)]['networks']
         networks = []
         for network in desired_networks:
             obj = self._client_search(self.neutron.list, "label",
@@ -155,7 +156,7 @@ class Openstack(Provisioner):
         :type flavor: string
         :rtype: Server
         """
-        self.config = util.config[str(self)]
+        self.config = monster.util.config[str(self)]
 
         # gather attribute objects
         flavor_obj = self.get_flavor(flavor)
@@ -176,7 +177,7 @@ class Openstack(Provisioner):
             server.delete()
             return self.build_instance(name=name, image=image, flavor=flavor)
         host = server.accessIPv4
-        check_port(host, 22, timeout=2)
+        monster.server_helper.check_port(host, 22, timeout=2)
         return server, password
 
     @staticmethod
@@ -237,7 +238,7 @@ class Openstack(Provisioner):
             logger.debug("Attempt: {0}/{1}".format(attempt, attempts))
             logger.info("Waiting: {0} {1}:{2}".format(obj, attr,
                                                       getattr(obj, attr)))
-            sleep(interval)
+            gevent.sleep(interval)
             obj = fun(obj.id)
             attempt += 1
         return obj
@@ -251,5 +252,5 @@ class Openstack(Provisioner):
         server = self.compute_client.servers.get(uuid)
         server.reboot("hard")
 
-    def reload_node_list(self, node_list, api):
-        return [Node(node_name, api) for node_name in node_list]
+    def reload_node_list(self, node_names, api):
+        return [chef.Node(node_name, api) for node_name in node_names]

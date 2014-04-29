@@ -1,26 +1,29 @@
-import os
+
+import inspect
 import logging
 import logging.handlers
+import os
 import subprocess
 import sys
 
 from glob import glob
-from os.path import dirname, join
+import os.path as path
 from xml.etree import ElementTree
-from inspect import getmembers, isclass
 
 
 # File logging setup
-LOG_DIR = join(dirname(dirname(__file__)), 'logs')
-if not os.path.exists(LOG_DIR):
+LOG_DIR = path.join(path.dirname(path.dirname(__file__)), 'logs')
+if not path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
+
+config = {}
 
 
 # https://github.com/cloudnull/turbolift/blob/master/turbolift/logger/logger.py
 class Logger(object):
 
     def __init__(self, log_level="DEBUG",
-                 log_file=join(LOG_DIR, "monster.log")):
+                 log_file=path.join(LOG_DIR, "monster.log")):
         self.log_level = log_level
         self.log_file = log_file
 
@@ -62,12 +65,12 @@ class Logger(object):
 
 def module_classes(module):
     return {k.lower(): v for (k, v) in
-            getmembers(module, isclass)}
+            inspect.getmembers(module, inspect.isclass)}
 
 
-def xunit_merge(path="."):
+def xunit_merge(at_path="."):
     print "Merging xunit files"
-    files = glob(path + "/*.xml")
+    files = glob(at_path + "/*.xml")
     tree = None
     attrs = ["failures", "tests", "errors", "skip"]
     for file in files:

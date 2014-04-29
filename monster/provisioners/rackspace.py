@@ -1,25 +1,22 @@
 import logging
 import pyrax
 
-from monster import util
-from openstack import Openstack
-from monster.clients.openstack import Creds
-from monster.server_helper import check_port
+import monster.util
+import monster.provisioners.openstack.provisioner as openstack
+import monster.clients.openstack as openstack_client
+import monster.server_helper
 
 logger = logging.getLogger(__name__)
 
 
-class Rackspace(Openstack):
-    """
-    Provisions chef nodes in Rackspace Cloud Servers vms
-    """
-
+class Rackspace(openstack.Provisioner):
+    """Provisions Chef nodes in Rackspace Cloud Servers VMS."""
     def __init__(self):
-        rackspace = util.config['secrets']['rackspace']
+        rackspace = monster.util.config['secrets']['rackspace']
 
         self.names = []
         self.name_index = {}
-        self.creds = Creds(
+        self.creds = openstack_client.Creds(
             username=rackspace['user'], apikey=rackspace['api_key'],
             auth_url=rackspace['auth_url'], region=rackspace['region'],
             auth_system=rackspace['plugin'])
@@ -32,7 +29,7 @@ class Rackspace(Openstack):
         self.neutron = pyrax.cloud_networks
 
     def get_networks(self):
-        rackspace = util.config[str(self)]
+        rackspace = monster.util.config[str(self)]
         desired_networks = rackspace['networks']
         networks = []
         for network in desired_networks:
@@ -48,8 +45,7 @@ class Rackspace(Openstack):
         return networks
 
     def post_provision(self, node):
-        """
-        Tasks to be done after a rackspace node is provisioned
+        """Tasks to be done after a Rackspace node is provisioned.
         :param node: Node object to be tasked
         :type node: Monster.Node
         """
@@ -62,13 +58,13 @@ class Rackspace(Openstack):
 
     def rdo(self, node):
         logger.info("Installing RDO kernel.")
-        kernel = util.config['rcbops']['compute']['kernel']['centos']
+        kernel = monster.util.config['rcbops']['compute']['kernel']['centos']
         version = kernel['version']
         install = kernel['install']
         if version not in node.run_cmd("uname -r")['return']:
             node.run_cmd(install)
             node.run_cmd("reboot now")
-            check_port(node.ipaddress, 22)
+            monster.server_helper.check_port(node.ipaddress, 22)
 
     @staticmethod
     def hosts(node):
@@ -84,8 +80,7 @@ class Rackspace(Openstack):
 
     @staticmethod
     def mkswap(node, size=2):
-        """
-        Makes a swap file of size on the node
+        """Makes a swap file of size on the node.
         :param node: Node to create swap file
         :type node: monster.Node
         :param size: Size of swap file in GBs

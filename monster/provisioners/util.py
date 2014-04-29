@@ -1,6 +1,6 @@
 import sys
 import traceback
-from monster.provisioners.provisioner import logger
+from monster.provisioners.base import logger
 from monster.util import module_classes
 from monster.provisioners import *
 
