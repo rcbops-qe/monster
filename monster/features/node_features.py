@@ -211,11 +211,11 @@ class ChefServer(NodeFeature):
         self.node.environment.add_override_attr('remote_chef', remote_chef)
 
         # set the remote api
-        remote_api = self._remote_chef_api(remote_chef)
+        remote_api = self.remote_chef_api(remote_chef)
         self.node.environment.remote_api = remote_api
 
     @classmethod
-    def _remote_chef_api(cls, chef_api_dict):
+    def remote_chef_api(cls, chef_api_dict):
         """Builds a remote chef API object."""
 
         return ChefAPI(**chef_api_dict)

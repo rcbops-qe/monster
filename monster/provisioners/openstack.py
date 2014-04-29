@@ -47,7 +47,7 @@ class Openstack(Provisioner):
         :param template: template for cluster
         :type template: dict
         :param deployment: ChefDeployment to provision for
-        :type deployment: ChefDeployment
+        :type deployment: Deployment
         :rtype: list
         """
         logger.info("Provisioning in the cloud!")
@@ -83,7 +83,7 @@ class Openstack(Provisioner):
     def chef_instance(self, deployment, name, flavor="2GBP"):
         """Builds an instance with desired specs and initializes it with Chef.
         :param deployment: deployment to add to
-        :type deployment: ChefDeployment
+        :type deployment: Deployment
         :param name: name for instance
         :type name: string
         :param flavor: desired flavor for node

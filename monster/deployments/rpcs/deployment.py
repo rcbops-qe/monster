@@ -2,24 +2,24 @@ import os
 import sys
 import webbrowser
 
-from chef import Node as ChefNode
-from pyrabbit.api import Client as RabbitClient
+import chef
+import pyrabbit.api as rabbit
 
-from monster import util
-from monster.upgrades.util import int2word
-from monster.clients.openstack import Creds, Clients
-from monster.deployments.deployment import Deployment
+import monster.util as util
+import monster.upgrades.util as upgrades_util
+import monster.clients.openstack as openstack
+import monster.deployments.base as base
 
 
-class ChefDeployment(Deployment):
-    """Deployment mechanisms specific to a deployment using Opscode's Chef
-    as configuration management.
+class Deployment(base.Deployment):
+    """Deployment mechanisms specific to a RPCS deployment using Chef as
+    configuration management.
     """
 
     def __init__(self, name, os_name, branch, environment, provisioner,
                  status=None, product=None, clients=None, features=None):
 
-        """Initializes a ChefDeployment object.
+        """Initializes a RPCS deployment object.
         :type name: str
         :type os_name: str
         :type branch: str
@@ -30,9 +30,8 @@ class ChefDeployment(Deployment):
         :type features: Feature
         """
         status = status or "provisioning"
-        super(ChefDeployment, self).__init__(name, os_name, branch,
-                                             provisioner, status, product,
-                                             clients, features)
+        super(Deployment, self).__init__(name, os_name, branch, provisioner,
+                                         status, product, clients, features)
         self.environment = environment
         self.has_controller = False
         self.has_orch_master = False
@@ -43,7 +42,7 @@ class ChefDeployment(Deployment):
     def build(self):
         """Saves deployment for restore after build."""
 
-        super(ChefDeployment, self).build()
+        super(Deployment, self).build()
         self.save_to_environment()
 
     def save_to_environment(self):
@@ -55,14 +54,14 @@ class ChefDeployment(Deployment):
         """This will return an instance of the correct upgrade class.
         :param branch_name: The name of the provisioner
         :type branch_name: str
-        :rtype: ChefDeployment
+        :rtype: Deployment
         """
 
         # convert branch into a list of int strings
         branch_i = [int(x) for x in branch_name.lstrip('v').split('.')]
 
         # convert list of int strings to their english counterpart
-        word_b = [int2word(b) for b in branch_i]
+        word_b = [upgrades_util.int2word(b) for b in branch_i]
 
         # convert list to class name
         up_class = "".join(word_b).replace(" ", "")
@@ -88,7 +87,7 @@ class ChefDeployment(Deployment):
     def update_environment(self):
         """Saves deployment for restore after update environment."""
 
-        super(ChefDeployment, self).update_environment()
+        super(Deployment, self).update_environment()
         self.save_to_environment()
         with open("{0}.json".format(self.name), "w") as f:
             f.write(str(self.environment))
@@ -99,7 +98,7 @@ class ChefDeployment(Deployment):
         self.status = "Destroying"
         # Nullify remote api so attributes are not sent remotely
         self.environment.remote_api = None
-        super(ChefDeployment, self).destroy()
+        super(Deployment, self).destroy()
         # Destroy rogue nodes
         if not self.nodes:
             pass
@@ -121,7 +120,7 @@ class ChefDeployment(Deployment):
         password = user['password']
         tenant = user['roles'].keys()[0]
         controller = next(self.search_role('controller'))
-        url = ChefNode(controller.name).normal['keystone']['publicURL']
+        url = chef.Node(controller.name).normal['keystone']['publicURL']
         strategy = 'keystone'
         openrc = {'OS_USERNAME': user_name, 'OS_PASSWORD': password,
                   'OS_TENANT_NAME': tenant, 'OS_AUTH_URL': url,
@@ -151,10 +150,13 @@ class ChefDeployment(Deployment):
         password = users[user]["password"]
         tenant_name = "admin"
         auth_url = "http://{0}:5000/v2.0".format(self.horizon_ip())
-        creds = Creds(username=user, password=password, region=region,
-                      auth_url=auth_url, project_id=tenant_name,
-                      tenant_name=tenant_name)
-        return Clients(creds)
+
+        creds = openstack.Creds(username=user, password=password,
+                                region=region, auth_url=auth_url,
+                                project_id=tenant_name,
+                                tenant_name=tenant_name)
+
+        return openstack.Clients(creds)
 
     @property
     def rabbitmq_mgmt_client(self):
@@ -169,7 +171,7 @@ class ChefDeployment(Deployment):
         user = "guest"
         password = "guest"
 
-        return RabbitClient(url, user, password)
+        return rabbit.Client(url, user, password)
 
     @property
     def horizon_ip(self):

@@ -23,7 +23,7 @@ class Razor2(Provisioner):
         :param template: template for cluster
         :type template: dict
         :param deployment: ChefDeployment to provision for
-        :type deployment: ChefDeployment
+        :type deployment: Deployment
         :rtype: list
         """
         logger.info("Provisioning with Razor!")
@@ -37,7 +37,7 @@ class Razor2(Provisioner):
         :param image: name of os image
         :type image: string
         :param deployment: ChefDeployment to add node to
-        :type deployment: ChefDeployment
+        :type deployment: Deployment
         :rtype: ChefNodeWrapper
         """
 

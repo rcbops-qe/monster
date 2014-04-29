@@ -1,11 +1,10 @@
 import types
 import tmuxp
-
-from monster.features import deployment_features
-from monster.tools.retrofit import Retrofit
-from monster import util
 import logging
 
+from monster.tools.retrofit import Retrofit
+import monster.features.deployment_features as deployment_features
+import monster.util as util
 
 logger = logging.getLogger(__name__)
 
