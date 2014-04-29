@@ -1,22 +1,22 @@
 import json
 import logging
-from time import sleep
+import time
 
 import requests
 
 from monster.nodes.utils.node_search import node_search
-from base import Provisioner
-from monster import util
+import monster.provisioners.base as base
+import monster.util
 
 
 logger = logging.getLogger(__name__)
 
 
-class Razor(Provisioner):
+class Razor(base.Provisioner):
     """Provisions chef nodes in a Razor environment."""
 
     def __init__(self, ip=None):
-        self.ipaddress = ip or util.config['secrets']['razor']['ip']
+        self.ipaddress = ip or monster.util.config['secrets']['razor']['ip']
         self.api = RazorAPI(self.ipaddress)
 
     def provision(self, template, deployment):
@@ -92,7 +92,7 @@ class Razor(Provisioner):
                 self.api.remove_active_model(active_model)
                 node_wrapper.client.delete()
                 node.delete()
-                sleep(15)
+                time.sleep(15)
             except:
                 logger.error("Node unreachable. "
                              "Manual restart required:{0}".format(str(node)))
@@ -108,8 +108,6 @@ class RazorAPI(object):
         self.url = "http://{0}:{1}/razor/api".format(self.ip, self.port)
 
     def __repr__(self):
-        """Print out current instance of RazorAPI."""
-
         outl = 'class: {0}'.format(self.__class__.__name__)
         for attr in self.__dict__:
             outl += '\n\t{0}:{1}'.format(attr, str(getattr(self, attr)))
@@ -119,86 +117,83 @@ class RazorAPI(object):
 
         # Call the Razor RESTful API to get a list of models
         headers = {'content-type': 'application/json'}
-        r = requests.get('{0}/model'.format(self.url), headers=headers)
+        request = requests.get('{0}/model'.format(self.url), headers=headers)
 
         # Check the status code and return appropriately
-        if r.status_code == 200:
-            return json.loads(r.content)
+        if request.status_code == 200:
+            return json.loads(request.content)
         else:
             return 'Error: exited with status code: {0}'.format(
-                str(r.status_code))
+                str(request.status_code))
 
     def nodes(self):
 
         # Call the Razor RESTful API to get a list of models
         headers = {'content-type': 'application/json'}
-        r = requests.get('{0}/node'.format(self.url), headers=headers)
+        request = requests.get('{0}/node'.format(self.url), headers=headers)
 
         # Check the status code and return appropriately
-        if r.status_code == 200:
-            return json.loads(r.content)
+        if request.status_code == 200:
+            return json.loads(request.content)
         else:
             return 'Error: exited with status code: {0}'.format(
-                str(r.status_code))
+                str(request.status_code))
 
     def model_templates(self):
 
         # Call the Razor RESTful API to get a list of models
         headers = {'content-type': 'application/json'}
-        r = requests.get('{0}/model/templates'.format(self.url),
+        request = requests.get('{0}/model/templates'.format(self.url),
                          headers=headers)
 
         # Check the status code and return appropriately
-        if r.status_code == 200:
-            return json.loads(r.content)
+        if request.status_code == 200:
+            return json.loads(request.content)
         else:
             return 'Error: exited with status code: {0}'.format(
-                str(r.status_code))
+                str(request.status_code))
 
     def models(self):
-        """ This function returns the whole model json returned by Razor."""
+        """Returns the complete model json returned by Razor."""
 
         # Call the Razor RESTful API to get a list of models
         headers = {'content-type': 'application/json'}
-        r = requests.get('{0}/model'.format(self.url), headers=headers)
+        request = requests.get('{0}/model'.format(self.url), headers=headers)
 
         # Check the status code and return appropriately
-        if r.status_code == 200:
-            return json.loads(r.content)
+        if request.status_code == 200:
+            return json.loads(request.content)
         else:
             return 'Error: exited with status code: {0}'.format(
-                str(r.status_code))
+                str(request.status_code))
 
     def simple_models(self, uuid=None):
-        """
-        This returns a smaller, simpler set of information
-        about the models returned by Razor.
+        """Returns a smaller, simpler set of information about the models
+        returned by Razor.
         """
 
         # Call the Razor RESTful API to get a list of models
         headers = {'content-type': 'application/json'}
 
         if uuid is None:
-            r = requests.get('{0}/model'.format(self.url), headers=headers)
-            if r.status_code == 200:
-                return json.loads(r.content)
+            request = requests.get('{0}/model'.format(self.url),
+                                   headers=headers)
+            if request.status_code == 200:
+                return json.loads(request.content)
             else:
                 return 'Error: exited with status code: {0}'.format(
-                    str(r.status_code))
+                    str(request.status_code))
         else:
-            r = requests.get('{0}/model/{1}'.format(self.url, uuid),
-                             headers=headers)
-            if r.status_code == 200:
-                return self.build_simple_model(json.loads(r.content))
+            request = requests.get('{0}/model/{1}'.format(self.url, uuid),
+                                   headers=headers)
+            if request.status_code == 200:
+                return self.build_simple_model(json.loads(request.content))
             else:
                 return 'Error: exited with status code: {0}'.format(
-                    str(r.status_code))
+                    str(request.status_code))
 
     def build_simple_model(self, razor_json):
-        """
-        This will return the current available
-        model in a simple minimal info json
-        """
+        """Returns the current available model in a simplified json."""
 
         # loop through all the nodes and take the simple info from them
         for response in razor_json['response']:
@@ -207,13 +202,11 @@ class RazorAPI(object):
                      'current_state': response['@current_state'],
                      'uuid': response['@uuid'],
                      'label': response['@label']}
-
         return model
 
     def active_models(self, filter=None):
-        """
-         This return the whole json returned
-        by the Razor API for a single active model.
+        """Returns the complete json returned by the Razor API for a single
+        active model.
         """
 
         if filter is None:
@@ -223,26 +216,22 @@ class RazorAPI(object):
 
         # make the request to get active models from Razor
         headers = {'content-type': 'application/json'}
-        r = requests.get(url, headers=headers)
+        request = requests.get(url, headers=headers)
 
         # Check the status code and return appropriately
-        if r.status_code == 200:
-            return json.loads(r.content)
+        if request.status_code == 200:
+            return json.loads(request.content)
         else:
             return 'Error: exited with status code: {0}'.format(
-                str(r.status_code))
+                str(request.status_code))
 
     def simple_active_models(self, filter=None):
-        """
-        This will return all the active
-        models with an easy to consume JSON
-        """
+        """Returns all the active models with an easy to consume JSON."""
         # make the request to get active models from Razor
 
         am_content = self.active_models(filter)
 
-        #print json.dumps(am_content, indent=4)
-
+        request = None
         # Check the status code and return appropriately
         if 'response' in am_content.keys():
             active_models = {}
@@ -250,13 +239,13 @@ class RazorAPI(object):
 
                 # get info from razor about the active model
                 headers = {'content-type': 'application/json'}
-                r = requests.get(
+                request = requests.get(
                     '{0}/active_model/{1}'.format(
                         self.url, response['@uuid']
                     ),
                     headers=headers
                 )
-                single_am_content = json.loads(r.content)
+                single_am_content = json.loads(request.content)
                 #print json.dumps(single_am_content, indent=2)
                 active_models[response['@uuid']] = \
                     self.build_simple_active_model(single_am_content)
@@ -264,13 +253,10 @@ class RazorAPI(object):
             return active_models
         else:
             return 'Error: exited with status code: {0}'.format(
-                str(r.status_code))
+                str(request.status_code))
 
     def build_simple_active_model(self, razor_json):
-        """
-        This will return an active model JSON
-        that is simplified from the Razor API json
-        """
+        """Returns an active model JSON simplified from the Razor API json."""
 
         # step through the json and gather simplified information
         for item in razor_json['response']:
@@ -353,9 +339,7 @@ class RazorAPI(object):
         return servers
 
     def broker_success(self, razor_json):
-        """
-        This method will return all the online broker complete servers
-        """
+        """Returns all the online broker complete servers."""
 
         servers = []
         # step through the json and gather simplified information
@@ -389,14 +373,16 @@ class RazorAPI(object):
         return servers
 
     def remove_active_model(self, am_uuid):
-        """This method removes an active model from Razor."""
+        """Removes an active model from Razor."""
 
         # Call the Razor RESTful API to get a list of models
         headers = {'content-type': 'application/json'}
-        r = requests.delete('{0}/active_model/{1}'.format(self.url, am_uuid),
-                            headers=headers)
+        request = requests.delete('{0}/active_model/{1}'
+                                  ''.format(self.url, am_uuid),
+                                  headers=headers)
 
-        return {'status': r.status_code, 'content': json.loads(r.content)}
+        return {'status': request.status_code,
+                'content': json.loads(request.content)}
 
     def remove_active_models(self, am_uuids):
         """This method loops through a list of am uuids and removes each."""
@@ -408,14 +394,14 @@ class RazorAPI(object):
         return removed_servers
 
     def get_active_model_pass(self, am_uuid):
-        """ This function will get an active models password """
+        """ Gets an active model's password. """
         headers = {'content-type': 'application/json'}
-        r = requests.get('{0}/active_model/{1}'.format(self.url, am_uuid),
-                         headers=headers)
+        request = requests.get('{0}/active_model/{1}'
+                               ''.format(self.url, am_uuid), headers=headers)
 
         passwd = ''
-        if r.status_code == 200:
-            content_json = json.loads(r.content)
+        if request.status_code == 200:
+            content_json = json.loads(request.content)
             passwd = content_json['response'][0]['@model']['@root_password']
 
-        return {'status_code': r.status_code, 'password': passwd}
+        return {'status_code': request.status_code, 'password': passwd}

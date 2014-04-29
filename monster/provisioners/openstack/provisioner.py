@@ -1,9 +1,9 @@
 import socket
 import logging
+import gevent
 
 import chef
 
-import gevent
 import monster.util
 import monster.provisioners.base as base
 import monster.clients.openstack as openstack
