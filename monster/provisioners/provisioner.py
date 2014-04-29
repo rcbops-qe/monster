@@ -15,40 +15,40 @@ class Provisioner(object):
         return self.__class__.__name__.lower()
 
     def provision(self, template, deployment):
-        """Provisions nodes.
+        """Provisions node_proxies.
         :param template: template for cluster
         :type template: dict
         :param deployment: Deployment to provision for
         :type deployment: Deployment
-        :rtype: list (chef.Node)
+        :rtype: list (chef_.Node)
         """
         raise NotImplementedError
 
     def post_provision(self, node):
         """Tasks to be done after a node is provisioned.
         :param node: Node object to be tasked
-        :type node: nodes.BaseNodeWrapper
+        :type node: node_proxies.BaseNodeWrapper
         """
         pass
 
     def destroy_node(self, node):
         """Destroys node.
         :param node: node to destroy
-        :type node: nodes.BaseNodeWrapper
+        :type node: node_proxies.BaseNodeWrapper
         """
         raise NotImplementedError
 
     def power_down(self, node):
         """Turns a node off.
         :param node: node to power off
-        :type node: nodes.BaseNodeWrapper
+        :type node: node_proxies.BaseNodeWrapper
         """
         raise NotImplementedError
 
     def power_up(self, node):
         """Turns a node on.
         :param node: node to power on
-        :type node: nodes.BaseNodeWrapper
+        :type node: node_proxies.BaseNodeWrapper
         """
         raise NotImplementedError
 
@@ -75,7 +75,7 @@ class Provisioner(object):
             self.post_provision(wrapped_node)
             built_nodes.append(wrapped_node)
 
-        for node, features in zip(built_nodes, template['nodes']):
+        for node, features in zip(built_nodes, template['node_proxies']):
             node.add_features(features)
 
         return built_nodes
@@ -91,7 +91,7 @@ class Provisioner(object):
         loaded_nodes = []
         for node in nodes_to_load:
             if not node.exists:
-                logger.error("Non-existent chef node: {0}".format(node.name))
+                logger.error("Non-existent chef_ node: {0}".format(node.name))
                 continue
             wrapped_node = node_wrapper.wrap_node(node=node,
                                                   product=env.product,

@@ -8,7 +8,7 @@ class NodeFeature(Feature):
 
     def __init__(self, node):
         """Initialize Node object.
-        :type node: monster.nodes.base_node_wrapper.BaseNodeWrapper
+        :type node: monster.nodes.base.BaseNodeWrapper
         """
         self.node = node
 
@@ -31,7 +31,7 @@ class NodeFeature(Feature):
         pass
 
     def set_run_list(self):
-        """Sets the nodes run list based on the feature."""
+        """Sets the node_proxies run list based on the feature."""
 
         # have to add logic for controllers
         if hasattr(self, "number"):
@@ -86,7 +86,7 @@ class Berkshelf(NodeFeature):
         dependencies = ['libxml2-dev', 'libxslt-dev', 'libz-dev']
         rvm_install = ("curl -L https://get.rvm.io | bash -s -- stable "
                        "--ruby=1.9.3 --autolibs=enable --auto-dotfiles")
-        gems = ['berkshelf', 'chef']
+        gems = ['berkshelf', 'chef_']
 
         self.node.install_packages(dependencies)
         # We commonly see issues with rvms servers, so loop
@@ -117,11 +117,11 @@ class Berkshelf(NodeFeature):
 
 
 class ChefServer(NodeFeature):
-    """Represents a chef server."""
+    """Represents a chef_ server."""
 
     def __init__(self, node):
         super(ChefServer, self).__init__(node)
-        self.iscript = util.config['chef']['server']['install_script']
+        self.iscript = util.config['chef_']['server']['install_script']
         self.iscript_name = self.iscript.split('/')[-1]
         self.script_download = 'curl {0} >> {1}'.format(self.iscript,
                                                         self.iscript_name)
@@ -151,7 +151,7 @@ class ChefServer(NodeFeature):
         self.node.environment.remote_api = None
 
     def _install(self):
-        """Installs chef server on the given node."""
+        """Installs chef_ server on the given node."""
 
         self.node.run_cmd(self.script_download, attempts=5)
         command = "; ".join(self.install_commands)
@@ -163,7 +163,7 @@ class ChefServer(NodeFeature):
         cookbook_url = util.config['rcbops'][self.node.product]['git']['url']
         cookbook_branch = self.node.branch
         cookbook_name = cookbook_url.split("/")[-1].split(".")[0]
-        install_dir = directory or util.config['chef']['server']['install_dir']
+        install_dir = directory or util.config['chef_']['server']['install_dir']
 
         commands = ["mkdir -p {0}".format(install_dir),
                     "cd {0}".format(install_dir),
@@ -188,14 +188,14 @@ class ChefServer(NodeFeature):
         return self.node.run_cmd(command)
 
     def _upgrade_cookbooks(self):
-        install_dir = util.config['chef']['server']['upgrade_dir']
-        clean = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done",
+        install_dir = util.config['chef_']['server']['upgrade_dir']
+        clean = ["for i in /var/chef_/cache/cookbooks/*; do rm -rf $i; done",
                  "rm -rf {0}".format(install_dir)]
         self.node.run_cmd("; ".join(clean))
         return self._install_cookbooks(directory=install_dir)
 
     def _set_up_remote(self):
-        """Sets up and saves a remote api and dict to the nodes environment.
+        """Sets up and saves a remote api and dict to the node_proxies environment.
         """
 
         remote_chef = {
@@ -204,7 +204,7 @@ class ChefServer(NodeFeature):
             "url": "https://{0}:443".format(self.node.ipaddress)
         }
 
-        # set the remote chef server name
+        # set the remote chef_ server name
         self.node.environment.chef_server_name = self.node.name
 
         # save the remote dict
@@ -216,14 +216,14 @@ class ChefServer(NodeFeature):
 
     @classmethod
     def remote_chef_api(cls, chef_api_dict):
-        """Builds a remote chef API object."""
+        """Builds a remote chef_ API object."""
 
         return ChefAPI(**chef_api_dict)
 
     def _get_admin_pem(self):
-        """Gets the admin pem from the chef server."""
+        """Gets the admin pem from the chef_ server."""
 
-        command = 'cat ~/.chef/admin.pem'
+        command = 'cat ~/.chef_/admin.pem'
         pem = self.node.run_cmd(command)['return']
         if not pem:
             raise Exception("Chef Server setup error")
@@ -261,7 +261,7 @@ class Compute(NodeFeature):
         self._set_node_archive()
 
     def post_configure(self):
-        """Run chef-client a second time to lay down host keys."""
+        """Run chef_-client a second time to lay down host keys."""
         self.node.run()
 
     def _set_node_archive(self):
@@ -289,7 +289,7 @@ class Controller(NodeFeature):
             self.set_run_list()
 
     def apply_feature(self):
-        """Run chef client on controller1 after controller2's completes."""
+        """Run chef_ client on controller1 after controller2's completes."""
         self.node.deployment.has_controller = True
 
         if self.number == 2:
@@ -439,7 +439,7 @@ class Proxy(NodeFeature):
 
 
 class Remote(NodeFeature):
-    """Represents the deployment having a remote chef server."""
+    """Represents the deployment having a remote chef_ server."""
 
     def pre_configure(self):
         self.node.remove_chef()
@@ -450,11 +450,11 @@ class Remote(NodeFeature):
                         "configs": [""]}
 
     def _bootstrap_chef(self):
-        """Bootstraps the node to a chef server. """
+        """Bootstraps the node to a chef_ server. """
 
-        # Gather the info for the chef server
+        # Gather the info for the chef_ server
         chef_server = next(self.node.deployment.search_role('chefserver'))
-        client_version = util.config['chef']['client']['version']
+        client_version = util.config['chef_']['client']['version']
 
         command = ("knife bootstrap {0} -u root -P {1}"
                    " --bootstrap-version {2}".format(self.node.ipaddress,

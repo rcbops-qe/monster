@@ -1,11 +1,11 @@
 chef:
     server:
-        install_script: https://raw.githubusercontent.com/rcbops/support-tools/master/chef-install/install-chef-server.sh
+        install_script: https://raw.githubusercontent.com/rcbops/support-tools/master/chef_-install/install-chef_-server.sh
         install_dir: /opt/rcbops
         upgrade_dir: /opt/upgrade
     client:
         version: 11.08.0
-        run_cmd: "chef-client"
+        run_cmd: "chef_-client"
 environments:
     ceilometer:
         default:
@@ -164,7 +164,7 @@ rcbops:
             version: 2.6.32-358.123.2.openstack.el6.x86_64
             install: yum install -y http://repos.fedorapeople.org/repos/openstack/openstack-grizzly/rdo-release-grizzly-3.noarch.rpm; yum install -y kernel-2.6.32-358.123.2.openstack.el6.x86_64
         git:
-            url: https://github.com/rcbops/chef-cookbooks.git
+            url: https://github.com/rcbops/chef_-cookbooks.git
             branches:
                 havana:
                     - v4.2.2

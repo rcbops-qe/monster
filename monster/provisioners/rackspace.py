@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 class Rackspace(Openstack):
     """
-    Provisions chef nodes in Rackspace Cloud Servers vms
+    Provisions chef_ node_proxies in Rackspace Cloud Servers vms
     """
 
     def __init__(self):

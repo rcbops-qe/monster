@@ -3,7 +3,7 @@ import logging
 import requests
 import sys
 
-from monster.nodes.util import node_search
+from monster.node_proxies.util import node_search
 from provisioner import Provisioner
 
 from monster import util
@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 
 class Razor2(Provisioner):
-    """Provisions chef nodes in a Razor environment."""
+    """Provisions chef_ node_proxies in a Razor environment."""
 
     def __init__(self, url=None):
         self.url = url or util.config['secrets']['razor']['url']
@@ -29,20 +29,20 @@ class Razor2(Provisioner):
         logger.info("Provisioning with Razor!")
         image = deployment.os_name
         self.nodes += [self.available_node(image, deployment)
-                       for _ in template['nodes']]
+                       for _ in template['node_proxies']]
         return self.nodes
 
     def available_node(self, image, deployment):
-        """Provides a free node from chef pool.
+        """Provides a free node from chef_ pool.
         :param image: name of os image
         :type image: string
         :param deployment: ChefDeployment to add node to
         :type deployment: Deployment
-        :rtype: ChefNodeWrapper
+        :rtype: NodeProxy
         """
 
         # TODO: Should probably search on system name node attributes
-        # Avoid specific naming of razor nodes, not portable
+        # Avoid specific naming of razor node_proxies, not portable
         nodes = node_search("name:node*")
         for node in nodes:
             is_default = node.chef_environment == "_default"
@@ -70,7 +70,7 @@ class Razor2(Provisioner):
     def destroy_node(self, node_wrapper):
         """Destroys a node provisioned by razor.
         :param node_wrapper: Node to destroy
-        :type node_wrapper: ChefNodeWrapper
+        :type node_wrapper: NodeProxy
         """
         node = node_wrapper.local_node
         in_use = node_wrapper['in_use']
@@ -114,11 +114,11 @@ class RazorAPI2(object):
         return outl
 
     def nodes(self):
-        """Return all current nodes."""
-        # Call the Razor RESTful API to get a list of nodes
+        """Return all current node_proxies."""
+        # Call the Razor RESTful API to get a list of node_proxies
         headers = {'content-type': 'application/json'}
         r = requests.get(
-            '{0}/collections/nodes'.format(self.url), headers=headers)
+            '{0}/collections/node_proxies'.format(self.url), headers=headers)
 
         # Check the status code and return appropriately
         if r.status_code == 200:
@@ -132,7 +132,7 @@ class RazorAPI2(object):
 
         # Call the Razor RESTful API to get a node
         headers = {'content-type': 'application/json'}
-        r = requests.get('{0}/collections/nodes/{1}'.format(
+        r = requests.get('{0}/collections/node_proxies/{1}'.format(
             self.url, node), headers=headers)
 
         # Check the status code and return appropriately

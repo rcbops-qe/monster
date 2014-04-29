@@ -20,7 +20,7 @@ class Retrofit(object):
         return output
 
     def install(self, branch):
-        """Installs the retrofit tool on the nodes."""
+        """Installs the retrofit tool on the node_proxies."""
 
         logger.info("Installing Retrofit")
 
@@ -133,7 +133,7 @@ class Retrofit(object):
             raise NotImplementedError(error)
 
     def _check_brctl(self):
-        """Checks to see if bridge-util is installed on nodes."""
+        """Checks to see if bridge-util is installed on node_proxies."""
         for controller in self.controllers:
             installed = controller.check_package('bridge-utils')['success']
             if not installed:

@@ -1,11 +1,10 @@
 import logging
 
 import chef
-import monster.nodes.chef_node_wrapper as chef_node_wrapper
+import monster.node_proxies.chef_.node_proxy as chef_node_wrapper
 import monster.features.node_features as node_features
-import monster.environments.chef.environment as wrapper
+import monster.environments.chef_.environment as wrapper
 import monster.orchestrator.base as base
-
 import monster.deployments.rpcs.deployment as rpcs
 import monster.config as config
 import monster.provisioners.util as provisioner_util
@@ -22,9 +21,9 @@ class Orchestrator(base.Orchestrator):
         :type name: str
         :param name: name of template to use
         :type name: str
-        :param branch: branch of the RCBOPS chef cookbook repo to use
+        :param branch: branch of the RCBOPS chef_ cookbook repo to use
         :type branch:: str
-        :param provisioner_name: provisioner to use for nodes
+        :param provisioner_name: provisioner to use for node_proxies
         :type provisioner_name: str
         :rtype: Deployment
         """

@@ -46,7 +46,7 @@ class Deployment(base.Deployment):
         self.save_to_environment()
 
     def save_to_environment(self):
-        """Save deployment restore attributes to chef environment."""
+        """Save deployment restore attributes to chef_ environment."""
         deployment = self.to_dict
         self.environment.add_override_attr('deployment', deployment)
 
@@ -99,10 +99,10 @@ class Deployment(base.Deployment):
         # Nullify remote api so attributes are not sent remotely
         self.environment.remote_api = None
         super(Deployment, self).destroy()
-        # Destroy rogue nodes
+        # Destroy rogue node_proxies
         if not self.nodes:
             pass
-            # destroy rouge nodes
+            # destroy rouge node_proxies
         self.environment.destroy()
         self.status = "Destroyed"
 
@@ -134,7 +134,7 @@ class Deployment(base.Deployment):
         features = {key: value for (key, value) in
                     ((str(x).lower(), x.rpcs_feature) for x in self.features)}
         nodes = [n.name for n in self.nodes]
-        return {'nodes': nodes, 'features': features,
+        return {'node_proxies': nodes, 'features': features,
                 'name': self.name, 'os_name': self.os_name,
                 'branch': self.branch, 'status': self.status,
                 'product': self.product, 'provisioner': self.provisioner}

@@ -46,7 +46,7 @@ class Deployment(object):
         self.update_environment()
         logger.debug("Deployment step: pre-configure")
         self.pre_configure()
-        logger.debug("Deployment step: build nodes")
+        logger.debug("Deployment step: build node_proxies")
         self.build_nodes()
         logger.debug("Deployment step: post-configure")
         self.post_configure()
@@ -65,7 +65,7 @@ class Deployment(object):
 
     def pre_configure(self):
         """Preconfigures node for each feature."""
-        self.status = "Pre-configuring nodes for features..."
+        self.status = "Pre-configuring node_proxies for features..."
         for feature in self.features:
             logger.debug("Deployment feature: pre-configure: {0}"
                          .format(str(feature)))
@@ -73,7 +73,7 @@ class Deployment(object):
 
     def build_nodes(self):
         """Builds each node."""
-        self.status = "Building nodes..."
+        self.status = "Building node_proxies..."
         for node in self.nodes:
             logger.debug("Building node {0}!".format(str(node)))
             node.build()
@@ -105,10 +105,10 @@ class Deployment(object):
             node.archive()
 
     def search_role(self, feature_name):
-        """Returns nodes that have the desired role.
+        """Returns node_proxies that have the desired role.
         :param feature_name: feature to be searched for
         :type feature_name: str
-        :rtype: Iterator (monster.nodes.base_node_wrapper.BaseNodeWrapper)
+        :rtype: Iterator (monster.node_proxies.base_node_wrapper.BaseNodeWrapper)
         """
         return (node for node in self.nodes if node.has_feature(feature_name))
 
@@ -154,7 +154,7 @@ class Deployment(object):
 
     @property
     def node_names(self):
-        """Returns list of nodes as strings.
+        """Returns list of node_proxies as strings.
         :rtype: list (str)
         """
         return [node.name for node in self.nodes]

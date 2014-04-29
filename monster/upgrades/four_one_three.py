@@ -42,12 +42,12 @@ class FourOneThree(Upgrade):
         override['deployment']['branch'] = upgrade_branch
         self.deployment.environment.save()
 
-        # Gather all the nodes of the deployment
+        # Gather all the node_proxies of the deployment
         chef_server = next(self.deployment.search_role('chefserver'))
         controllers = list(self.deployment.search_role('controller'))
         computes = list(self.deployment.search_role('compute'))
 
-        # upgrade the chef server
+        # upgrade the chef_ server
         chef_server.upgrade()
         controller1 = controllers[0]
 
@@ -77,7 +77,7 @@ class FourOneThree(Upgrade):
             controller1.upgrade()
 
             # Codeing around issue
-            # https://github.com/rcbops/chef-cookbooks/issues/791
+            # https://github.com/rcbops/chef_-cookbooks/issues/791
             controller1.run_cmd('monit reload')
 
             # sleep for monit
@@ -103,7 +103,7 @@ class FourOneThree(Upgrade):
             self.deployment.environment.save()
 
         # Fix OVS as per issue
-        # https://github.com/rcbops/chef-cookbooks/issues/758
+        # https://github.com/rcbops/chef_-cookbooks/issues/758
         if self.deployment.has_feature('neutron'):
             if self.deployment.has_feature('highavailability'):
 

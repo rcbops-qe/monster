@@ -108,7 +108,7 @@ class Neutron(DeploymentFeature):
         controllers = self.deployment.search_role('controller')
         computes = self.deployment.search_role('compute')
 
-        logger.info("### Building OVS Bridge and Ports on network nodes ###")
+        logger.info("### Building OVS Bridge and Ports on network node_proxies ###")
 
         for controller in controllers:
             iface = controller.vmnet_iface
@@ -116,7 +116,7 @@ class Neutron(DeploymentFeature):
             logger.debug("Running {0} on {1}".format(command, controller))
             controller.run_cmd(command)
 
-        # loop through compute nodes and run
+        # loop through compute node_proxies and run
         for compute in computes:
             iface = compute.vmnet_iface
             command = self.iface_bb_cmd(iface)
@@ -215,19 +215,19 @@ class Swift(DeploymentFeature):
         :type auto: bool
         """
 
-        # Gather all the nodes
+        # Gather all the node_proxies
         controller = next(self.deployment.search_role('controller'))
         proxy_nodes = list(self.deployment.search_role('proxy'))
         storage_nodes = list(self.deployment.search_role('storage'))
 
         #####################################################################
-        ################## Run chef on the controller node ##################
+        ################## Run chef_ on the controller node ##################
         #####################################################################
 
         controller.run()
 
         #####################################################################
-        ####### Run through the storage nodes and set up the disks ##########
+        ####### Run through the storage node_proxies and set up the disks ##########
         #####################################################################
 
         # Build Swift Rings
@@ -255,7 +255,7 @@ class Swift(DeploymentFeature):
                     logger.info(command)
 
         ####################################################################
-        ## Setup partitions on storage nodes, (must run as swiftops user) ##
+        ## Setup partitions on storage node_proxies, (must run as swiftops user) ##
         ####################################################################
 
         num_rings = util.config['swift']['num_rings']
@@ -278,7 +278,7 @@ class Swift(DeploymentFeature):
                                          replicas,
                                          min_part_hours)]
 
-        # Determine how many storage nodes we have and add them
+        # Determine how many storage node_proxies we have and add them
         builders = util.config['swift']['builders']
 
         for builder in builders:
@@ -353,11 +353,11 @@ class Swift(DeploymentFeature):
                 logger.info(command)
 
         #####################################################################
-        ############### Finalize by running chef on controller ##############
+        ############### Finalize by running chef_ on controller ##############
         #####################################################################
 
         if auto:
-            logger.info("Finalizing install on all nodes")
+            logger.info("Finalizing install on all node_proxies")
             for proxy_node in proxy_nodes:
                 proxy_node.run()
             for storage_node in storage_nodes:
@@ -366,12 +366,12 @@ class Swift(DeploymentFeature):
         else:
             for proxy_node in proxy_nodes:
                 logger.info("On node root@{0}, run: "
-                            "chef client".format(proxy_node.ipaddress))
+                            "chef_ client".format(proxy_node.ipaddress))
             for storage_node in storage_nodes:
                 logger.info("On node root@{0}, run: "
-                            "chef client".format(storage_node.ipaddress))
+                            "chef_ client".format(storage_node.ipaddress))
             logger.info("On node root@{0} run the following command: "
-                        "chef-client ##".format(controller.ipaddress))
+                        "chef_-client ##".format(controller.ipaddress))
 
         logger.info("## Done setting up swift rings ##")
 

@@ -1,6 +1,3 @@
-"""
-Provides classes of nodes (server entities)
-"""
 import logging
 import types
 from time import sleep
@@ -9,14 +6,14 @@ from lazy import lazy
 
 from monster import util
 from monster.features import node_features
-from monster.nodes.os_node_strategy import OS
+from monster.node_proxies.os_node_strategy import OS
 from monster.server_helper import ssh_cmd, scp_to, scp_from
 
 
 logger = logging.getLogger(__name__)
 
 
-class BaseNodeWrapper(object):
+class NodeProxy(object):
     """An individual computation entity to deploy a part OpenStack onto.
     Provides server-related functions.
     """
@@ -136,7 +133,7 @@ class BaseNodeWrapper(object):
             feature.pre_configure()
 
     def save_to_node(self):
-        """Save deployment restore attributes to chef environment."""
+        """Save deployment restore attributes to chef_ environment."""
         features = [str(f).lower() for f in self.features]
         node = {'features': features,
                 'status': self.status,

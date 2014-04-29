@@ -50,11 +50,11 @@ class FourTwoThree(Upgrade):
                 self.pre_upgrade()
             self.mungerate()
 
-        # Gather all the nodes of the deployment
+        # Gather all the node_proxies of the deployment
         chef_server, controllers, computes = self.deployment_nodes()
         controller1 = controllers[0]
 
-        # upgrade chef
+        # upgrade chef_
         chef_server.upgrade()
 
         # change environment flags for upgrade
@@ -66,7 +66,7 @@ class FourTwoThree(Upgrade):
         except KeyError:
             pass
 
-        # Upgrade nodes
+        # Upgrade node_proxies
         if self.deployment.feature_in('highavailability'):
             controller2 = controllers[1]
             stop = util.config['upgrade']['commands']['stop-services']

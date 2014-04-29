@@ -22,7 +22,7 @@ class Environment(base.Environment):
         self.chef_type = "environment"
 
     def __repr__(self):
-        """(Excludes unserializable chef objects.)"""
+        """(Excludes unserializable chef_ objects.)"""
 
         chef_dict = {
             "name": self.name,
@@ -95,7 +95,7 @@ class Environment(base.Environment):
 
     @property
     def nodes(self):
-        return self.deployment_attributes.get('nodes', [])
+        return self.deployment_attributes.get('node_proxies', [])
 
     @property
     def provisioner(self):
