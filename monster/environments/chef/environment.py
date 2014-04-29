@@ -1,34 +1,37 @@
+import logging
 from chef import Environment as ChefEnvironment
 
-from monster.environments.base_environment_wrapper import \
-    BaseEnvironmentWrapper, logger
+from monster.environments.base import Environment
+
+logger = logging.getLogger(__name__)
 
 
-class ChefEnvironmentWrapper(BaseEnvironmentWrapper):
+class Environment(Environment):
 
-    def __init__(self, name, local_api, remote_api=None, chef_server_name=None,
-                 description='', default=None, override=None):
-        super(ChefEnvironmentWrapper,
-              self).__init__(name=name, local_api=local_api,
-                             remote_api=remote_api, description=description,
-                             default=default, override=override)
-        self.cookbook_versions = {}
+    def __init__(self, name, description, local_api, remote_api=None,
+                 default_attributes=None, override_attributes=None,
+                 cookbook_versions={}):
+        super(Environment, self).__init__(name=name,
+                                          description=description)
+        self.local_api = local_api
+        self.remote_api = remote_api
+        self.default_attributes = default_attributes
+        self.override_attributes = override_attributes
+        self.cookbook_versions = cookbook_versions
         self.json_class = "Chef::Environment"
         self.chef_type = "environment"
-        self.chef_server_name = chef_server_name
-        self.save()
 
     def __repr__(self):
         """(Excludes unserializable chef objects.)"""
 
         chef_dict = {
-            "chef_type": self.chef_type,
-            "cookbook_versions": self.cookbook_versions,
-            "description": self.description,
-            "json_class": self.json_class,
             "name": self.name,
+            "description": self.description,
             "default_attributes": self.default_attributes,
-            "override_attributes": self.override_attributes
+            "override_attributes": self.override_attributes,
+            "cookbook_versions": self.cookbook_versions,
+            "chef_type": self.chef_type,
+            "json_class": self.json_class
         }
         return str(chef_dict)
 
