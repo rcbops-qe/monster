@@ -1,4 +1,3 @@
-"""Tool to retrofit a install."""
 import logging
 
 from monster import util
@@ -7,6 +6,7 @@ logger = logging.getLogger(__name__)
 
 
 class Retrofit(object):
+    """Tool to retrofit a install."""
     def __init__(self, deployment):
         self.deployment = deployment
         self.controllers = list(self.deployment.search_role('controller'))

@@ -2,7 +2,7 @@ import types
 import logging
 
 import tmuxp
-from monster.tools.retrofit import Retrofit
+import monster.tools
 import monster.features.deployment.features as deployment_features
 import monster.util as util
 
@@ -167,7 +167,7 @@ class Deployment(object):
 
         logger.info("Retrofit Deployment: {0}".format(self.name))
 
-        retrofit = Retrofit(self)
+        retrofit = monster.tools.Retrofit(self)
 
         if old_port_to_delete:
             retrofit.remove_port_from_bridge(ovs_bridge, old_port_to_delete)
