@@ -12,7 +12,7 @@ import monster.util
 logger = logging.getLogger(__name__)
 
 
-class Razor(base.Provisioner):
+class Provisioner(base.Provisioner):
     """Provisions chef nodes in a Razor environment."""
 
     def __init__(self, ip=None):

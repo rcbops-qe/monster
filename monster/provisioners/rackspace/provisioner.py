@@ -9,7 +9,7 @@ import monster.server_helper
 logger = logging.getLogger(__name__)
 
 
-class Rackspace(openstack.Provisioner):
+class Provisioner(openstack.Provisioner):
     """Provisions Chef nodes in Rackspace Cloud Servers VMS."""
     def __init__(self):
         rackspace = monster.util.config['secrets']['rackspace']

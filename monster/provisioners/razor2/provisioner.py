@@ -1,7 +1,6 @@
 import json
 import logging
 import sys
-
 import requests
 
 from monster.nodes.utils.node_search import node_search
@@ -12,7 +11,7 @@ import monster.util
 logger = logging.getLogger(__name__)
 
 
-class Razor2(base.Provisioner):
+class Provisioner(base.Provisioner):
     """Provisions chef nodes in a Razor environment."""
 
     def __init__(self, url=None):
@@ -103,12 +102,9 @@ class RazorAPI2(object):
 
     def __init__(self, url=None):
         """Initializer for RazorAPI class."""
-
-        self.url = "{0}".format(url)
+        self.url = str(url)
 
     def __repr__(self):
-        """Print out current instance of RazorAPI."""
-
         outl = 'class: {0}'.format(self.__class__.__name__)
         for attr in self.__dict__:
             outl += '\n\t{0}:{1}'.format(attr, str(getattr(self, attr)))
@@ -118,30 +114,30 @@ class RazorAPI2(object):
         """Return all current nodes."""
         # Call the Razor RESTful API to get a list of nodes
         headers = {'content-type': 'application/json'}
-        r = requests.get(
+        request = requests.get(
             '{0}/collections/nodes'.format(self.url), headers=headers)
 
         # Check the status code and return appropriately
-        if r.status_code == 200:
-            return json.loads(r.content)
+        if request.status_code == 200:
+            return json.loads(request.content)
         else:
             return 'Error: exited with status code: {0}'.format(
-                str(r.status_code))
+                str(request.status_code))
 
     def node(self, node):
         """Return a given node."""
 
         # Call the Razor RESTful API to get a node
         headers = {'content-type': 'application/json'}
-        r = requests.get('{0}/collections/nodes/{1}'.format(
+        request = requests.get('{0}/collections/nodes/{1}'.format(
             self.url, node), headers=headers)
 
         # Check the status code and return appropriately
-        if r.status_code == 200:
-            return json.loads(r.content)
+        if request.status_code == 200:
+            return json.loads(request.content)
         else:
             return 'Error: exited with status code: {0}'.format(
-                str(r.status_code))
+                str(request.status_code))
 
     def reinstall_node(self, node):
         """Reinstalls a given node.
@@ -152,15 +148,15 @@ class RazorAPI2(object):
         # Call the Razor RESTful API to get a node
         headers = {'content-type': 'application/json'}
         data = '{{"name": "{0}"}}'.format(node)
-        r = requests.post('{0}/commands/reinstall-node'.format(self.url),
+        request = requests.post('{0}/commands/reinstall-node'.format(self.url),
                           headers=headers, data=data)
 
         # Check the status code and return appropriately
-        if r.status_code == 202 and 'no changes' not in r.content:
-            return json.loads(r.content)
+        if request.status_code == 202 and 'no changes' not in request.content:
+            return json.loads(request.content)
         else:
             return 'Error: exited with status code: {0}'.format(
-                str(r.status_code))
+                str(request.status_code))
 
     def delete_node(self, node):
         """Deletes a given node.
@@ -171,12 +167,12 @@ class RazorAPI2(object):
         # Call the Razor RESTful API to get a node
         headers = {'content-type': 'application/json'}
         data = '{{"name": "{0}"}}'.format(node)
-        r = requests.post('{0}/commands/delete-node'.format(self.url),
-                          headers=headers, data=data)
+        request = requests.post('{0}/commands/delete-node'.format(self.url),
+                                headers=headers, data=data)
 
         # Check the status code and return appropriately
-        if r.status_code == 202 and 'no changes' not in r.content:
-            return json.loads(r.content)
+        if request.status_code == 202 and 'no changes' not in request.content:
+            return json.loads(request.content)
         else:
             return 'Error: exited with status code: {0}'.format(
-                str(r.status_code))
+                str(request.status_code))
