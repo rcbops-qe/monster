@@ -14,7 +14,7 @@ logger = logging.getLogger(__name__)
 
 
 class Openstack(Provisioner):
-    """Provisions Chef node_proxies in OpenStack VMS"""
+    """Provisions Chef nodes in OpenStack VMS"""
     def __init__(self):
         self.names = []
         self.name_index = {}
@@ -23,7 +23,7 @@ class Openstack(Provisioner):
         self.compute_client = Clients(self.creds).get_client("novaclient")
 
     def name(self, name, deployment, number=None):
-        """Helper for naming node_proxies.
+        """Helper for naming nodes.
         :param name: name for node
         :type name: String
         :param deployment: deployment object
@@ -55,7 +55,7 @@ class Openstack(Provisioner):
 
         # create instances concurrently
         events = []
-        for features in template['node_proxies']:
+        for features in template['nodes']:
             name = self.name(features[0], deployment)
             self.names.append(name)
             flavor = util.config['rackspace']['roles'][features[0]]
@@ -63,14 +63,14 @@ class Openstack(Provisioner):
                                 flavor=flavor))
         joinall(events)
 
-        # acquire chef_ node_proxies
+        # acquire chef nodes
         self.nodes += [event.value for event in events]
         return self.nodes
 
     def destroy_node(self, node_wrapper):
         """Destroys Chef node from OpenStack.
         :param node_wrapper: node to destroy
-        :type node_wrapper: NodeProxy
+        :type node_wrapper: ChefNodeWrapper
         """
         client = node_wrapper.client
         node = node_wrapper.local_node
@@ -88,7 +88,7 @@ class Openstack(Provisioner):
         :type name: string
         :param flavor: desired flavor for node
         :type flavor: string
-        :rtype: chef_.Node
+        :rtype: chef.Node
         """
         image = deployment.os_name
         server, password = self.build_instance(name=name, image=image,
@@ -99,7 +99,7 @@ class Openstack(Provisioner):
         run_list_arg = ""
         if run_list:
             run_list_arg = "-r {0}".format(run_list)
-        client_version = util.config['chef_']['client']['version']
+        client_version = util.config['chef']['client']['version']
         command = ("knife bootstrap {0} -u root -P {1} -N {2} {3}"
                    " --bootstrap-version {4}".format(server.accessIPv4,
                                                      password,

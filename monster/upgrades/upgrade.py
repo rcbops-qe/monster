@@ -20,7 +20,7 @@ class Upgrade(object):
 
     def deployment_nodes(self):
         """
-        Returns a deployments node_proxies
+        Returns a deployments nodes
         """
 
         return (self.deployment_chef_server(),
@@ -29,7 +29,7 @@ class Upgrade(object):
 
     def deployment_chef_server(self):
         """
-        Returns the deployments chef_ server
+        Returns the deployments chef server
         """
 
         return next(self.deployment.search_role('chefserver'))
@@ -136,8 +136,8 @@ class Upgrade(object):
             "rm -rf {0}".format(munge_dir),
             "git clone {0} {1}".format(munge_repo, munge_dir),
             "cd {0}; python setup.py install".format(munge_dir),
-            "mungerator munger --client-key /etc/chef_-server/admin.pem "
-            "--auth-url https://127.0.0.1:443 all-node_proxies-in-env "
+            "mungerator munger --client-key /etc/chef-server/admin.pem "
+            "--auth-url https://127.0.0.1:443 all-nodes-in-env "
             "--name {0}".format(self.deployment.name)])
         chef_server.run_cmd("; ".join(munge))
         self.deployment.environment.save_remote_to_local()

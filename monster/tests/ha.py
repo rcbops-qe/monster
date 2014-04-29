@@ -561,17 +561,17 @@ class HATest(Test):
         # Checks if RS Cloud libvirt issue has been resolved
         computes_reporting = False
         while not computes_reporting:
-            logger.debug("Checking if compute node_proxies are checked in")
+            logger.debug("Checking if compute nodes are checked in")
             progress.update("Progress")
             libvirt = node_up.run_cmd(";".join(["source openrc",
                                      ("nova service-list | "
                                       "grep 'nova-compute' "
                                       "| awk '{print $10}'")]))['return']
             if "down" in libvirt:
-                logger.warning(Color.yellow("Compute node_proxies are unchecked"))
+                logger.warning(Color.yellow("Compute nodes are unchecked"))
                 continue
             elif "up" in libvirt:
-                logger.debug(Color.green("Compute node_proxies are checked in."))
+                logger.debug(Color.green("Compute nodes are checked in."))
                 computes_reporting = True
         progress.update("Progress", 1)
 
@@ -672,7 +672,7 @@ class HATest(Test):
 ###########################################################################
 
         ###################################################################
-        # Verifies that the compute node_proxies are able to report
+        # Verifies that the compute nodes are able to report
         ###################################################################
         nova_status = "down"
         while "down" in nova_status:
@@ -687,7 +687,7 @@ class HATest(Test):
                 logger.warning(Color.yellow(
                     "At least one compute node isn't properly reporting"))
             else:
-                logger.debug("All compute node_proxies are properly reporting")
+                logger.debug("All compute nodes are properly reporting")
         progress.update("Progress", 1)
 
     def wait_dhcp_agent_alive(self, net, progress, wait=240):

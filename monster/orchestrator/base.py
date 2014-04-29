@@ -11,9 +11,9 @@ class Orchestrator:
         :type name: str
         :param name: name of template to use
         :type name: str
-        :param branch: branch of the RCBOPS chef_ cookbook repo to use
+        :param branch: branch of the RCBOPS chef cookbook repo to use
         :type branch:: str
-        :param provisioner_name: provisioner to use for node_proxies
+        :param provisioner_name: provisioner to use for nodes
         :type provisioner_name: str
         :rtype: Deployment
         """

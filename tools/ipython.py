@@ -8,7 +8,7 @@ Use:
 
 import monster.util
 import monster.config
-import monster.orchestrator.chef_.orchestrator as chef_orchestrator
+import monster.orchestrator.chef.orchestrator as chef_orchestrator
 
 
 def load(name, config="config.yaml"):

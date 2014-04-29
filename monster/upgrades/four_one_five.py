@@ -42,12 +42,12 @@ class FourOneFive(Upgrade):
         override['deployment']['branch'] = upgrade_branch
         self.deployment.environment.save()
 
-        # Gather all the node_proxies of the deployment
+        # Gather all the nodes of the deployment
         chef_server = next(self.deployment.search_role('chefserver'))
         controllers = list(self.deployment.search_role('controller'))
         computes = list(self.deployment.search_role('compute'))
 
-        # upgrade the chef_ server
+        # upgrade the chef server
         chef_server.upgrade()
         controller1 = controllers[0]
 
@@ -77,7 +77,7 @@ class FourOneFive(Upgrade):
             controller1.upgrade()
 
             # Codeing around issue
-            # https://github.com/rcbops/chef_-cookbooks/issues/791
+            # https://github.com/rcbops/chef-cookbooks/issues/791
             controller1.run_cmd('monit reload')
 
             # sleep for monit

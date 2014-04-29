@@ -13,7 +13,7 @@ from monster.orchestrator.util import get_orchestrator
 def build(name="autotest", branch="master", provisioner_name="rackspace",
           template=None, config=None, destroy=False,
           secret_path="secret.yaml", dry=False, log=None,
-          orchestrator_name="chef_"):
+          orchestrator_name="chef"):
 
     """ Builds an OpenStack Swift storage cluster
     """
@@ -83,7 +83,7 @@ def _load_config(config, secret_path):
 
 
 def _load(name="autotest", config="config.yaml", secret_path=None,
-          orchestrator_name="chef_"):
+          orchestrator_name="chef"):
     # Load deployment and source openrc
     _load_config(config, secret_path)
     orchestrator = get_orchestrator(orchestrator_name)

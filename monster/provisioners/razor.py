@@ -4,7 +4,7 @@ import requests
 
 from time import sleep
 
-from monster.node_proxies.util import node_search
+from monster.nodes.util import node_search
 from provisioner import Provisioner
 
 from monster import util
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 
 
 class Razor(Provisioner):
-    """Provisions chef_ node_proxies in a Razor environment."""
+    """Provisions chef nodes in a Razor environment."""
 
     def __init__(self, ip=None):
         self.ipaddress = ip or util.config['secrets']['razor']['ip']
@@ -30,19 +30,19 @@ class Razor(Provisioner):
         logger.info("Provisioning with Razor!")
         image = deployment.os_name
         self.nodes += [self.available_node(image, deployment)
-                       for _ in template['node_proxies']]
+                       for _ in template['nodes']]
         return self.nodes
 
     def available_node(self, image, deployment):
-        """Provides a free node from chef_ pool.
+        """Provides a free node from chef pool.
         :param image: name of os image
         :type image: string
         :param deployment: ChefDeployment to add node to
         :type deployment: Deployment
-        :rtype: NodeProxy
+        :rtype: ChefNodeWrapper
         """
         # TODO: Should probably search on system name node attributes
-        # Avoid specific naming of razor node_proxies, not portable
+        # Avoid specific naming of razor nodes, not portable
         nodes = node_search("name:qa-%s-pool*" % image)
         for node in nodes:
             is_default = node.chef_environment == "_default"
@@ -53,7 +53,7 @@ class Razor(Provisioner):
                 node.save()
                 return node
         deployment.destroy()
-        raise Exception("No more node_proxies!!")
+        raise Exception("No more nodes!!")
 
     def power_down(self, node):
         if node.has_feature('controller'):
@@ -69,7 +69,7 @@ class Razor(Provisioner):
     def destroy_node(self, node_wrapper):
         """Destroys a node provisioned by Razor.
         :param node_wrapper: Node to destroy
-        :type node_wrapper: NodeProxy
+        :type node_wrapper: ChefNodeWrapper
         """
         node = node_wrapper.local_node
         in_use = node_wrapper['in_use']
@@ -200,7 +200,7 @@ class RazorAPI(object):
         model in a simple minimal info json
         """
 
-        # loop through all the node_proxies and take the simple info from them
+        # loop through all the nodes and take the simple info from them
         for response in razor_json['response']:
             model = {'name': response['@name'],
                      'root_password': response['@root_password'],

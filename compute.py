@@ -23,7 +23,7 @@ from monster.tests.tempest_quantum import TempestQuantum
 def build(name="autotest", template="ubuntu-default", branch="master",
           template_path=None, config="pubcloud-neutron.yaml",
           dry=False, log=None, provisioner_name="rackspace",
-          secret_path=None, orchestrator_name="chef_"):
+          secret_path=None, orchestrator_name="chef"):
     """Build an OpenStack cluster."""
     _load_config(config, secret_path)
 
@@ -127,7 +127,7 @@ def openrc(name="autotest", config=None, log=None, secret_path=None):
 
 
 def tmux(name="autotest", config=None, log=None, secret_path=None):
-    """Load OpenStack node_proxies into a new tmux session."""
+    """Load OpenStack nodes into a new tmux session."""
     deployment = _load(name, config, secret_path)
     deployment.tmux()
 
@@ -157,7 +157,7 @@ def _load_config(config, secret_path):
 
 
 def _load(name="autotest", config="config.yaml", secret_path=None,
-          orchestrator_name="chef_"):
+          orchestrator_name="chef"):
     # Load deployment and source openrc
     _load_config(config, secret_path)
     orchestrator = get_orchestrator(orchestrator_name)

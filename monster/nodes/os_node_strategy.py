@@ -37,7 +37,7 @@ class DebianOS(OS):
         return 'apt-get install -y {0}'.format(package)
 
     def remove_chef(self):
-        return "apt-get remove --purge -y chef_; rm -rf /etc/chef_"
+        return "apt-get remove --purge -y chef; rm -rf /etc/chef"
 
 
 class RHEL(OS):
@@ -51,4 +51,4 @@ class RHEL(OS):
         return 'yum install -y {0}'.format(package)
 
     def remove_chef(self):
-        return "yum remove -y chef_; rm -rf /etc/chef_ /var/chef_"
+        return "yum remove -y chef; rm -rf /etc/chef /var/chef"
