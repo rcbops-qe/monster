@@ -9,9 +9,10 @@ import traceback
 
 import argh
 
+import monster.config
+
 from monster import util
 from monster.color import Color
-from monster.config import Config
 from monster.orchestrator.util import get_orchestrator
 from monster.tests.ha import HATest
 from monster.tests.cloudcafe import CloudCafe
@@ -152,7 +153,7 @@ def cloudcafe(cmd, name="autotest", network=None, config=None,
 def _load_config(config, secret_path):
     if "configs/" not in config:
         config = "configs/{}".format(config)
-    util.config = Config(config, secret_path)
+    util.config = monster.config.fetch_config(config, secret_path)
 
 
 def _load(name="autotest", config="config.yaml", secret_path=None,

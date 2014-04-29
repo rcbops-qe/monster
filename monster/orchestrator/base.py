@@ -1,4 +1,4 @@
-class DeploymentOrchestrator:
+class Orchestrator:
 
     @property
     def local_api(self):

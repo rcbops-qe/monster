@@ -4,19 +4,17 @@ import chef
 import monster.nodes.chef_node_wrapper as chef_node_wrapper
 import monster.features.node_features as node_features
 import monster.environments.chef.environment as wrapper
-from monster.orchestrator.deployment_orchestrator import DeploymentOrchestrator
+import monster.orchestrator.base as base
 
-from monster.deployments.rpcs.deployment import Deployment
+import monster.deployments.rpcs.deployment as rpcs
 import monster.config as config
-
-from monster.provisioners.util import get_provisioner
+import monster.provisioners.util as provisioner_util
 
 
 logger = logging.getLogger(__name__)
 
 
-
-class ChefDeploymentOrchestrator(DeploymentOrchestrator):
+class Orchestrator(base.Orchestrator):
     def create_deployment_from_file(self, name, template, branch,
                                     provisioner_name):
         """Returns a new deployment given a deployment template at path.
@@ -31,7 +29,7 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
         :rtype: Deployment
         """
         logger.info("Building deployment object for {0}".format(name))
-        provisioner = get_provisioner(provisioner_name)
+        provisioner = provisioner_util.get_provisioner(provisioner_name)
 
         if chef.Environment(name, api=self.local_api).exists:
             logger.info("Using previous deployment:{0}".format(name))
@@ -40,12 +38,13 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
         environment = wrapper.Environment(name=name, local_api=self.local_api,
                                           description=name)
 
-        template = config.Config.fetch_template(template, branch)
+        template = config.fetch_template(template, branch)
 
         os, product, features = template.fetch('os', 'product', 'features')
 
-        deployment = Deployment(name, os, branch, environment, provisioner,
-                                "provisioning", product, features=features)
+        deployment = rpcs.Deployment(name, os, branch, environment,
+                                     provisioner, "provisioning", product,
+                                     features=features)
 
         deployment.nodes = provisioner.build_nodes(template, deployment,
                                                    chef_node_wrapper)
@@ -63,11 +62,12 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
                                   default_attributes=default,
                                   override_attributes=override)
 
-        provisioner = get_provisioner(env.provisioner)
+        provisioner = provisioner_util.get_provisioner(env.provisioner)
 
-        deployment = Deployment(name, env.os_name, env.branch, env,
-                                provisioner, "provisioning", env.product,
-                                features=env.features)
+        deployment = rpcs.Deployment(name, env.os_name, env.branch, env,
+                                     provisioner, "provisioning", env.product,
+                                     features=env.features)
+
         deployment.nodes = provisioner.load_nodes(env, deployment,
                                                   chef_node_wrapper)
         return deployment
