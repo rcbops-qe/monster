@@ -1,41 +1,21 @@
 import logging
-import requests
 import sys
 
-import monster.features.base as base
+import requests
+
+import monster.features.deployment.base as deployment_
 import monster.util as util
+
 
 logger = logging.getLogger(__name__)
 
 
-class Feature(base.Feature):
-    """Represents a feature across a deployment."""
-
-    def __init__(self, deployment, rpcs_feature):
-        self.rpcs_feature = rpcs_feature
-        self.deployment = deployment
-
-    def __repr__(self):
-        return 'class: ' + self.__class__.__name__
-
-    def update_environment(self):
-        pass
-
-    def pre_configure(self):
-        pass
-
-    def apply_feature(self):
-        pass
-
-    def post_configure(self):
-        pass
-
 #############################################################################
-############################ OpenStack Features #############################
+############################ OpenStack deployment_.Features #############################
 #############################################################################
 
 
-class Neutron(Feature):
+class Neutron(deployment_.deployment_.Feature):
     """Represents a Neutron network cluster."""
 
     def __init__(self, deployment, provider):
@@ -155,7 +135,7 @@ class Neutron(Feature):
         return cmd
 
 
-class Swift(Feature):
+class Swift(deployment_.Feature):
     """Represents a Block Storage cluster enabled by Swift."""
 
     def __init__(self, deployment, rpcs_feature='default'):
@@ -376,7 +356,7 @@ class Swift(Feature):
         logger.info("## Done setting up swift rings ##")
 
 
-class Glance(Feature):
+class Glance(deployment_.Feature):
     """Represents a Glance with CloudFiles backend."""
 
     def __init__(self, deployment, rpcs_feature='default'):
@@ -422,7 +402,7 @@ class Glance(Feature):
         api['swift_store_key'] = password
 
 
-class Keystone(Feature):
+class Keystone(deployment_.Feature):
     """Represents the Keystone feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
@@ -468,7 +448,7 @@ class Keystone(Feature):
             self.deployment.environment.save()
 
 
-class Nova(Feature):
+class Nova(deployment_.Feature):
     """Represents the Monitoring feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
@@ -497,7 +477,7 @@ class Nova(Feature):
         self.deployment.environment.save()
 
 
-class Horizon(Feature):
+class Horizon(deployment_.Feature):
     """Represents the Dashboard feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
@@ -509,7 +489,7 @@ class Horizon(Feature):
             str(self), self.environment)
 
 
-class Cinder(Feature):
+class Cinder(deployment_.Feature):
     """Represents the Cinder feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
@@ -526,7 +506,7 @@ class Cinder(Feature):
             compute.run()
 
 
-class Ceilometer(Feature):
+class Ceilometer(deployment_.Feature):
     """Represents the Ceilometer feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
@@ -539,12 +519,12 @@ class Ceilometer(Feature):
 
 
 #############################################################################
-############### Rackspace Private Cloud Software Features ###################
+############### Rackspace Private Cloud Software deployment_.Features ###################
 #############################################################################
 
 
-class RPCS(Feature):
-    """Represents a Rackspace Private Cloud Software Feature."""
+class RPCS(deployment_.Feature):
+    """Represents a Rackspace Private Cloud Software deployment_.Feature."""
 
     def __init__(self, deployment, rpcs_feature, name):
         super(RPCS, self).__init__(deployment, rpcs_feature)

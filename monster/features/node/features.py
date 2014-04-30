@@ -1,72 +1,9 @@
 import chef
+import monster.features.node.base as node_
 import monster.util as util
-import monster.features.base as base
 
 
-class Feature(base.Feature):
-    """Represents a feature on a node."""
-
-    def __init__(self, node):
-        """Initialize Node object.
-        :type node: monster.nodes.base.Node
-        """
-        self.node = node
-
-    def __repr__(self):
-        return 'class: ' + self.__class__.__name__
-
-    def pre_configure(self):
-        pass
-
-    def apply_feature(self):
-        pass
-
-    def post_configure(self):
-        pass
-
-    def artifact(self):
-        pass
-
-    def upgrade(self):
-        pass
-
-    def set_run_list(self):
-        """Sets the nodes run list based on the feature."""
-
-        # have to add logic for controllers
-        if hasattr(self, "number"):
-            # Set the role based on the feature name and number of the node
-            role = "{0}{1}".format(self.__class__.__name__.lower(),
-                                   self.number)
-        else:
-            role = self.__class__.__name__.lower()
-
-        # Set the run list based on the deployment config for the role
-        run_list = util.config['rcbops'][self.node.product][role]['run_list']
-
-        # Add the run list to the node
-        self.node.add_run_list_item(run_list)
-
-    def build_archive(self):
-        """Builds an archive to save node information."""
-        self.log_path = '/tmp/archive/var/log'
-        self.etc_path = '/tmp/archive/etc'
-        self.misc_path = '/tmp/archive/misc'
-
-        build_archive_cmd = "; ".join("mkdir -p {0}".format(path)
-                                      for path in (self.log_path,
-                                                   self.etc_path,
-                                                   self.misc_path))
-
-        self.node.run_cmd(build_archive_cmd)
-
-    def save_node_running_services(self):
-        store_running_services = "{0} > {1}/running-services.out".format(
-            self.deployment.list_packages_cmd, self.misc_path)
-        self.run_cmd(store_running_services)
-
-
-class Berkshelf(Feature):
+class Berkshelf(node_.Feature):
     """Represents a node with berks installed."""
 
     def pre_configure(self):
@@ -116,7 +53,7 @@ class Berkshelf(Feature):
         self.node.run_cmds(commands)
 
 
-class ChefServer(Feature):
+class ChefServer(node_.Feature):
     """Represents a chef server."""
 
     def __init__(self, node):
@@ -238,7 +175,7 @@ class ChefServer(Feature):
                 node.save_to_node()
 
 
-class Cinder(Feature):
+class Cinder(node_.Feature):
     """Enables cinder with local lvm backend."""
 
     def pre_configure(self):
@@ -249,7 +186,7 @@ class Cinder(Feature):
                         "configs": [""]}
 
 
-class Compute(Feature):
+class Compute(node_.Feature):
     """Represents a RPCS compute """
 
     def pre_configure(self):
@@ -271,7 +208,7 @@ class Compute(Feature):
                         "configs": ["nova"]}
 
 
-class Controller(Feature):
+class Controller(node_.Feature):
     """Represents a RPCS Controller """
 
     def __init__(self, node):
@@ -334,7 +271,7 @@ class Controller(Feature):
                                     "ufw"]}
 
 
-class Metrics(Feature):
+class Metrics(node_.Feature):
     """Represents a Metrics Node."""
 
     def __init__(self, node):
@@ -366,7 +303,7 @@ class Metrics(Feature):
         self.node.add_run_list_item(run_list)
 
 
-class Network(Feature):
+class Network(node_.Feature):
     """Sets the node to be a network."""
 
     def pre_configure(self):
@@ -377,7 +314,7 @@ class Network(Feature):
                         "configs": [""]}
 
 
-class NetworkManager(Feature):
+class NetworkManager(node_.Feature):
 
     def preconfigure(self):
         self.set_run_list()
@@ -387,7 +324,7 @@ class NetworkManager(Feature):
                         "configs": [""]}
 
 
-class OpenLDAP(Feature):
+class OpenLDAP(node_.Feature):
     """Represents a LDAP server."""
 
     def pre_configure(self):
@@ -406,7 +343,7 @@ class OpenLDAP(Feature):
         self.node.run_cmd(ldapadd)
 
 
-class Orchestration(Feature):
+class Orchestration(node_.Feature):
 
     def __init__(self, node):
         super(Orchestration, self).__init__(node)
@@ -428,7 +365,7 @@ class Orchestration(Feature):
                         "configs": [""]}
 
 
-class Proxy(Feature):
+class Proxy(node_.Feature):
     """Represents a RPCS proxy node."""
 
     def pre_configure(self):
@@ -439,7 +376,7 @@ class Proxy(Feature):
                         "configs": [""]}
 
 
-class Remote(Feature):
+class Remote(node_.Feature):
     """Represents the deployment having a remote chef server."""
 
     def pre_configure(self):
@@ -466,7 +403,7 @@ class Remote(Feature):
         self.node.save()
 
 
-class Storage(Feature):
+class Storage(node_.Feature):
     """Represents a RPCS proxy node."""
 
     def pre_configure(self):
