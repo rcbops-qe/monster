@@ -8,8 +8,12 @@ setuptools.setup(
     name="monster",
     version="0.1.0",
     description="An OpenStack Deployment/Orchestration Engine",
-    package_dir=os.getcwd(),
     packages=setuptools.find_packages(),
+    package_data = {
+        '': ['*.yaml']
+    },
     entry_points={
-        "console_scripts": ["monster = monster.executable:run"]}
+        "console_scripts": [
+            "monster = monster.executable:run"
+        ]}
 )

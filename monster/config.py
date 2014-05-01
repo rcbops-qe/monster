@@ -1,10 +1,11 @@
 import logging
 
+import pkg_resources
+
 from os import path
 from yaml import load
 from collections import defaultdict
 from monster.template import Template
-
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +15,12 @@ def fetch_config(config, secret=None):
     :param config: configuration files, stored in configs directory.
     :param secret: secret path, stored in project root.
     """
-    template_path = path.join(path.dirname(path.dirname(__file__)), config)
+    template_path = pkg_resources.resource_filename(__name__, config)
     with open(template_path, 'r') as template:
         config = defaultdict(None, load(template.read()))
 
-    secret_path = secret or "secret.yaml"
+    secret = secret or "secret.yaml"
+    secret_path = pkg_resources.resource_filename(__name__, secret)
     with open(secret_path, 'r') as secret:
         config['secrets'] = load(secret.read())
     return config
@@ -34,9 +36,7 @@ def fetch_template(template_name, branch):
         template_file = "default"
     else:
         template_file = branch.lstrip('v').rstrip("rc").replace('.', '_')
-
-    template_path = path.join(path.dirname(__file__), path.pardir,
-                              "templates/{0}.yaml".format(template_file))
+    template_path = "templates/{0}.yaml".format(template_file)
 
     try:
         template = Template(fetch_config(template_path)[template_name])
@@ -47,3 +47,4 @@ def fetch_template(template_name, branch):
         exit(1)
     else:
         return template
+
