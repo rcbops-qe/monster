@@ -15,7 +15,7 @@ logger = logging.getLogger(__name__)
 #############################################################################
 
 
-class Neutron(deployment_.deployment_.Feature):
+class Neutron(deployment_.Feature):
     """Represents a Neutron network cluster."""
 
     def __init__(self, deployment, provider):
@@ -519,7 +519,7 @@ class Ceilometer(deployment_.Feature):
 
 
 #############################################################################
-############### Rackspace Private Cloud Software Features ###################
+############### Rackspace Private Cloud Software deployment_.Features ###################
 #############################################################################
 
 
