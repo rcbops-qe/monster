@@ -22,4 +22,3 @@ class Feature(base.Feature):
 
     def post_configure(self):
         pass
-
