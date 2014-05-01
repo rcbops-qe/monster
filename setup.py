@@ -9,5 +9,5 @@ setuptools.setup(
     description="An OpenStack Deployment/Orchestration Engine",
     packages=setuptools.find_packages(),
     entry_points={
-        "console_scripts": ["monster = monster.compute"]}
+        "console_scripts": ["monster = monster.executable:run"]}
 )

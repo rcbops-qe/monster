@@ -165,7 +165,7 @@ def _load(name="autotest", config="config.yaml", secret_path=None,
     return deployment
 
 
-if __name__ == "__main__":
+def run():
     parser = argh.ArghParser()
     parser.add_commands([build, retrofit, upgrade, destroy, openrc, horizon,
                          show, test, tmux, cloudcafe])
@@ -179,3 +179,7 @@ if __name__ == "__main__":
                        "the command \"source .venv/bin/activate\"")
 
     parser.dispatch()
+
+
+if __name__ == "__main__":
+    run()
