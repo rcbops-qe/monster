@@ -19,12 +19,37 @@ from monster.tests.cloudcafe import CloudCafe
 from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
 
+logger = util.Logger().logger_setup()
 
-def build(name="autotest", template="ubuntu-default", branch="master",
-          template_path=None, config="pubcloud-neutron.yaml",
-          dry=False, log=None, provisioner_name="rackspace",
-          secret_path=None, orchestrator_name="chef"):
-    """Build an OpenStack cluster."""
+
+def rpcs(name="autotest", template="ubuntu-default", branch="master",
+         template_path=None, config="pubcloud-neutron.yaml",
+         dry=False, log=None, provisioner_name="rackspace",
+         secret_path=None, orchestrator_name="chef"):
+    """Build an Rackspace Private Cloud deployment."""
+    _load_config(config, secret_path)
+
+    orchestrator = get_orchestrator(orchestrator_name)
+    deployment = orchestrator.create_deployment_from_file(name, template,
+                                                          branch,
+                                                          provisioner_name)
+    try:
+        if dry:
+            deployment.update_environment()
+        else:
+            deployment.build()
+    except Exception:
+        error = traceback.print_exc()
+        logger.exception(error)
+
+    logger.info(deployment)
+
+
+def devstack(name="autotest", template="ubuntu-default", branch="master",
+             template_path=None, config="pubcloud-neutron.yaml",
+             dry=False, log=None, provisioner_name="rackspace",
+             secret_path=None, orchestrator_name="chef"):
+    """Build an devstack deployment."""
     _load_config(config, secret_path)
 
     orchestrator = get_orchestrator(orchestrator_name)
@@ -167,10 +192,11 @@ def _load(name="autotest", config="config.yaml", secret_path=None,
 
 def run():
     parser = argh.ArghParser()
-    parser.add_commands([build, retrofit, upgrade, destroy, openrc, horizon,
+    parser.add_commands([retrofit, upgrade, destroy, openrc, horizon,
                          show, test, tmux, cloudcafe])
 
-    logger = util.Logger().logger_setup()
+    argh.add_commands(parser, [devstack, rpcs], namespace='build',
+                      title="build-related commands")
 
     if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
         logger.warning("You are not using the virtual environment! We "
