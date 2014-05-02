@@ -1,15 +1,22 @@
 import setuptools
-import os
+import monster.info as info
 
 with open('requirements.txt') as f:
     required = f.read().splitlines()
 
 setuptools.setup(
+    name=info.__appname__,
+    version=info.__version__,
+    author=info.__author__,
+    author_email=info.__email__,
+    description=info.__description__,
+    url=info.__url__,
+    install_requires=required,
     name="monster",
     version="0.1.0",
     description="An OpenStack Deployment/Orchestration Engine",
     packages=setuptools.find_packages(),
-    package_data = {
+    package_data={
         '': ['*.yaml']
     },
     entry_points={
