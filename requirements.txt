@@ -15,5 +15,4 @@ python-swiftclient
 pyyaml
 requests
 setuptools
-setuptools-git
 tmuxp

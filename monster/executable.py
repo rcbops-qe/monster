@@ -68,25 +68,17 @@ def devstack(name="autotest", template="ubuntu-default", branch="master",
     logger.info(deployment)
 
 
-def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
-         tempest=False, ha=False, secret_path=None,
-         deployment=None, iterations=1, progress=False):
+def tempest(name="autotest", config="pubcloud-neutron.yaml", log=None,
+            secret_path=None, deployment=None, iterations=1, progress=False):
     """Test an OpenStack deployment."""
     if not deployment:
         deployment = _load(name, config, secret_path)
-    if not tempest and not ha:
-        tempest = True
-        ha = True
-    if not deployment.has_feature("highavailability"):
-        ha = False
-    if ha:
-        ha = HATest(deployment, progress)
-    if tempest:
-        branch = TempestQuantum.tempest_branch(deployment.branch)
-        if "grizzly" in branch:
-            tempest = TempestQuantum(deployment)
-        else:
-            tempest = TempestNeutron(deployment)
+
+    branch = TempestQuantum.tempest_branch(deployment.branch)
+    if "grizzly" in branch:
+        test_object = TempestQuantum(deployment)
+    else:
+        test_object = TempestNeutron(deployment)
 
     env = deployment.environment.name
     local = "./results/{0}/".format(env)
@@ -103,12 +95,41 @@ def test(name="autotest", config="pubcloud-neutron.yaml", log=None,
         #Prepare directory for xml files to be SCPed over
         subprocess.call(['mkdir', '-p', '{0}'.format(local)])
 
-        if ha:
-            logger.info(Color.cyan('Running High Availability test!'))
-            ha.test(iterations)
-        if tempest:
+        if test_object:
             logger.info(Color.cyan('Running Tempest test!'))
-            tempest.test()
+            test_object.test()
+
+    logger.info(Color.cyan("Tests have been completed with {0} iterations"
+                           .format(iterations)))
+
+
+def ha(name="autotest", config="pubcloud-neutron.yaml",
+                      log=None, secret_path=None, deployment=None,
+                      iterations=1, progress=False):
+    """Test an OpenStack deployment."""
+    if not deployment:
+        deployment = _load(name, config, secret_path)
+    # if deployment.has_feature("highavailability"):
+
+    test_object = HATest(deployment, progress)
+
+    env = deployment.environment.name
+    local = "./results/{0}/".format(env)
+    controllers = deployment.search_role('controller')
+    for controller in controllers:
+        ip, user, password = controller.creds
+        remote = "{0}@{1}:~/*.xml".format(user, ip)
+        util.get_file(ip, user, password, remote, local)
+
+    for i in range(iterations):
+        logger.info(Color.cyan('Running iteration {0} of {1}!'
+                         .format(i + 1, iterations)))
+
+        #Prepare directory for xml files to be SCPed over
+        subprocess.call(['mkdir', '-p', '{0}'.format(local)])
+
+        logger.info(Color.cyan('Running High Availability test!'))
+        test_object.test(iterations)
 
     logger.info(Color.cyan("Tests have been completed with {0} iterations"
                            .format(iterations)))
@@ -192,11 +213,14 @@ def _load(name="autotest", config="config.yaml", secret_path=None,
 
 def run():
     parser = argh.ArghParser()
-    parser.add_commands([retrofit, upgrade, destroy, openrc, horizon,
-                         show, test, tmux, cloudcafe])
+    parser.add_commands([retrofit, upgrade, destroy, openrc, horizon, show,
+                         tmux])
 
     argh.add_commands(parser, [devstack, rpcs], namespace='build',
                       title="build-related commands")
+    argh.add_commands(parser, [cloudcafe, ha, tempest],
+                      namespace='test',
+                      title="test-related commands")
 
     if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
         logger.warning("You are not using the virtual environment! We "

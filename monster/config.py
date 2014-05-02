@@ -2,7 +2,6 @@ import logging
 
 import pkg_resources
 
-from os import path
 from yaml import load
 from collections import defaultdict
 from monster.template import Template
@@ -47,4 +46,3 @@ def fetch_template(template_name, branch):
         exit(1)
     else:
         return template
-
