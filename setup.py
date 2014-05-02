@@ -1,9 +1,6 @@
 import setuptools
 import monster.info as info
 
-with open('requirements.txt') as f:
-    required = f.read().splitlines()
-
 setuptools.setup(
     name=info.__appname__,
     version=info.__version__,
@@ -11,7 +8,6 @@ setuptools.setup(
     author_email=info.__email__,
     description=info.__description__,
     url=info.__url__,
-    install_requires=required,
     packages=setuptools.find_packages(),
     package_data={
         '': ['*.yaml']
