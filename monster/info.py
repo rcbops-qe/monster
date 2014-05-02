@@ -6,7 +6,7 @@ __date__ = "2014-05-01"
 __version__ = "0.1.0"
 __status__ = "Development"
 __appname__ = "monster"
-__description__ = 'OpenStack Deployment/Orchestration Engine'
+__description__ = "An OpenStack Deployment/Orchestration Engine"
 __url__ = 'https://github.com/rcbops-qa/monster'
 __VN__ = '%s' % __version__
 

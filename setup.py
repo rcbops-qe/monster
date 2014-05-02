@@ -12,9 +12,6 @@ setuptools.setup(
     description=info.__description__,
     url=info.__url__,
     install_requires=required,
-    name="monster",
-    version="0.1.0",
-    description="An OpenStack Deployment/Orchestration Engine",
     packages=setuptools.find_packages(),
     package_data={
         '': ['*.yaml']
