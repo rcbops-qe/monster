@@ -22,7 +22,7 @@ from monster.tests.tempest_quantum import TempestQuantum
 logger = util.Logger().logger_setup()
 
 
-def rpcs(name="autotest", template="ubuntu-default", branch="master",
+def rpcs(name, template="ubuntu-default", branch="master",
          template_path=None, config="pubcloud-neutron.yaml",
          dry=False, log=None, provisioner_name="rackspace",
          secret_path=None, orchestrator_name="chef"):
@@ -45,7 +45,7 @@ def rpcs(name="autotest", template="ubuntu-default", branch="master",
     logger.info(deployment)
 
 
-def devstack(name="autotest", template="ubuntu-default", branch="master",
+def devstack(name, template="ubuntu-default", branch="master",
              template_path=None, config="pubcloud-neutron.yaml",
              dry=False, log=None, provisioner_name="rackspace",
              secret_path=None, orchestrator_name="chef"):
@@ -68,7 +68,7 @@ def devstack(name="autotest", template="ubuntu-default", branch="master",
     logger.info(deployment)
 
 
-def tempest(name="autotest", config="pubcloud-neutron.yaml", log=None,
+def tempest(name, config="pubcloud-neutron.yaml", log=None,
             secret_path=None, deployment=None, iterations=1, progress=False):
     """Test an OpenStack deployment."""
     if not deployment:
@@ -103,9 +103,8 @@ def tempest(name="autotest", config="pubcloud-neutron.yaml", log=None,
                            .format(iterations)))
 
 
-def ha(name="autotest", config="pubcloud-neutron.yaml",
-                      log=None, secret_path=None, deployment=None,
-                      iterations=1, progress=False):
+def ha(name, config="pubcloud-neutron.yaml", log=None,
+       secret_path=None, deployment=None, iterations=1, progress=False):
     """Test an OpenStack deployment."""
     if not deployment:
         deployment = _load(name, config, secret_path)
@@ -152,7 +151,7 @@ def upgrade(name='autotest', upgrade_branch='v4.1.3rc',
     deployment.upgrade(upgrade_branch)
 
 
-def destroy(name="autotest", config="pubcloud-neutron.yaml",
+def destroy(name, config="pubcloud-neutron.yaml",
             log=None, secret_path=None):
     """Destroy an existing OpenStack deployment."""
     deployment = _load(name, config, secret_path=secret_path)
@@ -160,37 +159,37 @@ def destroy(name="autotest", config="pubcloud-neutron.yaml",
     deployment.destroy()
 
 
-def artifact(name="autotest", config=None, log=None, secret_path=None):
+def artifact(name, config=None, log=None, secret_path=None):
     """Artifact a deployment (configs/running services)."""
     deployment = _load(name, config, secret_path)
     deployment.artifact()
 
 
-def openrc(name="autotest", config=None, log=None, secret_path=None):
+def openrc(name, config=None, log=None, secret_path=None):
     """Export OpenStack credentials into shell environment."""
     deployment = _load(name, config, secret_path)
     deployment.openrc()
 
 
-def tmux(name="autotest", config=None, log=None, secret_path=None):
+def tmux(name, config=None, log=None, secret_path=None):
     """Load OpenStack nodes into a new tmux session."""
     deployment = _load(name, config, secret_path)
     deployment.tmux()
 
 
-def horizon(name="autotest", config=None, log=None, secret_path=None):
+def horizon(name, config=None, log=None, secret_path=None):
     """Open Horizon in a browser tab."""
     deployment = _load(name, config, secret_path)
     deployment.horizon()
 
 
-def show(name="autotest", config=None, log=None, secret_path=None):
+def show(name, config=None, log=None, secret_path=None):
     """Show details about an OpenStack deployment."""
     deployment = _load(name, config, secret_path)
     logger.info(str(deployment))
 
 
-def cloudcafe(cmd, name="autotest", network=None, config=None,
+def cloudcafe(cmd, name, network=None, config=None,
               secret_path=None):
     deployment = _load(name, config, secret_path)
     CloudCafe(deployment).config(cmd, network_name=network)
@@ -202,7 +201,7 @@ def _load_config(config, secret_path):
     util.config = monster.config.fetch_config(config, secret_path)
 
 
-def _load(name="autotest", config="config.yaml", secret_path=None,
+def _load(name, config="config.yaml", secret_path=None,
           orchestrator_name="chef"):
     # Load deployment and source openrc
     _load_config(config, secret_path)

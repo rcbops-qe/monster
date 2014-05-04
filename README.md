@@ -3,7 +3,7 @@
 An OpenStack Orchestration Engine
 
 ### Installation
-1. Use the [monster installer](https://github.com/rcbops-qa/monster-installer.git).
+1. Use the [monster installer](https://github.com/rcbops-qa/monster-installer.git).  Then, from the project root, run `python setup.py install`.
 
    **or**
 
@@ -13,6 +13,7 @@ git clone https://github.com/rcbops-qa/monster.git ~/monster
 virtualenv -p `which python2` ~/monster/.venv
 source ~/monster/.venv/bin/activate
 pip install -r ~/monster/requirements.txt
+python ~/monster/setup.py install
 ```
 
 **Note:** On a small servers, we have experienced gevent installation failures due to insufficient memory. Adding swap
@@ -20,79 +21,81 @@ may resolve these issues.
 
 - Credentials should be saved in `monster/secret.yaml`.  An example `secret.yaml` file can be found at `monster/examples/secret.yaml`.
 
-### Post-install
-
-From the project root, run `python setup.py install`.
 
 ---------------------------------------
 
 ## CLI
 
-#### build
+**build**
+
 Deploy an OS cluster.
 
 ```
-monster build rpcs -n my_build -t ubuntu-ha-neutron -c pubcloud-neutron.yaml -b v4.1.5 -p rackspace
+monster build rpcs my_build -t ubuntu-ha-neutron -c pubcloud-neutron.yaml -b v4.1.5 -p rackspace
 ```
 
-#### show
+**show**
+
 Show details about an OS deployment.
 
 ```
-monster show -n my_build
+monster show my_build
 ```
 
-#### destroy
+**destroy**
+
 Destroy an OS deployment.
 
 ```
-monster destroy -n my_build
+monster destroy my_build
 ```
 
-#### openrc
+**openrc**
+
 Load openrc environment variables into shell. Once loaded,
 openstack CLI commands will communicate to cluster.
 
 ```
-monster openrc -n my_build
-```
-
-```
+monster openrc my_build
 nova boot --image cirros-image --flavor 1
 ```
 
-#### horizon
+**horizon**
+
 Open Horizon in browser.
 
 ```
-monster horizon -n my_build
+monster horizon my_build
 ```
 
-#### test
+**test**
+
 Run tests on an OS cluster.
 
 ```
-monster test cloudcafe -n my_build
+monster test cloudcafe my_build
 ```
 ```
-monster test ha -n my_build
+monster test ha my_build
 ```
 ```
-monster test tempest -n my_build
+monster test tempest my_build
 ```
 
-#### upgrade
+**upgrade**
+
 Upgrade the deployment to the specified branch.
 
 ```
-monster upgrade -n my_build -u v4.2.1 -c pubcloud-neutron.yaml
+monster upgrade my_build -u v4.2.1
 ```
 
-#### tmux
+**tmux**
+
 Open a tmux session with each node in a different window.
 
 ```
-monster tmux -n my_build -c pubcloud-neutron.yaml
+monster tmux my_build
 ```
 
 **Requires tmux version >= 1.8**
@@ -123,5 +126,5 @@ deployment = load("my_build", "configs/pubcloud-neutron.yaml")
 
 For development convienence, the CLI is also accessible from the project root by using `monster/executable.py`.  For example,
 ```
-monster/executable.py build rpcs -n my_build -t ubuntu-ha-neutron
+monster/executable.py build rpcs my_build -t ubuntu-ha-neutron
 ```
