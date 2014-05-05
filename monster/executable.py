@@ -12,7 +12,7 @@ import argh
 import monster.config
 
 from monster import util
-from monster.color import Color
+from monster.tools.color import Color
 from monster.orchestrator.util import get_orchestrator
 from monster.tests.ha import HATest
 from monster.tests.cloudcafe import CloudCafe
