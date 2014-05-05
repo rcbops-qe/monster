@@ -6,6 +6,7 @@ import chef
 import pyrabbit.api as rabbit
 
 import monster.util
+import monster.active as active
 import monster.upgrades.util as upgrades_util
 import monster.clients.openstack as openstack
 import monster.deployments.base as base
@@ -16,28 +17,24 @@ class Deployment(base.Deployment):
     configuration management.
     """
 
-    def __init__(self, name, os_name, branch, environment, provisioner,
-                 status=None, product=None, clients=None, features=None):
+    def __init__(self, name, environment, status=None, clients=None):
 
         """Initializes a RPCS deployment object.
         :type name: str
-        :type os_name: str
-        :type branch: str
         :type environment: monster.environments.chef.environment.Environment
-        :type provisioner: monster.provisioners.base.Provisioner
         :type status: str
-        :type product: str
-        :type features: monster.features.base.Feature
         """
         status = status or "provisioning"
-        super(Deployment, self).__init__(name=name, os_name=os_name,
-                                         branch=branch,
+        super(Deployment, self).__init__(name=name,
                                          environment=environment,
-                                         provisioner=provisioner,
-                                         status=status, product=product,
-                                         clients=clients, features=features)
+                                         status=status,
+                                         clients=clients)
         self.has_controller = False
         self.has_orch_master = False
+        if self.status is "provisioning":
+            self.provisioner.build_nodes(self)
+        else:
+            self.provisioner.load_nodes(self)
 
     def __str__(self):
         return str(self.to_dict)
@@ -140,7 +137,7 @@ class Deployment(base.Deployment):
         return {'nodes': nodes, 'features': features,
                 'name': self.name, 'os_name': self.os_name,
                 'branch': self.branch, 'status': self.status,
-                'product': self.product, 'provisioner': self.provisioner}
+                'product': self.product, 'provisioner': str(self.provisioner)}
 
     @property
     def openstack_clients(self):
@@ -181,9 +178,26 @@ class Deployment(base.Deployment):
         """Returns IP of Horizon.
         :rtype: str
         """
-
         controller = next(self.search_role('controller'))
         ip = controller.ipaddress
         if "vips" in self.environment.override_attributes:
             ip = self.environment.override_attributes['vips']['nova-api']
         return ip
+
+    def wrap_node(self, node):
+        remote_api = self.environment.remote_api
+        remote_node = chef.Node(node.name, remote_api)
+        if remote_node.exists:
+            node = remote_node
+        ip = node['ipaddress']
+        user = node['current_user']
+        default_pass = active.config['secrets']['default_pass']
+        password = node.get('password', default_pass)
+        name = node.name
+        archive = node.get('archive', {})
+        run_list = node.run_list
+        chef_remote_node = chef.Node(name, ip, user, password, self.product,
+                                     self, self.provisioner, self.environment,
+                                     self.branch, run_list)
+        chef_remote_node.add_features(archive.get('features', []))
+        return chef_remote_node

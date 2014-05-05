@@ -17,6 +17,8 @@ if not path.exists(LOG_DIR):
     os.makedirs(LOG_DIR)
 
 config = {}
+template = {}
+build_args = {}
 
 
 # https://github.com/cloudnull/turbolift/blob/master/turbolift/logger/logger.py

@@ -1,6 +1,5 @@
 import logging
-
-from monster import util
+import monster.active as active
 
 logger = logging.getLogger(__name__)
 
@@ -99,8 +98,8 @@ class Retrofit(object):
 
     def _install_repo(self, node, branch='master'):
         """Installs the retrofit repository."""
-        retro_git = util.config['rcbops']['retrofit']['git']['url']
-        branches = util.config['rcbops']['retrofit']['git']['branches']
+        retro_git = active.config['rcbops']['retrofit']['git']['url']
+        branches = active.config['rcbops']['retrofit']['git']['branches']
 
         if branch not in branches:
             error = "{0} not a supported branch in retrofit".format(branch)
@@ -124,7 +123,7 @@ class Retrofit(object):
 
     def _check_os(self):
         """Checks to see if os is supported."""
-        supported = util.config['rcbops']['retrofit']['supported']['os']
+        supported = active.config['rcbops']['retrofit']['supported']['os']
 
         if not self.deployment.os_name in supported:
             error = "{0} is not a retrofit supported OS".format(

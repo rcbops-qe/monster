@@ -1,6 +1,6 @@
 import chef
 import monster.features.node.base as node_
-import monster.util as util
+import monster.active as active
 
 
 class Berkshelf(node_.Feature):
@@ -58,7 +58,7 @@ class ChefServer(node_.Feature):
 
     def __init__(self, node):
         super(ChefServer, self).__init__(node)
-        self.iscript = util.config['chef']['server']['install_script']
+        self.iscript = active.config['chef']['server']['install_script']
         self.iscript_name = self.iscript.split('/')[-1]
         self.script_download = 'curl {0} >> {1}'.format(self.iscript,
                                                         self.iscript_name)
@@ -97,11 +97,11 @@ class ChefServer(node_.Feature):
     def _install_cookbooks(self, directory=None):
         """Installs cookbooks """
 
-        cookbook_url = util.config['rcbops'][self.node.product]['git']['url']
+        cookbook_url = active.config['rcbops'][self.node.product]['git']['url']
         cookbook_branch = self.node.branch
         cookbook_name = cookbook_url.split("/")[-1].split(".")[0]
 
-        install_dir = directory or util.config['chef']['server']['install_dir']
+        install_dir = directory or active.config['chef']['server']['install_dir']
 
         commands = ["mkdir -p {0}".format(install_dir),
                     "cd {0}".format(install_dir),
@@ -126,7 +126,7 @@ class ChefServer(node_.Feature):
         return self.node.run_cmd(command)
 
     def _upgrade_cookbooks(self):
-        install_dir = util.config['chef']['server']['upgrade_dir']
+        install_dir = active.config['chef']['server']['upgrade_dir']
         clean = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done",
                  "rm -rf {0}".format(install_dir)]
         self.node.run_cmd("; ".join(clean))
@@ -296,7 +296,7 @@ class Metrics(node_.Feature):
         role = self.__class__.__name__.lower()
 
         # Set the run list based on the deployment config for the role
-        run_list = util.config['rcbops'][self.node.product][
+        run_list = active.config['rcbops'][self.node.product][
             role][self.role]['run_list']
 
         # Add the run list to the node
@@ -392,7 +392,7 @@ class Remote(node_.Feature):
 
         # Gather the info for the chef server
         chef_server = next(self.node.deployment.search_role('chefserver'))
-        client_version = util.config['chef']['client']['version']
+        client_version = active.config['chef']['client']['version']
 
         command = ("knife bootstrap {0} -u root -P {1}"
                    " --bootstrap-version {2}".format(self.node.ipaddress,

@@ -2,6 +2,7 @@ import logging
 import pyrax
 
 import monster.util
+import monster.active as active
 import monster.provisioners.openstack.provisioner as openstack
 import monster.clients.openstack as openstack_client
 import monster.server_helper
@@ -12,7 +13,7 @@ logger = logging.getLogger(__name__)
 class Provisioner(openstack.Provisioner):
     """Provisions Chef nodes in Rackspace Cloud Servers VMS."""
     def __init__(self):
-        rackspace = monster.util.config['secrets']['rackspace']
+        rackspace = active.config['secrets']['rackspace']
 
         self.names = []
         self.name_index = {}
@@ -32,7 +33,7 @@ class Provisioner(openstack.Provisioner):
         return 'rackspace'
 
     def get_networks(self):
-        rackspace = monster.util.config[str(self)]
+        rackspace = active.config[str(self)]
         desired_networks = rackspace['networks']
         networks = []
         for network in desired_networks:
@@ -61,7 +62,7 @@ class Provisioner(openstack.Provisioner):
 
     def rdo(self, node):
         logger.info("Installing RDO kernel.")
-        kernel = monster.util.config['rcbops']['compute']['kernel']['centos']
+        kernel = active.config['rcbops']['compute']['kernel']['centos']
         version = kernel['version']
         install = kernel['install']
         if version not in node.run_cmd("uname -r")['return']:

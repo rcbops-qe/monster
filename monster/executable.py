@@ -10,6 +10,7 @@ import traceback
 import argh
 
 import monster.config
+import monster.active as active
 
 from monster import util
 from monster.database import store_build_params
@@ -32,9 +33,7 @@ def rpcs(name, template="ubuntu-default", branch="master",
     _load_config(name)
 
     orchestrator = get_orchestrator(orchestrator_name)
-    deployment = orchestrator.create_deployment_from_file(name, template,
-                                                          branch,
-                                                          provisioner_name)
+    deployment = orchestrator.create_deployment_from_file(name)
     try:
         if dry:
             deployment.update_environment()
@@ -193,7 +192,9 @@ def cloudcafe(cmd, name, network=None):
 
 
 def _load_config(name):
-    util.config = monster.config.fetch_config(name)
+    active.config = monster.config.fetch_config(name)
+    active.template = monster.config.fetch_template(name)
+    active.build_args = monster.config.fetch_build_args(name)
 
 
 def _load(name, orchestrator_name="chef"):

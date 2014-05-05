@@ -119,12 +119,12 @@ To make development of monster easier you can load deployment objects in iPython
 2. Run:
 ```python
 from tools.ipython import load
-deployment = load("my_build", "configs/pubcloud-neutron.yaml")
+deployment = load("my_build")
 ```
 
 #### CLI
 
-For development convienence, the CLI is also accessible from the project root by using `monster/executable.py`.  For example,
+For development convenience, the CLI is also accessible from the project root by using `monster/executable.py`.  For example,
 ```
 monster/executable.py build rpcs my_build -t ubuntu-ha-neutron
 ```

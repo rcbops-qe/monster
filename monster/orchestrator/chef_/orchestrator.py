@@ -1,54 +1,35 @@
 import logging
 
 import chef
-import monster.config as config
+
 import monster.deployments.rpcs.deployment as rpcs
-import monster.environments.chef_.environment as env_wrapper
 import monster.features.node.features as node_features
 import monster.orchestrator.base as base
-import monster.provisioners.util as provisioner_util
-import monster.nodes.chef_.node as node_wrapper
 
+from monster.environments.chef_.environment import Environment
 
 logger = logging.getLogger(__name__)
 
 
 class Orchestrator(base.Orchestrator):
-    def create_deployment_from_file(self, name, template, branch,
-                                    provisioner_name):
+    def create_deployment_from_file(self, name):
         """Returns a new deployment given a deployment template at path.
         :param name: name for the deployment
         :type name: str
-        :param name: name of template to use
-        :type name: str
-        :param branch: branch of the RCBOPS chef cookbook repo to use
-        :type branch:: str
-        :param provisioner_name: provisioner to use for nodes
-        :type provisioner_name: str
         :rtype: Deployment
         """
+
         logger.info("Building deployment object for {0}".format(name))
-        provisioner = provisioner_util.get_provisioner(provisioner_name)
 
         if chef.Environment(name, api=self.local_api).exists:
             logger.info("Using previous deployment:{0}".format(name))
             return self.load_deployment_from_name(name)
 
-        environment = env_wrapper.Environment(name=name,
-                                              local_api=self.local_api,
-                                              description=name)
+        env = Environment(name=name, local_api=self.local_api,
+                          description=name)
 
-        template = config.fetch_template(template, branch)
-
-        os, product, features = template.fetch('os', 'product', 'features')
-
-        deployment = rpcs.Deployment(name, os, branch, environment,
-                                     provisioner, "provisioning", product,
-                                     features=features)
-
-        deployment.nodes = provisioner.build_nodes(template, deployment,
-                                                   node_wrapper)
-        return deployment
+        return rpcs.Deployment(name=name, environment=env,
+                               status="provisioning")
 
     def load_deployment_from_name(self, name):
         """Rebuilds a Deployment given a deployment name.
@@ -57,20 +38,14 @@ class Orchestrator(base.Orchestrator):
         :rtype: Deployment
         """
         default, override, remote_api = self.load_environment_attributes(name)
-        env = env_wrapper.Environment(name=name, local_api=self.local_api,
-                                      remote_api=remote_api, description=name,
-                                      default_attributes=default,
-                                      override_attributes=override)
 
-        provisioner = provisioner_util.get_provisioner(env.provisioner)
+        env = Environment(name=name, local_api=self.local_api,
+                          remote_api=remote_api, description=name,
+                          default_attributes=default,
+                          override_attributes=override)
 
-        deployment = rpcs.Deployment(name, env.os_name, env.branch, env,
-                                     provisioner, "provisioning", env.product,
-                                     features=env.features)
-
-        deployment.nodes = provisioner.load_nodes(env, deployment,
-                                                  node_wrapper)
-        return deployment
+        return rpcs.Deployment(name=name, environment=env,
+                               status="loading")
 
     def load_environment_attributes(self, name):
         local_env = chef.Environment(name, self.local_api)

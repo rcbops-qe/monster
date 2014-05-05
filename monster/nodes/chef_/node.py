@@ -1,9 +1,8 @@
 import chef
 import logging
 
-import monster.util
+import monster.active as active
 import monster.nodes.base as base
-import monster.provisioners.util as provisioner_util
 
 logger = logging.getLogger(__name__)
 
@@ -106,7 +105,7 @@ class Node(base.Node):
         node.save()
 
     def run(self, times=1, debug=True, accept_failure=True):
-        cmd = monster.util.config['chef']['client']['run_cmd']
+        cmd = active.config['chef']['client']['run_cmd']
         for i in xrange(times):
             if debug:
                 time = self.run_cmd("date +%F_%T")['return'].rstrip()
@@ -136,30 +135,3 @@ class Node(base.Node):
     @property
     def remote_api(self):
         return self.environment.remote_api
-
-
-def wrap_node(node, product, environment, deployment, provisioner, branch):
-    """
-
-    """
-    remote_api = None
-    if deployment:
-        remote_api = deployment.environment.remote_api
-    if remote_api:
-        remote_node = chef.Node(node.name, remote_api)
-        if remote_node.exists:
-            node = remote_node
-    ip = node['ipaddress']
-    user = node['current_user']
-    default_pass = monster.util.config['secrets']['default_pass']
-    password = node.get('password', default_pass)
-    name = node.name
-    archive = node.get('archive', {})
-    if not provisioner:
-        provisioner_name = archive.get('provisioner', 'razor2')
-        provisioner = provisioner_util.get_provisioner(provisioner_name)
-    run_list = node.run_list
-    chef_remote_node = Node(name, ip, user, password, product, deployment,
-                            provisioner, environment, branch, run_list)
-    chef_remote_node.add_features(archive.get('features', []))
-    return chef_remote_node

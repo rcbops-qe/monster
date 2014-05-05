@@ -40,6 +40,10 @@ def fetch_template(name):
     return template
 
 
+def fetch_build_args(name):
+    return db.hgetall(name)
+
+
 def _config_path(config):
     return pkg_resources.resource_filename(__name__, 'configs/%s' % config)
 
@@ -53,4 +57,6 @@ def _template_path(branch):
         template_file = "default"
     else:
         template_file = branch.lstrip('v').rstrip("rc").replace('.', '_')
-    return "templates/{0}.yaml".format(template_file)
+    template_file = "templates/{0}.yaml".format(template_file)
+
+    return pkg_resources.resource_filename(__name__, template_file)

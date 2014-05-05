@@ -2,7 +2,7 @@ import logging
 
 from time import sleep
 
-from monster import util
+import monster.active as active
 from monster.upgrades.upgrade import Upgrade
 
 logger = logging.getLogger(__name__)
@@ -26,7 +26,7 @@ class FourOneFour(Upgrade):
         else:
             upgrade_branch = "v4.1.4"
 
-        supported = util.config['upgrade']['supported'][self.deployment.branch]
+        supported = active.config['upgrade']['supported'][self.deployment.branch]
         if upgrade_branch not in supported:
             logger.error("{0} to {1} upgrade not supported".format(
                 self.deployment.branch,
@@ -62,8 +62,8 @@ class FourOneFour(Upgrade):
 
         if self.deployment.has_feature('highavailability'):
             controller2 = controllers[1]
-            stop = util.config['upgrade']['commands']['stop-services']
-            start = util.config['upgrade']['commands']['start-services']
+            stop = active.config['upgrade']['commands']['stop-services']
+            start = active.config['upgrade']['commands']['start-services']
 
             # Sleep for vips to move
             controller2.run_cmd(stop)

@@ -1,4 +1,4 @@
-import monster.util as util
+import monster.active as active
 import monster.features.base as base
 
 
@@ -41,7 +41,7 @@ class Feature(base.Feature):
             role = self.__class__.__name__.lower()
 
         # Set the run list based on the deployment config for the role
-        run_list = util.config['rcbops'][self.node.product][role]['run_list']
+        run_list = active.config['rcbops'][self.node.product][role]['run_list']
 
         # Add the run list to the node
         self.node.add_run_list_item(run_list)

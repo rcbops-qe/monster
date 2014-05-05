@@ -6,8 +6,7 @@ import requests
 
 import monster.nodes.util as node_utils
 import monster.provisioners.base as base
-import monster.util
-
+import monster.active as active
 
 logger = logging.getLogger(__name__)
 
@@ -16,16 +15,14 @@ class Provisioner(base.Provisioner):
     """Provisions chef nodes in a Razor environment."""
 
     def __init__(self, url=None):
-        self.url = url or monster.util.config['secrets']['razor']['url']
+        self.url = url or active.config['secrets']['razor']['url']
         self.api = RazorAPI2(self.url)
 
     def __str__(self):
         return 'razor2'
 
-    def provision(self, template, deployment):
+    def provision(self, deployment):
         """Provisions nodes using Razor environment.
-        :param template: template for cluster
-        :type template: dict
         :param deployment: ChefDeployment to provision for
         :type deployment: Deployment
         :rtype: list

@@ -4,7 +4,7 @@ import sys
 import requests
 
 import monster.features.deployment.base as deployment_
-import monster.util as util
+import monster.active as active
 
 
 logger = logging.getLogger(__name__)
@@ -30,15 +30,14 @@ class Neutron(deployment_.Feature):
         super(Neutron, self).__init__(deployment, provider)
 
         # Grab correct environment based on the provider passed in the config
-        self.environment = util.config['environments'][str(self)][provider]
+        self.env = active.config['environments'][str(self)][provider]
 
         # Set the provider name in object (future use)
         self.provider = provider
 
     def update_environment(self):
         """Updates environment file to include feature."""
-        self.deployment.environment.add_override_attr(self.provider,
-                                                      self.environment)
+        self.deployment.environment.add_override_attr(self.provider, self.env)
 
     def post_configure(self):
         """Runs cluster post-configure commands."""
@@ -140,16 +139,17 @@ class Swift(deployment_.Feature):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Swift, self).__init__(deployment, rpcs_feature)
-        self.environment = util.config['environments'][str(self)][rpcs_feature]
+        self.env = active.config['environments'][str(self)][rpcs_feature]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
-            str(self), self.environment)
+            str(self), self.env)
         self._set_keystone_urls()
         self._fix_environment()
 
     def post_configure(self, auto=False):
-        build_rings = auto or bool(util.config['swift']['auto_build_rings'])
+        build_rings = auto or \
+                      bool(active.config['swift']['auto_build_rings'])
         self._build_rings(build_rings)
 
     def _set_keystone_urls(self):
@@ -174,7 +174,7 @@ class Swift(deployment_.Feature):
         """
 
         env = self.deployment.environment
-        master_key = util.config['swift']['master_env_key']
+        master_key = active.config['swift']['master_env_key']
         keystone = env.override_attributes['keystone']
         swift = env.override_attributes['swift'][master_key]
         swift['keystone'] = keystone
@@ -211,8 +211,8 @@ class Swift(deployment_.Feature):
         #####################################################################
 
         # Build Swift Rings
-        disk = util.config['swift']['disk']
-        label = util.config['swift']['disk_label']
+        disk = active.config['swift']['disk']
+        label = active.config['swift']['disk_label']
         for storage_node in storage_nodes:
             commands = ["/usr/local/bin/swift-partition.sh {0}".format(disk),
                         "/usr/local/bin/swift-format.sh {0}".format(label),
@@ -238,11 +238,11 @@ class Swift(deployment_.Feature):
         ## Setup partitions on storage nodes, (must run as swiftops user) ##
         ####################################################################
 
-        num_rings = util.config['swift']['num_rings']
-        part_power = util.config['swift']['part_power']
-        replicas = util.config['swift']['replicas']
-        min_part_hours = util.config['swift']['min_part_hours']
-        disk_weight = util.config['swift']['disk_weight']
+        num_rings = active.config['swift']['num_rings']
+        part_power = active.config['swift']['part_power']
+        replicas = active.config['swift']['replicas']
+        min_part_hours = active.config['swift']['min_part_hours']
+        disk_weight = active.config['swift']['disk_weight']
 
         commands = ["su swiftops",
                     "swift-ring-builder object.builder create "
@@ -259,7 +259,7 @@ class Swift(deployment_.Feature):
                                          min_part_hours)]
 
         # Determine how many storage nodes we have and add them
-        builders = util.config['swift']['builders']
+        builders = active.config['swift']['builders']
 
         for builder in builders:
             name = builder
@@ -361,7 +361,7 @@ class Glance(deployment_.Feature):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Glance, self).__init__(deployment, rpcs_feature)
-        self.environment = util.config['environments'][str(self)][rpcs_feature]
+        self.environment = active.config['environments'][str(self)][rpcs_feature]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -370,7 +370,7 @@ class Glance(deployment_.Feature):
             self._add_credentials()
 
     def _add_credentials(self):
-        cf_secrets = util.config['secrets']['cloudfiles']
+        cf_secrets = active.config['secrets']['cloudfiles']
         user = cf_secrets['user']
         password = cf_secrets['password']
 
@@ -407,7 +407,7 @@ class Keystone(deployment_.Feature):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Keystone, self).__init__(deployment, rpcs_feature)
-        self.environment = util.config['environments'][str(self)][rpcs_feature]
+        self.environment = active.config['environments'][str(self)][rpcs_feature]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -417,10 +417,10 @@ class Keystone(deployment_.Feature):
         # connect to AD/LDAP
         if 'actived' in self.rpcs_feature or 'openldap' in self.rpcs_feature:
             # grab values from secrets file
-            url = util.config['secrets'][self.rpcs_feature]['url']
-            user = util.config['secrets'][self.rpcs_feature]['user']
-            password = util.config['secrets'][self.rpcs_feature]['password']
-            users = util.config['secrets'][self.rpcs_feature]['users']
+            url = active.config['secrets'][self.rpcs_feature]['url']
+            user = active.config['secrets'][self.rpcs_feature]['user']
+            password = active.config['secrets'][self.rpcs_feature]['password']
+            users = active.config['secrets'][self.rpcs_feature]['users']
 
             env = self.deployment.environment
 
@@ -440,7 +440,7 @@ class Keystone(deployment_.Feature):
         if 'actived' in self.rpcs_feature or 'openldap' in self.rpcs_feature:
 
             # Add the service user passwords
-            for user, value in util.config['secrets'][
+            for user, value in active.config['secrets'][
                     self.rpcs_feature].items():
                 if self.deployment.has_feature(user):
                     env.override_attributes[user]['service_pass'] = \
@@ -470,7 +470,7 @@ class Nova(deployment_.Feature):
 
     def update_environment(self):
         net_choice = self.get_net_choice()
-        self.environment = util.config['environments'][str(self)][net_choice]
+        self.environment = active.config['environments'][str(self)][net_choice]
         self.deployment.environment.add_override_attr(
             str(self), self.environment)
 
@@ -482,7 +482,7 @@ class Horizon(deployment_.Feature):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Horizon, self).__init__(deployment, rpcs_feature)
-        self.environment = util.config['environments'][str(self)][rpcs_feature]
+        self.environment = active.config['environments'][str(self)][rpcs_feature]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -494,7 +494,7 @@ class Cinder(deployment_.Feature):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Cinder, self).__init__(deployment, rpcs_feature)
-        self.environment = util.config['environments'][str(self)][rpcs_feature]
+        self.environment = active.config['environments'][str(self)][rpcs_feature]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -511,7 +511,7 @@ class Ceilometer(deployment_.Feature):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Ceilometer, self).__init__(deployment, rpcs_feature)
-        self.environment = util.config['environments'][str(self)][rpcs_feature]
+        self.environment = active.config['environments'][str(self)][rpcs_feature]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -540,7 +540,7 @@ class Monitoring(RPCS):
     def __init__(self, deployment, rpcs_feature='default'):
         super(Monitoring, self).__init__(deployment, rpcs_feature,
                                          str(self))
-        self.environment = util.config['environments'][self.name][rpcs_feature]
+        self.environment = active.config['environments'][self.name][rpcs_feature]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -553,7 +553,7 @@ class MySql(RPCS):
     def __init__(self, deployment, rpcs_feature='default'):
         super(MySql, self).__init__(deployment, rpcs_feature,
                                     str(self))
-        self.environment = util.config['environments'][self.name][rpcs_feature]
+        self.environment = active.config['environments'][self.name][rpcs_feature]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -566,7 +566,7 @@ class OsOps(RPCS):
     def __init__(self, deployment, rpcs_feature='default'):
         super(OsOps, self).__init__(deployment, rpcs_feature,
                                     str(self))
-        self.environment = util.config['environments'][self.name][rpcs_feature]
+        self.environment = active.config['environments'][self.name][rpcs_feature]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -579,7 +579,7 @@ class DeveloperMode(RPCS):
     def __init__(self, deployment, rpcs_feature='default'):
         super(DeveloperMode, self).__init__(deployment, rpcs_feature,
                                             'developer_mode')
-        self.environment = util.config['environments'][self.name][rpcs_feature]
+        self.environment = active.config['environments'][self.name][rpcs_feature]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
@@ -592,7 +592,7 @@ class OsOpsNetworks(RPCS):
     def __init__(self, deployment, rpcs_feature='default'):
         super(OsOpsNetworks, self).__init__(deployment, rpcs_feature,
                                             'osops_networks')
-        self.environment = util.config['environments'][self.name]
+        self.environment = active.config['environments'][self.name]
 
     def update_environment(self):
 
@@ -606,7 +606,7 @@ class HighAvailability(RPCS):
     def __init__(self, deployment, rpcs_feature):
         super(HighAvailability, self).__init__(deployment, rpcs_feature,
                                                'vips')
-        self.environment = util.config['environments'][self.name]
+        self.environment = active.config['environments'][self.name]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(self.name,
@@ -619,14 +619,14 @@ class OpenLDAP(RPCS):
     def __init__(self, deployment, rpcs_feature):
         super(OpenLDAP, self).__init__(deployment, rpcs_feature,
                                        str(self))
-        self.environment = util.config['environments'][self.name]
+        self.environment = active.config['environments'][self.name]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(
             self.name, self.environment)
 
         ldap_server = self.deployment.search_role('openldap')
-        password = util.config['ldap']['pass']
+        password = active.config['ldap']['pass']
         ip = ldap_server.ipaddress
         env = self.deployment.environment
 
@@ -644,7 +644,7 @@ class Openssh(RPCS):
 
     def __init__(self, deployment, rpcs_feature):
         super(Openssh, self).__init__(deployment, rpcs_feature, str(self))
-        self.environment = util.config['environments'][self.name]
+        self.environment = active.config['environments'][self.name]
 
     def update_environment(self):
         self.deployment.environment.add_override_attr(

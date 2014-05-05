@@ -1,4 +1,4 @@
-from monster import util
+import monster.active as active
 
 
 class Upgrade(object):
@@ -126,7 +126,7 @@ class Upgrade(object):
             ])
 
         # backup db
-        backup = util.config['upgrade']['commands']['backup-db']
+        backup = active.config['upgrade']['commands']['backup-db']
         controller1.run_cmd(backup)
 
         # Mungerate all the things

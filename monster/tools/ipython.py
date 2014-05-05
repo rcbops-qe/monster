@@ -6,12 +6,12 @@ Use:
 3. deployment = load("deployment_name", "config_file")
 """
 
-import monster.util
+import monster.active
 import monster.config
 import monster.orchestrator.chef_.orchestrator as chef_orchestrator
 
 
-def load(name, config="config.yaml"):
+def load(name):
     """Helper function for loading a deployment object in iPython."""
-    monster.util.config = monster.config.fetch_config(config)
+    monster.active.config = monster.config.fetch_config(name)
     return chef_orchestrator.Orchestrator().load_deployment_from_name(name)

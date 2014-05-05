@@ -5,6 +5,8 @@ import tmuxp
 import monster.tools.retrofit
 import monster.features.deployment.features as deployment_features
 import monster.util as util
+import monster.active as active
+from monster.provisioners.util import get_provisioner
 
 
 logger = logging.getLogger(__name__)
@@ -13,20 +15,19 @@ logger = logging.getLogger(__name__)
 class Deployment(object):
     """Base for OpenStack deployments."""
 
-    def __init__(self, name, os_name, branch, environment, provisioner, status,
-                 product, clients=None, features=None):
+    def __init__(self, name, environment, status, clients=None):
         self.name = name
-        self.os_name = os_name
-        self.branch = branch
+        self.os_name = active.template['os']
+        self.branch = active.build_args['branch']
         self.environment = environment
         self.features = []
         self.nodes = []
         self.status = status or "Provisioning..."
-        self.provisioner = str(provisioner)
-        self.product = product
+        self.provisioner = get_provisioner(active.build_args['provisioner'])
+        self.product = active.template['product']
         self.clients = clients
-        if features:
-            self.add_features(features)
+        #if 'features' in template:  # investigate further
+        self.add_features(active.template['features'])
 
     def __repr__(self):
         features = "\tFeatures: %s" % self.feature_names

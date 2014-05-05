@@ -6,6 +6,7 @@ import types
 import time
 
 from lazy import lazy
+from monster.deployments.base import config
 
 import monster.util
 import monster.features.node.features as node_features
@@ -250,7 +251,7 @@ class Node(object):
     @property
     def vmnet_iface(self):
         """Return the iface that our VM data network will live on."""
-        return monster.util.config['environments']['bridge_devices']['data']
+        return config['environments']['bridge_devices']['data']
 
     @lazy
     def feature_names(self):

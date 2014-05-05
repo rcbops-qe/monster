@@ -7,6 +7,7 @@ import monster.util
 import monster.provisioners.base as base
 import monster.clients.openstack as openstack
 import monster.server_helper
+import monster.active as active
 
 logger = logging.getLogger(__name__)
 
@@ -45,10 +46,8 @@ class Provisioner(base.Provisioner):
         self.name_index[name] = 1
         return "{0}-{1}".format(deployment.name, name)
 
-    def provision(self, template, deployment):
+    def provision(self, deployment):
         """Provisions a chef node using OpenStack.
-        :param template: template for cluster
-        :type template: dict
         :param deployment: ChefDeployment to provision for
         :type deployment: monster.deployments.base.Deployment
         :rtype: list
@@ -58,10 +57,10 @@ class Provisioner(base.Provisioner):
 
         # create instances concurrently
         events = []
-        for features in template['nodes']:
+        for features in active.template['nodes']:
             name = self.name(features[0], deployment)
             self.names.append(name)
-            flavor = monster.util.config['rackspace']['roles'][features[0]]
+            flavor = active.config['rackspace']['roles'][features[0]]
             events.append(gevent.spawn(self.chef_instance, deployment, name,
                                        flavor=flavor))
         gevent.joinall(events)
@@ -97,12 +96,12 @@ class Provisioner(base.Provisioner):
         server, password = self.build_instance(name=name, image=image,
                                                flavor=flavor)
         run_list = ""
-        if monster.util.config[str(self)]['run_list']:
-            run_list = ",".join(monster.util.config[str(self)]['run_list'])
+        if active.config[str(self)]['run_list']:
+            run_list = ",".join(active.config[str(self)]['run_list'])
         run_list_arg = ""
         if run_list:
             run_list_arg = "-r {0}".format(run_list)
-        client_version = monster.util.config['chef']['client']['version']
+        client_version = active.config['chef']['client']['version']
         command = ("knife bootstrap {0} -u root -P {1} -N {2} {3}"
                    " --bootstrap-version {4}".format(server.accessIPv4,
                                                      password,
@@ -140,7 +139,7 @@ class Provisioner(base.Provisioner):
                                    image_name, attempts=10)
 
     def get_networks(self):
-        desired_networks = monster.util.config[str(self)]['networks']
+        desired_networks = active.config[str(self)]['networks']
         networks = []
         for network in desired_networks:
             obj = self._client_search(self.neutron.list, "label",
@@ -158,7 +157,7 @@ class Provisioner(base.Provisioner):
         :type flavor: string
         :rtype: Server
         """
-        self.config = monster.util.config[str(self)]
+        self.config = active.config[str(self)]
 
         # gather attribute objects
         flavor_obj = self.get_flavor(flavor)
