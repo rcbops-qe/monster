@@ -6,43 +6,51 @@ from yaml import load
 from collections import defaultdict
 from monster.template import Template
 
+import database
+
 logger = logging.getLogger(__name__)
+db = database.get_connection()
 
 
-def fetch_config(config, secret=None):
+def fetch_config(name):
     """Returns a dictionary with the deployment's config loaded in it.
-    :param config: configuration files, stored in configs directory.
-    :param secret: secret path, stored in project root.
+    :param name: name of your deployment
     """
-    template_path = pkg_resources.resource_filename(__name__, config)
-    with open(template_path, 'r') as template:
-        config = defaultdict(None, load(template.read()))
+    config, secret = db.hmget(name, ['config', 'secret'])
 
-    secret = secret or "secret.yaml"
-    secret_path = pkg_resources.resource_filename(__name__, secret)
-    with open(secret_path, 'r') as secret:
-        config['secrets'] = load(secret.read())
+    with open(_config_path(config), 'r') as f:
+        config = defaultdict(None, load(f.read()))
+
+    with open(_secret_path(secret), 'r') as f:
+        config['secrets'] = load(f.read())
+
     return config
 
 
-def fetch_template(template_name, branch):
+def fetch_template(name):
     """Returns a dictionary with the deployment's template loaded in it.
-    :param template_name
-    :param branch
+    :param name of deployment
     :return: Template
     """
+    branch, template = db.hmget(name, ['branch', 'template'])
+
+    with open(_template_path(branch), 'r') as f:
+        template = Template(load(f.read())[template])
+
+    return template
+
+
+def _config_path(config):
+    return pkg_resources.resource_filename(__name__, 'configs/%s' % config)
+
+
+def _secret_path(secret):
+    return pkg_resources.resource_filename(__name__, secret)
+
+
+def _template_path(branch):
     if branch == "master":
         template_file = "default"
     else:
         template_file = branch.lstrip('v').rstrip("rc").replace('.', '_')
-    template_path = "templates/{0}.yaml".format(template_file)
-
-    try:
-        template = Template(fetch_config(template_path)[template_name])
-    except KeyError:
-        logger.critical("Looking for the template {0} in the file: "
-                        "\n{1}\n The key was not found!"
-                        .format(template_file, template_path))
-        exit(1)
-    else:
-        return template
+    return "templates/{0}.yaml".format(template_file)

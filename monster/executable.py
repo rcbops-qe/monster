@@ -12,6 +12,7 @@ import argh
 import monster.config
 
 from monster import util
+from monster.database import store_build_params
 from monster.tools.color import Color
 from monster.orchestrator.util import get_orchestrator
 from monster.tests.ha import HATest
@@ -22,12 +23,13 @@ from monster.tests.tempest_quantum import TempestQuantum
 logger = util.Logger().logger_setup()
 
 
+@store_build_params
 def rpcs(name, template="ubuntu-default", branch="master",
-         template_path=None, config="pubcloud-neutron.yaml",
-         dry=False, log=None, provisioner_name="rackspace",
-         secret_path=None, orchestrator_name="chef"):
+         config="pubcloud-neutron.yaml", dry=False,
+         log=None, provisioner_name="rackspace",
+         secret="secret.yaml", orchestrator_name="chef"):
     """Build an Rackspace Private Cloud deployment."""
-    _load_config(config, secret_path)
+    _load_config(name)
 
     orchestrator = get_orchestrator(orchestrator_name)
     deployment = orchestrator.create_deployment_from_file(name, template,
@@ -45,12 +47,13 @@ def rpcs(name, template="ubuntu-default", branch="master",
     logger.info(deployment)
 
 
+@store_build_params
 def devstack(name, template="ubuntu-default", branch="master",
-             template_path=None, config="pubcloud-neutron.yaml",
-             dry=False, log=None, provisioner_name="rackspace",
-             secret_path=None, orchestrator_name="chef"):
+             config="pubcloud-neutron.yaml", dry=False, log=None,
+             provisioner_name="rackspace", secret_path=None,
+             orchestrator_name="chef"):
     """Build an devstack deployment."""
-    _load_config(config, secret_path)
+    _load_config(name)
 
     orchestrator = get_orchestrator(orchestrator_name)
     deployment = orchestrator.create_deployment_from_file(name, template,
@@ -68,11 +71,10 @@ def devstack(name, template="ubuntu-default", branch="master",
     logger.info(deployment)
 
 
-def tempest(name, config="pubcloud-neutron.yaml", log=None,
-            secret_path=None, deployment=None, iterations=1, progress=False):
+def tempest(name, deployment=None, iterations=1):
     """Test an OpenStack deployment."""
     if not deployment:
-        deployment = _load(name, config, secret_path)
+        deployment = _load(name)
 
     branch = TempestQuantum.tempest_branch(deployment.branch)
     if "grizzly" in branch:
@@ -103,11 +105,10 @@ def tempest(name, config="pubcloud-neutron.yaml", log=None,
                            .format(iterations)))
 
 
-def ha(name, config="pubcloud-neutron.yaml", log=None,
-       secret_path=None, deployment=None, iterations=1, progress=False):
+def ha(name, deployment=None, iterations=1, progress=False):
     """Test an OpenStack deployment."""
     if not deployment:
-        deployment = _load(name, config, secret_path)
+        deployment = _load(name)
     # if deployment.has_feature("highavailability"):
 
     test_object = HATest(deployment, progress)
@@ -135,76 +136,68 @@ def ha(name, config="pubcloud-neutron.yaml", log=None,
 
 
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
-             x_bridge='lxb-mgmt', iface='eth0', del_port=None, config=None,
-             log=None, secret_path=None):
+             x_bridge='lxb-mgmt', iface='eth0', del_port=None):
     """Retrofit a deployment."""
-    deployment = _load(name, config, secret_path)
+    deployment = _load(name)
     logger.info(deployment)
     deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
 
 
-def upgrade(name='autotest', upgrade_branch='v4.1.3rc',
-            config=None, log=None, secret_path=None):
+def upgrade(name, upgrade_branch='v4.1.3rc'):
     """Upgrade a current deployment to the new branch / tag."""
-    deployment = _load(name, config, secret_path)
+    deployment = _load(name)
     logger.info(deployment)
     deployment.upgrade(upgrade_branch)
 
 
-def destroy(name, config="pubcloud-neutron.yaml",
-            log=None, secret_path=None):
+def destroy(name):
     """Destroy an existing OpenStack deployment."""
-    deployment = _load(name, config, secret_path=secret_path)
+    deployment = _load(name)
     logger.info(deployment)
     deployment.destroy()
 
 
-def artifact(name, config=None, log=None, secret_path=None):
+def artifact(name):
     """Artifact a deployment (configs/running services)."""
-    deployment = _load(name, config, secret_path)
+    deployment = _load(name)
     deployment.artifact()
 
 
-def openrc(name, config=None, log=None, secret_path=None):
+def openrc(name):
     """Export OpenStack credentials into shell environment."""
-    deployment = _load(name, config, secret_path)
+    deployment = _load(name)
     deployment.openrc()
 
 
-def tmux(name, config=None, log=None, secret_path=None):
+def tmux(name):
     """Load OpenStack nodes into a new tmux session."""
-    deployment = _load(name, config, secret_path)
+    deployment = _load(name)
     deployment.tmux()
 
 
-def horizon(name, config=None, log=None, secret_path=None):
+def horizon(name):
     """Open Horizon in a browser tab."""
-    deployment = _load(name, config, secret_path)
+    deployment = _load(name)
     deployment.horizon()
 
 
-def show(name, config=None, log=None, secret_path=None):
+def show(name):
     """Show details about an OpenStack deployment."""
-    deployment = _load(name, config, secret_path)
+    deployment = _load(name)
     logger.info(str(deployment))
 
 
-def cloudcafe(cmd, name, network=None, config=None,
-              secret_path=None):
-    deployment = _load(name, config, secret_path)
+def cloudcafe(cmd, name, network=None):
+    deployment = _load(name)
     CloudCafe(deployment).config(cmd, network_name=network)
 
 
-def _load_config(config, secret_path):
-    if "configs/" not in config:
-        config = "configs/{}".format(config)
-    util.config = monster.config.fetch_config(config, secret_path)
+def _load_config(name):
+    util.config = monster.config.fetch_config(name)
 
 
-def _load(name, config="config.yaml", secret_path=None,
-          orchestrator_name="chef"):
-    # Load deployment and source openrc
-    _load_config(config, secret_path)
+def _load(name, orchestrator_name="chef"):
+    _load_config(name)
     orchestrator = get_orchestrator(orchestrator_name)
     deployment = orchestrator.load_deployment_from_name(name)
     return deployment
