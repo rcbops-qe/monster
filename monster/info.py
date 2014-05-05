@@ -6,13 +6,12 @@ __contact__ = "Jacob Wagner"
 __email__ = "jacob.wagner@rackspace.com"
 __copyright__ = "2014 All Rights Reserved"
 __status__ = "Under Development"
-__license__ = ""
+__license__ = "Apache Version 2.0, January 2004"
 __description__ = "An OpenStack Deployment/Orchestration Engine"
 __url__ = 'https://github.com/rcbops-qa/monster'
 __VN__ = '%s' % __version__
 
-# The Version and Information for the application
-VINFO = ('Turbolift %(version)s, '
+VINFO = ('Monster %(version)s, '
          'developed by %(author)s, '
          'Licenced Under %(license)s, '
          'FYI : %(copyright)s' % {'version': __version__,
