@@ -82,3 +82,4 @@ class Provisioner(object):
             wrapped_node = deployment.wrap_node(node)
             loaded_nodes.append(wrapped_node)
         deployment.nodes = loaded_nodes
+        deployment.status = "loaded"
