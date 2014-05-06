@@ -7,11 +7,11 @@ Use:
 """
 
 import monster.active
-import monster.config
+import monster.data.data as data
 import monster.orchestrator.chef_.orchestrator as chef_orchestrator
 
 
 def load(name):
     """Helper function for loading a deployment object in iPython."""
-    monster.active.config = monster.config.fetch_config(name)
+    monster.active.config = data.fetch_config(name)
     return chef_orchestrator.Orchestrator().load_deployment_from_name(name)

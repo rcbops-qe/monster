@@ -12,8 +12,8 @@ from novaclient.v1_1 import client as nova_client
 from neutronclient.v2_0.client import Client as neutron_client
 
 from monster.color import Color
-from monster.util import xunit_merge
 from monster.tests.test import Test
+from monster.tests.util import xunit_merge
 
 logger = logging.getLogger(__name__)
 

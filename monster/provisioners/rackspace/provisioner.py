@@ -1,11 +1,10 @@
 import logging
 import pyrax
 
-import monster.util
 import monster.active as active
 import monster.provisioners.openstack.provisioner as openstack
 import monster.clients.openstack as openstack_client
-import monster.server_helper
+from monster.utils.access import check_port
 
 logger = logging.getLogger(__name__)
 
@@ -68,7 +67,7 @@ class Provisioner(openstack.Provisioner):
         if version not in node.run_cmd("uname -r")['return']:
             node.run_cmd(install)
             node.run_cmd("reboot now")
-            monster.server_helper.check_port(node.ipaddress, 22)
+            check_port(node.ipaddress, 22)
 
     @staticmethod
     def hosts(node):

@@ -5,11 +5,12 @@ import webbrowser
 import chef
 import pyrabbit.api as rabbit
 
-import monster.util
 import monster.active as active
 import monster.upgrades.util as upgrades_util
 import monster.clients.openstack as openstack
 import monster.deployments.base as base
+
+from monster.utils.introspection import module_classes
 
 
 class Deployment(base.Deployment):
@@ -73,7 +74,7 @@ class Deployment(base.Deployment):
         except AttributeError:
             raise NameError("{0} doesn't exist.".format(up_class_module))
 
-        return monster.util.module_classes(identifier)[up_class](self)
+        return module_classes(identifier)[up_class](self)
 
     def upgrade(self, branch_name):
         """Upgrades the deployment."""

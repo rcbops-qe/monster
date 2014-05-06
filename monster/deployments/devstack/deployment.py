@@ -5,11 +5,12 @@ import webbrowser
 import chef
 import pyrabbit.api as rabbit
 
-import monster.util
 import monster.active as active
 import monster.upgrades.util as upgrades_util
 import monster.clients.openstack as openstack
 import monster.deployments.base as base
+
+from monster.utils.introspection import module_classes
 
 
 class Deployment(base.Deployment):
@@ -35,7 +36,7 @@ class Deployment(base.Deployment):
             self.provisioner.build_nodes(self)
         else:
             self.provisioner.load_nodes(self)
-        
+
     def __str__(self):
         return str(self.to_dict)
 
@@ -73,7 +74,7 @@ class Deployment(base.Deployment):
         except AttributeError:
             raise NameError("{0} doesn't exist.".format(up_class_module))
 
-        return monster.util.module_classes(identifier)[up_class](self)
+        return module_classes(identifier)[up_class](self)
 
     def upgrade(self, branch_name):
         """Upgrades the deployment."""
@@ -183,7 +184,7 @@ class Deployment(base.Deployment):
         if "vips" in self.environment.override_attributes:
             ip = self.environment.override_attributes['vips']['nova-api']
         return ip
-    
+
     def wrap_node(self, node):
         remote_api = self.environment.remote_api
         remote_node = chef.Node(node.name, remote_api)

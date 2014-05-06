@@ -30,7 +30,7 @@ class Provisioner(base.Provisioner):
         logger.info("Provisioning with Razor!")
         image = deployment.os_name
         self.nodes += [self.available_node(image, deployment)
-                       for _ in template['nodes']]
+                       for _ in active.template['nodes']]
         return self.nodes
 
     def available_node(self, image, deployment):

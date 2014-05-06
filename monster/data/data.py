@@ -1,12 +1,10 @@
 import logging
-
 import pkg_resources
 
 from yaml import load
 from collections import defaultdict
-from monster.template import Template
 
-import database
+import monster.database as database
 
 logger = logging.getLogger(__name__)
 db = database.get_connection()
@@ -30,12 +28,11 @@ def fetch_config(name):
 def fetch_template(name):
     """Returns a dictionary with the deployment's template loaded in it.
     :param name of deployment
-    :return: Template
     """
     branch, template = db.hmget(name, ['branch', 'template'])
 
     with open(_template_path(branch), 'r') as f:
-        template = Template(load(f.read())[template])
+        template = load(f.read())[template]
 
     return template
 

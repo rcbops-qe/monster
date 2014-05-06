@@ -3,11 +3,10 @@ import gevent
 
 import chef
 
-import monster.util
 import monster.provisioners.base as base
 import monster.clients.openstack as openstack
-import monster.server_helper
 import monster.active as active
+from monster.utils.access import run_cmd, check_port
 
 logger = logging.getLogger(__name__)
 
@@ -108,7 +107,7 @@ class Provisioner(base.Provisioner):
                                                      name,
                                                      run_list_arg,
                                                      client_version))
-        while not monster.server_helper.run_cmd(command)['success']:
+        while not run_cmd(command)['success']:
             logger.warning("Epic failure. Retrying...")
             gevent.sleep(1)
 
@@ -178,7 +177,7 @@ class Provisioner(base.Provisioner):
             server.delete()
             return self.build_instance(name=name, image=image, flavor=flavor)
         host = server.accessIPv4
-        monster.server_helper.check_port(host, 22, timeout=2)
+        check_port(host, 22, timeout=2)
         return server, password
 
     @staticmethod

@@ -1,6 +1,5 @@
 import logging
-
-from monster.util import template
+import monster.active as active
 
 logger = logging.getLogger(__name__)
 
@@ -66,7 +65,7 @@ class Provisioner(object):
             self.post_provision(wrapped_node)
             built_nodes.append(wrapped_node)
 
-        for node, features in zip(built_nodes, template['nodes']):
+        for node, features in zip(built_nodes, active.template['nodes']):
             node.add_features(features)
 
         return built_nodes

@@ -6,12 +6,13 @@ import types
 import time
 
 from lazy import lazy
-from monster.deployments.base import config
 
-import monster.util
 import monster.features.node.features as node_features
-import monster.server_helper as server_helper
 import monster.nodes.util as node_util
+
+from monster.active import config
+from monster.utils.access import scp_from, scp_to, ssh_cmd
+from monster.utils.introspection import module_classes
 
 
 logger = logging.getLogger(__name__)
@@ -72,11 +73,11 @@ class Node(object):
         password = password or self.password
         logger.info("Running: {0} on {1}".format(remote_cmd, self.name))
         count = attempts or 1
-        ret = server_helper.ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
-                                    user=user, password=password)
+        ret = ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
+                      user=user, password=password)
         while not ret['success'] and count:
-            ret = server_helper.ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
-                                        user=user, password=password)
+            ret = ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
+                          user=user, password=password)
             count -= 1
             if not ret['success']:
                 time.sleep(5)
@@ -101,11 +102,9 @@ class Node(object):
         password = password or self.password
         logger.info("SCP: {0} to {1}:{2}".format(local_path, self.name,
                                                  remote_path))
-        return server_helper.scp_to(self.ipaddress,
-                                    local_path,
-                                    user=user,
-                                    password=password,
-                                    remote_path=remote_path)
+
+        return scp_to(self.ipaddress, local_path, user=user,
+                      password=password, remote_path=remote_path)
 
     def scp_from(self, remote_path, user=None, password=None, local_path=""):
         """Retrieves a file from the node."""
@@ -113,11 +112,9 @@ class Node(object):
         password = password or self.password
         logger.info("SCP: {0}:{1} to {2}".format(self.name, remote_path,
                                                  local_path))
-        return server_helper.scp_from(self.ipaddress,
-                                      remote_path,
-                                      user=user,
-                                      password=password,
-                                      local_path=local_path)
+
+        return scp_from(self.ipaddress, remote_path, user=user,
+                        password=password, local_path=local_path)
 
     def pre_configure(self):
         """Preconfigures node for each feature."""
@@ -147,7 +144,7 @@ class Node(object):
     def add_features(self, features):
         """Adds a list of feature classes."""
         logger.debug("node:{0} feature add:{1}".format(self.name, features))
-        classes = monster.util.module_classes(node_features)
+        classes = module_classes(node_features)
         for feature in features:
             feature_class = classes[feature](self)
             self.features.append(feature_class)

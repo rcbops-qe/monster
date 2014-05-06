@@ -5,7 +5,7 @@ Module to test OpenStack deployments with CloudCafe
 import os
 
 from monster.tests.test import Test
-from monster.server_helper import run_cmd
+from monster.utils.access import run_cmd
 
 
 class CloudCafe(Test):

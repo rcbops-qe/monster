@@ -1,5 +1,5 @@
-import inspect
 from decorator import decorator
+import inspect
 import redis
 
 db = redis.StrictRedis(host='localhost', port=6379, db=0)

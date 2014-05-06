@@ -9,30 +9,31 @@ import traceback
 
 import argh
 
-import monster.config
+
 import monster.active as active
 
-from monster import util
+from monster.data import data
+from monster.logger import logger as monster_logger
 from monster.database import store_build_params
-from monster.tools.color import Color
+from monster.utils.color import Color
 from monster.orchestrator.util import get_orchestrator
 from monster.tests.ha import HATest
 from monster.tests.cloudcafe import CloudCafe
 from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
 
-logger = util.Logger().logger_setup()
+logger = monster_logger.Logger().logger_setup()
 
 
 @store_build_params
 def rpcs(name, template="ubuntu-default", branch="master",
          config="pubcloud-neutron.yaml", dry=False,
-         log=None, provisioner_name="rackspace",
-         secret="secret.yaml", orchestrator_name="chef"):
+         log=None, provisioner="rackspace",
+         secret="secret.yaml", orchestrator="chef"):
     """Build an Rackspace Private Cloud deployment."""
     _load_config(name)
 
-    orchestrator = get_orchestrator(orchestrator_name)
+    orchestrator = get_orchestrator(orchestrator)
     deployment = orchestrator.create_deployment_from_file(name)
     try:
         if dry:
@@ -48,9 +49,9 @@ def rpcs(name, template="ubuntu-default", branch="master",
 
 @store_build_params
 def devstack(name, template="ubuntu-default", branch="master",
-             config="pubcloud-neutron.yaml", dry=False, log=None,
-             provisioner_name="rackspace", secret_path=None,
-             orchestrator_name="chef"):
+             config="pubcloud-neutron.yaml", dry=False,
+             log=None, provisioner="rackspace",
+             secret="secret.yaml", orchestrator="chef"):
     """Build an devstack deployment."""
     _load_config(name)
 
@@ -87,7 +88,7 @@ def tempest(name, deployment=None, iterations=1):
     for controller in controllers:
         ip, user, password = controller.creds
         remote = "{0}@{1}:~/*.xml".format(user, ip)
-        util.get_file(ip, user, password, remote, local)
+        logger.get_file(ip, user, password, remote, local)
 
     for i in range(iterations):
         logger.info(Color.cyan('Running iteration {0} of {1}!'
@@ -118,7 +119,7 @@ def ha(name, deployment=None, iterations=1, progress=False):
     for controller in controllers:
         ip, user, password = controller.creds
         remote = "{0}@{1}:~/*.xml".format(user, ip)
-        util.get_file(ip, user, password, remote, local)
+        logger.get_file(ip, user, password, remote, local)
 
     for i in range(iterations):
         logger.info(Color.cyan('Running iteration {0} of {1}!'
@@ -192,9 +193,9 @@ def cloudcafe(cmd, name, network=None):
 
 
 def _load_config(name):
-    active.config = monster.config.fetch_config(name)
-    active.template = monster.config.fetch_template(name)
-    active.build_args = monster.config.fetch_build_args(name)
+    active.config = data.fetch_config(name)
+    active.template = data.fetch_template(name)
+    active.build_args = data.fetch_build_args(name)
 
 
 def _load(name, orchestrator_name="chef"):
@@ -206,8 +207,8 @@ def _load(name, orchestrator_name="chef"):
 
 def run():
     parser = argh.ArghParser()
-    parser.add_commands([retrofit, upgrade, destroy, openrc, horizon, show,
-                         tmux])
+    parser.add_commands([retrofit, upgrade, destroy,
+                         openrc, horizon, show, tmux])
 
     argh.add_commands(parser, [devstack, rpcs], namespace='build',
                       title="build-related commands")
