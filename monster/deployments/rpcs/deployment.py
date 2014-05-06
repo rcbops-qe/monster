@@ -9,6 +9,7 @@ import monster.active as active
 import monster.upgrades.util as upgrades_util
 import monster.clients.openstack as openstack
 import monster.deployments.base as base
+import monster.nodes.chef_.node as monster_chef
 
 from monster.utils.introspection import module_classes
 
@@ -198,8 +199,10 @@ class Deployment(base.Deployment):
         name = node.name
         archive = node.get('archive', {})
         run_list = node.run_list
-        chef_remote_node = chef.Node(name, ip, user, password, self.product,
-                                     self, self.provisioner, self.environment,
-                                     self.branch, run_list)
+
+        chef_remote_node = monster_chef.Node(name, ip, user,
+                                             password, deployment=self,
+                                             run_list=run_list)
+
         chef_remote_node.add_features(archive.get('features', []))
         return chef_remote_node

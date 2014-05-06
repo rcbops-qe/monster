@@ -22,15 +22,14 @@ class Node(object):
     """An individual computation entity to deploy a part OpenStack onto.
     Provides server-related functions.
     """
-    def __init__(self, name, ip, user, password, product,
-                 deployment, provisioner):
+    def __init__(self, name, ip, user, password, deployment):
         self.ipaddress = ip
         self.user = user
         self.name = name
         self.password = password
-        self.product = product
+        self.product = deployment.product
         self.deployment = deployment
-        self.provisioner = provisioner
+        self.provisioner = deployment.provisioner
         self.features = []
         self._cleanups = []
         self.status = "Unknown"
