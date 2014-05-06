@@ -55,10 +55,8 @@ def devstack(name, template="ubuntu-default", branch="master",
     """Build an devstack deployment."""
     _load_config(name)
 
-    orchestrator = get_orchestrator(orchestrator_name)
-    deployment = orchestrator.create_deployment_from_file(name, template,
-                                                          branch,
-                                                          provisioner_name)
+    orchestrator = get_orchestrator(orchestrator)
+    deployment = orchestrator.create_deployment_from_file(name)
     try:
         if dry:
             deployment.update_environment()
@@ -196,7 +194,6 @@ def _load_config(name):
     active.config = data.fetch_config(name)
     active.template = data.fetch_template(name)
     active.build_args = data.fetch_build_args(name)
-    from IPython import embed; embed()
 
 
 def _load(name, orchestrator_name="chef"):

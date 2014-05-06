@@ -1,6 +1,4 @@
-"""
-Provides classes of nodes (server entities)
-"""
+"""Provides classes of nodes (server entities)"""
 import logging
 import types
 import time
@@ -9,8 +7,8 @@ from lazy import lazy
 
 import monster.features.node.features as node_features
 import monster.nodes.util as node_util
+import monster.active as active
 
-from monster.active import config
 from monster.utils.access import scp_from, scp_to, ssh_cmd
 from monster.utils.introspection import module_classes
 
@@ -247,8 +245,7 @@ class Node(object):
     @property
     def vmnet_iface(self):
         """Return the iface that our VM data network will live on."""
-
-        return config['environments']['bridge_devices']['data']
+        return active.config['environments']['bridge_devices']['data']
 
     @lazy
     def feature_names(self):
