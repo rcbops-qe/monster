@@ -54,9 +54,8 @@ class Provisioner(object):
         raise NotImplementedError
 
     def build_nodes(self, deployment):
-        """
-
-        """
+        """Provisions a new set of nodes for a deployment."""
+        assert deployment.nodes == []
         nodes_to_wrap = self.provision(deployment)
 
         built_nodes = []
@@ -67,13 +66,11 @@ class Provisioner(object):
 
         for node, features in zip(built_nodes, active.template['nodes']):
             node.add_features(features)
-
-        return built_nodes
+        deployment.nodes = built_nodes
 
     def load_nodes(self, deployment):
-        """
-
-        """
+        """Loads pre-existing nodes for a deployment."""
+        assert deployment.nodes == []
         env = deployment.environment
         nodes_to_load = self.reload_node_list(env.nodes, env.local_api)
 
@@ -84,4 +81,4 @@ class Provisioner(object):
                 continue
             wrapped_node = deployment.wrap_node(node)
             loaded_nodes.append(wrapped_node)
-        return loaded_nodes
+        deployment.nodes = loaded_nodes

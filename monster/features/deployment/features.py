@@ -83,7 +83,6 @@ class Neutron(deployment_.Feature):
         """Builds the subnets."""
 
         logger.info("### Beginning of Networking Block ###")
-
         controllers = self.deployment.search_role('controller')
         computes = self.deployment.search_role('compute')
 

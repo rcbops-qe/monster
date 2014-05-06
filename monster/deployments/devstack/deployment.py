@@ -32,7 +32,7 @@ class Deployment(base.Deployment):
                                          clients=clients)
         self.has_controller = False
         self.has_orch_master = False
-        if self.status is "provisioning":
+        if self.status == "provisioning":
             self.provisioner.build_nodes(self)
         else:
             self.provisioner.load_nodes(self)

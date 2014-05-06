@@ -196,6 +196,7 @@ def _load_config(name):
     active.config = data.fetch_config(name)
     active.template = data.fetch_template(name)
     active.build_args = data.fetch_build_args(name)
+    from IPython import embed; embed()
 
 
 def _load(name, orchestrator_name="chef"):

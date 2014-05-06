@@ -247,6 +247,7 @@ class Node(object):
     @property
     def vmnet_iface(self):
         """Return the iface that our VM data network will live on."""
+
         return config['environments']['bridge_devices']['data']
 
     @lazy
