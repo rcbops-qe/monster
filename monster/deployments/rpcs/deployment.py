@@ -187,9 +187,10 @@ class Deployment(base.Deployment):
 
     def wrap_node(self, node):
         remote_api = self.environment.remote_api
-        remote_node = chef.Node(node.name, remote_api)
-        if remote_node.exists:
-            node = remote_node
+        if remote_api:
+            remote_node = chef.Node(node.name, remote_api)
+            if remote_node.exists:
+                node = remote_node
         ip = node['ipaddress']
         user = node['current_user']
         default_pass = active.config['secrets']['default_pass']
