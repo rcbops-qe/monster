@@ -190,6 +190,12 @@ def cloudcafe(cmd, name, network=None):
     CloudCafe(deployment).config(cmd, network_name=network)
 
 
+def status():
+    pass
+# check to ensure the DB is up and running on port 6379
+# check to ensure the secret credentials exist and are valid
+
+
 def _load_config(name):
     active.config = data.fetch_config(name)
     active.template = data.fetch_template(name)
@@ -219,7 +225,6 @@ def run():
                        "cannot guarantee that your monster will be well"
                        "-behaved.  To load the virtual environment, use "
                        "the command \"source .venv/bin/activate\"")
-
     parser.dispatch()
 
 

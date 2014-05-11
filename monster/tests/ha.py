@@ -8,10 +8,10 @@ import socket
 
 from time import sleep
 from subprocess import call
-from novaclient.v1_1 import client as nova_client
-from neutronclient.v2_0.client import Client as neutron_client
+import novaclient.v1_1.client as nova_
+import neutronclient.v2_0.client as neutron_
 
-from monster.color import Color
+from monster.utils.color import Color
 from monster.tests.test import Test
 from monster.tests.util import xunit_merge
 
@@ -158,11 +158,14 @@ class HATest(Test):
         creds = self.gather_creds(deployment)
 
         # Setup clients
-        self.nova = nova_client.Client(creds.user, creds.password, creds.user,
-                                       auth_url=creds.url)
-        self.neutron = neutron_client(auth_url=creds.url, username=creds.user,
-                                      password=creds.password,
-                                      tenant_name=creds.user)
+        self.nova = nova_.Client(username=creds.user,
+                                 api_key=creds.password,
+                                 project_id=creds.user,
+                                 auth_url=creds.url)
+        self.neutron = neutron_.Client(auth_url=creds.url,
+                                       username=creds.user,
+                                       password=creds.password,
+                                       tenant_name=creds.user)
         self.rabbit = deployment.rabbitmq_mgmt_client
 
     @property
