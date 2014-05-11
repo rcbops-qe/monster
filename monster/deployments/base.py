@@ -23,7 +23,7 @@ class Deployment(object):
         self.environment = environment
         self.features = []
         self.nodes = []
-        self.status = status or "Provisioning..."
+        self.status = status or "provisioning"
         self.provisioner = get_provisioner(active.build_args['provisioner'])
         self.product = active.template['product']
         self.clients = clients
@@ -162,6 +162,13 @@ class Deployment(object):
         :rtype: list (str)
         """
         return [node.name for node in self.nodes]
+
+    @property
+    def override_attrs(self):
+        """Override attributes for the deployment, which are stored in the
+        deployment's environment.
+        """
+        return self.environment.override_attrs
 
     def retrofit(self, branch, ovs_bridge, lx_bridge, iface,
                  old_port_to_delete=None):

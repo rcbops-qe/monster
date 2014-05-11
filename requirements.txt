@@ -6,6 +6,7 @@ gevent
 lazy
 paramiko
 pychef
+pytest
 pyrabbit
 pyrax
 python-cinderclient

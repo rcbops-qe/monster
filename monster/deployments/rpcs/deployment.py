@@ -97,7 +97,7 @@ class Deployment(base.Deployment):
     def destroy(self):
         """Destroys Chef Deployment."""
 
-        self.status = "Destroying"
+        self.status = "destroying"
         # Nullify remote api so attributes are not sent remotely
         self.environment.remote_api = None
         super(Deployment, self).destroy()
@@ -106,7 +106,7 @@ class Deployment(base.Deployment):
             pass
             # destroy rouge nodes
         self.environment.destroy()
-        self.status = "Destroyed"
+        self.status = "destroyed"
 
     def horizon(self):
         url = "https://{0}".format(self.horizon_ip)
@@ -115,14 +115,12 @@ class Deployment(base.Deployment):
     def openrc(self):
         """Opens a new shell with variables loaded for nova-client."""
 
-        user_name = self.environment.override_attributes['keystone'][
-            'admin_user']
-        user = self.environment.override_attributes['keystone']['users'][
-            user_name]
+        user_name = self.override_attrs['keystone']['admin_user']
+        user = self.override_attrs['keystone']['users'][user_name]
         password = user['password']
         tenant = user['roles'].keys()[0]
         controller = next(self.search_role('controller'))
-        url = chef.Node(controller.name).normal['keystone']['publicURL']
+        url = chef.Node(controller.name)['normal']['keystone']['publicURL']
         strategy = 'keystone'
         openrc = {'OS_USERNAME': user_name, 'OS_PASSWORD': password,
                   'OS_TENANT_NAME': tenant, 'OS_AUTH_URL': url,
@@ -144,8 +142,7 @@ class Deployment(base.Deployment):
     @property
     def openstack_clients(self):
         """Setup OpenStack clients generator for deployment."""
-        override = self.environment.override_attributes
-        keystone = override['keystone']
+        keystone = self.override_attrs['keystone']
         users = keystone['users']
         user = keystone['admin_user']
         region = "RegionOne"
@@ -182,8 +179,8 @@ class Deployment(base.Deployment):
         """
         controller = next(self.search_role('controller'))
         ip = controller.ipaddress
-        if "vips" in self.environment.override_attributes:
-            ip = self.environment.override_attributes['vips']['nova-api']
+        if "vips" in self.override_attrs:
+            ip = self.override_attrs['vips']['nova-api']
         return ip
 
     def wrap_node(self, node):

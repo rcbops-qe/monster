@@ -161,9 +161,9 @@ class Swift(deployment_.Feature):
         proxy_url = \
             "http://{0}:8080/v1/AUTH_%(tenant_id)s".format(proxy_ip)
 
-        for item in env.override_attributes['keystone']:
+        for item in env.override_attrs['keystone']:
             if 'url' in item:
-                env.override_attributes['keystone'][item] = proxy_url
+                env.override_attrs['keystone'][item] = proxy_url
 
         env.save()
 
@@ -174,8 +174,8 @@ class Swift(deployment_.Feature):
 
         env = self.deployment.environment
         master_key = actv.config['swift']['master_env_key']
-        keystone = env.override_attributes['keystone']
-        swift = env.override_attributes['swift'][master_key]
+        keystone = env.override_attrs['keystone']
+        swift = env.override_attrs['swift'][master_key]
         swift['keystone'] = keystone
 
         logger.info("Matching environment: {0} to RPCS "
@@ -423,10 +423,10 @@ class Keystone(deployment_.Feature):
 
             env = self.deployment.environment
 
-            env.override_attributes['keystone']['ldap']['url'] = url
-            env.override_attributes['keystone']['ldap']['user'] = user
-            env.override_attributes['keystone']['ldap']['password'] = password
-            env.override_attributes['keystone']['users'] = users
+            env.override_attrs['keystone']['ldap']['url'] = url
+            env.override_attrs['keystone']['ldap']['user'] = user
+            env.override_attrs['keystone']['ldap']['password'] = password
+            env.override_attrs['keystone']['users'] = users
 
             self.deployment.environment.save()
 
@@ -442,7 +442,7 @@ class Keystone(deployment_.Feature):
             for user, value in actv.config['secrets'][
                     self.rpcs_feature].items():
                 if self.deployment.has_feature(user):
-                    env.override_attributes[user]['service_pass'] = \
+                    env.override_attrs[user]['service_pass'] = \
                         value['service_pass']
             self.deployment.environment.save()
 
@@ -630,9 +630,9 @@ class OpenLDAP(RPCS):
         env = self.deployment.environment
 
         # Override the attrs
-        env.override_attributes['keystone']['ldap']['url'] = \
+        env.override_attrs['keystone']['ldap']['url'] = \
             "ldap://{0}".format(ip)
-        env.override_attributes['keystone']['ldap']['password'] = password
+        env.override_attrs['keystone']['ldap']['password'] = password
 
         # Save the Environment
         self.deployment.environment.save()

@@ -173,7 +173,7 @@ class HATest(Test):
         """
         Creates cred object based off deployment
         """
-        keystone = deployment.environment.override_attributes['keystone']
+        keystone = deployment.override_attrs['keystone']
         user = keystone['admin_user']
         users = keystone['users']
         password = users[user]['password']
@@ -600,8 +600,7 @@ class HATest(Test):
                 'return']
         progress.update("Progress", 1)
 
-        vips = self.deployment.environment.override_attributes[
-            'vips']['config'].keys()
+        vips = self.deployment.override_attrs['vips']['config'].keys()
         progress.update("Progress", 1)
         for vip in vips:
             logger.debug("VIP: {0}".format(vip))

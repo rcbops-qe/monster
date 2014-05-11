@@ -34,7 +34,7 @@ class FourOneThree(Upgrade):
             raise NotImplementedError
 
         # load override attrs from env
-        override = self.deployment.environment.override_attributes
+        override = self.deployment.override_attrs
 
         # set the deploy branch to the upgrade branch
         self.deployment.branch = upgrade_branch
