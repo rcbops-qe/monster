@@ -3,7 +3,7 @@
 An OpenStack Orchestration Engine
 
 ### Installation
-1. Use the [monster installer](https://github.com/rcbops-qa/monster-installer.git).  Then, from the project root, run `python setup.py install`.
+1. Use the [monster installer](https://github.com/rcbops-qa/monster-installer.git).  Then, run `pip install -e .` from the project root.
 
    **or**
 
@@ -12,8 +12,7 @@ An OpenStack Orchestration Engine
 git clone https://github.com/rcbops-qa/monster.git ~/monster
 virtualenv -p `which python2` ~/monster/.venv
 source ~/monster/.venv/bin/activate
-pip install -r ~/monster/requirements.txt
-python ~/monster/setup.py install
+pip install -r ~/monster/requirements.txt -e ~/monster
 ```
 
 **Note:** On a small servers, we have experienced gevent installation failures due to insufficient memory. Adding swap
