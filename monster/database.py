@@ -1,7 +1,10 @@
-from decorator import decorator
+import subprocess
 import inspect
+
+from decorator import decorator
 import redis
 
+assert subprocess.check_output("redis-cli -p 6379 ping") == "PONG"
 
 db = redis.StrictRedis(host='localhost', port=6379, db=0)
 
