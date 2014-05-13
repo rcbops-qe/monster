@@ -105,9 +105,10 @@ def upgrade(name='autotest', upgrade_branch='v4.1.3rc',
     deployment.upgrade(upgrade_branch)
 
 
-def destroy(name="autotest", config="pubcloud-neutron.yaml",
-            log=None, secret_path=None):
-    """Destroy an existing OpenStack deployment."""
+def destroy(name="autotest", config="pubcloud-neutron.yaml", secret_path=None):
+    """
+    Destroy an existing OpenStack deployment
+    """
     deployment = _load(name, config, secret_path=secret_path)
     logger.info(deployment)
     deployment.destroy()

@@ -36,7 +36,7 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
 
         if Environment(name, api=self.local_api).exists:
             logger.info("Using previous deployment:{0}".format(name))
-            return self.load_deployment_from_name(name)
+            return self.load_deployment_from_name(name, provisioner)
 
         environment = ChefEnvironmentWrapper(name, self.local_api,
                                              description=name)
@@ -52,7 +52,7 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
                                                    chef_node_wrapper)
         return deployment
 
-    def load_deployment_from_name(self, name):
+    def load_deployment_from_name(self, name, provisioner=None):
         """Rebuilds a Deployment given a deployment name.
         :param name: name of deployment
         :type name: string
@@ -63,7 +63,8 @@ class ChefDeploymentOrchestrator(DeploymentOrchestrator):
                                      remote_api=remote_api, description=name,
                                      default=default, override=override)
 
-        provisioner = get_provisioner(env.provisioner)
+        if not provisioner:
+            provisioner = get_provisioner(env.provisioner)
 
         deployment = ChefDeployment(name, env.os_name, env.branch, env,
                                     provisioner, "provisioning", env.product,
