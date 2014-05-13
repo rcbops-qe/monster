@@ -11,9 +11,9 @@ from string import Template
 from time import sleep
 from itertools import ifilter, chain
 
-from monster import util
+import monster.active as active
 from monster.tests.test import Test
-from monster.util import xunit_merge
+from monster.tests.util import xunit_merge
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +53,7 @@ class TempestQuantum(Test):
         Gather all the values for tempest config file
         """
         tempest = self.tempest_config
-        override = self.deployment.environment.override_attributes
+        override = self.deployment.override_attrs
         controller = next(self.deployment.search_role("controller"))
         ip = controller['rabbitmq']['address']
 
@@ -162,7 +162,7 @@ class TempestQuantum(Test):
         return json.loads(raw)
 
     def feature_test_paths(self, paths=None):
-        test_map = util.config['tests']['tempest']['test_map']
+        test_map = active.config['tests']['tempest']['test_map']
         if not paths:
             features = self.deployment.feature_names()
             paths = ifilter(None, set(
@@ -185,7 +185,7 @@ class TempestQuantum(Test):
         """
 
         # clone Tempest
-        tempest_dir = util.config['tests']['tempest']['dir']
+        tempest_dir = active.config['tests']['tempest']['dir']
         checkout = "cd {0}; git checkout stable/grizzly".format(tempest_dir)
         node.run_cmd(checkout)
 
@@ -240,8 +240,8 @@ class TempestQuantum(Test):
         :param branch: branch to clone
         :type branch: string
         """
-        repo = util.config['tests']['tempest']['repo']
-        tempest_dir = util.config['tests']['tempest']['dir']
+        repo = active.config['tests']['tempest']['repo']
+        tempest_dir = active.config['tests']['tempest']['dir']
         clone = "git clone {0} -b {1} {2}".format(repo, branch, tempest_dir)
         self.test_node.run_cmd(clone)
 
@@ -253,7 +253,7 @@ class TempestQuantum(Test):
         :type branch: string
         :rtype: string
         """
-        branches = util.config['rcbops']['compute']['git']['branches']
+        branches = active.config['rcbops']['compute']['git']['branches']
         branch_format = "stable/{0}"
         tag_branch = ""
         if branch in branches.keys():
@@ -278,7 +278,7 @@ class TempestQuantum(Test):
                                    "libxml2 libxslt1-dev libpq-dev python-pip")
 
         # install Python requirements for Tempest
-        tempest_dir = util.config['tests']['tempest']['dir']
+        tempest_dir = active.config['tests']['tempest']['dir']
         install_cmd = ("pip install -r "
                        "{0}/tools/pip-requires").format(tempest_dir)
         self.test_node.run_cmd(install_cmd)
@@ -308,7 +308,7 @@ class TempestQuantum(Test):
         """
         Sends Tempest config file to node
         """
-        tempest_dir = util.config['tests']['tempest']['dir']
+        tempest_dir = active.config['tests']['tempest']['dir']
         rem_config_path = "{0}/etc/tempest.conf".format(tempest_dir)
         self.test_node.run_cmd("rm {0}".format(rem_config_path))
         self.test_node.scp_to(self.path, remote_path=rem_config_path)

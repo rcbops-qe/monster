@@ -5,7 +5,7 @@ Module to test OpenStack deployments with CloudCafe
 import os
 
 from monster.tests.test import Test
-from monster.server_helper import run_cmd
+from monster.utils.access import run_cmd
 
 
 class CloudCafe(Test):
@@ -17,8 +17,7 @@ class CloudCafe(Test):
         return auth_url
 
     def get_admin_user(self):
-        override = self.deployment.environment.override_attributes
-        keystone = override['keystone']
+        keystone = self.deployment.override_attrs['keystone']
         user = keystone['admin_user']
         users = keystone['users']
         password = users[user]['password']
@@ -26,7 +25,7 @@ class CloudCafe(Test):
         return user, password, tenant
 
     def get_non_admin_user(self):
-        override = self.deployment.environment.override_attributes
+        override = self.deployment.override_attrs
         keystone = override['keystone']
         users = keystone['users']
         non_admin_users = (user for user in users.keys()

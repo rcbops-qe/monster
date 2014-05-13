@@ -2,7 +2,7 @@ import logging
 
 from time import sleep
 
-from monster import util
+import monster.active as actv
 from monster.upgrades.upgrade import Upgrade
 
 logger = logging.getLogger(__name__)
@@ -28,14 +28,14 @@ class FourTwoOne(Upgrade):
         else:
             upgrade_branch = "v4.2.1"
 
-        supported = util.config['upgrade']['supported'][self.deployment.branch]
+        supported = actv.config['upgrade']['supported'][self.deployment.branch]
         if upgrade_branch not in supported:
             logger.error("{0} to {1} upgarde not supported".format(
                 self.deployment.branch, upgrade_branch))
             raise NotImplementedError
 
         # load override attrs from env
-        override = self.deployment.environment.override_attributes
+        override = self.deployment.override_attrs
 
         # set the deploy branch to the upgrade branch
         self.deployment.branch = upgrade_branch
@@ -76,8 +76,8 @@ class FourTwoOne(Upgrade):
                                            'role[heat-api-cfn]',
                                            'role[heat-api-cloudwatch]'])
 
-            stop = util.config['upgrade']['commands']['stop-services']
-            start = util.config['upgrade']['commands']['start-services']
+            stop = actv.config['upgrade']['commands']['stop-services']
+            start = actv.config['upgrade']['commands']['start-services']
 
             # Sleep for vips to move
             controller2.run_cmd(stop)
@@ -104,7 +104,7 @@ class FourTwoOne(Upgrade):
 
         if "4.1" in current_branch:
             # restore quantum db
-            restore_db = util.config['upgrade']['commands']['restore-db']
+            restore_db = actv.config['upgrade']['commands']['restore-db']
             controller1.run_cmd(restore_db)
 
         # restore value of image upload
