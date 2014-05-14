@@ -11,10 +11,10 @@ import argh
 
 
 import monster.active as active
+import monster.database as database
 
 from monster.data import data
 from monster.logger import logger as monster_logger
-from monster.database import store_build_params
 from monster.utils.color import Color
 from monster.orchestrator.util import get_orchestrator
 from monster.tests.ha import HATest
@@ -25,7 +25,7 @@ from monster.tests.tempest_quantum import TempestQuantum
 logger = monster_logger.Logger().logger_setup()
 
 
-@store_build_params
+@database.store_build_params
 def rpcs(name, template="ubuntu-default", branch="master",
          config="pubcloud-neutron.yaml", dry=False,
          log=None, provisioner="rackspace",
@@ -47,7 +47,7 @@ def rpcs(name, template="ubuntu-default", branch="master",
     logger.info(deployment)
 
 
-@store_build_params
+@database.store_build_params
 def devstack(name, template="ubuntu-default", branch="master",
              config="pubcloud-neutron.yaml", dry=False,
              log=None, provisioner="rackspace",
@@ -186,6 +186,7 @@ def show(name):
 
 
 def cloudcafe(cmd, name, network=None):
+    """Run CloudCafe test suite against a deployment."""
     deployment = _load(name)
     CloudCafe(deployment).config(cmd, network_name=network)
 
