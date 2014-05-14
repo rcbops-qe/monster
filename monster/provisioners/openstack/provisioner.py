@@ -158,26 +158,30 @@ class Provisioner(base.Provisioner):
         """
         self.config = active.config[str(self)]
 
-        # gather attribute objects
+        # gather attributes
         flavor_obj = self.get_flavor(flavor)
         image_obj = self.get_image(image)
         networks = self.get_networks()
 
         # build instance
+        logger.info("Building: {0}".format(name))
         server = self.compute_client.servers.create(name, image_obj.id,
                                                     flavor_obj.id,
                                                     nics=networks)
         password = server.adminPass
-        logger.info("Building: {0}".format(name))
+
         server = self.wait_for_state(self.compute_client.servers.get, server,
                                      "status", ["ACTIVE", "ERROR"],
-                                     attempts=10)
-        if server.status == "ERROR":
-            logger.error("Instance entered error state. Retrying...")
+                                     interval=15, attempts=10)
+
+        if "ACTIVE" not in server.status:
+            logger.error("Unable to build instance. Retrying...")
             server.delete()
             return self.build_instance(name=name, image=image, flavor=flavor)
+
         host = server.accessIPv4
         check_port(host, 22, timeout=2)
+
         return server, password
 
     @staticmethod
@@ -215,7 +219,7 @@ class Provisioner(base.Provisioner):
         raise Exception("Client search fail:{0} not found".format(desired))
 
     @staticmethod
-    def wait_for_state(fun, obj, attr, desired, interval=15,
+    def wait_for_state(fun, obj, attr, desired, interval=30,
                        attempts=None):
         """Waits for a desired state of an object using gevent sleep.
         :param fun: function to update object
@@ -233,11 +237,11 @@ class Provisioner(base.Provisioner):
         :rtype: obj
         """
         attempt = 0
-        in_attempt = lambda x: not attempts or attempts > x
+        in_attempt = lambda x: x is not attempts or attempts > x
         while getattr(obj, attr) not in desired and in_attempt(attempt):
             logger.debug("Attempt: {0}/{1}".format(attempt, attempts))
-            logger.info("Waiting: {0} {1}:{2}".format(obj, attr,
-                                                      getattr(obj, attr)))
+            logger.info("Waiting: {0}, {1}: {2}".format(obj, attr,
+                                                        getattr(obj, attr)))
             gevent.sleep(interval)
             obj = fun(obj.id)
             attempt += 1
