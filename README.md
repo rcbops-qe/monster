@@ -18,7 +18,7 @@ pip install -r ~/monster/requirements.txt -e ~/monster
 **Note:** On a small servers, we have experienced gevent installation failures due to insufficient memory. Adding swap
 may resolve these issues.
 
-- Credentials should be saved in `monster/secret.yaml`.  An example `secret.yaml` file can be found at `monster/examples/secret.yaml`.
+- Credentials should be saved in `monster/data/secret.yaml`.  An example `secret.yaml` file can be found at `monster/data/examples/secret.example`.
 
 
 ---------------------------------------
