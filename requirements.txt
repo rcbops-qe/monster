@@ -1,3 +1,4 @@
+decorator
 argcomplete
 argh
 fabric
@@ -5,6 +6,7 @@ gevent
 lazy
 paramiko
 pychef
+pytest
 pyrabbit
 pyrax
 python-cinderclient
@@ -13,5 +15,7 @@ python-neutronclient
 python-novaclient
 python-swiftclient
 pyyaml
+redis
 requests
+setuptools
 tmuxp

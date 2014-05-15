@@ -1,0 +1,24 @@
+from monster.features import base as base
+
+
+class Feature(base.Feature):
+    """Represents a feature across a deployment."""
+
+    def __init__(self, deployment, rpcs_feature):
+        self.rpcs_feature = rpcs_feature
+        self.deployment = deployment
+
+    def __repr__(self):
+        return 'class: ' + self.__class__.__name__
+
+    def update_environment(self):
+        pass
+
+    def pre_configure(self):
+        pass
+
+    def apply_feature(self):
+        pass
+
+    def post_configure(self):
+        pass

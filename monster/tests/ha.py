@@ -8,12 +8,12 @@ import socket
 
 from time import sleep
 from subprocess import call
-from novaclient.v1_1 import client as nova_client
-from neutronclient.v2_0.client import Client as neutron_client
+import novaclient.v1_1.client as nova_
+import neutronclient.v2_0.client as neutron_
 
-from monster.color import Color
-from monster.util import xunit_merge
+from monster.utils.color import Color
 from monster.tests.test import Test
+from monster.tests.util import xunit_merge
 
 logger = logging.getLogger(__name__)
 
@@ -158,11 +158,14 @@ class HATest(Test):
         creds = self.gather_creds(deployment)
 
         # Setup clients
-        self.nova = nova_client.Client(creds.user, creds.password, creds.user,
-                                       auth_url=creds.url)
-        self.neutron = neutron_client(auth_url=creds.url, username=creds.user,
-                                      password=creds.password,
-                                      tenant_name=creds.user)
+        self.nova = nova_.Client(username=creds.user,
+                                 api_key=creds.password,
+                                 project_id=creds.user,
+                                 auth_url=creds.url)
+        self.neutron = neutron_.Client(auth_url=creds.url,
+                                       username=creds.user,
+                                       password=creds.password,
+                                       tenant_name=creds.user)
         self.rabbit = deployment.rabbitmq_mgmt_client
 
     @property
@@ -173,7 +176,7 @@ class HATest(Test):
         """
         Creates cred object based off deployment
         """
-        keystone = deployment.environment.override_attributes['keystone']
+        keystone = deployment.override_attrs['keystone']
         user = keystone['admin_user']
         users = keystone['users']
         password = users[user]['password']
@@ -600,8 +603,7 @@ class HATest(Test):
                 'return']
         progress.update("Progress", 1)
 
-        vips = self.deployment.environment.override_attributes[
-            'vips']['config'].keys()
+        vips = self.deployment.override_attrs['vips']['config'].keys()
         progress.update("Progress", 1)
         for vip in vips:
             logger.debug("VIP: {0}".format(vip))
