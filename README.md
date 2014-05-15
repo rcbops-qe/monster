@@ -12,6 +12,7 @@ An OpenStack Orchestration Engine
 git clone https://github.com/rcbops-qa/monster.git ~/monster
 virtualenv -p `which python2` ~/monster/.venv
 source ~/monster/.venv/bin/activate
+~/monster/install_redis.sh
 pip install -r ~/monster/requirements.txt -e ~/monster
 ```
 
