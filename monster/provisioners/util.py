@@ -1,25 +1,25 @@
-import sys
-import traceback
-from monster.provisioners.provisioner import logger
-from monster.util import module_classes
-from monster.provisioners import *
+import logging
+
+import monster.provisioners.openstack.provisioner as openstack
+import monster.provisioners.rackspace.provisioner as rackspace
+import monster.provisioners.razor.provisioner as razor
+import monster.provisioners.razor2.provisioner as razor2
+
+logger = logging.getLogger(__name__)
 
 
 def get_provisioner(provisioner_name):
-    """
-    This will return an instance of the correct provisioner class
-    :param provisioner_name: The name of the provisioner
+    """Returns an instance of the correct provisioner class.
     :type provisioner_name: str
-    :rtype: Provisioner
+    :rtype: monster.provisioners.base.Provisioner
     """
-
-    try:
-        identifier = getattr(sys.modules['monster'].provisioners,
-                             provisioner_name)
-    except AttributeError:
-        print(traceback.print_exc())
-        logger.error("The provisioner \"{0}\" was not found."
-                     .format(provisioner_name))
-        exit(1)
+    if provisioner_name == 'openstack':
+        return openstack.Provisioner()
+    elif provisioner_name == 'rackspace':
+        return rackspace.Provisioner()
+    elif provisioner_name == 'razor':
+        return razor.Provisioner()
+    elif provisioner_name == 'razor2':
+        return razor2.Provisioner()
     else:
-        return module_classes(identifier)[provisioner_name]()
+        logger.critical("Provisioner {} not found.".format(provisioner_name))
