@@ -131,8 +131,8 @@ class TempestNeutron(Test):
             "URL": url,
             "IS_NEUTRON": is_neutron}
         template_path = os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), os.pardir, os.pardir,
-            "files/testing_setup_neutron.py.template")
+            os.path.abspath(__file__)), os.pardir,
+            "data/files/testing_setup_neutron.py.template")
 
         # apply values
         with open(template_path) as f:
@@ -273,8 +273,8 @@ class TempestNeutron(Test):
         self.tempest_configure()
         # find template
         template_path = os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), os.pardir, os.pardir,
-            "files/tempest_neutron.conf")
+            os.path.abspath(__file__)), os.pardir,
+            "data/files/tempest_neutron.conf")
 
         # open template and add values
         with open(template_path) as f:
