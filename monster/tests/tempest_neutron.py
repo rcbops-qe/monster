@@ -185,9 +185,8 @@ class TempestNeutron(Test):
 
         # format flags
         xunit_file = "{0}.xml".format(node.name)
-        xunit_flag = ''
-        if xunit:
-            xunit_flag = '--with-xunit --xunit-file=%s' % xunit_file
+        xunit_flag = ('--with-xunit --xunit-file={0}'.format(xunit_file)
+                      if xunit else None)
 
         tag_flag = "-a " + " -a ".join(tags) if tags else ""
 
