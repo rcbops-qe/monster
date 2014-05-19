@@ -3,11 +3,10 @@
 Command-line interface for building OpenStack clusters
 """
 
+import argh
 import os
 import subprocess
 import traceback
-
-import argh
 
 
 import monster.active as active
