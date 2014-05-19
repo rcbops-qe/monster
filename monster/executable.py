@@ -14,6 +14,7 @@ import monster.active as active
 from monster.data import data
 from monster.logger import logger as monster_logger
 from monster.database import store_build_params
+from monster.utils.access import get_file
 from monster.utils.color import Color
 from monster.orchestrator.util import get_orchestrator
 from monster.tests.ha import HATest
@@ -85,7 +86,7 @@ def tempest(name, deployment=None, iterations=1):
     for controller in controllers:
         ip, user, password = controller.creds
         remote = "{0}@{1}:~/*.xml".format(user, ip)
-        logger.get_file(ip, user, password, remote, local)
+        get_file(ip, user, password, remote, local)
 
     for i in range(iterations):
         logger.info(Color.cyan('Running iteration {0} of {1}!'
@@ -116,7 +117,7 @@ def ha(name, deployment=None, iterations=1, progress=False):
     for controller in controllers:
         ip, user, password = controller.creds
         remote = "{0}@{1}:~/*.xml".format(user, ip)
-        logger.get_file(ip, user, password, remote, local)
+        get_file(ip, user, password, remote, local)
 
     for i in range(iterations):
         logger.info(Color.cyan('Running iteration {0} of {1}!'
