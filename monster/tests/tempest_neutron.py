@@ -214,11 +214,12 @@ class TempestNeutron(Test):
     def wait_for_results(self):
         """Waits for tempest results to come be reported."""
         cmd = 'stat -c "%s" {0}.xml'.format(self.test_node.name)
-        result = self.test_node.run_cmd(cmd)['return'].rstrip()
-        while result == "0":
+        result = self.test_node.run_cmd(cmd)
+        while not result['success']:
             logger.info("Waiting for test results")
             sleep(30)
-            result = self.test_node.run_cmd(cmd)['return'].rstrip()
+            result = self.test_node.run_cmd(cmd)
+        return result['return']
 
     def tempest_branch(self, branch):
         """Given rcbops branch, returns tempest branch.
