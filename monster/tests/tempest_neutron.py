@@ -203,8 +203,8 @@ class TempestNeutron(Test):
         screen = [
             "screen -d -m -S tempest -t shell -s /bin/bash",
             "screen -S tempest -X screen -t tempest",
-            "export NL=`echo -ne '\015'`",
-            'screen -S tempest -p tempest -X stuff "{0}$NL"'.format(
+            r"export NL=`echo -ne '\015'`",
+            "screen -S tempest -p tempest -X stuff \"{0}$NL\"".format(
                 tempest_command)
         ]
         command = "; ".join(screen)
