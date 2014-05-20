@@ -12,13 +12,14 @@ An OpenStack Orchestration Engine
 git clone https://github.com/rcbops-qa/monster.git ~/monster
 virtualenv -p `which python2` ~/monster/.venv
 source ~/monster/.venv/bin/activate
+~/monster/install_redis.sh
 pip install -r ~/monster/requirements.txt -e ~/monster
 ```
 
 **Note:** On a small servers, we have experienced gevent installation failures due to insufficient memory. Adding swap
 may resolve these issues.
 
-- Credentials should be saved in `monster/secret.yaml`.  An example `secret.yaml` file can be found at `monster/examples/secret.yaml`.
+- Credentials should be saved in `monster/data/secret.yaml`.  An example `secret.yaml` file can be found at `monster/data/examples/secret.example`.
 
 
 ---------------------------------------

@@ -1,5 +1,6 @@
 import logging
 import pkg_resources
+import os.path as path
 
 from yaml import load
 from collections import defaultdict
@@ -46,7 +47,10 @@ def _config_path(config):
 
 
 def _secret_path(secret):
-    return pkg_resources.resource_filename(__name__, secret)
+    if path.exists(path.expanduser(secret)):
+        return secret
+    else:
+        return pkg_resources.resource_filename(__name__, secret)
 
 
 def _template_path(branch):

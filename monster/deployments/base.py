@@ -132,8 +132,8 @@ class Deployment(object):
         # stringify and lowercase classes in deployment features
         classes = module_classes(deployment_features)
         for feature, rpcs_feature in features.items():
-            logger.debug("feature: {0}, rpcs_feature: {1}".format(
-                feature, rpcs_feature))
+            logger.debug("feature: {0}, "
+                         "rpcs_feature: {1}".format(feature, rpcs_feature))
             self.features.append(classes[feature](self, rpcs_feature))
 
     def tmux(self):
