@@ -187,16 +187,11 @@ class TempestNeutron(Test):
         xunit_file = "{0}.xml".format(node.name)
         xunit_flag = ('--with-xunit --xunit-file={0}'.format(xunit_file)
                       if xunit else "")
-
         tag_flag = "-a " + " -a ".join(tags) if tags else ""
-
-        exclude_flag = "-e " + " -e ".join(exclude) if exclude else ''
-
+        config_arg = ("-c {0}".format(config_path) if config_path else "")
+        exclude_flag = "-e " + " -e ".join(exclude) if exclude else ""
         path_args = " ".join(self.feature_test_paths())
 
-        config_arg = ""
-        if config_path:
-            config_arg = "-c {0}".format(config_path)
 
         # build commands
         tempest_command = (
