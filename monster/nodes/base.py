@@ -8,6 +8,7 @@ from lazy import lazy
 import monster.features.node.features as node_features
 import monster.nodes.util as node_util
 import monster.active as active
+from monster.provisioners.util import get_provisioner
 
 from monster.utils.access import scp_from, scp_to, ssh_cmd
 from monster.utils.introspection import module_classes
@@ -27,7 +28,7 @@ class Node(object):
         self.password = password
         self.product = deployment.product
         self.deployment = deployment
-        self.provisioner = deployment.provisioner
+        self.provisioner_name = deployment.provisioner_name
         self.features = []
         self._cleanups = []
         self.status = "Unknown"
@@ -246,6 +247,10 @@ class Node(object):
     def vmnet_iface(self):
         """Return the iface that our VM data network will live on."""
         return active.config['environments']['bridge_devices']['data']
+
+    @property
+    def provisioner(self):
+        return get_provisioner(self.provisioner_name)
 
     @lazy
     def feature_names(self):

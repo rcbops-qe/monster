@@ -24,7 +24,7 @@ class Deployment(object):
         self.features = []
         self.nodes = []
         self.status = status or "provisioning"
-        self.provisioner = get_provisioner(active.build_args['provisioner'])
+        self.provisioner_name = active.build_args['provisioner']
         self.product = active.template['product']
         self.clients = clients
         #if 'features' in template:  # investigate further
@@ -169,6 +169,10 @@ class Deployment(object):
         deployment's environment.
         """
         return self.environment.override_attributes
+
+    @property
+    def provisioner(self):
+        return get_provisioner(self.provisioner_name)
 
     def retrofit(self, branch, ovs_bridge, lx_bridge, iface,
                  old_port_to_delete=None):
