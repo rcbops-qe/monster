@@ -192,7 +192,6 @@ class TempestNeutron(Test):
         exclude_flag = "-e " + " -e ".join(exclude) if exclude else ""
         path_args = " ".join(self.feature_test_paths())
 
-
         # build commands
         tempest_command = (
             "python -u `which nosetests` -w "
