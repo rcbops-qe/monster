@@ -259,7 +259,8 @@ class TempestNeutron(Test):
 
         # install python requirements for tempest
         tempest_dir = active.config['tests']['tempest']['dir']
-        install_cmd = "pip install -r {0}/requirements.txt".format(tempest_dir)
+        install_cmd = "pip install -r {0}/requirements.txt nose".format(
+            tempest_dir)
         self.test_node.run_cmd(install_cmd)
 
     def build_config(self):
