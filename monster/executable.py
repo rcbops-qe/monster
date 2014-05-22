@@ -43,7 +43,7 @@ def rpcs(name, template="ubuntu-default", branch="master",
     except Exception:
         error = traceback.print_exc()
         logger.exception(error)
-
+    database.store(deployment)
     logger.info(deployment)
 
 
@@ -182,6 +182,7 @@ def horizon(name):
 def show(name):
     """Show details about an OpenStack deployment."""
     deployment = _load(name)
+    db_deployment = database.load_deployment(name)
     logger.info(str(deployment))
 
 

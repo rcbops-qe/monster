@@ -1,6 +1,7 @@
 import subprocess
 import inspect
 import logging
+import pickle
 
 from decorator import decorator
 import redis
@@ -52,3 +53,11 @@ except:
 
 
 db = redis.StrictRedis(host='localhost', port=6379, db=0)
+
+
+def store(deployment):
+    return db.hset(deployment.name, "deployment-obj", pickle.dumps(deployment))
+
+
+def load_deployment(name):
+    return pickle.loads(db.hget(name, "deployment-obj"))
