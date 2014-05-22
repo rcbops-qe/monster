@@ -131,8 +131,8 @@ class TempestNeutron(Test):
             "URL": url,
             "IS_NEUTRON": is_neutron}
         template_path = os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), os.pardir, os.pardir,
-            "files/testing_setup_neutron.py.template")
+            os.path.abspath(__file__)), os.pardir,
+            "data/files/testing_setup_neutron.py.template")
 
         # apply values
         with open(template_path) as f:
@@ -185,19 +185,12 @@ class TempestNeutron(Test):
 
         # format flags
         xunit_file = "{0}.xml".format(node.name)
-        xunit_flag = ''
-        if xunit:
-            xunit_flag = '--with-xunit --xunit-file=%s' % xunit_file
-
+        xunit_flag = ('--with-xunit --xunit-file={0}'.format(xunit_file)
+                      if xunit else "")
         tag_flag = "-a " + " -a ".join(tags) if tags else ""
-
-        exclude_flag = "-e " + " -e ".join(exclude) if exclude else ''
-
+        config_arg = ("-c {0}".format(config_path) if config_path else "")
+        exclude_flag = "-e " + " -e ".join(exclude) if exclude else ""
         path_args = " ".join(self.feature_test_paths())
-
-        config_arg = ""
-        if config_path:
-            config_arg = "-c {0}".format(config_path)
 
         # build commands
         tempest_command = (
@@ -209,8 +202,8 @@ class TempestNeutron(Test):
         screen = [
             "screen -d -m -S tempest -t shell -s /bin/bash",
             "screen -S tempest -X screen -t tempest",
-            "export NL=`echo -ne '\015'`",
-            'screen -S tempest -p tempest -X stuff "{0}$NL"'.format(
+            r"export NL=`echo -ne '\015'`",
+            "screen -S tempest -p tempest -X stuff \"{0}$NL\"".format(
                 tempest_command)
         ]
         command = "; ".join(screen)
@@ -220,11 +213,12 @@ class TempestNeutron(Test):
     def wait_for_results(self):
         """Waits for tempest results to come be reported."""
         cmd = 'stat -c "%s" {0}.xml'.format(self.test_node.name)
-        result = self.test_node.run_cmd(cmd)['return'].rstrip()
-        while result == "0":
+        result = self.test_node.run_cmd(cmd)
+        while not result['success']:
             logger.info("Waiting for test results")
             sleep(30)
-            result = self.test_node.run_cmd(cmd)['return'].rstrip()
+            result = self.test_node.run_cmd(cmd)
+        return result['return']
 
     def tempest_branch(self, branch):
         """Given rcbops branch, returns tempest branch.
@@ -265,7 +259,8 @@ class TempestNeutron(Test):
 
         # install python requirements for tempest
         tempest_dir = active.config['tests']['tempest']['dir']
-        install_cmd = "pip install -r {0}/requirements.txt".format(tempest_dir)
+        install_cmd = "pip install -r {0}/requirements.txt nose".format(
+            tempest_dir)
         self.test_node.run_cmd(install_cmd)
 
     def build_config(self):
@@ -273,8 +268,8 @@ class TempestNeutron(Test):
         self.tempest_configure()
         # find template
         template_path = os.path.join(os.path.dirname(
-            os.path.abspath(__file__)), os.pardir, os.pardir,
-            "files/tempest_neutron.conf")
+            os.path.abspath(__file__)), os.pardir,
+            "data/files/tempest_neutron.conf")
 
         # open template and add values
         with open(template_path) as f:
