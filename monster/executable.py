@@ -171,9 +171,8 @@ def artifact(name):
 def openrc(name):
     """Export OpenStack credentials into shell environment."""
     _load_config(name)
-    old_deployment = _load(name)
-    database.store(old_deployment)
     deployment = database.load_deployment(name)
+    deployment.openrc()
 
 
 def tmux(name):
