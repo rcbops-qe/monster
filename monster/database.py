@@ -1,7 +1,7 @@
 import subprocess
 import inspect
 import logging
-import pickle
+import dill as pickle
 
 from decorator import decorator
 import redis
