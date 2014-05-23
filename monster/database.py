@@ -68,6 +68,4 @@ def store(deployment):
 
 
 def load_deployment(name):
-    deployment = pickle.loads(db.hget(name, "deployment-obj"))
-    import chef; chef.autoconfigure()
-    return deployment
+    return pickle.loads(db.hget(name, "deployment-obj"))

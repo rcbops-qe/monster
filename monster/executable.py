@@ -72,7 +72,8 @@ def devstack(name, template="ubuntu-default", branch="master",
 def tempest(name, deployment=None, iterations=1):
     """Test an OpenStack deployment."""
     if not deployment:
-        deployment = _load(name)
+        _load_config(name)
+        deployment = database.load_deployment(name)
 
     branch = TempestQuantum.tempest_branch(deployment.branch)
     if "grizzly" in branch:
@@ -106,7 +107,8 @@ def tempest(name, deployment=None, iterations=1):
 def ha(name, deployment=None, iterations=1, progress=False):
     """Test an OpenStack deployment."""
     if not deployment:
-        deployment = _load(name)
+        _load_config(name)
+        deployment = database.load_deployment(name)
     # if deployment.has_feature("highavailability"):
 
     test_object = HATest(deployment, progress)
@@ -136,7 +138,8 @@ def ha(name, deployment=None, iterations=1, progress=False):
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
              x_bridge='lxb-mgmt', iface='eth0', del_port=None):
     """Retrofit a deployment."""
-    deployment = _load(name)
+    _load_config(name)
+    deployment = database.load_deployment(name)
     logger.info(deployment)
     deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
 
@@ -144,39 +147,48 @@ def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
 @database.store_upgrade_params
 def upgrade(name, upgrade_branch='v4.1.3rc'):
     """Upgrade a current deployment to the new branch / tag."""
-    deployment = _load(name)
+    _load_config(name)
+    deployment = database.load_deployment(name)
     logger.info(deployment)
     deployment.upgrade(upgrade_branch)
 
 
 def destroy(name):
     """Destroy an existing OpenStack deployment."""
-    deployment = _load(name)
+    _load_config(name)
+    deployment = database.load_deployment(name)
     logger.info(deployment)
     deployment.destroy()
 
 
 def artifact(name):
     """Artifact a deployment (configs/running services)."""
-    deployment = _load(name)
+    _load_config(name)
+    deployment = database.load_deployment(name)
     deployment.artifact()
 
 
 def openrc(name):
     """Export OpenStack credentials into shell environment."""
-    deployment = _load(name)
-    deployment.openrc()
+    _load_config(name)
+    old_deployment = _load(name)
+    database.store(old_deployment)
+    deployment = database.load_deployment(name)
 
 
 def tmux(name):
     """Load OpenStack nodes into a new tmux session."""
-    deployment = _load(name)
+    _load_config(name)
+    old_deployment = _load(name)
+    database.store(old_deployment)
+    deployment = database.load_deployment(name)
     deployment.tmux()
 
 
 def horizon(name):
     """Open Horizon in a browser tab."""
-    deployment = _load(name)
+    _load_config(name)
+    deployment = database.load_deployment(name)
     deployment.horizon()
 
 
@@ -189,8 +201,16 @@ def show(name):
 
 def cloudcafe(cmd, name, network=None):
     """Run CloudCafe test suite against a deployment."""
-    deployment = _load(name)
+    _load_config(name)
+    deployment = database.load_deployment(name)
     CloudCafe(deployment).config(cmd, network_name=network)
+
+
+def _load(name, orchestrator_name="chef"):
+    _load_config(name)
+    orchestrator = get_orchestrator(orchestrator_name)
+    deployment = orchestrator.load_deployment_from_name(name)
+    return deployment
 
 
 def status():
@@ -203,13 +223,6 @@ def _load_config(name):
     active.config = data.fetch_config(name)
     active.template = data.fetch_template(name)
     active.build_args = data.fetch_build_args(name)
-
-
-def _load(name, orchestrator_name="chef"):
-    _load_config(name)
-    orchestrator = get_orchestrator(orchestrator_name)
-    deployment = orchestrator.load_deployment_from_name(name)
-    return deployment
 
 
 def run():

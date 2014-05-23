@@ -10,8 +10,10 @@ logger = logging.getLogger(__name__)
 class Node(base.Node):
     """Wraps a Chef node.
     Provides chef related server functions."""
-    def __init__(self, name, ip, user, password, deployment, run_list=None):
+    def __init__(self, name, node, ip, user, password, deployment,
+                 run_list=None):
         super(Node, self).__init__(name, ip, user, password, deployment)
+        self.node = node
         self.environment = deployment.environment
         self.branch = deployment.branch
         self.run_list = run_list or []
