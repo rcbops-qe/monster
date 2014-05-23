@@ -178,8 +178,6 @@ def openrc(name):
 def tmux(name):
     """Load OpenStack nodes into a new tmux session."""
     _load_config(name)
-    old_deployment = _load(name)
-    database.store(old_deployment)
     deployment = database.load_deployment(name)
     deployment.tmux()
 
