@@ -41,6 +41,14 @@ def store_build_params(f, *args):
     db.hmset(data['name'], data)
     return f(*args)
 
+
+@decorator
+def store_upgrade_params(f, *args):
+    arg_names = inspect.getargspec(f).args
+    data = {k: v for k, v in zip(arg_names, args)}
+    db.hmset(data['name'], data)
+    return f(*args)
+
 try:
     ping_db()
 except:
@@ -60,4 +68,6 @@ def store(deployment):
 
 
 def load_deployment(name):
-    return pickle.loads(db.hget(name, "deployment-obj"))
+    deployment = pickle.loads(db.hget(name, "deployment-obj"))
+    import chef; chef.autoconfigure()
+    return deployment

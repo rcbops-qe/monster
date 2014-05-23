@@ -141,6 +141,7 @@ def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
     deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
 
 
+@database.store_upgrade_params
 def upgrade(name, upgrade_branch='v4.1.3rc'):
     """Upgrade a current deployment to the new branch / tag."""
     deployment = _load(name)
