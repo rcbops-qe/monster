@@ -181,8 +181,8 @@ def horizon(name):
 
 def show(name):
     """Show details about an OpenStack deployment."""
-    deployment = _load(name)
-    db_deployment = database.load_deployment(name)
+    _load_config(name)
+    deployment = database.load_deployment(name)
     logger.info(str(deployment))
 
 
