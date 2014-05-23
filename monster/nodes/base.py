@@ -3,6 +3,7 @@ import logging
 import types
 import time
 
+from weakref import ref
 from lazy import lazy
 
 import monster.features.node.features as node_features
@@ -27,7 +28,7 @@ class Node(object):
         self.name = name
         self.password = password
         self.product = deployment.product
-        self.deployment = deployment
+        self.deployment = ref(deployment)
         self.provisioner_name = deployment.provisioner_name
         self.features = []
         self._cleanups = []
