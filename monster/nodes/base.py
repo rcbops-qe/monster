@@ -3,7 +3,7 @@ import logging
 import types
 import time
 
-from weakref import ref
+from weakref import proxy
 from lazy import lazy
 
 import monster.features.node.features as node_features
@@ -28,11 +28,11 @@ class Node(object):
         self.name = name
         self.password = password
         self.product = deployment.product
-        self.deployment = ref(deployment)
+        self.deployment = proxy(deployment)
         self.provisioner_name = deployment.provisioner_name
         self.features = []
         self._cleanups = []
-        self.status = "Unknown"
+        self.status = "unknown"
 
     def __repr__(self):
         features = []
