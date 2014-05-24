@@ -6,9 +6,7 @@ Command-line interface for building OpenStack clusters
 import os
 import subprocess
 import traceback
-
 import argh
-
 
 import monster.active as active
 import monster.database as database

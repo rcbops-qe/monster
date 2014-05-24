@@ -15,10 +15,6 @@ class Environment(base.Environment):
                                "key": local_api.key.raw,
                                "client": local_api.client}
 
-        self.remote_api_dict = {"url": remote_api.url,
-                                "key": remote_api.key.raw,
-                                "client": remote_api.client}
-
         self.default_attributes = default_attributes or {}
         self.override_attributes = override_attributes or {}
         self.cookbook_versions = cookbook_versions or {}
@@ -99,7 +95,10 @@ class Environment(base.Environment):
 
     @property
     def remote_api(self):
-        return chef.ChefAPI(**self.remote_api_dict)
+        if 'remote_chef' in self.override_attributes:
+            return chef.ChefAPI(**self.override_attributes['remote_chef'])
+        else:
+            return None
 
     @property
     def local_api(self):
