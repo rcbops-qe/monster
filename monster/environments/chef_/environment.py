@@ -6,7 +6,7 @@ logger = base.logger
 
 class Environment(base.Environment):
 
-    def __init__(self, name, description, local_api, remote_api=None,
+    def __init__(self, name, local_api, description="",
                  default_attributes=None, override_attributes=None,
                  cookbook_versions=None):
         """Initializes a Chef Environment wrapper."""

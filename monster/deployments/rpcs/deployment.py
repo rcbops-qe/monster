@@ -19,24 +19,19 @@ class Deployment(base.Deployment):
     configuration management.
     """
 
-    def __init__(self, name, environment, status=None, clients=None):
+    def __init__(self, name, environment, clients=None):
 
         """Initializes a RPCS deployment object.
         :type name: str
         :type environment: monster.environments.chef.environment.Environment
-        :type status: str
         """
-        status = status or "provisioning"
         super(Deployment, self).__init__(name=name,
                                          environment=environment,
-                                         status=status,
+                                         status="provisioning",
                                          clients=clients)
         self.has_controller = False
         self.has_orch_master = False
-        if self.status == "provisioning":
-            self.provisioner.build_nodes(self)
-        else:
-            self.provisioner.load_nodes(self)
+        self.provisioner.build_nodes(self)
 
     def __str__(self):
         return str(self.to_dict)

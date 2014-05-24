@@ -50,9 +50,6 @@ class Provisioner(object):
         """
         raise NotImplementedError
 
-    def reload_node_list(self, node_list, api):
-        raise NotImplementedError
-
     def build_nodes(self, deployment):
         """Provisions a new set of nodes for a deployment."""
         assert deployment.nodes == []
@@ -67,19 +64,3 @@ class Provisioner(object):
         for node, features in zip(built_nodes, active.template['nodes']):
             node.add_features(features)
         deployment.nodes = built_nodes
-
-    def load_nodes(self, deployment):
-        """Loads pre-existing nodes for a deployment."""
-        assert deployment.nodes == []
-        env = deployment.environment
-        nodes_to_load = self.reload_node_list(env.nodes, env.local_api)
-
-        loaded_nodes = []
-        for node in nodes_to_load:
-            if not node.exists:
-                logger.error("Non-existent chef node: {0}".format(node.name))
-                continue
-            wrapped_node = deployment.wrap_node(node)
-            loaded_nodes.append(wrapped_node)
-        deployment.nodes = loaded_nodes
-        deployment.status = "loaded"

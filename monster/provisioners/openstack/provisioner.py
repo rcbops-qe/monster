@@ -255,6 +255,3 @@ class Provisioner(base.Provisioner):
         uuid = node['uuid']
         server = self.compute_client.servers.get(uuid)
         server.reboot("hard")
-
-    def reload_node_list(self, node_names, api):
-        return [chef.Node(node_name, api) for node_name in node_names]

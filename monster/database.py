@@ -5,6 +5,8 @@ import dill as pickle
 
 from decorator import decorator
 import redis
+from monster import active as active
+from monster.data import data
 
 logger = logging.getLogger(__name__)
 
@@ -68,4 +70,11 @@ def store(deployment):
 
 
 def load_deployment(name):
+    load_config(name)
     return pickle.loads(db.hget(name, "deployment-obj"))
+
+
+def load_config(name):
+    active.config = data.fetch_config(name)
+    active.template = data.fetch_template(name)
+    active.build_args = data.fetch_build_args(name)

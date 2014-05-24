@@ -5,13 +5,10 @@ Command-line interface for building OpenStack clusters
 
 import os
 import subprocess
-import traceback
+
 import argh
 
-import monster.active as active
 import monster.database as database
-
-from monster.data import data
 from monster.logger import logger as monster_logger
 from monster.utils.color import Color
 from monster.orchestrator.util import get_orchestrator
@@ -19,6 +16,7 @@ from monster.tests.ha import HATest
 from monster.tests.cloudcafe import CloudCafe
 from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
+
 
 logger = monster_logger.Logger().logger_setup()
 
@@ -29,18 +27,16 @@ def rpcs(name, template="ubuntu-default", branch="master",
          log=None, provisioner="rackspace",
          secret="secret.yaml", orchestrator="chef"):
     """Build an Rackspace Private Cloud deployment."""
-    _load_config(name)
+    database.load_config(name)
 
     orchestrator = get_orchestrator(orchestrator)
     deployment = orchestrator.create_deployment_from_file(name)
-    try:
-        if dry:
-            deployment.update_environment()
-        else:
-            deployment.build()
-    except Exception:
-        error = traceback.print_exc()
-        logger.exception(error)
+
+    if dry:
+        deployment.update_environment()
+    else:
+        deployment.build()
+
     database.store(deployment)
     logger.info(deployment)
 
@@ -51,26 +47,12 @@ def devstack(name, template="ubuntu-default", branch="master",
              log=None, provisioner="rackspace",
              secret="secret.yaml", orchestrator="chef"):
     """Build an devstack deployment."""
-    _load_config(name)
-
-    orchestrator = get_orchestrator(orchestrator)
-    deployment = orchestrator.create_deployment_from_file(name)
-    try:
-        if dry:
-            deployment.update_environment()
-        else:
-            deployment.build()
-    except Exception:
-        error = traceback.print_exc()
-        logger.exception(error)
-
-    logger.info(deployment)
+    pass
 
 
 def tempest(name, deployment=None, iterations=1):
     """Test an OpenStack deployment."""
     if not deployment:
-        _load_config(name)
         deployment = database.load_deployment(name)
 
     branch = TempestQuantum.tempest_branch(deployment.branch)
@@ -105,7 +87,6 @@ def tempest(name, deployment=None, iterations=1):
 def ha(name, deployment=None, iterations=1, progress=False):
     """Test an OpenStack deployment."""
     if not deployment:
-        _load_config(name)
         deployment = database.load_deployment(name)
     # if deployment.has_feature("highavailability"):
 
@@ -136,7 +117,6 @@ def ha(name, deployment=None, iterations=1, progress=False):
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
              x_bridge='lxb-mgmt', iface='eth0', del_port=None):
     """Retrofit a deployment."""
-    _load_config(name)
     deployment = database.load_deployment(name)
     logger.info(deployment)
     deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
@@ -145,7 +125,6 @@ def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
 @database.store_upgrade_params
 def upgrade(name, upgrade_branch='v4.1.3rc'):
     """Upgrade a current deployment to the new branch / tag."""
-    _load_config(name)
     deployment = database.load_deployment(name)
     logger.info(deployment)
     deployment.upgrade(upgrade_branch)
@@ -153,7 +132,6 @@ def upgrade(name, upgrade_branch='v4.1.3rc'):
 
 def destroy(name):
     """Destroy an existing OpenStack deployment."""
-    _load_config(name)
     deployment = database.load_deployment(name)
     logger.info(deployment)
     deployment.destroy()
@@ -161,48 +139,41 @@ def destroy(name):
 
 def artifact(name):
     """Artifact a deployment (configs/running services)."""
-    _load_config(name)
     deployment = database.load_deployment(name)
     deployment.artifact()
 
 
 def openrc(name):
     """Export OpenStack credentials into shell environment."""
-    _load_config(name)
     deployment = database.load_deployment(name)
     deployment.openrc()
 
 
 def tmux(name):
     """Load OpenStack nodes into a new tmux session."""
-    _load_config(name)
     deployment = database.load_deployment(name)
     deployment.tmux()
 
 
 def horizon(name):
     """Open Horizon in a browser tab."""
-    _load_config(name)
     deployment = database.load_deployment(name)
     deployment.horizon()
 
 
 def show(name):
     """Show details about an OpenStack deployment."""
-    _load_config(name)
     deployment = database.load_deployment(name)
     logger.info(str(deployment))
 
 
 def cloudcafe(cmd, name, network=None):
     """Run CloudCafe test suite against a deployment."""
-    _load_config(name)
     deployment = database.load_deployment(name)
     CloudCafe(deployment).config(cmd, network_name=network)
 
 
 def _load(name, orchestrator_name="chef"):
-    _load_config(name)
     orchestrator = get_orchestrator(orchestrator_name)
     deployment = orchestrator.load_deployment_from_name(name)
     return deployment
@@ -212,12 +183,6 @@ def status():
     pass
 # check to ensure the DB is up and running on port 6379
 # check to ensure the secret credentials exist and are valid
-
-
-def _load_config(name):
-    active.config = data.fetch_config(name)
-    active.template = data.fetch_template(name)
-    active.build_args = data.fetch_build_args(name)
 
 
 def run():
