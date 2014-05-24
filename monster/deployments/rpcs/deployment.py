@@ -137,7 +137,7 @@ class Deployment(base.Deployment):
         return {'nodes': nodes, 'features': features,
                 'name': self.name, 'os_name': self.os_name,
                 'branch': self.branch, 'status': self.status,
-                'product': self.product, 'provisioner': str(self.provisioner)}
+                'product': self.product, 'provisioner': self.provisioner_name}
 
     @property
     def openstack_clients(self):
@@ -197,8 +197,9 @@ class Deployment(base.Deployment):
         archive = node.get('archive', {})
         run_list = node.run_list
 
-        chef_remote_node = monster_chef.Node(name, node, ip, user,
-                                             password, deployment=self,
+        chef_remote_node = monster_chef.Node(name=name, ip=ip,
+                                             user=user, password=password,
+                                             deployment=self,
                                              run_list=run_list)
 
         chef_remote_node.add_features(archive.get('features', []))
