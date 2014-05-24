@@ -117,8 +117,9 @@ class Deployment(base.Deployment):
         user = self.override_attrs['keystone']['users'][user_name]
         password = user['password']
         tenant = user['roles'].keys()[0]
-        controller_dict = next(self.search_role('controller')).node.to_dict()
-        url = controller_dict['normal']['keystone']['publicURL']
+        controller = next(self.search_role('controller'))
+        chef_node = chef.Node(controller.name, self.environment.local_api)
+        url = chef_node.normal['keystone']['publicURL']
         strategy = 'keystone'
         openrc = {'OS_USERNAME': user_name, 'OS_PASSWORD': password,
                   'OS_TENANT_NAME': tenant, 'OS_AUTH_URL': url,
