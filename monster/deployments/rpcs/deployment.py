@@ -98,8 +98,6 @@ class Deployment(base.Deployment):
         """Destroys Chef Deployment."""
 
         self.status = "destroying"
-        # Nullify remote api so attributes are not sent remotely
-        self.environment.remote_api = None
         super(Deployment, self).destroy()
         # Destroy rogue nodes
         if not self.nodes:

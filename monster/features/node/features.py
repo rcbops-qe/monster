@@ -84,8 +84,7 @@ class ChefServer(node_.Feature):
         self._upgrade_cookbooks()
 
     def destroy(self):
-        # Stop updating remote environment
-        self.node.environment.remote_api = None
+        pass
 
     def _install(self):
         """Installs chef server on the given node."""
