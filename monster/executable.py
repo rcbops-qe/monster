@@ -5,12 +5,12 @@ Command-line interface for building OpenStack clusters
 
 import os
 import subprocess
-
 import argh
-from monster.data.data import load_deployment, load_config
 
 import monster.db_iface as database
+from monster.data import data
 from monster.logger import logger as monster_logger
+from monster.utils.access import get_file
 from monster.utils.color import Color
 from monster.orchestrator.util import get_orchestrator
 from monster.tests.ha import HATest
@@ -28,7 +28,7 @@ def rpcs(name, template="ubuntu-default", branch="master",
          log=None, provisioner="rackspace",
          secret="secret.yaml", orchestrator="chef"):
     """Build an Rackspace Private Cloud deployment."""
-    load_config(name)
+    data.load_config(name)
 
     orchestrator = get_orchestrator(orchestrator)
     deployment = orchestrator.create_deployment_from_file(name)
@@ -54,7 +54,7 @@ def devstack(name, template="ubuntu-default", branch="master",
 def tempest(name, deployment=None, iterations=1):
     """Test an OpenStack deployment."""
     if not deployment:
-        deployment = load_deployment(name)
+        deployment = data.load_deployment(name)
 
     branch = TempestQuantum.tempest_branch(deployment.branch)
     if "grizzly" in branch:
@@ -68,7 +68,7 @@ def tempest(name, deployment=None, iterations=1):
     for controller in controllers:
         ip, user, password = controller.creds
         remote = "{0}@{1}:~/*.xml".format(user, ip)
-        logger.get_file(ip, user, password, remote, local)
+        get_file(ip, user, password, remote, local)
 
     for i in range(iterations):
         logger.info(Color.cyan('Running iteration {0} of {1}!'
@@ -88,7 +88,7 @@ def tempest(name, deployment=None, iterations=1):
 def ha(name, deployment=None, iterations=1, progress=False):
     """Test an OpenStack deployment."""
     if not deployment:
-        deployment = load_deployment(name)
+        deployment = data.load_deployment(name)
     # if deployment.has_feature("highavailability"):
 
     test_object = HATest(deployment, progress)
@@ -99,7 +99,7 @@ def ha(name, deployment=None, iterations=1, progress=False):
     for controller in controllers:
         ip, user, password = controller.creds
         remote = "{0}@{1}:~/*.xml".format(user, ip)
-        logger.get_file(ip, user, password, remote, local)
+        get_file(ip, user, password, remote, local)
 
     for i in range(iterations):
         logger.info(Color.cyan('Running iteration {0} of {1}!'
@@ -118,7 +118,7 @@ def ha(name, deployment=None, iterations=1, progress=False):
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
              x_bridge='lxb-mgmt', iface='eth0', del_port=None):
     """Retrofit a deployment."""
-    deployment = load_deployment(name)
+    deployment = data.load_deployment(name)
     logger.info(deployment)
     deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
 
@@ -126,51 +126,51 @@ def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
 @database.store_upgrade_params
 def upgrade(name, upgrade_branch='v4.1.3rc'):
     """Upgrade a current deployment to the new branch / tag."""
-    deployment = load_deployment(name)
+    deployment = data.load_deployment(name)
     logger.info(deployment)
     deployment.upgrade(upgrade_branch)
 
 
 def destroy(name):
     """Destroy an existing OpenStack deployment."""
-    deployment = load_deployment(name)
+    deployment = data.load_deployment(name)
     logger.info(deployment)
     deployment.destroy()
 
 
 def artifact(name):
     """Artifact a deployment (configs/running services)."""
-    deployment = load_deployment(name)
+    deployment = data.load_deployment(name)
     deployment.artifact()
 
 
 def openrc(name):
     """Export OpenStack credentials into shell environment."""
-    deployment = load_deployment(name)
+    deployment = data.load_deployment(name)
     deployment.openrc()
 
 
 def tmux(name):
     """Load OpenStack nodes into a new tmux session."""
-    deployment = load_deployment(name)
+    deployment = data.load_deployment(name)
     deployment.tmux()
 
 
 def horizon(name):
     """Open Horizon in a browser tab."""
-    deployment = load_deployment(name)
+    deployment = data.load_deployment(name)
     deployment.horizon()
 
 
 def show(name):
     """Show details about an OpenStack deployment."""
-    deployment = load_deployment(name)
+    deployment = data.load_deployment(name)
     logger.info(str(deployment))
 
 
 def cloudcafe(cmd, name, network=None):
     """Run CloudCafe test suite against a deployment."""
-    deployment = load_deployment(name)
+    deployment = data.load_deployment(name)
     CloudCafe(deployment).config(cmd, network_name=network)
 
 
