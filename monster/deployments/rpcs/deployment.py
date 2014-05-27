@@ -19,24 +19,19 @@ class Deployment(base.Deployment):
     configuration management.
     """
 
-    def __init__(self, name, environment, status=None, clients=None):
+    def __init__(self, name, environment, clients=None):
 
         """Initializes a RPCS deployment object.
         :type name: str
         :type environment: monster.environments.chef.environment.Environment
-        :type status: str
         """
-        status = status or "provisioning"
         super(Deployment, self).__init__(name=name,
                                          environment=environment,
-                                         status=status,
+                                         status="provisioning",
                                          clients=clients)
         self.has_controller = False
         self.has_orch_master = False
-        if self.status == "provisioning":
-            self.provisioner.build_nodes(self)
-        else:
-            self.provisioner.load_nodes(self)
+        self.provisioner.build_nodes(self)
 
     def __str__(self):
         return str(self.to_dict)
@@ -98,8 +93,6 @@ class Deployment(base.Deployment):
         """Destroys Chef Deployment."""
 
         self.status = "destroying"
-        # Nullify remote api so attributes are not sent remotely
-        self.environment.remote_api = None
         super(Deployment, self).destroy()
         # Destroy rogue nodes
         if not self.nodes:
@@ -120,7 +113,8 @@ class Deployment(base.Deployment):
         password = user['password']
         tenant = user['roles'].keys()[0]
         controller = next(self.search_role('controller'))
-        url = chef.Node(controller.name)['normal']['keystone']['publicURL']
+        chef_node = chef.Node(controller.name, self.environment.local_api)
+        url = chef_node.normal['keystone']['publicURL']
         strategy = 'keystone'
         openrc = {'OS_USERNAME': user_name, 'OS_PASSWORD': password,
                   'OS_TENANT_NAME': tenant, 'OS_AUTH_URL': url,
@@ -137,7 +131,7 @@ class Deployment(base.Deployment):
         return {'nodes': nodes, 'features': features,
                 'name': self.name, 'os_name': self.os_name,
                 'branch': self.branch, 'status': self.status,
-                'product': self.product, 'provisioner': str(self.provisioner)}
+                'product': self.product, 'provisioner': self.provisioner_name}
 
     @property
     def openstack_clients(self):
@@ -197,8 +191,9 @@ class Deployment(base.Deployment):
         archive = node.get('archive', {})
         run_list = node.run_list
 
-        chef_remote_node = monster_chef.Node(name, ip, user,
-                                             password, deployment=self,
+        chef_remote_node = monster_chef.Node(name=name, ip=ip,
+                                             user=user, password=password,
+                                             deployment=self,
                                              run_list=run_list)
 
         chef_remote_node.add_features(archive.get('features', []))

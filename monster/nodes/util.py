@@ -26,6 +26,37 @@ def node_search(query, environment=None, tries=10):
     return (n.object for n in search)
 
 
+class DebianOS(object):
+    def check_package(self, package):
+        return "dpkg -l | grep {0}".format(package)
+
+    def update_dist(self, dist_upgrade=False):
+        if dist_upgrade:
+            return 'apt-get update; apt-get dist-upgrade -y'
+        else:
+            return 'apt-get update; apt-get upgrade -y'
+
+    def install_package(self, package):
+        return 'apt-get install -y {0}'.format(package)
+
+    def remove_chef(self):
+        return "apt-get remove --purge -y chef; rm -rf /etc/chef"
+
+
+class RHEL(object):
+    def check_package(self, package):
+        return "rpm -a | grep {0}".format(package)
+
+    def update_dist(self, dist_upgrade=False):
+        return 'yum update -y'
+
+    def install_package(self, package):
+        return 'yum install -y {0}'.format(package)
+
+    def remove_chef(self):
+        return "yum remove -y chef; rm -rf /etc/chef /var/chef"
+
+
 class OS:
     @staticmethod
     def commands(os_name):
@@ -33,37 +64,8 @@ class OS:
         providing OS specific command-line commands for many useful
         functionalities, such as package upgrades."""
         if os_name in ['ubuntu']:
-            return OS.DebianOS()
+            return DebianOS()
         elif os_name in ['rhel', 'centos']:
-            return OS.RHEL()
+            return RHEL()
         else:
             logger.exception("OS not supported at this time!")
-
-    class DebianOS(object):
-        def check_package(self, package):
-            return "dpkg -l | grep {0}".format(package)
-
-        def update_dist(self, dist_upgrade=False):
-            if dist_upgrade:
-                return 'apt-get update; apt-get dist-upgrade -y'
-            else:
-                return 'apt-get update; apt-get upgrade -y'
-
-        def install_package(self, package):
-            return 'apt-get install -y {0}'.format(package)
-
-        def remove_chef(self):
-            return "apt-get remove --purge -y chef; rm -rf /etc/chef"
-
-    class RHEL(object):
-        def check_package(self, package):
-            return "rpm -a | grep {0}".format(package)
-
-        def update_dist(self, dist_upgrade=False):
-            return 'yum update -y'
-
-        def install_package(self, package):
-            return 'yum install -y {0}'.format(package)
-
-        def remove_chef(self):
-            return "yum remove -y chef; rm -rf /etc/chef /var/chef"

@@ -1,3 +1,4 @@
+from weakref import proxy
 from monster.features import base as base
 
 
@@ -6,7 +7,7 @@ class Feature(base.Feature):
 
     def __init__(self, deployment, rpcs_feature):
         self.rpcs_feature = rpcs_feature
-        self.deployment = deployment
+        self.deployment = proxy(deployment)
 
     def __repr__(self):
         return 'class: ' + self.__class__.__name__

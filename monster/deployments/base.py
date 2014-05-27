@@ -16,7 +16,7 @@ logger = logging.getLogger(__name__)
 class Deployment(object):
     """Base for OpenStack deployments."""
 
-    def __init__(self, name, environment, status, clients=None):
+    def __init__(self, name, environment, status=None, clients=None):
         self.name = name
         self.os_name = active.template['os']
         self.branch = active.build_args['branch']

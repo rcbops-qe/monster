@@ -1,3 +1,5 @@
+from weakref import proxy
+
 import monster.active as active
 import monster.features.base as base
 
@@ -9,7 +11,7 @@ class Feature(base.Feature):
         """Initialize Node object.
         :type node: monster.nodes.base.Node
         """
-        self.node = node
+        self.node = proxy(node)
 
     def __repr__(self):
         return 'class: ' + self.__class__.__name__

@@ -1,8 +1,5 @@
 import subprocess
-import inspect
 import logging
-
-from decorator import decorator
 import redis
 
 logger = logging.getLogger(__name__)
@@ -22,23 +19,9 @@ def ping_db():
         raise AssertionError()
 
 
-def remove_key(build_name):
-    logger.info("Removing %s from redis..." % build_name)
-    db.delete(build_name)
-    logger.info("Redis no longer has a %s key." % build_name)
-
-
 def get_connection():
     """:rtype: redis.StrictRedis """
     return db
-
-
-@decorator
-def store_build_params(f, *args):
-    arg_names = inspect.getargspec(f).args
-    data = {k: v for k, v in zip(arg_names, args)}
-    db.hmset(data['name'], data)
-    return f(*args)
 
 try:
     ping_db()

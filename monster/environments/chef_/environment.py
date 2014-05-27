@@ -1,20 +1,20 @@
-import chef
 import monster.environments.base as base
-
+import chef
 
 logger = base.logger
 
 
 class Environment(base.Environment):
 
-    def __init__(self, name, description, local_api, remote_api=None,
+    def __init__(self, name, local_api, description="",
                  default_attributes=None, override_attributes=None,
                  cookbook_versions=None):
         """Initializes a Chef Environment wrapper."""
         super(Environment, self).__init__(name=name, description=description)
+        self.local_api_dict = {"url": local_api.url,
+                               "key": local_api.key.raw,
+                               "client": local_api.client}
 
-        self.local_api = local_api
-        self.remote_api = remote_api
         self.default_attributes = default_attributes or {}
         self.override_attributes = override_attributes or {}
         self.cookbook_versions = cookbook_versions or {}
@@ -80,10 +80,6 @@ class Environment(base.Environment):
         self._local_env.delete()
 
     @property
-    def deployment_attributes(self):
-        return self.override_attributes.get('deployment', {})
-
-    @property
     def _local_env(self):
         if self.local_api:
             return chef.Environment(self.name, self.local_api)
@@ -96,6 +92,21 @@ class Environment(base.Environment):
             return chef.Environment(self.name, self.remote_api)
         else:
             return None
+
+    @property
+    def remote_api(self):
+        if 'remote_chef' in self.override_attributes:
+            return chef.ChefAPI(**self.override_attributes['remote_chef'])
+        else:
+            return None
+
+    @property
+    def local_api(self):
+        return chef.ChefAPI(**self.local_api_dict)
+
+    @property
+    def deployment_attributes(self):
+        return self.override_attributes.get('deployment', {})
 
     @property
     def features(self):
