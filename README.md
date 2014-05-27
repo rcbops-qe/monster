@@ -124,7 +124,7 @@ deployment = load("my_build")
 
 #### CLI
 
-For development convenience, the CLI is also accessible from the project root by using `monster/executable.py`.  For example,
+For development convenience, the CLI is also accessible from the project root by using `monster/executable.py`.  For example, we can profile a build by using the command
 ```
-monster/executable.py build rpcs my_build -t ubuntu-ha-neutron
+python -m cProfile -s time -o build_profile.txt monster/executable.py build rpcs my_build -t ubuntu-ha-neutron
 ```
