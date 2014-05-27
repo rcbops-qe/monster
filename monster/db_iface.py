@@ -39,6 +39,7 @@ def store(deployment):
 
 def fetch_deployment(name):
     deployment = pickle.loads(db.hget(name, "deployment-obj"))
+    assert deployment != {}
     return deployment
 
 

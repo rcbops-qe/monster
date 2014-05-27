@@ -11,6 +11,18 @@ import monster.db_iface as database
 logger = logging.getLogger(__name__)
 
 
+def load_deployment(name):
+    load_config(name)
+    deployment = database.fetch_deployment(name)
+    return deployment
+
+
+def load_config(name):
+    active.config = fetch_config(name)
+    active.template = fetch_template(name)
+    active.build_args = database.fetch_build_args(name)
+
+
 def fetch_config(name):
     """Returns a dictionary with the deployment's config loaded in it.
     :param name: name of your deployment
@@ -57,15 +69,3 @@ def _template_path(branch):
     template_file = "templates/{0}.yaml".format(template_file)
 
     return pkg_resources.resource_filename(__name__, template_file)
-
-
-def load_deployment(name):
-    load_config(name)
-    deployment = database.fetch_deployment(name)
-    return deployment
-
-
-def load_config(name):
-    active.config = fetch_config(name)
-    active.template = fetch_template(name)
-    active.build_args = database.fetch_build_args(name)
