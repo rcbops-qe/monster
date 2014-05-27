@@ -1,8 +1,8 @@
 import logging
 
 import chef
+from monster.data.data import load_deployment
 
-import monster.database as database
 import monster.deployments.rpcs.deployment as rpcs
 import monster.orchestrator.base as base
 
@@ -25,7 +25,7 @@ class Orchestrator(base.Orchestrator):
 
         if chef.Environment(name, api=local_api).exists:
             logger.info("Using previous deployment:{0}".format(name))
-            return database.load_deployment(name)
+            return load_deployment(name)
 
         environment = Environment(name, local_api)
 

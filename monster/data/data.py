@@ -1,21 +1,21 @@
 import logging
-import pkg_resources
 import os.path as path
-
 from yaml import load
 from collections import defaultdict
 
-import monster.database as database
+import pkg_resources
+from monster import active
+import monster.db_iface as database
+
 
 logger = logging.getLogger(__name__)
-db = database.get_connection()
 
 
 def fetch_config(name):
     """Returns a dictionary with the deployment's config loaded in it.
     :param name: name of your deployment
     """
-    config, secret = db.hmget(name, ['config', 'secret'])
+    config, secret = database.fetch_config_params(name)
 
     with open(_config_path(config), 'r') as f:
         config = defaultdict(None, load(f.read()))
@@ -30,16 +30,12 @@ def fetch_template(name):
     """Returns a dictionary with the deployment's template loaded in it.
     :param name of deployment
     """
-    branch, template = db.hmget(name, ['branch', 'template'])
+    branch, template = database.fetch_template_params(name)
 
     with open(_template_path(branch), 'r') as f:
         template = load(f.read())[template]
 
     return template
-
-
-def fetch_build_args(name):
-    return db.hgetall(name)
 
 
 def _config_path(config):
@@ -61,3 +57,15 @@ def _template_path(branch):
     template_file = "templates/{0}.yaml".format(template_file)
 
     return pkg_resources.resource_filename(__name__, template_file)
+
+
+def load_deployment(name):
+    load_config(name)
+    deployment = database.fetch_deployment(name)
+    return deployment
+
+
+def load_config(name):
+    active.config = fetch_config(name)
+    active.template = fetch_template(name)
+    active.build_args = database.fetch_build_args(name)
