@@ -118,7 +118,7 @@ To make development of monster easier you can load deployment objects in iPython
 1. Start `ipython` in top monster directory
 2. Run:
 ```python
-from tools.ipython import load
+from monster.utils.ipython import load
 deployment = load("my_build")
 ```
 

@@ -2,7 +2,7 @@
 
 Use:
 1. Start ipython in top monster directory
-2. from tools.ipython import load
+2. from monster.utils.ipython import load
 3. deployment = load(<deployment_name>)
 """
 from monster.data import data
