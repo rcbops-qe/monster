@@ -15,7 +15,7 @@ class Provisioner(base.Provisioner):
     """Provisions Chef nodes in OpenStack VMS."""
     def __init__(self):
         self.names = []
-        self.name_index = {}
+        self.given_names = {}
         self.creds = openstack.Creds()
 
         openstack_clients = openstack.Clients(self.creds)
@@ -35,15 +35,19 @@ class Provisioner(base.Provisioner):
         :type number: int
         :rtype: string
         """
-        if name in self.name_index:
-            # Name already exists, use index to name
-            num = self.name_index[name] + 1
-            self.name_index[name] = num
-            return "{0}-{1}{2}".format(deployment.name, name, num)
+        self.given_names = self.given_names or deployment.node_names
 
-        # Name doesn't exist initialize index use name
-        self.name_index[name] = 1
-        return "{0}-{1}".format(deployment.name, name)
+        root = "{0}-{1}".format(deployment.name, name)
+        if root not in self.given_names:
+            return root
+        else:
+            counter = 2
+            name = root
+            while name in self.given_names:
+                name = "{}{}".format(root, counter)
+                counter += 1
+            self.given_names.append(name)
+            return name
 
     def provision(self, deployment, specs):
         """Provisions a chef node using OpenStack.

@@ -201,6 +201,6 @@ class Deployment(base.Deployment):
         return chef_remote_node
 
     def add_nodes(self, node_request):
-        nodes = self.provisioner.provision(self, node_request)
+        nodes = self.provisioner.build_nodes(self, node_request)
         monster.threading_iface.execute([node.build for node in nodes])
         self.nodes += nodes

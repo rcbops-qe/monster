@@ -15,7 +15,7 @@ class Provisioner(openstack.Provisioner):
         rackspace = active.config['secrets']['rackspace']
 
         self.names = []
-        self.name_index = {}
+        self.given_names = {}
         self.creds = openstack_client.Creds(
             username=rackspace['user'], apikey=rackspace['api_key'],
             auth_url=rackspace['auth_url'], region=rackspace['region'],

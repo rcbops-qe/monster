@@ -174,8 +174,8 @@ def cloudcafe(cmd, name, network=None):
     CloudCafe(deployment).config(cmd, network_name=network)
 
 
-def add_nodes_to(name, compute_nodes=0, controller_nodes=0, cinder_nodes=0,
-                 request=None):
+def add_nodes(name, compute_nodes=0, controller_nodes=0, cinder_nodes=0,
+              request=None):
     """Add a node (or nodes) to an existing deployment."""
     deployment = data.load_deployment(name)
     node_request = request or list([['compute']]*compute_nodes +
@@ -194,14 +194,14 @@ def status():
 
 def run():
     parser = argh.ArghParser()
-    parser.add_commands([retrofit, upgrade, destroy,
-                         openrc, horizon, show, tmux])
-
     argh.add_commands(parser, [devstack, rpcs], namespace='build',
                       title="build-related commands")
     argh.add_commands(parser, [cloudcafe, ha, tempest],
                       namespace='test',
                       title="test-related commands")
+
+    parser.add_commands([show, upgrade, retrofit, add_nodes, destroy,
+                         openrc, horizon, tmux])
 
     if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
         logger.warning("You are not using the virtual environment! We "
