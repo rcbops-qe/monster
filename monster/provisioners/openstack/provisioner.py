@@ -45,7 +45,7 @@ class Provisioner(base.Provisioner):
         self.name_index[name] = 1
         return "{0}-{1}".format(deployment.name, name)
 
-    def provision_from_template(self, deployment):
+    def provision(self, deployment, specs):
         """Provisions a chef node using OpenStack.
         :param deployment: ChefDeployment to provision for
         :type deployment: monster.deployments.base.Deployment
@@ -56,7 +56,7 @@ class Provisioner(base.Provisioner):
 
         # create instances concurrently
         events = []
-        for features in active.template['nodes']:
+        for features in specs:
             name = self.name(features[0], deployment)
             self.names.append(name)
             flavor = active.config['rackspace']['roles'][features[0]]

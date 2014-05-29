@@ -32,7 +32,7 @@ class Deployment(base.Deployment):
                                          clients=clients)
         self.has_controller = False
         self.has_orch_master = False
-        self.provisioner.build_nodes(self)
+        self.provisioner.build_nodes(self, specs=active.template['nodes'])
 
     def __str__(self):
         return str(self.to_dict)
@@ -201,6 +201,6 @@ class Deployment(base.Deployment):
         return chef_remote_node
 
     def add_nodes(self, node_request):
-        nodes = self.provisioner.provision_from_request(self, node_request)
+        nodes = self.provisioner.provision(self, node_request)
         monster.threading_iface.execute([node.build for node in nodes])
         self.nodes += nodes
