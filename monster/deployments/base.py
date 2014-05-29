@@ -194,3 +194,15 @@ class Deployment(object):
 
         retrofit.install(branch)
         retrofit.bootstrap(iface, lx_bridge, ovs_bridge)
+
+    def upgrade(self, upgrade_branch):
+        pass
+
+    def openrc(self):
+        pass
+
+    def horizon(self):
+        pass
+
+    def add_nodes(self, node_request):
+        pass

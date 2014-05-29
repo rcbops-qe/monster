@@ -13,6 +13,8 @@ logger = logging.getLogger(__name__)
 
 
 def load_deployment(name):
+    """Loads the deployment from the database.
+    :rtype: monster.deployments.base.Deployment"""
     try:
         load_config(name)
     except IOError as exc:

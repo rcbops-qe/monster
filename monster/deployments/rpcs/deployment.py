@@ -6,6 +6,7 @@ import chef
 import pyrabbit.api as rabbit
 
 import monster.active as active
+import monster.threading_iface
 import monster.upgrades.util as upgrades_util
 import monster.clients.openstack as openstack
 import monster.deployments.base as base
@@ -198,3 +199,8 @@ class Deployment(base.Deployment):
 
         chef_remote_node.add_features(archive.get('features', []))
         return chef_remote_node
+
+    def add_nodes(self, node_request):
+        nodes = self.provisioner.provision_from_request(self, node_request)
+        monster.threading_iface.execute([node.build for node in nodes])
+        self.nodes += nodes

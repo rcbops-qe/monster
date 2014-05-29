@@ -14,7 +14,7 @@ class Provisioner(object):
     def __repr__(self):
         return self.__class__.__name__.lower()
 
-    def provision(self, deployment):
+    def provision_from_template(self, deployment):
         """Provisions nodes.
         :param deployment: Deployment to provision for
         :type deployment: Deployment
@@ -53,7 +53,7 @@ class Provisioner(object):
     def build_nodes(self, deployment):
         """Provisions a new set of nodes for a deployment."""
         assert deployment.nodes == []
-        nodes_to_wrap = self.provision(deployment)
+        nodes_to_wrap = self.provision_from_template(deployment)
 
         built_nodes = []
         for node in nodes_to_wrap:

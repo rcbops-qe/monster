@@ -45,7 +45,7 @@ class Provisioner(base.Provisioner):
         self.name_index[name] = 1
         return "{0}-{1}".format(deployment.name, name)
 
-    def provision(self, deployment):
+    def provision_from_template(self, deployment):
         """Provisions a chef node using OpenStack.
         :param deployment: ChefDeployment to provision for
         :type deployment: monster.deployments.base.Deployment
@@ -67,6 +67,17 @@ class Provisioner(base.Provisioner):
         # acquire chef nodes
         self.nodes += [event.value for event in events]
         return self.nodes
+
+    def provision_from_request(self, deployment, request):
+        events = []
+        for node_request in request:
+            name = self.name(node_request, deployment)
+            flavor = active.config['rackspace']['roles'][node_request]
+            events.append(gevent.spawn(self.chef_instance, deployment, name,
+                                       flavor=flavor))
+        gevent.joinall(events)
+        # acquire chef nodes
+        return [event.value for event in events]
 
     def destroy_node(self, node):
         """Destroys Chef node from OpenStack.

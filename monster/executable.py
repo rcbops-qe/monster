@@ -174,10 +174,16 @@ def cloudcafe(cmd, name, network=None):
     CloudCafe(deployment).config(cmd, network_name=network)
 
 
-def _load(name, orchestrator_name="chef"):
-    orchestrator = get_orchestrator(orchestrator_name)
-    deployment = orchestrator.load_deployment_from_name(name)
-    return deployment
+def add_nodes_to(name, compute_nodes=0, controller_nodes=0, cinder_nodes=0,
+                 request=None):
+    """Add a node (or nodes) to an existing deployment."""
+    deployment = data.load_deployment(name)
+    node_request = request or list([['compute']]*compute_nodes +
+                                   [['controller']]*controller_nodes +
+                                   [['cinder']]*cinder_nodes)
+
+    deployment.add_nodes(node_request)
+    database.store(deployment)
 
 
 def status():
