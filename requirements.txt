@@ -3,6 +3,7 @@ decorator
 argcomplete
 argh
 fabric
+futures
 gevent
 lazy
 paramiko
