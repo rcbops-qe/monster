@@ -83,8 +83,10 @@ class Deployment(object):
         self.nodes[0].build()
         print("######## CONTROLLER1 ########")
         self.nodes[1].build()
+        print("######## CONTROLLER2 ########")
+        self.nodes[2].build()
         print("######## OTHER NODES ########")
-        func_list = [node.build for node in self.nodes[2:]]
+        func_list = [node.build for node in self.nodes[3:]]
         monster.threading_iface.execute(func_list)
         self.status = "Nodes built!"
 
