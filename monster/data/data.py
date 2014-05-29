@@ -1,18 +1,23 @@
 import logging
-import os.path as path
-from yaml import load
-from collections import defaultdict
-
 import pkg_resources
-from monster import active
-import monster.db_iface as database
 
+from collections import defaultdict
+from os import path
+from sys import exit
+from yaml import load
+
+import monster.db_iface as database
+from monster import active
 
 logger = logging.getLogger(__name__)
 
 
 def load_deployment(name):
-    load_config(name)
+    try:
+        load_config(name)
+    except IOError as exc:
+        logger.error("Ensure correct deployment name: {0}".format(exc))
+        exit(1)
     deployment = database.fetch_deployment(name)
     return deployment
 
