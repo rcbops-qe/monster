@@ -52,7 +52,6 @@ class Provisioner(object):
 
     def build_nodes(self, deployment, specs):
         """Provisions a new set of nodes for a deployment."""
-        assert deployment.nodes == []
         nodes_to_wrap = self.provision(deployment, specs)
 
         built_nodes = []
@@ -63,4 +62,4 @@ class Provisioner(object):
 
         for node, features in zip(built_nodes, specs):
             node.add_features(features)
-        deployment.nodes = built_nodes
+        return built_nodes

@@ -32,7 +32,8 @@ class Deployment(base.Deployment):
                                          clients=clients)
         self.has_controller = False
         self.has_orch_master = False
-        self.provisioner.build_nodes(self, specs=active.template['nodes'])
+        self.nodes = self.provisioner.build_nodes(self,
+                                                  active.template['nodes'])
 
     def __str__(self):
         return str(self.to_dict)
