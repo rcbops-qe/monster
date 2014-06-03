@@ -1,9 +1,10 @@
 import types
 import logging
-
 import tmuxp
+
 import monster.features.deployment.features as deployment_features
 import monster.active as active
+import monster.threading_iface
 
 from monster.utils.retrofit import Retrofit
 from monster.utils.introspection import module_classes
@@ -78,9 +79,15 @@ class Deployment(object):
     def build_nodes(self):
         """Builds each node."""
         self.status = "Building nodes..."
-        for node in self.nodes:
-            logger.debug("Building node {0}!".format(str(node)))
-            node.build()
+        logger.info("Building chef node.")
+        self.nodes[0].build()
+        logger.info("Building first controller.")
+        self.nodes[1].build()
+        logger.info("Building second controller.")
+        self.nodes[2].build()
+        logger.info("Building the rest of the nodes.")
+        func_list = [node.build for node in self.nodes[3:]]
+        monster.threading_iface.execute(func_list)
         self.status = "Nodes built!"
 
     def post_configure(self):
