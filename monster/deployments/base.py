@@ -81,10 +81,8 @@ class Deployment(object):
         logger.info("Building controllers...")
         for node in self.controllers:
             node.build()
-
         logger.info("Building the rest of the nodes.")
         threading.execute(node.build for node in self.misc_nodes)
-
         self.status = "Nodes built!"
 
     def post_configure(self):
