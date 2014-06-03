@@ -1,6 +1,7 @@
 import logging
 import time
 import chef
+import monster.active as active
 
 
 logger = logging.getLogger(__name__)
@@ -17,7 +18,14 @@ def node_search(query, environment=None, tries=10):
     if environment:
         api = environment.local_api
     else:
-        api = chef.autoconfigure()
+        if active.config['secrets']['chef']['knife']:
+            api = chef.autoconfigure(
+                active.config['secrets']['chef']['knife'])
+            logger.debug("Using knife.rb found at {}".format(
+                active.config['secrets']['chef']['knife']))
+        else:
+            api = chef.autoconfigure()
+
     search = None
     while not search and tries > 0:
         search = chef.Search("node", api=api).query(query)
