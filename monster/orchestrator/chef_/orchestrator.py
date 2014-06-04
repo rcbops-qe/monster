@@ -26,12 +26,12 @@ class Orchestrator(base.Orchestrator):
         # Try to load the knife config from the configured path
         # if there isnt a knife.rb then load the one in the
         # default path
-        if active.config['secrets']['chef']['knife']:
+        try:
             local_api = chef.autoconfigure(
                 active.config['secrets']['chef']['knife'])
             logger.debug("Using knife.rb found at {}".format(
                 active.config['secrets']['chef']['knife']))
-        else:
+        except KeyError:
             local_api = chef.autoconfigure()
 
         if chef.Environment(name, api=local_api).exists:

@@ -18,12 +18,12 @@ def node_search(query, environment=None, tries=10):
     if environment:
         api = environment.local_api
     else:
-        if active.config['secrets']['chef']['knife']:
+        try:
             api = chef.autoconfigure(
                 active.config['secrets']['chef']['knife'])
             logger.debug("Using knife.rb found at {}".format(
                 active.config['secrets']['chef']['knife']))
-        else:
+        except KeyError:
             api = chef.autoconfigure()
 
     search = None
