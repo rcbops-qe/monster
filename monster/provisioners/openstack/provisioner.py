@@ -3,9 +3,9 @@ import gevent
 
 import chef
 
+import monster.active as active
 import monster.provisioners.base as base
 import monster.clients.openstack as openstack
-import monster.active as active
 from monster.utils.access import run_cmd, check_port
 
 logger = logging.getLogger(__name__)
@@ -14,8 +14,7 @@ logger = logging.getLogger(__name__)
 class Provisioner(base.Provisioner):
     """Provisions Chef nodes in OpenStack VMS."""
     def __init__(self):
-        self.names = []
-        self.given_names = {}
+        self.given_names = []
         self.creds = openstack.Creds()
 
         openstack_clients = openstack.Clients(self.creds)
@@ -44,7 +43,7 @@ class Provisioner(base.Provisioner):
             counter = 2
             name = root
             while name in self.given_names:
-                name = "{}{}".format(root, counter)
+                name = "{prefix}{suffix}".format(prefix=root, suffix=counter)
                 counter += 1
             self.given_names.append(name)
             return name
@@ -56,32 +55,13 @@ class Provisioner(base.Provisioner):
         :rtype: list
         """
         logger.info("Provisioning in the cloud!")
-        # acquire connection
 
-        # create instances concurrently
-        events = []
-        for features in specs:
-            name = self.name(features[0], deployment)
-            self.names.append(name)
-            flavor = active.config['rackspace']['roles'][features[0]]
-            events.append(gevent.spawn(self.chef_instance, deployment, name,
-                                       flavor=flavor))
-        gevent.joinall(events)
+        name = self.name(specs[0], deployment)
+        self.given_names.append(name)
+        flavor = active.config['rackspace']['roles'][specs[0]]
 
-        # acquire chef nodes
-        self.nodes += [event.value for event in events]
-        return self.nodes
+        return self.build_instance(deployment, name, flavor=flavor)
 
-    def provision_from_request(self, deployment, request):
-        events = []
-        for node_request in request:
-            name = self.name(node_request, deployment)
-            flavor = active.config['rackspace']['roles'][node_request]
-            events.append(gevent.spawn(self.chef_instance, deployment, name,
-                                       flavor=flavor))
-        gevent.joinall(events)
-        # acquire chef nodes
-        return [event.value for event in events]
 
     def destroy_node(self, node):
         """Destroys Chef node from OpenStack.
@@ -96,49 +76,9 @@ class Provisioner(base.Provisioner):
         if client.exists:
             client.delete()
 
-    def chef_instance(self, deployment, name, flavor="2GBP"):
-        """Builds an instance with desired specs and initializes it with Chef.
-        :param deployment: deployment to add to
-        :type deployment: monster.deployments.base.Deployment
-        :param name: name for instance
-        :type name: string
-        :param flavor: desired flavor for node
-        :type flavor: string
-        :rtype: chef.Node
-        """
-        image = deployment.os_name
-        server, password = self.build_instance(name=name, image=image,
-                                               flavor=flavor)
-        run_list = ""
-        if active.config[str(self)]['run_list']:
-            run_list = ",".join(active.config[str(self)]['run_list'])
-        run_list_arg = ""
-        if run_list:
-            run_list_arg = "-r {0}".format(run_list)
-        client_version = active.config['chef']['client']['version']
-        command = ("knife bootstrap {0} -u root -P {1} -N {2} {3}"
-                   " --bootstrap-version {4}".format(server.accessIPv4,
-                                                     password,
-                                                     name,
-                                                     run_list_arg,
-                                                     client_version))
-        while not run_cmd(command)['success']:
-            logger.warning("Epic failure. Retrying...")
-            gevent.sleep(1)
-
-        node = chef.Node(name, api=deployment.environment.local_api)
-        node.chef_environment = deployment.environment.name
-        node['in_use'] = "provisioning"
-        node['ipaddress'] = server.accessIPv4
-        node['password'] = password
-        node['uuid'] = server.id
-        node['current_user'] = "root"
-        node.save()
-        return node
-
     def get_flavor(self, flavor):
         try:
-            flavor_name = self.config['flavors'][flavor]
+            flavor_name = active.config[str(self)]['flavors'][flavor]
         except KeyError:
             raise Exception("Flavor not supported:{0}".format(flavor))
         return self._client_search(self.compute_client.flavors.list,
@@ -146,7 +86,7 @@ class Provisioner(base.Provisioner):
 
     def get_image(self, image):
         try:
-            image_name = self.config['images'][image]
+            image_name = active.config[str(self)]['images'][image]
         except KeyError:
             raise Exception("Image not supported:{0}".format(image))
         return self._client_search(self.compute_client.images.list, "name",
@@ -171,17 +111,14 @@ class Provisioner(base.Provisioner):
         :type flavor: string
         :rtype: Server
         """
-        self.config = active.config[str(self)]
-
         # gather attributes
-        flavor_obj = self.get_flavor(flavor)
-        image_obj = self.get_image(image)
+        flavor = self.get_flavor(flavor).id
+        image = self.get_image(image).id
         networks = self.get_networks()
 
         # build instance
         logger.info("Building: {0}".format(name))
-        server = self.compute_client.servers.create(name, image_obj.id,
-                                                    flavor_obj.id,
+        server = self.compute_client.servers.create(name, image, flavor,
                                                     nics=networks)
         password = server.adminPass
 
@@ -197,11 +134,10 @@ class Provisioner(base.Provisioner):
         host = server.accessIPv4
         check_port(host, 22, timeout=2)
 
-        return server, password
+        return {"name": name, "server": server, "password": password}
 
     @staticmethod
-    def _client_search(collection_fun, attr, desired, attempts=None,
-                       interval=1):
+    def _client_search(collection_fun, attr, desired, attempts=None):
         """Searches for a desired attribute in a list of objects.
         :param collection_fun: function to get list of objects
         :type collection_fun: function
@@ -211,14 +147,10 @@ class Provisioner(base.Provisioner):
         :type desired: object
         :param attempts: number of attempts to achieve state
         :type attempts: int
-        :param interval: time between attempts
-        :type interval: int
         :rtype: object
         """
         obj_collection = None
-        attempt = 0
-        in_attempt = lambda x: not attempts or attempts > x
-        while in_attempt(attempt):
+        for attempt in range(attempts):
             try:
                 obj_collection = collection_fun()
                 break
@@ -233,6 +165,7 @@ class Provisioner(base.Provisioner):
                 return obj
         raise Exception("Client search fail:{0} not found".format(desired))
 
+    ##TODO: rewrite this - i don't think it's doing what we want (jcourtois)
     @staticmethod
     def wait_for_state(fun, obj, attr, desired, interval=30,
                        attempts=None):
@@ -251,15 +184,12 @@ class Provisioner(base.Provisioner):
         :type attempts: int
         :rtype: obj
         """
-        attempt = 0
-        in_attempt = lambda x: x is not attempts or attempts > x
-        while getattr(obj, attr) not in desired and in_attempt(attempt):
-            logger.debug("Attempt: {0}/{1}".format(attempt, attempts))
+        for attempt in range(attempts):
+            logger.debug("Attempt: {0}/{1}".format(attempt+1, attempts))
             logger.info("Waiting: {0}, {1}: {2}".format(obj, attr,
                                                         getattr(obj, attr)))
             gevent.sleep(interval)
             obj = fun(obj.id)
-            attempt += 1
         return obj
 
     def power_down(self, node):

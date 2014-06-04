@@ -30,3 +30,21 @@ class Orchestrator(base.Orchestrator):
         environment = Environment(name, local_api)
 
         return rpcs.Deployment(name, environment)
+
+    def instance(self, deployment, name, server, password):
+        """Builds an instance with desired specs and initializes it with Chef.
+        :param deployment: deployment to add to
+        :type deployment: monster.deployments.base.Deployment
+        :param name: name for instance
+        :type name: string
+        :rtype: chef.Node
+        """
+        node = chef.Node(name, api=deployment.environment.local_api)
+        node.chef_environment = deployment.environment.name
+        node['in_use'] = "provisioning"
+        node['ipaddress'] = server.accessIPv4
+        node['password'] = password
+        node['uuid'] = server.id
+        node['current_user'] = "root"
+        node.save()
+        return node

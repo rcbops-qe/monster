@@ -52,8 +52,16 @@ class Provisioner(object):
 
     def build_nodes(self, deployment, specs):
         """Provisions a new set of nodes for a deployment."""
-        nodes_to_wrap = self.provision(deployment, specs)
 
+        # nodes_to_wrap =  self.provision(deployment, specs)
+        self.provision(deployment, specs)
+        # this now returns a single dict with a node's server, pass, and name.
+        # we want to handle threading in the deployment
+        # pychef in the orchestrator
+        # and chefserver in the features
+
+
+        #TODO: fix this before next commit!
         built_nodes = []
         for node in nodes_to_wrap:
             wrapped_node = deployment.wrap_node(node)

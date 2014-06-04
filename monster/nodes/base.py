@@ -134,8 +134,7 @@ class Node(object):
 
     def save_to_node(self):
         """Save deployment restore attributes to chef environment."""
-        features = [str(f).lower() for f in self.features]
-        node = {'features': features,
+        node = {'features': self.feature_names,
                 'status': self.status,
                 'provisioner': str(self.provisioner)}
         self['archive'] = node
@@ -255,7 +254,7 @@ class Node(object):
 
     @lazy
     def feature_names(self):
-        return [str(feature) for feature in self.features]
+        return [str(feature).lower() for feature in self.features]
 
     @lazy
     def os(self):

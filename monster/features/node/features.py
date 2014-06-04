@@ -1,4 +1,3 @@
-import chef
 import monster.features.node.base as node_
 import monster.active as actv
 
@@ -14,8 +13,7 @@ class Berkshelf(node_.Feature):
         self._run_berks()
 
     def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
+        self.archive = {"log": [""], "configs": [""]}
 
     def _install_berkshelf(self):
         """Installs Berkshelf and correct rvms/gems."""
@@ -26,7 +24,6 @@ class Berkshelf(node_.Feature):
         gems = ['berkshelf', 'chef']
 
         self.node.install_packages(dependencies)
-        # We commonly see issues with rvms servers, so loop
         self.node.run_cmd(rvm_install, attempts=10)
         self.node.install_ruby_gems(gems)
 
@@ -39,18 +36,17 @@ class Berkshelf(node_.Feature):
         For now the ghetto way is how we will do it (jwagner)
         """
 
-        command = ('mkdir -p .berkshelf; cd .berkshelf; '
-                   'echo "{\\"ssl\\":{\\"verify\\":false}}" > config.json')
-
-        self.node.run_cmd(command)
+        self.node.run_cmd(
+            'mkdir -p .berkshelf; cd .berkshelf; echo '
+            '"{\\"ssl\\":{\\"verify\\":false}}" > config.json'
+        )
 
     def _run_berks(self):
         """This will run berkshelf to apply the feature """
-        commands = ['cd /opt/rcbops/swift-private-cloud',
-                    'source /usr/local/rvm/scripts/rvm',
-                    'berks install',
-                    'berks upload']
-        self.node.run_cmds(commands)
+        self.node.run_cmd(
+            "cd /opt/rcbops/swift-private-cloud; source "
+            "/usr/local/rvm/scripts/rvm; berks install; berks upload"
+        )
 
 
 class ChefServer(node_.Feature):
@@ -58,12 +54,6 @@ class ChefServer(node_.Feature):
 
     def __init__(self, node):
         super(ChefServer, self).__init__(node)
-        self.iscript = actv.config['chef']['server']['install_script']
-        self.iscript_name = self.iscript.split('/')[-1]
-        self.script_download = 'curl {0} >> {1}'.format(self.iscript,
-                                                        self.iscript_name)
-        self.install_commands = ['chmod u+x ~/{0}'.format(self.iscript_name),
-                                 './{0}'.format(self.iscript_name)]
 
     def pre_configure(self):
         self.node.remove_chef()
@@ -76,8 +66,7 @@ class ChefServer(node_.Feature):
         self.node.environment.save()
 
     def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
+        self.archive = {"log": [""], "configs": [""]}
 
     def upgrade(self):
         """Upgrades the Chef Server Cookbooks."""
@@ -87,77 +76,58 @@ class ChefServer(node_.Feature):
         pass
 
     def _install(self):
-        """Installs chef server on the given node."""
-
-        self.node.run_cmd(self.script_download, attempts=5)
-        command = "; ".join(self.install_commands)
-        self.node.run_cmd(command)
+        """Installs chef server on the given node using a script."""
+        url = actv.config['chef']['server']['install_script']
+        filename = url.split('/')[-1]
+        curl_script = "curl {url} >> {script}".format(url=url, script=filename)
+        self.node.run_cmd(curl_script, attempts=5)
+        self.node.run_cmd("chmod u+x ~/{install_script}; ./{install_script}"
+                          .format(install_script=filename))
 
     def _install_cookbooks(self, directory=None):
-        """Installs cookbooks """
 
         cookbook_url = actv.config['rcbops'][self.node.product]['git']['url']
         cookbook_branch = self.node.branch
         cookbook_name = cookbook_url.split("/")[-1].split(".")[0]
-
         install_dir = directory or actv.config['chef']['server']['install_dir']
 
-        commands = ["mkdir -p {0}".format(install_dir),
-                    "cd {0}".format(install_dir),
-                    "git clone {0}".format(cookbook_url),
-                    "cd {0}/{1}".format(install_dir, cookbook_name),
-                    "git checkout {0}".format(cookbook_branch)]
+        knife_command = ("mkdir -p {dir}; cd {dir}; git clone {url}; "
+                         "cd {cookbook}; git checkout {branch}; "
+                         .format(dir=install_dir, url=cookbook_url,
+                         cookbook=cookbook_name, branch=cookbook_branch))
 
         if 'cookbooks' in cookbook_name:
-             # add submodule stuff to list
-            commands.append('git submodule init')
-            commands.append('git submodule sync')
-            commands.append('git submodule update')
-            commands.append('knife cookbook upload --all --cookbook-path '
-                            '{0}/{1}/cookbooks'.format(install_dir,
-                                                       cookbook_name))
+            knife_command += ("git submodule init; git submodule sync; "
+                              "submodule update; knife cookbook upload --all "
+                              "--cookbook-path {dir}/{cookbook}/cookbooks; "
+                              .format(dir=install_dir, cookbook=cookbook_name))
 
-        commands.append('knife role from file {0}/{1}/roles/*.rb'.format(
-            install_dir, cookbook_name))
+        knife_command += ("knife role from file {dir}/{cookbook}/roles/*.rb"
+                          .format(dir=install_dir, cookbook=cookbook_name))
 
-        command = "; ".join(commands)
-
-        return self.node.run_cmd(command)
+        return self.node.run_cmd(knife_command)
 
     def _upgrade_cookbooks(self):
         install_dir = actv.config['chef']['server']['upgrade_dir']
-        clean = ["for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done",
-                 "rm -rf {0}".format(install_dir)]
-        self.node.run_cmd("; ".join(clean))
+        clean = ("for i in /var/chef/cache/cookbooks/*; do rm -rf $i; done; "
+                 "rm -rf {dir}".format(dir=install_dir))
+        self.node.run_cmd(clean)
         return self._install_cookbooks(directory=install_dir)
 
     def _set_up_remote(self):
-        """Sets up and saves a remote api and dict to the nodes environment.
-        """
-
+        """Sets up and saves a remote api and dict to the environment."""
         remote_chef = {
             "client": "admin",
             "key": self._get_admin_pem(),
             "url": "https://{0}:443".format(self.node.ipaddress)
         }
-
-        # set the remote chef server name
-        self.node.environment.chef_server_name = self.node.name
-
-        # save the remote dict
         self.node.environment.add_override_attr('remote_chef', remote_chef)
-
-    @classmethod
-    def remote_chef_api(cls, chef_api_dict):
-        """Builds a remote chef API object."""
-
-        return chef.ChefAPI(**chef_api_dict)
+        self.node.environment.chef_server_name = self.node.name
 
     def _get_admin_pem(self):
         """Gets the admin pem from the chef server."""
-
-        command = 'cat ~/.chef/admin.pem'
-        pem = self.node.run_cmd(command)['return']
+        command = "cat ~/.chef/admin.pem"
+        pem = self.node.run_cmd(command)["return"]
         if not pem:
             raise Exception("Chef Server setup error")
         return pem
@@ -177,8 +147,7 @@ class Cinder(node_.Feature):
         self.set_run_list()
 
     def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
+        self.archive = {"log": [""], "configs": [""]}
 
 
 class Compute(node_.Feature):
@@ -199,8 +168,7 @@ class Compute(node_.Feature):
 
     def _set_node_archive(self):
 
-        self.archive = {"log": ["nova"],
-                        "configs": ["nova"]}
+        self.archive = {"log": ["nova"], "configs": ["nova"]}
 
 
 class Controller(node_.Feature):
@@ -282,20 +250,13 @@ class Metrics(node_.Feature):
         self._set_run_list()
 
     def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
+        self.archive = {"log": [""], "configs": [""]}
 
     def _set_run_list(self):
         """Metrics run list set."""
-
         role = self.__class__.__name__.lower()
-
-        # Set the run list based on the deployment config for the role
-        run_list = actv.config['rcbops'][self.node.product][
-            role][self.role]['run_list']
-
-        # Add the run list to the node
-        self.node.add_run_list_item(run_list)
+        role_config = actv.config['rcbops'][self.node.product][role][self.role]
+        self.node.add_run_list_item(role_config['run_list'])
 
 
 class Network(node_.Feature):
@@ -305,8 +266,7 @@ class Network(node_.Feature):
         self.set_run_list()
 
     def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
+        self.archive = {"log": [""], "configs": [""]}
 
 
 class NetworkManager(node_.Feature):
@@ -315,8 +275,7 @@ class NetworkManager(node_.Feature):
         self.set_run_list()
 
     def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
+        self.archive = {"log": [""], "configs": [""]}
 
 
 class OpenLDAP(node_.Feature):
@@ -326,16 +285,11 @@ class OpenLDAP(node_.Feature):
         self.set_run_list()
 
     def post_configure(self):
-        self._configure_ldap()
+        self.node.run_cmd('ldapadd -x -D "cn=admin,dc=rcb,dc=me" -wsecrete '
+                          '-f /root/base.ldif')
 
     def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
-
-    def _configure_ldap(self):
-        ldapadd = ('ldapadd -x -D "cn=admin,dc=rcb,dc=me" '
-                   '-wsecrete -f /root/base.ldif')
-        self.node.run_cmd(ldapadd)
+        self.archive = {"log": [""], "configs": [""]}
 
 
 class Orchestration(node_.Feature):
@@ -356,8 +310,7 @@ class Orchestration(node_.Feature):
         self.node.deployment.has_orch_master = True
 
     def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
+        self.archive = {"log": [""], "configs": [""]}
 
 
 class Proxy(node_.Feature):
@@ -367,8 +320,7 @@ class Proxy(node_.Feature):
         self.set_run_list()
 
     def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
+        self.archive = {"log": [""], "configs": [""]}
 
 
 class Remote(node_.Feature):
@@ -379,22 +331,18 @@ class Remote(node_.Feature):
         self._bootstrap_chef()
 
     def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
+        self.archive = {"log": [""], "configs": [""]}
 
     def _bootstrap_chef(self):
-        """Bootstraps the node to a chef server. """
-
-        # Gather the info for the chef server
+        """Bootstraps the node to a chef server."""
         chef_server = next(self.node.deployment.search_role('chefserver'))
         client_version = actv.config['chef']['client']['version']
 
-        command = ("knife bootstrap {0} -u root -P {1}"
-                   " --bootstrap-version {2}".format(self.node.ipaddress,
-                                                     self.node.password,
-                                                     client_version))
-
-        chef_server.run_cmd(command)
+        chef_server.run_cmd(
+            "knife bootstrap {node} -u root -P {password} --bootstrap-version "
+            "{version}".format(node=self.node.ipaddress,
+                               password=self.node.password,
+                               version=client_version))
         self.node.save()
 
 
@@ -405,5 +353,4 @@ class Storage(node_.Feature):
         self.set_run_list()
 
     def archive(self):
-        self.archive = {"log": [""],
-                        "configs": [""]}
+        self.archive = {"log": [""], "configs": [""]}
