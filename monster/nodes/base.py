@@ -57,10 +57,10 @@ class Node(object):
     def __setitem__(self, item, value):
         raise NotImplementedError()
 
-    def run_cmd(self, remote_cmd, user='root', password=None, attempts=None):
+    def run_cmd(self, cmd, user=None, password=None, attempts=1):
         """Runs a command on the node.
-        :param remote_cmd: command to run on the node
-        :type remote_cmd: str
+        :param cmd: command to run on the node
+        :type cmd: str
         :param user: user to run the command as
         :type user: str
         :param password: password to authenticate with
@@ -71,21 +71,18 @@ class Node(object):
         """
         user = user or self.user
         password = password or self.password
-        logger.info("Running: {0} on {1}".format(remote_cmd, self.name))
-        count = attempts or 1
-        ret = ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
-                      user=user, password=password)
-        while not ret['success'] and count:
-            ret = ssh_cmd(self.ipaddress, remote_cmd=remote_cmd,
-                          user=user, password=password)
-            count -= 1
-            if not ret['success']:
-                time.sleep(5)
+        logger.info("Running: {cmd} on {host}".format(cmd=cmd, host=self.name))
 
-        if not ret['success'] and attempts:
-            raise Exception("Failed to run {0} after {1} attempts".format(
-                remote_cmd, attempts))
-        return ret
+        for attempt in range(attempts):
+            result = ssh_cmd(self.ipaddress, cmd, user, password)
+            if result['success']:
+                break
+            else:
+                time.sleep(5)
+        else:
+            raise Exception("Failed to run '{command}' after {n} attempts"
+                            .format(command=cmd, n=attempts))
+        return result
 
     def run_cmds(self, remote_cmds, user='root', password=None, attempts=None):
         cmd = "; ".join(remote_cmds)
@@ -100,20 +97,14 @@ class Node(object):
         """
         user = user or self.user
         password = password or self.password
-        logger.info("SCP: {0} to {1}:{2}".format(local_path, self.name,
-                                                 remote_path))
-
-        return scp_to(self.ipaddress, local_path, user=user,
+        return scp_to(local_path=local_path, ip=self.ipaddress, user=user,
                       password=password, remote_path=remote_path)
 
     def scp_from(self, remote_path, user=None, password=None, local_path=""):
         """Retrieves a file from the node."""
         user = user or self.user
         password = password or self.password
-        logger.info("SCP: {0}:{1} to {2}".format(self.name, remote_path,
-                                                 local_path))
-
-        return scp_from(self.ipaddress, remote_path, user=user,
+        return scp_from(ip=self.ipaddress, remote_path=remote_path, user=user,
                         password=password, local_path=local_path)
 
     def pre_configure(self):
@@ -129,7 +120,7 @@ class Node(object):
         self.update_packages(dist_upgrade)
 
         for feature in self.features:
-            log = "Node feature: pre-configure: {0}".format(str(feature))
+            log = "Node feature: pre-configure: {}".format(feature)
             logger.debug(log)
             feature.pre_configure()
 
@@ -142,7 +133,7 @@ class Node(object):
 
     def add_features(self, features):
         """Adds a list of feature classes."""
-        logger.debug("node:{0} feature add:{1}".format(self.name, features))
+        logger.debug("node: {} add features: {}".format(self.name, features))
         classes = module_classes(node_features)
         for feature in features:
             feature_class = classes[feature](self)
@@ -155,7 +146,7 @@ class Node(object):
         """Applies each feature."""
         self.status = "apply-feature"
         for feature in self.features:
-            log = "Node feature: apply: {0}".format(str(feature))
+            log = "Node feature: apply: {}".format(feature)
             logger.debug(log)
             feature.apply_feature()
 
@@ -165,13 +156,13 @@ class Node(object):
         """
         self.status = "post-configure"
         for feature in self.features:
-            log = "Node feature: post-configure: {0}".format(str(feature))
+            log = "Node feature: post-configure: {}".format(feature)
             logger.debug(log)
             feature.post_configure()
 
     def build(self):
         """Runs build steps for node's features."""
-        self['in_use'] = ", ".join(map(str, self.features))
+        self['in_use'] = self.feature_names
         self.pre_configure()
         self.apply_feature()
         self.post_configure()
@@ -180,8 +171,7 @@ class Node(object):
     def upgrade(self):
         """Upgrades node based on features."""
         for feature in self.features:
-            log = "Node feature: upgrade: {0}".format(str(feature))
-            logger.info(log)
+            logger.info("Node feature: upgrade: {}".format(feature))
             feature.upgrade()
 
     def update_packages(self, dist_upgrade=False):
@@ -208,9 +198,8 @@ class Node(object):
         return self.run_cmd(self.os.check_package(package))
 
     def install_ruby_gem(self, gem):
-        commands = ['source /usr/local/rvm/scripts/rvm',
-                    'gem install --no-rdoc --no-ri {0}'.format(gem)]
-        self.run_cmds(commands)
+        self.run_cmd('source /usr/local/rvm/scripts/rvm; '
+                     'gem install --no-rdoc --no-ri {gem}'.format(gem=gem))
 
     def install_ruby_gems(self, gems):
         self.install_ruby_gem(" ".join(gems))
@@ -219,10 +208,9 @@ class Node(object):
         self.run_cmd(self.os.remove_chef())
 
     def destroy(self):
-        logger.info("Destroying node:{0}".format(self.name))
+        logger.info("Destroying node: {node}".format(node=self.name))
         for feature in self.features:
-            log = "Node feature: destroy: {0}".format(str(feature))
-            logger.debug(log)
+            logger.debug("Destroying feature: {}".format(feature))
             feature.destroy()
         self.provisioner.destroy_node(self)
         self.status = "Destroyed"

@@ -94,7 +94,7 @@ class Provisioner(base.Provisioner):
                 time.sleep(15)
             except:
                 logger.error("Node unreachable. "
-                             "Manual restart required:{0}".format(str(node)))
+                             "Manual restart required: {}".format(node))
 
 
 class RazorAPI(object):

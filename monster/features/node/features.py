@@ -335,7 +335,7 @@ class Remote(node_.Feature):
 
     def _bootstrap_chef(self):
         """Bootstraps the node to a chef server."""
-        chef_server = next(self.node.deployment.search_role('chefserver'))
+        chef_server = self.node.deployment.first_node_with_role('chefserver')
         client_version = actv.config['chef']['client']['version']
 
         chef_server.run_cmd(

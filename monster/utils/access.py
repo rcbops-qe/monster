@@ -43,22 +43,28 @@ def get_paramiko_ssh_client():
     return ssh
 
 
-def scp_from(ip, remote_path, user='root', password=None, local_path=""):
+def scp_from(ip, remote_path, local_path, user, password=None):
     """
     :param remote_path: file to copy
     :param local_path: place on localhost to place file
     """
+    logger.info("SCP: {host}:{path} to {local}"
+                .format(host=ip, path=remote_path, local=local_path))
+
     ssh = get_paramiko_ssh_client()
     ssh.connect(ip, username=user, password=password, allow_agent=False)
     sftp = ssh.open_sftp()
     sftp.get(remote_path, local_path)
 
 
-def scp_to(ip, local_path, user='root', password=None, remote_path=""):
+def scp_to(local_path, ip, remote_path, user, password=None):
     """Send a file to a server.
     :param local_path: file on localhost to copy
     :param remote_path: destination to copy to
     """
+    logger.info("SCP: {local} to {host}:{path}"
+                .format(local=local_path, host=ip, path=remote_path))
+
     ssh = get_paramiko_ssh_client()
     ssh.connect(ip, username=user, password=password, allow_agent=False)
     sftp = ssh.open_sftp()

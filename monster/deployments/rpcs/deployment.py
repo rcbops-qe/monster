@@ -137,7 +137,7 @@ class Deployment(base.Deployment):
         if self.environment.is_high_availability:
             ip = self.environment.rabbit_mq_queue_ip
         else:
-            ip = next(self.search_role("controller")).ipaddress
+            ip = self.first_node_with_role("controller").ipaddress
         url = "{host}:15672".format(host=ip)
 
         return rabbit.Client(url, user="guest", password="guest")
@@ -148,7 +148,7 @@ class Deployment(base.Deployment):
         try:
             return self.override_attrs['vips']['nova-api']
         except KeyError:
-            return next(self.search_role('controller')).ipaddress
+            return self.first_node_with_role("controller").ipaddress
 
     def add_nodes(self, node_request):
         pass

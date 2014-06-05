@@ -42,7 +42,7 @@ class FourOneThree(Upgrade):
         self.deployment.environment.save()
 
         # Gather all the nodes of the deployment
-        chef_server = next(self.deployment.search_role('chefserver'))
+        chef_server = self.deployment.first_node_with_role('chefserver')
         controllers = list(self.deployment.search_role('controller'))
         computes = list(self.deployment.search_role('compute'))
 

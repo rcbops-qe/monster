@@ -71,7 +71,7 @@ class Neutron(deployment_.Feature):
                         "--direction ingress "
                         "default").format(self.provider)
 
-        controller = next(self.deployment.search_role('controller'))
+        controller = self.deployment.first_node_with_role('controller')
         logger.info("## Setting up ICMP security rule ##")
         controller.run_cmd(icmp_command)
         logger.info("## Setting up TCP security rule ##")
@@ -195,7 +195,7 @@ class Swift(deployment_.Feature):
         """
 
         # Gather all the nodes
-        controller = next(self.deployment.search_role('controller'))
+        controller = self.deployment.first_node_with_role('controller')
         proxy_nodes = list(self.deployment.search_role('proxy'))
         storage_nodes = list(self.deployment.search_role('storage'))
 

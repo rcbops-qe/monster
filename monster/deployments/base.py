@@ -63,8 +63,8 @@ class Deployment(object):
         logger.info("Building Configured Environment")
         self.status = "Loading environment..."
         for feature in self.features:
-            logger.debug("Deployment feature {0}: updating environment!"
-                         .format(str(feature)))
+            logger.debug("Deployment feature {feature}: updating environment!"
+                         .format(feature=feature))
             feature.update_environment()
         self.status = "Environment ready!"
 
@@ -72,8 +72,8 @@ class Deployment(object):
         """Preconfigures node for each feature."""
         self.status = "Pre-configuring nodes for features..."
         for feature in self.features:
-            logger.debug("Deployment feature: pre-configure: {0}"
-                         .format(str(feature)))
+            logger.debug("Deployment feature: pre-configure: {feature}"
+                         .format(feature=feature))
             feature.pre_configure()
 
     def build_nodes(self):
@@ -92,17 +92,16 @@ class Deployment(object):
 
     def post_configure(self):
         """Post configures node for each feature."""
-        self.status = "Post-configuration..."
+        self.status = "post-configuration..."
         for feature in self.features:
-            log = "Deployment feature: post-configure: {0}"\
-                .format(str(feature))
-            logger.debug(log)
+            logger.debug("Deployment feature: post-configure: {}"
+                         .format(feature))
             feature.post_configure()
 
     def destroy(self):
         """Destroys an OpenStack deployment."""
-        self.status = "Destroying..."
-        logger.info("Destroying deployment: {0}".format(self.name))
+        self.status = "destroying..."
+        logger.info("Destroying deployment: {}".format(self.name))
         for node in self.nodes:
             node.destroy()
         self.status = "Destroyed!"
@@ -122,6 +121,9 @@ class Deployment(object):
         :rtype: Iterator (monster.nodes.base.Node)
         """
         return (node for node in self.nodes if node.has_feature(feature_name))
+
+    def first_node_with_role(self, feature_name):
+        return next(self.search_role(feature_name))
 
     def has_feature(self, feature_name):
         """Boolean function to determine if a feature exists in deployment.
@@ -161,7 +163,7 @@ class Deployment(object):
         """Returns list of features as strings.
         :rtype: list (str)
         """
-        return [str(feature) for feature in self.features]
+        return [str(feature).lower() for feature in self.features]
 
     @property
     def node_names(self):

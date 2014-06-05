@@ -5,7 +5,7 @@ import monster.nodes.chef_.node as monster_chef
 import monster.active as active
 import monster.provisioners.base as base
 import monster.clients.openstack as openstack
-from monster.utils.access import run_cmd, check_port
+from monster.utils.access import check_port
 
 logger = logging.getLogger(__name__)
 
@@ -13,7 +13,7 @@ logger = logging.getLogger(__name__)
 class Provisioner(base.Provisioner):
     """Provisions Chef nodes in OpenStack VMS."""
     def __init__(self):
-        self.given_names = []
+        self.given_names = None
         self.creds = openstack.Creds()
 
         openstack_clients = openstack.Clients(self.creds)
@@ -23,14 +23,12 @@ class Provisioner(base.Provisioner):
     def __str__(self):
         return 'openstack'
 
-    def name(self, name, deployment, number=None):
+    def name(self, name, deployment):
         """Helper for naming nodes.
         :param name: name for node
         :type name: String
         :param deployment: deployment object
         :type deployment: monster.deployments.base.Deployment
-        :param number: number to append to name
-        :type number: int
         :rtype: string
         """
         self.given_names = self.given_names or deployment.node_names
@@ -82,7 +80,7 @@ class Provisioner(base.Provisioner):
         networks = self.get_networks()
 
         # build instance
-        logger.info("Building: {0}".format(name))
+        logger.info("Building: {node}".format(node=name))
         server = self.compute_client.servers.create(name, image, flavor,
                                                     nics=networks)
 
@@ -108,7 +106,7 @@ class Provisioner(base.Provisioner):
         try:
             flavor_name = active.config[str(self)]['flavors'][flavor]
         except KeyError:
-            raise Exception("Flavor not supported:{0}".format(flavor))
+            raise Exception("Flavor not supported: {}".format(flavor))
         return self._client_search(self.compute_client.flavors.list,
                                    "name", flavor_name, attempts=10)
 
@@ -116,7 +114,7 @@ class Provisioner(base.Provisioner):
         try:
             image_name = active.config[str(self)]['images'][image]
         except KeyError:
-            raise Exception("Image not supported:{0}".format(image))
+            raise Exception("Image not supported: {}".format(image))
         return self._client_search(self.compute_client.images.list, "name",
                                    image_name, attempts=10)
 
@@ -156,7 +154,7 @@ class Provisioner(base.Provisioner):
         for obj in obj_collection:
             if getattr(obj, attr) == desired:
                 return obj
-        raise Exception("Client search fail:{0} not found".format(desired))
+        raise Exception("Client search fail: {} not found".format(desired))
 
     ##TODO: rewrite this - i don't think it's doing what we want (jcourtois)
     @staticmethod
@@ -190,6 +188,5 @@ class Provisioner(base.Provisioner):
                      "echo o > /proc/sysrq-trigger")
 
     def power_up(self, node):
-        uuid = node['uuid']
-        server = self.compute_client.servers.get(uuid)
+        server = self.compute_client.servers.get(node.uuid)
         server.reboot("hard")

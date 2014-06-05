@@ -32,7 +32,7 @@ class Upgrade(object):
         Returns the deployments chef server
         """
 
-        return next(self.deployment.search_role('chefserver'))
+        return self.deployment.first_node_with_role('chefserver')
 
     def deployment_controllers(self):
         """
