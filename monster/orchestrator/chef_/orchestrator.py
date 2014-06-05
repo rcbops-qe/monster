@@ -31,20 +31,22 @@ class Orchestrator(base.Orchestrator):
 
         return rpcs.Deployment(name, environment)
 
-    def instance(self, deployment, name, server, password):
-        """Builds an instance with desired specs and initializes it with Chef.
-        :param deployment: deployment to add to
-        :type deployment: monster.deployments.base.Deployment
-        :param name: name for instance
-        :type name: string
-        :rtype: chef.Node
-        """
-        node = chef.Node(name, api=deployment.environment.local_api)
-        node.chef_environment = deployment.environment.name
-        node['in_use'] = "provisioning"
-        node['ipaddress'] = server.accessIPv4
-        node['password'] = password
-        node['uuid'] = server.id
-        node['current_user'] = "root"
-        node.save()
-        return node
+    def already_has_node(self, name):
+        return False
+
+
+def chef_instance(self, node):
+    """Builds an instance with desired specs and initializes it with Chef.
+    :param node: node to build chef instance for
+    :type node: monster.nodes.chef_.node.Node
+    :rtype: chef.Node
+    """
+    chef_node = chef.Node(node.name, api=node.environment.local_api)
+    chef_node.chef_environment = node.environment.name
+    chef_node['in_use'] = "provisioning"
+    chef_node['ipaddress'] = node.ipaddress
+    chef_node['password'] = node.password
+    chef_node['uuid'] = node.uuid
+    chef_node['current_user'] = node.user
+    chef_node.save()
+    return chef_node

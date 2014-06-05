@@ -1,5 +1,5 @@
 import logging
-import gevent
+import time
 
 import monster.nodes.chef_.node as monster_chef
 import monster.active as active
@@ -54,46 +54,32 @@ class Provisioner(base.Provisioner):
         :rtype: list
         """
         logger.info("Provisioning in the cloud!")
-
+        from IPython import embed; embed()
         name = self.name(specs[0], deployment)
-        flavor = active.config['rackspace']['roles'][specs[0]]
+        flavor = self.get_flavor(active.config['rackspace']['roles'][specs[0]]).id
+        image = self.get_image(name).id
+        networks = self.get_networks()
 
-        server = self.build_instance(deployment, name, flavor)
+        logger.info("Building: {node}".format(node=name))
+        while "ACTIVE" not in server.status:
+            server = self.compute_client.servers.create(name, image, flavor,
+                                                    nics=networks)
+
+            server = self.wait_for_state(self.compute_client.servers.get,
+                                         server, "status",
+                                         ["ACTIVE", "ERROR"],
+                                         interval=15, attempts=10)
+
+            if "ACTIVE" not in server.status:
+                logger.error("Unable to build instance. Retrying...")
+                server.delete()
+
+        check_port(server.accessIPv4, 22, timeout=2)
 
         return monster_chef.Node(name, ip=server.accessIPv4, user="root",
                                  password=server.adminPass, uuid=server.id,
                                  deployment=deployment)
 
-
-    def build_instance(self, name="server", image="ubuntu", flavor="2GBP"):
-        """Builds an instance with desired specs.
-        :param name: name of server
-        :type name: string
-        :param image: desired image for server
-        :type image: string
-        :param flavor: desired flavor for server
-        :type flavor: string
-        """
-        # gather attributes
-        flavor = self.get_flavor(flavor).id
-        image = self.get_image(image).id
-        networks = self.get_networks()
-
-        # build instance
-        logger.info("Building: {node}".format(node=name))
-        server = self.compute_client.servers.create(name, image, flavor,
-                                                    nics=networks)
-
-        server = self.wait_for_state(self.compute_client.servers.get, server,
-                                     "status", ["ACTIVE", "ERROR"],
-                                     interval=15, attempts=10)
-        if "ACTIVE" not in server.status:
-            logger.error("Unable to build instance. Retrying...")
-            server.delete()
-            return self.build_instance(name=name, image=image, flavor=flavor)
-
-        check_port(server.accessIPv4, 22, timeout=2)
-        return server
 
     def destroy_node(self, node):
         """Destroys Chef node from OpenStack.
@@ -160,7 +146,7 @@ class Provisioner(base.Provisioner):
     @staticmethod
     def wait_for_state(fun, obj, attr, desired, interval=30,
                        attempts=None):
-        """Waits for a desired state of an object using gevent sleep.
+        """Waits for a desired state of an object.
         :param fun: function to update object
         :type fun: function
         :param obj: object which to check state
@@ -179,7 +165,7 @@ class Provisioner(base.Provisioner):
             logger.debug("Attempt: {0}/{1}".format(attempt+1, attempts))
             logger.info("Waiting: {0}, {1}: {2}".format(obj, attr,
                                                         getattr(obj, attr)))
-            gevent.sleep(interval)
+            time.sleep(interval)
             obj = fun(obj.id)
         return obj
 

@@ -19,6 +19,7 @@ class Node(base.Node):
 
     def __getitem__(self, item):
         """Node has access to chef attributes."""
+
         logger.debug("getting {0} on {1}".format(item, self.name))
         return self.local_node[item]
 

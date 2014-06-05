@@ -9,6 +9,7 @@ import monster.threading_iface
 import monster.upgrades.util as upgrades_util
 import monster.clients.openstack as openstack
 import monster.deployments.base as base
+import monster.orchestrator.chef_.orchestrator as chef_
 
 from monster.utils.introspection import module_classes
 
@@ -30,10 +31,14 @@ class Deployment(base.Deployment):
                                          clients=clients)
         self.has_controller = False
         self.has_orch_master = False
-        self.nodes = self.get_nodes()
+        self.nodes = self.fetch_nodes()
 
-    def get_nodes(self):
+    def fetch_nodes(self):
         node_specs = [spec for spec in active.template['nodes']]
+        for spec in node_specs:
+            node = self.provisioner.build_node(self, spec)
+
+
     #     get nodes from provisioner if necessary
     #     send them to orch if necessary
 
