@@ -30,9 +30,9 @@ def rpcs(name, template="ubuntu-default", branch="master",
     """Build an Rackspace Private Cloud deployment."""
     data.load_config(name)
 
-    orchestrator = get_orchestrator(orchestrator)
-    deployment = orchestrator.create_deployment_from_file(name)
-
+    logger.info("Building deployment object for {0}".format(name))
+    env = get_orchestrator(orchestrator).get_env(name)
+    deployment = rpcs.Deployment(name, env)
     if dry:
         deployment.update_environment()
     else:

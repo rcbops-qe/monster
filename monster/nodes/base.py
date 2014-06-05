@@ -9,7 +9,6 @@ from lazy import lazy
 import monster.features.node.features as node_features
 import monster.nodes.util as node_util
 import monster.active as active
-from monster.provisioners.util import get_provisioner
 
 from monster.utils.access import scp_from, scp_to, ssh_cmd
 from monster.utils.introspection import module_classes
@@ -239,7 +238,7 @@ class Node(object):
 
     @property
     def provisioner(self):
-        return get_provisioner(self.provisioner_name)
+        return self.deployment.provisioner
 
     @lazy
     def feature_names(self):
