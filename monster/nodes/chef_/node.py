@@ -10,9 +10,9 @@ logger = logging.getLogger(__name__)
 class Node(base.Node):
     """Wraps a Chef node.
     Provides chef related server functions."""
-    def __init__(self, name, ip, user, password, deployment,
+    def __init__(self, name, ip, user, password, deployment, uuid,
                  run_list=None):
-        super(Node, self).__init__(name, ip, user, password, deployment)
+        super(Node, self).__init__(name, ip, user, password, deployment, uuid)
         self.environment = deployment.environment
         self.branch = deployment.branch
         self.run_list = run_list or []
@@ -34,6 +34,12 @@ class Node(base.Node):
         """Builds the node."""
         self.clear_run_list()
         super(Node, self).build()
+
+    def destroy(self):
+        self.local_node.delete()
+        self.client.delete()
+        super(Node, self).destroy()
+
 
     def upgrade(self, times=1, accept_failure=False):
         """Upgrade the node according to its features.

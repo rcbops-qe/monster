@@ -1,8 +1,7 @@
 import logging
 import gevent
 
-import chef
-
+import monster.nodes.chef_.node as monster_chef
 import monster.active as active
 import monster.provisioners.base as base
 import monster.clients.openstack as openstack
@@ -38,6 +37,7 @@ class Provisioner(base.Provisioner):
 
         root = "{0}-{1}".format(deployment.name, name)
         if root not in self.given_names:
+            self.given_names.append(root)
             return root
         else:
             counter = 2
@@ -48,7 +48,8 @@ class Provisioner(base.Provisioner):
             self.given_names.append(name)
             return name
 
-    def provision(self, deployment, specs):
+
+    def provision_node(self, deployment, specs):
         """Provisions a chef node using OpenStack.
         :param deployment: ChefDeployment to provision for
         :type deployment: monster.deployments.base.Deployment
@@ -57,24 +58,51 @@ class Provisioner(base.Provisioner):
         logger.info("Provisioning in the cloud!")
 
         name = self.name(specs[0], deployment)
-        self.given_names.append(name)
         flavor = active.config['rackspace']['roles'][specs[0]]
 
-        return self.build_instance(deployment, name, flavor=flavor)
+        server = self.build_instance(deployment, name, flavor)
 
+        return monster_chef.Node(name, ip=server.accessIPv4, user="root",
+                                 password=server.adminPass, uuid=server.id,
+                                 deployment=deployment)
+
+
+    def build_instance(self, name="server", image="ubuntu", flavor="2GBP"):
+        """Builds an instance with desired specs.
+        :param name: name of server
+        :type name: string
+        :param image: desired image for server
+        :type image: string
+        :param flavor: desired flavor for server
+        :type flavor: string
+        """
+        # gather attributes
+        flavor = self.get_flavor(flavor).id
+        image = self.get_image(image).id
+        networks = self.get_networks()
+
+        # build instance
+        logger.info("Building: {0}".format(name))
+        server = self.compute_client.servers.create(name, image, flavor,
+                                                    nics=networks)
+
+        server = self.wait_for_state(self.compute_client.servers.get, server,
+                                     "status", ["ACTIVE", "ERROR"],
+                                     interval=15, attempts=10)
+        if "ACTIVE" not in server.status:
+            logger.error("Unable to build instance. Retrying...")
+            server.delete()
+            return self.build_instance(name=name, image=image, flavor=flavor)
+
+        check_port(server.accessIPv4, 22, timeout=2)
+        return server
 
     def destroy_node(self, node):
         """Destroys Chef node from OpenStack.
         :param node: node to destroy
         :type node: monster.nodes.base.Node
         """
-        client = node.client
-        node = node.local_node
-        if node.exists:
-            self.compute_client.servers.get(node['uuid']).delete()
-            node.delete()
-        if client.exists:
-            client.delete()
+        self.compute_client.servers.get(node.uuid).delete()
 
     def get_flavor(self, flavor):
         try:
@@ -100,41 +128,6 @@ class Provisioner(base.Provisioner):
                                       network, attempts=10)
             networks.append({"net-id": obj.id})
         return networks
-
-    def build_instance(self, name="server", image="ubuntu", flavor="2GBP"):
-        """Builds an instance with desired specs.
-        :param name: name of server
-        :type name: string
-        :param image: desired image for server
-        :type image: string
-        :param flavor: desired flavor for server
-        :type flavor: string
-        :rtype: Server
-        """
-        # gather attributes
-        flavor = self.get_flavor(flavor).id
-        image = self.get_image(image).id
-        networks = self.get_networks()
-
-        # build instance
-        logger.info("Building: {0}".format(name))
-        server = self.compute_client.servers.create(name, image, flavor,
-                                                    nics=networks)
-        password = server.adminPass
-
-        server = self.wait_for_state(self.compute_client.servers.get, server,
-                                     "status", ["ACTIVE", "ERROR"],
-                                     interval=15, attempts=10)
-
-        if "ACTIVE" not in server.status:
-            logger.error("Unable to build instance. Retrying...")
-            server.delete()
-            return self.build_instance(name=name, image=image, flavor=flavor)
-
-        host = server.accessIPv4
-        check_port(host, 22, timeout=2)
-
-        return {"name": name, "server": server, "password": password}
 
     @staticmethod
     def _client_search(collection_fun, attr, desired, attempts=None):

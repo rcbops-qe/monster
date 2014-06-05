@@ -21,7 +21,7 @@ class Provisioner(base.Provisioner):
     def __str__(self):
         return 'razor2'
 
-    def provision(self, deployment, specs):
+    def provision_node(self, deployment, specs):
         """Provisions nodes using Razor environment.
         :param deployment: ChefDeployment to provision for
         :type deployment: Deployment

@@ -9,16 +9,19 @@ class Provisioner(object):
     Enforce implementation of provision and destroy_node and naming convention.
     """
 
-    nodes = []
+    def build_node(self, deployment, specs):
+        node = self.provision_node(deployment, specs)
+        self.post_provision(node)
+        return node
 
     def __repr__(self):
         return self.__class__.__name__.lower()
 
-    def provision(self, deployment, specs):
-        """Provisions nodes.
+    def provision_node(self, deployment, specs):
+        """Provisions a node.
         :param deployment: Deployment to provision for
         :type deployment: Deployment
-        :rtype: list (chef.Node)
+        :rtype: dict
         """
         raise NotImplementedError
 
@@ -49,25 +52,3 @@ class Provisioner(object):
         :type node: monster.nodes.base.Node
         """
         raise NotImplementedError
-
-    def build_nodes(self, deployment, specs):
-        """Provisions a new set of nodes for a deployment."""
-
-        # nodes_to_wrap =  self.provision(deployment, specs)
-        self.provision(deployment, specs)
-        # this now returns a single dict with a node's server, pass, and name.
-        # we want to handle threading in the deployment
-        # pychef in the orchestrator
-        # and chefserver in the features
-
-
-        #TODO: fix this before next commit!
-        built_nodes = []
-        for node in nodes_to_wrap:
-            wrapped_node = deployment.wrap_node(node)
-            self.post_provision(wrapped_node)
-            built_nodes.append(wrapped_node)
-
-        for node, features in zip(built_nodes, specs):
-            node.add_features(features)
-        return built_nodes
