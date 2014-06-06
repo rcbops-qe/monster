@@ -8,6 +8,7 @@ import subprocess
 import argh
 
 import monster.db_iface as database
+import monster.deployments.rpcs.deployment as rpcs
 from monster.data import data
 from monster.logger import logger as monster_logger
 from monster.utils.access import get_file
@@ -21,9 +22,9 @@ from monster.tests.tempest_quantum import TempestQuantum
 
 logger = monster_logger.Logger().logger_setup()
 
-
+@argh.named("rpcs")
 @database.store_build_params
-def rpcs(name, template="ubuntu-default", branch="master",
+def rackspace_private_cloud_build(name, template="ubuntu-default", branch="master",
          config="pubcloud-neutron.yaml", dry=False,
          log=None, provisioner="rackspace",
          secret="secret.yaml", orchestrator="chef"):
@@ -194,7 +195,7 @@ def status():
 
 def run():
     parser = argh.ArghParser()
-    argh.add_commands(parser, [devstack, rpcs], namespace='build',
+    argh.add_commands(parser, [devstack, rackspace_private_cloud_build], namespace='build',
                       title="build-related commands")
     argh.add_commands(parser, [cloudcafe, ha, tempest],
                       namespace='test',
