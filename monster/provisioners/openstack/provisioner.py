@@ -54,11 +54,13 @@ class Provisioner(base.Provisioner):
         :rtype: list
         """
         logger.info("Provisioning in the cloud!")
-        from IPython import embed; embed()
+
         name = self.name(specs[0], deployment)
         flavor = self.get_flavor(active.config['rackspace']['roles'][specs[0]]).id
-        image = self.get_image(name).id
+        image = self.get_image(deployment.os_name).id
         networks = self.get_networks()
+
+        from IPython import embed; embed()
 
         logger.info("Building: {node}".format(node=name))
         while "ACTIVE" not in server.status:
