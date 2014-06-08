@@ -39,14 +39,14 @@ class Upgrade(object):
         Returns a deployments controller(s)
         """
 
-        return list(self.deployment.search_role('controller'))
+        return list(self.deployment.nodes_with_role('controller'))
 
     def deployment_computes(self):
         """
         Returns a deployments computes
         """
 
-        return list(self.deployment.search_role('compute'))
+        return list(self.deployment.nodes_with_role('compute'))
 
     def fix_celiometer(self):
         """

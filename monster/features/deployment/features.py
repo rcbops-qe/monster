@@ -83,8 +83,8 @@ class Neutron(deployment_.Feature):
         """Builds the subnets."""
 
         logger.info("### Beginning of Networking Block ###")
-        controllers = self.deployment.search_role('controller')
-        computes = self.deployment.search_role('compute')
+        controllers = self.deployment.nodes_with_role('controller')
+        computes = self.deployment.nodes_with_role('compute')
 
         logger.info("### Building OVS Bridge and Ports on network nodes ###")
 
@@ -114,8 +114,8 @@ class Neutron(deployment_.Feature):
     def clear_bridge_iface(self):
         """Clears configured interface for Neutron use."""
 
-        controllers = self.deployment.search_role('controller')
-        computes = self.deployment.search_role('compute')
+        controllers = self.deployment.nodes_with_role('controller')
+        computes = self.deployment.nodes_with_role('compute')
 
         for controller in controllers:
             iface = controller.vmnet_iface
@@ -154,7 +154,7 @@ class Swift(deployment_.Feature):
     def _set_keystone_urls(self):
         """Gets the controller's IP and sets the url for the env."""
         proxy_ip = next(
-            self.deployment.search_role('proxy')).ipaddress
+            self.deployment.nodes_with_role('proxy')).ipaddress
 
         env = self.deployment.environment
 
@@ -196,8 +196,8 @@ class Swift(deployment_.Feature):
 
         # Gather all the nodes
         controller = self.deployment.first_node_with_role('controller')
-        proxy_nodes = list(self.deployment.search_role('proxy'))
-        storage_nodes = list(self.deployment.search_role('storage'))
+        proxy_nodes = list(self.deployment.nodes_with_role('proxy'))
+        storage_nodes = list(self.deployment.nodes_with_role('storage'))
 
         #####################################################################
         ################## Run chef on the controller node ##################
@@ -500,7 +500,7 @@ class Cinder(deployment_.Feature):
             str(self), self.environment)
 
     def post_configure(self):
-        computes = self.deployment.search_role("compute")
+        computes = self.deployment.nodes_with_role("compute")
         for compute in computes:
             compute.run()
 
@@ -624,7 +624,7 @@ class OpenLDAP(RPCS):
         self.deployment.environment.add_override_attr(
             self.name, self.environment)
 
-        ldap_server = self.deployment.search_role('openldap')
+        ldap_server = self.deployment.nodes_with_role('openldap')
         password = actv.config['ldap']['pass']
         ip = ldap_server.ipaddress
         env = self.deployment.environment

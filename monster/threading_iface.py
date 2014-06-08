@@ -10,9 +10,12 @@ def execute(func_list):
         q.put(func())
 
     with ThreadPoolExecutor(max_workers=6) as executor:
-        for function in func_list:
-            executor.submit(f, function)
+        futures = [executor.submit(f, function) for function in func_list]
 
     while not q.empty():
         output.append(q.get())
+
+    for future in futures:
+        future.result()
+
     return output

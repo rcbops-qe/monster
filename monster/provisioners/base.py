@@ -1,5 +1,4 @@
 import logging
-import monster.active as active
 
 logger = logging.getLogger(__name__)
 

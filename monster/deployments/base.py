@@ -1,11 +1,11 @@
 import types
 import logging
+
 import tmuxp
 
 import monster.features.deployment.features as deployment_features
 import monster.active as active
-import monster.threading_iface
-
+import monster.threading_iface as threading
 from monster.utils.retrofit import Retrofit
 from monster.utils.introspection import module_classes
 from monster.provisioners.util import get_provisioner
@@ -16,19 +16,17 @@ logger = logging.getLogger(__name__)
 
 class Deployment(object):
     """Base for OpenStack deployments."""
-
     def __init__(self, name, environment, status=None, clients=None):
         self.name = name
         self.os_name = active.template['os']
         self.branch = active.build_args['branch']
         self.environment = environment
-        self.features = []
         self.nodes = []
+        self.features = []
         self.status = status or "provisioning"
         self.provisioner_name = active.build_args['provisioner']
         self.product = active.template['product']
         self.clients = clients
-        #if 'features' in template:  # investigate further
         self.add_features(active.template['features'])
 
     def __repr__(self):
@@ -79,15 +77,16 @@ class Deployment(object):
     def build_nodes(self):
         """Builds each node."""
         self.status = "Building nodes..."
-        logger.info("Building chef node.")
-        self.nodes[0].build()
-        logger.info("Builing first controller.")
-        self.nodes[1].build()
-        logger.info("Building second controller.")
-        self.nodes[2].build()
+
+        logger.info("Building chef nodes...")
+        threading.execute(node.build for node in self.chefservers)
+
+        logger.info("Building controllers...")
+        threading.execute(node.build for node in self.controllers)
+
         logger.info("Building the rest of the nodes.")
-        func_list = [node.build for node in self.nodes[3:]]
-        monster.threading_iface.execute(func_list)
+        threading.execute(node.build for node in self.misc_nodes)
+
         self.status = "Nodes built!"
 
     def post_configure(self):
@@ -114,7 +113,7 @@ class Deployment(object):
         for node in self.nodes:
             node.archive()
 
-    def search_role(self, feature_name):
+    def nodes_with_role(self, feature_name):
         """Returns nodes that have the desired role.
         :param feature_name: feature to be searched for
         :type feature_name: str
@@ -123,7 +122,7 @@ class Deployment(object):
         return (node for node in self.nodes if node.has_feature(feature_name))
 
     def first_node_with_role(self, feature_name):
-        return next(self.search_role(feature_name))
+        return next(self.nodes_with_role(feature_name))
 
     def has_feature(self, feature_name):
         """Boolean function to determine if a feature exists in deployment.
@@ -182,6 +181,20 @@ class Deployment(object):
     @property
     def provisioner(self):
         return get_provisioner(self.provisioner_name)
+
+    @property
+    def chefservers(self):
+        return self.nodes_with_role('chefserver')
+
+    @property
+    def controllers(self):
+        return self.nodes_with_role('controller')
+
+    @property
+    def misc_nodes(self):
+        return [node for node in self.nodes
+                if not node.has_feature('chefserver')
+                and not node.has_feature('controller')]
 
     def retrofit(self, branch, ovs_bridge, lx_bridge, iface,
                  old_port_to_delete=None):

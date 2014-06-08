@@ -56,7 +56,7 @@ class Node(object):
     def __setitem__(self, item, value):
         raise NotImplementedError()
 
-    def run_cmd(self, cmd, user=None, password=None, attempts=1):
+    def run_cmd(self, cmd, user=None, password=None, attempts=3):
         """Runs a command on the node.
         :param cmd: command to run on the node
         :type cmd: str
@@ -77,7 +77,7 @@ class Node(object):
             if result['success']:
                 break
             else:
-                time.sleep(5)
+                time.sleep(0.5)
         else:
             raise Exception("Failed to run '{command}' after {n} attempts"
                             .format(command=cmd, n=attempts))
@@ -162,6 +162,8 @@ class Node(object):
     def build(self):
         """Runs build steps for node's features."""
         self['in_use'] = self.feature_names
+        if self.has_feature('chefserver'):
+            from IPython import embed; embed()
         self.pre_configure()
         self.apply_feature()
         self.post_configure()
@@ -229,7 +231,7 @@ class Node(object):
 
     @property
     def os_name(self):
-        return self['platform']
+        return self.deployment.os_name
 
     @property
     def vmnet_iface(self):

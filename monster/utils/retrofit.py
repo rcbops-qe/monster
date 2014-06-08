@@ -8,8 +8,8 @@ class Retrofit(object):
     """Tool to retrofit a install."""
     def __init__(self, deployment):
         self.deployment = deployment
-        self.controllers = list(self.deployment.search_role('controller'))
-        self.computes = list(self.deployment.search_role('compute'))
+        self.controllers = list(self.deployment.nodes_with_role('controller'))
+        self.computes = list(self.deployment.nodes_with_role('compute'))
 
     def __repr__(self):
         """Print out current instance."""

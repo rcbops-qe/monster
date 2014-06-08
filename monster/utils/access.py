@@ -21,7 +21,7 @@ def check_port(host, port, timeout=2):
         except socket.error:
             ssh_up = False
             logger.debug("Waiting for ssh connection...")
-            time.sleep(1)
+            time.sleep(0.5)
         else:
             ssh_up = True
     return ssh_up
@@ -33,7 +33,7 @@ def get_file(ip, user, password, remote, local, remote_delete=False):
     if remote_delete:
         cmd2 = ("sshpass -p {0} ssh -o UserKnownHostsFile=/dev/null "
                 "-o StrictHostKeyChecking=no -o LogLevel=quiet -l {1} {2}"
-                " 'rm *.xml;exit'".format(password, user, ip))
+                " 'rm *.xml; exit'".format(password, user, ip))
         subprocess.call(cmd2, shell=True)
 
 
@@ -71,7 +71,7 @@ def scp_to(local_path, ip, remote_path, user, password=None):
     sftp.put(local_path, remote_path)
 
 
-def ssh_cmd(server_ip, remote_cmd, user='root', password=None):
+def ssh_cmd(server_ip, remote_cmd, user='root', password=None, attempts=5):
     """
     :param server_ip
     :param user
@@ -82,7 +82,16 @@ def ssh_cmd(server_ip, remote_cmd, user='root', password=None):
     output = cStringIO.StringIO()
     error = cStringIO.StringIO()
     ssh = get_paramiko_ssh_client()
-    ssh.connect(server_ip, username=user, password=password, allow_agent=False)
+    for attempt in range(attempts):
+        try:
+            ssh.connect(server_ip, username=user, password=password,
+                        allow_agent=False)
+            break
+        except (EOFError, socket.error):
+            logger.info("Error connecting; retrying...")
+            time.sleep(0.5)
+    else:
+        logger.exception("Ran out of connection attempts...")
     stdin, stdout, stderr = ssh.exec_command(remote_cmd)
     stdin.close()
     for line in stdout:
@@ -95,17 +104,17 @@ def ssh_cmd(server_ip, remote_cmd, user='root', password=None):
         logger.error(line.strip())
         error.write(line)
     exit_status = stdout.channel.recv_exit_status()
-    ret = {'success': True if exit_status == 0 else False,
-           'return': output.getvalue(),
-           'exit_status': exit_status,
-           'error': error.getvalue()}
-    return ret
+    result = {'success': True if exit_status == 0 else False,
+              'return': output.getvalue(),
+              'exit_status': exit_status,
+              'error': error.getvalue()}
+    return result
 
 
 def run_cmd(command):
     """
-    @param command
-    @return A map based on pass / fail run info
+    :param command
+    :return A map based on pass / fail run info
     """
     logger.info("Running: {0}".format(command))
     try:

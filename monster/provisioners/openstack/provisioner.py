@@ -1,4 +1,5 @@
 import logging
+import thread
 import time
 
 import monster.nodes.chef_.node as monster_chef
@@ -13,7 +14,7 @@ logger = logging.getLogger(__name__)
 class Provisioner(base.Provisioner):
     """Provisions Chef nodes in OpenStack VMS."""
     def __init__(self):
-        self.given_names = None
+        self.given_names = set()
         self.creds = openstack.Creds()
 
         openstack_clients = openstack.Clients(self.creds)
@@ -26,26 +27,24 @@ class Provisioner(base.Provisioner):
     def name(self, name, deployment):
         """Helper for naming nodes.
         :param name: name for node
-        :type name: String
+        :type name: str
         :param deployment: deployment object
         :type deployment: monster.deployments.base.Deployment
-        :rtype: string
+        :rtype: str
         """
-        self.given_names = self.given_names or deployment.node_names
-
         root = "{0}-{1}".format(deployment.name, name)
-        if root not in self.given_names:
-            self.given_names.append(root)
+        if root not in active.node_names:
+            active.node_names.add(root)
             return root
         else:
             counter = 2
             name = root
-            while name in self.given_names:
-                name = "{prefix}{suffix}".format(prefix=root, suffix=counter)
+            while name in active.node_names:
+                name = "{prefix}{suffix}".format(prefix=root,
+                                                 suffix=counter)
                 counter += 1
-            self.given_names.append(name)
+            active.node_names.add(name)
             return name
-
 
     def provision_node(self, deployment, specs):
         """Provisions a chef node using OpenStack.
@@ -63,26 +62,29 @@ class Provisioner(base.Provisioner):
         networks = self.get_networks()
 
         logger.info("Building: {node}".format(node=node_name))
-
-        server = self.compute_client.servers.create(node_name, image, flavor,
-                                                    nics=networks)
-
-        while "ACTIVE" not in server.status:
-            server = self.wait_for_state(self.compute_client.servers.get,
-                                         server, "status",
-                                         ["ACTIVE", "ERROR"],
-                                         interval=15, attempts=10)
-
-            if "ACTIVE" not in server.status:
-                logger.error("Unable to build instance. Retrying...")
-                server.delete()
-
-        check_port(server.accessIPv4, 22, timeout=2)
-
+        server, password = self.get_server(node_name, image, flavor,
+                                           nics=networks)
         return monster_chef.Node(node_name, ip=server.accessIPv4, user="root",
-                                 password=server.adminPass, uuid=server.id,
+                                 password=password, uuid=server.id,
                                  deployment=deployment)
 
+    def get_server(self, node_name, image, flavor, nics):
+        for creation_attempt in range(3):
+            server = self.compute_client.servers.create(node_name, image,
+                                                        flavor, nics=nics)
+            password = server.adminPass
+            for wait_for_state in range(100):
+                server = self.compute_client.servers.get(server.id)
+                if server.status == "ACTIVE":
+                    check_port(server.accessIPv4, 22, timeout=2)
+                    return server, password
+                logger.info("{}: {}%".format(server.status, server.progress))
+                time.sleep(3)
+            else:
+                logger.error("Unable to build instance. Retrying...")
+                server.delete()
+        else:
+            logger.exception("Server creation failed three times; exiting...")
 
     def destroy_node(self, node):
         """Destroys Chef node from OpenStack.
@@ -92,88 +94,19 @@ class Provisioner(base.Provisioner):
         self.compute_client.servers.get(node.uuid).delete()
 
     def get_flavor(self, flavor):
-        try:
-            flavor_name = active.config[str(self)]['flavors'][flavor]
-        except KeyError:
-            raise Exception("Flavor not supported: {}".format(flavor))
-        return self._client_search(self.compute_client.flavors.list,
-                                   "name", flavor_name, attempts=10)
+        desired_flavor = active.config[str(self)]['flavors'][flavor]
+        return next(flavor for flavor in self.compute_client.flavors.list()
+                    if flavor.name == desired_flavor)
 
     def get_image(self, image):
-        try:
-            image_name = active.config[str(self)]['images'][image]
-        except KeyError:
-            raise Exception("Image not supported: {}".format(image))
-        return self._client_search(self.compute_client.images.list, "name",
-                                   image_name, attempts=10)
+        desired_image = active.config[str(self)]['images'][image]
+        return next(image for image in self.compute_client.images.list()
+                    if image.name == desired_image)
 
     def get_networks(self):
         desired_networks = active.config[str(self)]['networks']
-        networks = []
-        for network in desired_networks:
-            obj = self._client_search(self.neutron.list, "label",
-                                      network, attempts=10)
-            networks.append({"net-id": obj.id})
-        return networks
-
-    @staticmethod
-    def _client_search(collection_fun, attr, desired, attempts=None):
-        """Searches for a desired attribute in a list of objects.
-        :param collection_fun: function to get list of objects
-        :type collection_fun: function
-        :param attr: attribute of object to check
-        :type attr: string
-        :param desired: desired value of object's attribute
-        :type desired: object
-        :param attempts: number of attempts to achieve state
-        :type attempts: int
-        :rtype: object
-        """
-        obj_collection = None
-        for attempt in range(attempts):
-            try:
-                obj_collection = collection_fun()
-                break
-            except Exception as e:
-                logger.error("Wait: Request error:{0}-{1}".format(desired, e))
-                continue
-        get_attr = lambda x: getattr(x, attr)
-        logger.debug("Search:{0} for {1} in {2}".format(
-            attr, desired, ",".join(map(get_attr, obj_collection))))
-        for obj in obj_collection:
-            if getattr(obj, attr) == desired:
-                return obj
-        raise Exception("Client search fail: {} not found".format(desired))
-
-    ##TODO: rewrite this - i don't think it's doing what we want (jcourtois)
-    @staticmethod
-    def wait_for_state(fun, obj, attr, desired, interval=10,
-                       attempts=18):
-        """Waits for a desired state of an object.
-        :param fun: function to update object
-        :type fun: function
-        :param obj: object which to check state
-        :type obj: obj
-        :param attr: attribute of object of which state resides
-        :type attr: str
-        :param desired: desired states of attribute
-        :type desired: list of str
-        :param interval: interval to check state in secs
-        :param interval: int
-        :param attempts: number of attempts to achieve state
-        :type attempts: int
-        :rtype: obj
-        """
-        for attempt in range(attempts):
-            from IPython import embed; embed()
-            logger.debug("Attempt: {0}/{1}".format(attempt+1, attempts))
-            state = getattr(obj, attr)
-            logger.info("Waiting: {0}, {1}: {2}".format(obj, attr, state))
-            if state in desired or state==desired:
-                break
-            time.sleep(interval)
-            obj = fun(obj.id)
-        return obj
+        return [{"net-id": network.id} for network in self.neutron.list()
+                if network in desired_networks]
 
     def power_down(self, node):
         node.run_cmd("echo 1 > /proc/sys/kernel/sysrq; "

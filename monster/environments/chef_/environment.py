@@ -73,7 +73,6 @@ class Environment(base.Environment):
 
     def _update_env_with_local_object_info(self, env):
         for attr in self.__dict__:
-            logger.debug("{0}: {1}".format(attr, self.__dict__[attr]))
             setattr(env, attr, self.__dict__[attr])
 
     def destroy(self):

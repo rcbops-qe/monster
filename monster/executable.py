@@ -3,7 +3,6 @@
 Command-line interface for building OpenStack clusters
 """
 
-import os
 import subprocess
 import argh
 
@@ -22,12 +21,14 @@ from monster.tests.tempest_quantum import TempestQuantum
 
 logger = monster_logger.Logger().logger_setup()
 
+
 @argh.named("rpcs")
 @database.store_build_params
-def rackspace_private_cloud_build(name, template="ubuntu-default", branch="master",
-         config="pubcloud-neutron.yaml", dry=False,
-         log=None, provisioner="rackspace",
-         secret="secret.yaml", orchestrator="chef"):
+def rackspace_private_cloud_build(name, template="ubuntu-default",
+                                  branch="master",
+                                  config="pubcloud-neutron.yaml", dry=False,
+                                  log=None, provisioner="rackspace",
+                                  secret="secret.yaml", orchestrator="chef"):
     """Build an Rackspace Private Cloud deployment."""
     data.load_config(name)
 
@@ -65,7 +66,7 @@ def tempest(name, deployment=None, iterations=1):
 
     env = deployment.environment.name
     local = "./results/{0}/".format(env)
-    controllers = deployment.search_role('controller')
+    controllers = deployment.nodes_with_role('controller')
     for controller in controllers:
         ip, user, password = controller.creds
         remote = "{0}@{1}:~/*.xml".format(user, ip)
@@ -96,7 +97,7 @@ def ha(name, deployment=None, iterations=1, progress=False):
 
     env = deployment.environment.name
     local = "./results/{0}/".format(env)
-    controllers = deployment.search_role('controller')
+    controllers = deployment.nodes_with_role('controller')
     for controller in controllers:
         ip, user, password = controller.creds
         remote = "{0}@{1}:~/*.xml".format(user, ip)
@@ -179,9 +180,9 @@ def add_nodes(name, compute_nodes=0, controller_nodes=0, cinder_nodes=0,
               request=None):
     """Add a node (or nodes) to an existing deployment."""
     deployment = data.load_deployment(name)
-    node_request = request or list([['compute']]*compute_nodes +
-                                   [['controller']]*controller_nodes +
-                                   [['cinder']]*cinder_nodes)
+    node_request = request or list([['compute']] * compute_nodes +
+                                   [['controller']] * controller_nodes +
+                                   [['cinder']] * cinder_nodes)
 
     deployment.add_nodes(node_request)
     database.store(deployment)
@@ -195,20 +196,14 @@ def status():
 
 def run():
     parser = argh.ArghParser()
-    argh.add_commands(parser, [devstack, rackspace_private_cloud_build], namespace='build',
-                      title="build-related commands")
+    argh.add_commands(parser, [devstack, rackspace_private_cloud_build],
+                      namespace='build', title="build-related commands")
     argh.add_commands(parser, [cloudcafe, ha, tempest],
                       namespace='test',
                       title="test-related commands")
 
     parser.add_commands([show, upgrade, retrofit, add_nodes, destroy,
                          openrc, horizon, tmux])
-
-    if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
-        logger.warning("You are not using the virtual environment! We "
-                       "cannot guarantee that your monster will be well"
-                       "-behaved.  To load the virtual environment, use "
-                       "the command \"source .venv/bin/activate\"")
     parser.dispatch()
 
 

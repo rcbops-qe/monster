@@ -94,7 +94,8 @@ class ChefServer(node_.Feature):
         knife_command = ("mkdir -p {dir}; cd {dir}; git clone {url}; "
                          "cd {cookbook}; git checkout {branch}; "
                          .format(dir=install_dir, url=cookbook_url,
-                         cookbook=cookbook_name, branch=cookbook_branch))
+                                 cookbook=cookbook_name,
+                                 branch=cookbook_branch))
 
         if 'cookbooks' in cookbook_name:
             knife_command += ("git submodule init; git submodule sync; "
@@ -194,7 +195,7 @@ class Controller(node_.Feature):
         self.node.deployment.has_controller = True
 
         if self.number == 2:
-            controllers = self.node.deployment.search_role('controller')
+            controllers = self.node.deployment.nodes_with_role('controller')
             controller1 = next(controllers)
             controller1.run()
 

@@ -13,9 +13,8 @@ class Provisioner(openstack.Provisioner):
     """Provisions Chef nodes in Rackspace Cloud Servers VMS."""
     def __init__(self):
         rackspace = active.config['secrets']['rackspace']
+        self.given_names = set()
 
-        self.names = []
-        self.given_names = {}
         self.creds = openstack_client.Creds(
             username=rackspace['user'], apikey=rackspace['api_key'],
             auth_url=rackspace['auth_url'], region=rackspace['region'],
@@ -35,14 +34,14 @@ class Provisioner(openstack.Provisioner):
         rackspace = active.config[str(self)]
         desired_networks = rackspace['networks']
         networks = []
-        for network in desired_networks:
+        for desired_network in desired_networks:
             try:
-                obj = self._client_search(self.neutron.list, "label",
-                                          network, attempts=10)
+                obj = next(network for network in self.neutron.list()
+                           if network.label == desired_network)
             except:
                 obj = self.neutron.create(
-                    network,
-                    cidr=rackspace['network'][network]['cidr']
+                    desired_network,
+                    cidr=rackspace['network'][desired_network]['cidr']
                 )
             networks.append({"net-id": obj.id})
         return networks
@@ -92,15 +91,15 @@ class Provisioner(openstack.Provisioner):
         logger.info("Making swap file on:{0} of {1}GBs".format(node.name,
                                                                size))
         size_b = 1048576 * size
-        cmds = [
-            "dd if=/dev/zero of=/mnt/swap bs=1024 count={0}".format(size_b),
-            "mkswap /mnt/swap",
-            "sed 's/vm.swappiness.*$/vm.swappiness=25/g' "
-            "/etc/sysctl.conf > /etc/sysctl.conf",
-            "sysctl vm.swappiness=30",
-            "swapon /mnt/swap",
-            "echo '/mnt/swap swap swap defaults 0 0' >> /etc/fstab"]
-        node.run_cmd("; ".join(cmds))
+        node.run_cmd(
+            "dd if=/dev/zero of=/mnt/swap bs=1024 count={size_b}; "
+            "mkswap /mnt/swap; "
+            "sed 's/vm.swappiness.*$/vm.swappiness=25/g' /etc/sysctl.conf "
+            "> /etc/sysctl.conf; "
+            "sysctl vm.swappiness=30; "
+            "swapon /mnt/swap; "
+            "echo '/mnt/swap swap swap defaults 0 0' >> /etc/fstab"
+            .format(size_b=size_b), attempts=5)
 
     @staticmethod
     def update(node):
@@ -110,9 +109,10 @@ class Provisioner(openstack.Provisioner):
         :type node: monster.Node
         """
         logger.info("Updating node:{0}".format(node.name))
-        cmds = ["apt-get update -y",
-                "apt-get upgrade -y",
-                "apt-get install openssh-client git curl -y"]
+        cmds = ["DEBIAN_FRONTEND=noninteractive apt-get update -y",
+                "DEBIAN_FRONTEND=noninteractive apt-get upgrade -y",
+                "DEBIAN_FRONTEND=noninteractive apt-get install "
+                "openssh-client git curl -y"]
         if node.os_name == "centos":
             cmds = ["yum update -y",
                     "yum upgrade -y",
@@ -125,4 +125,4 @@ class Provisioner(openstack.Provisioner):
                     "/sbin/iptables -F",
                     "/etc/init.d/iptables save",
                     "/sbin/iptables -L"]
-        node.run_cmd(";".join(cmds))
+        node.run_cmd("; ".join(cmds))

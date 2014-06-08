@@ -43,8 +43,8 @@ class FourOneThree(Upgrade):
 
         # Gather all the nodes of the deployment
         chef_server = self.deployment.first_node_with_role('chefserver')
-        controllers = list(self.deployment.search_role('controller'))
-        computes = list(self.deployment.search_role('compute'))
+        controllers = list(self.deployment.nodes_with_role('controller'))
+        computes = list(self.deployment.nodes_with_role('compute'))
 
         # upgrade the chef server
         chef_server.upgrade()

@@ -14,7 +14,6 @@ class Orchestrator(base.Orchestrator):
     def create_deployment_from_file(self, name):
         raise NotImplementedError()
 
-
     def get_env(self, name):
         """Returns a new deployment given a deployment template at path.
         :param name: name for the deployment

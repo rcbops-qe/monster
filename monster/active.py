@@ -3,3 +3,5 @@
 build_args = {}
 template = {}
 config = {}
+
+node_names = set()

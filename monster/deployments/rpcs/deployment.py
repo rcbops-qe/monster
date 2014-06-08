@@ -1,24 +1,23 @@
+from functools import partial
 import os
 import sys
 import webbrowser
 
 import pyrabbit.api as rabbit
-
-import monster.active as active
+from monster import active as active
 import monster.threading_iface
+
 import monster.upgrades.util as upgrades_util
 import monster.clients.openstack as openstack
 import monster.deployments.base as base
-import monster.orchestrator.chef_.orchestrator as chef_
-
 from monster.utils.introspection import module_classes
+
 
 
 class Deployment(base.Deployment):
     """Deployment mechanisms specific to a RPCS deployment using Chef as
     configuration management.
     """
-
     def __init__(self, name, environment, clients=None):
 
         """Initializes a RPCS deployment object.
@@ -33,24 +32,25 @@ class Deployment(base.Deployment):
         self.has_orch_master = False
         self.nodes = self.fetch_nodes()
 
-    def fetch_nodes(self):
-        node_specs = [spec for spec in active.template['nodes']]
-        for spec in node_specs:
-            node = self.provisioner.build_node(self, spec)
-
-
-    #     get nodes from provisioner if necessary
-    #     send them to orch if necessary
-
     def __str__(self):
-        return str(repr(self))
+        return repr(self)
 
     def __repr__(self):
-        return {'name': self.name, 'os_name': self.os_name,
-                'branch': self.branch, 'status': self.status,
-                'product': self.product, 'nodes': self.node_names,
-                'features': self.feature_names,
-                'provisioner': self.provisioner_name}
+        return str({'name': self.name, 'os_name': self.os_name,
+                    'branch': self.branch, 'status': self.status,
+                    'product': self.product, 'nodes': self.node_names,
+                    'features': self.feature_names,
+                    'provisioner': self.provisioner_name})
+
+
+
+    def fetch_nodes(self):
+        active.node_names = set(self.node_names)
+        func_list = [partial(self.provisioner.build_node, self, spec)
+                     for spec in active.template['nodes']]
+        nodes = monster.threading_iface.execute(func_list)
+        assert nodes is not None
+        return nodes
 
     def get_upgrade(self, branch_name):
         """This will return an instance of the correct upgrade class.
@@ -101,8 +101,8 @@ class Deployment(base.Deployment):
     def horizon(self):
         url = "https://{0}".format(self.horizon_ip)
         webbrowser.open_new_tab(url)
-
     # make sure this works; changes have been made...
+
     def openrc(self):
         """Opens a new shell with variables loaded for nova-client."""
         strategy = 'keystone'
@@ -117,7 +117,6 @@ class Deployment(base.Deployment):
         for key in openrc.keys():
             os.putenv(key, openrc[key])
         os.system(os.environ['SHELL'])
-
 
     @property
     def openstack_clients(self):
@@ -145,7 +144,7 @@ class Deployment(base.Deployment):
             ip = self.first_node_with_role("controller").ipaddress
         url = "{host}:15672".format(host=ip)
 
-        return rabbit.Client(url, user="guest", password="guest")
+        return rabbit.Client(url, user="guest", passwd="guest")
 
     @property
     def horizon_ip(self):

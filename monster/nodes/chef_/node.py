@@ -41,7 +41,6 @@ class Node(base.Node):
         self.client.delete()
         super(Node, self).destroy()
 
-
     def upgrade(self, times=1, accept_failure=False):
         """Upgrade the node according to its features.
         :param times: number of times to run chef-client
