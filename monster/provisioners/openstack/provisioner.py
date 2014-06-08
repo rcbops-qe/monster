@@ -54,19 +54,20 @@ class Provisioner(base.Provisioner):
         :rtype: list
         """
         logger.info("Provisioning in the cloud!")
+        node_role = specs[0]
+        node_name = self.name(node_role, deployment)
 
-        name = self.name(specs[0], deployment)
-        flavor = self.get_flavor(active.config['rackspace']['roles'][specs[0]]).id
+        flavor_name = active.config['rackspace']['roles'][node_role]
+        flavor = self.get_flavor(flavor_name).id
         image = self.get_image(deployment.os_name).id
         networks = self.get_networks()
 
-        from IPython import embed; embed()
+        logger.info("Building: {node}".format(node=node_name))
 
-        logger.info("Building: {node}".format(node=name))
-        while "ACTIVE" not in server.status:
-            server = self.compute_client.servers.create(name, image, flavor,
+        server = self.compute_client.servers.create(node_name, image, flavor,
                                                     nics=networks)
 
+        while "ACTIVE" not in server.status:
             server = self.wait_for_state(self.compute_client.servers.get,
                                          server, "status",
                                          ["ACTIVE", "ERROR"],
@@ -78,7 +79,7 @@ class Provisioner(base.Provisioner):
 
         check_port(server.accessIPv4, 22, timeout=2)
 
-        return monster_chef.Node(name, ip=server.accessIPv4, user="root",
+        return monster_chef.Node(node_name, ip=server.accessIPv4, user="root",
                                  password=server.adminPass, uuid=server.id,
                                  deployment=deployment)
 
@@ -146,8 +147,8 @@ class Provisioner(base.Provisioner):
 
     ##TODO: rewrite this - i don't think it's doing what we want (jcourtois)
     @staticmethod
-    def wait_for_state(fun, obj, attr, desired, interval=30,
-                       attempts=None):
+    def wait_for_state(fun, obj, attr, desired, interval=10,
+                       attempts=18):
         """Waits for a desired state of an object.
         :param fun: function to update object
         :type fun: function
@@ -164,9 +165,12 @@ class Provisioner(base.Provisioner):
         :rtype: obj
         """
         for attempt in range(attempts):
+            from IPython import embed; embed()
             logger.debug("Attempt: {0}/{1}".format(attempt+1, attempts))
-            logger.info("Waiting: {0}, {1}: {2}".format(obj, attr,
-                                                        getattr(obj, attr)))
+            state = getattr(obj, attr)
+            logger.info("Waiting: {0}, {1}: {2}".format(obj, attr, state))
+            if state in desired or state==desired:
+                break
             time.sleep(interval)
             obj = fun(obj.id)
         return obj
