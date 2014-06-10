@@ -123,13 +123,6 @@ class Node(object):
             logger.debug(log)
             feature.pre_configure()
 
-    def save_to_node(self):
-        """Save deployment restore attributes to chef environment."""
-        node = {'features': self.feature_names,
-                'status': self.status,
-                'provisioner': str(self.provisioner)}
-        self['archive'] = node
-
     def add_features(self, features):
         """Adds a list of feature classes."""
         logger.debug("node: {} add features: {}".format(self.name, features))
@@ -137,9 +130,6 @@ class Node(object):
         for feature in features:
             feature_class = classes[feature](self)
             self.features.append(feature_class)
-
-        # save features for restore
-        self.save_to_node()
 
     def apply_feature(self):
         """Applies each feature."""

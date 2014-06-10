@@ -64,9 +64,10 @@ class Provisioner(base.Provisioner):
         logger.info("Building: {node}".format(node=node_name))
         server, password = self.get_server(node_name, image, flavor,
                                            nics=networks)
+
         return monster_chef.Node(node_name, ip=server.accessIPv4, user="root",
                                  password=password, uuid=server.id,
-                                 deployment=deployment)
+                                 deployment=deployment, features=specs)
 
     def get_server(self, node_name, image, flavor, nics):
         for creation_attempt in range(3):

@@ -98,7 +98,7 @@ class ChefServer(node_.Feature):
                                  branch=cookbook_branch))
 
         if 'cookbooks' in cookbook_name:
-            knife_command += ("git submodule init; git submodule sync; "
+            knife_command += ("git submodule init; git submodule sync; git "
                               "submodule update; knife cookbook upload --all "
                               "--cookbook-path {dir}/{cookbook}/cookbooks; "
                               .format(dir=install_dir, cookbook=cookbook_name))
@@ -138,7 +138,7 @@ class ChefServer(node_.Feature):
             if not node.has_feature("chefserver"):
                 remote_feature = Remote(node)
                 node.features.insert(0, remote_feature)
-                node.save_to_node()
+                node.save()
 
 
 class Cinder(node_.Feature):

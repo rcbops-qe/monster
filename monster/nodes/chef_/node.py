@@ -11,11 +11,12 @@ class Node(base.Node):
     """Wraps a Chef node.
     Provides chef related server functions."""
     def __init__(self, name, ip, user, password, deployment, uuid,
-                 run_list=None):
+                 run_list=None, features=None):
         super(Node, self).__init__(name, ip, user, password, deployment, uuid)
         self.environment = deployment.environment
         self.branch = deployment.branch
         self.run_list = run_list or []
+        self.add_features(features)
 
     def __getitem__(self, item):
         """Node has access to chef attributes."""
@@ -73,7 +74,6 @@ class Node(base.Node):
         node = node or self.local_node
         node.save(self.local_api)
         if self.remote_api:
-            # syncs to remote chef server if available
             node.save(self.remote_api)
 
     def save_locally(self, node=None):
