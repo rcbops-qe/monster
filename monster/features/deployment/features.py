@@ -83,23 +83,25 @@ class Neutron(deployment_.Feature):
         """Builds the subnets."""
 
         logger.info("### Beginning of Networking Block ###")
-        controllers = self.deployment.nodes_with_role('controller')
-        computes = self.deployment.nodes_with_role('compute')
-
         logger.info("### Building OVS Bridge and Ports on network nodes ###")
 
-        for controller in controllers:
+        for controller in self.deployment.controllers:
             iface = controller.vmnet_iface
             command = self.iface_bb_cmd(iface)
             logger.debug("Running {0} on {1}".format(command, controller))
-            controller.run_cmd(command, attempts=10)
+            try:
+                controller.run_cmd(command, attempts=10)
+            except Exception:
+                logger.info("Failed to build bridge on "+controller.name)
 
-        # loop through compute nodes and run
-        for compute in computes:
+        for compute in self.deployment.computes:
             iface = compute.vmnet_iface
             command = self.iface_bb_cmd(iface)
             logger.debug("Running {0} on {1}".format(command, compute))
-            compute.run_cmd(command, attempts=10)
+            try:
+                compute.run_cmd(command, attempts=10)
+            except Exception:
+                logger.info("Failed to build bridge on "+compute.name)
 
         logger.info("### End of Networking Block ###")
 

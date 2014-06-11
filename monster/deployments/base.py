@@ -192,6 +192,10 @@ class Deployment(object):
         return self.nodes_with_role('controller')
 
     @property
+    def computes(self):
+        return self.nodes_with_role('compute')
+
+    @property
     def misc_nodes(self):
         return [node for node in self.nodes
                 if not node.has_feature('chefserver')
