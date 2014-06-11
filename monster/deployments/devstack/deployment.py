@@ -79,3 +79,7 @@ class Deployment(base.Deployment):
 
     def wrap_node(self, node):
         raise NotImplementedError()
+
+    @property
+    def chefservers(self):
+        return self.nodes_with_role('chefserver')

@@ -76,11 +76,6 @@ class Deployment(object):
 
     def build_nodes(self):
         """Builds each node."""
-        self.status = "Building nodes..."
-
-        logger.info("Building chef nodes...")
-        threading.execute(node.build for node in self.chefservers)
-
         logger.info("Building controllers...")
         for node in self.controllers:
             node.build()
@@ -115,22 +110,14 @@ class Deployment(object):
             node.archive()
 
     def nodes_with_role(self, feature_name):
-        """Returns nodes that have the desired role.
-        :param feature_name: feature to be searched for
-        :type feature_name: str
-        :rtype: Iterator (monster.nodes.base.Node)
-        """
+        """Returns nodes that have the desired role."""
         return (node for node in self.nodes if node.has_feature(feature_name))
 
     def first_node_with_role(self, feature_name):
         return next(self.nodes_with_role(feature_name))
 
     def has_feature(self, feature_name):
-        """Boolean function to determine if a feature exists in deployment.
-        :param feature_name: feature to be searched for
-        :type feature_name: str
-        :rtype: bool
-        """
+        """Boolean function to determine if a feature exists in deployment."""
         return feature_name in self.feature_names
 
     def add_features(self, features):
@@ -182,10 +169,6 @@ class Deployment(object):
     @property
     def provisioner(self):
         return get_provisioner(self.provisioner_name)
-
-    @property
-    def chefservers(self):
-        return self.nodes_with_role('chefserver')
 
     @property
     def controllers(self):

@@ -1,16 +1,14 @@
 from functools import partial
 import os
-import sys
 import webbrowser
 
 import pyrabbit.api as rabbit
-from monster import active as active
-import monster.threading_iface
 
-import monster.upgrades.util as upgrades_util
+import monster.active as active
+import monster.threading_iface as threading
 import monster.clients.openstack as openstack
 import monster.deployments.base as base
-from monster.utils.introspection import module_classes
+import monster.upgrades.util as upgrades_util
 
 
 class Deployment(base.Deployment):
@@ -29,7 +27,7 @@ class Deployment(base.Deployment):
                                          clients=clients)
         self.has_controller = False
         self.has_orch_master = False
-        self.nodes = self.fetch_nodes()
+        self.nodes = self.acquire_nodes()
 
     def __str__(self):
         return repr(self)
@@ -44,50 +42,27 @@ class Deployment(base.Deployment):
                 'nodes': self.node_names, 'features': self.features_dict,
                 'product': self.product, 'provisioner': self.provisioner_name}
 
-    def fetch_nodes(self):
+    def acquire_nodes(self):
         active.node_names = set(self.node_names)
         func_list = [partial(self.provisioner.build_node, self, spec)
                      for spec in active.template['nodes']]
-        nodes = monster.threading_iface.execute(func_list)
+        nodes = threading.execute(func_list)
         assert nodes is not None
         nodes.sort(key=lambda node: node.name)
         return nodes
 
+    def build_nodes(self):
+        base.logger.info("Building chef nodes...")
+        threading.execute(node.build for node in self.chefservers)
+        super(Deployment, self).build_nodes()
+
     def add_nodes(self, node_request):
         pass
 
-    def get_upgrade(self, branch_name):
-        """This will return an instance of the correct upgrade class.
-        :param branch_name: The name of the provisioner
-        :type branch_name: str
-        :rtype: monster.deployments.base.Deployment
-        """
-
-        # convert branch into a list of int strings
-        branch_i = [int(x) for x in branch_name.lstrip('v').split('.')]
-
-        # convert list of int strings to their english counterpart
-        word_b = [upgrades_util.int2word(b) for b in branch_i]
-
-        # convert list to class name
-        up_class = "".join(word_b).replace(" ", "")
-        up_class_module = "_".join(word_b).replace(" ", "")
-
-        try:
-            identifier = getattr(sys.modules['monster'].upgrades,
-                                 up_class_module)
-        except AttributeError:
-            raise NameError("{0} doesn't exist.".format(up_class_module))
-
-        return module_classes(identifier)[up_class](self)
-
     def upgrade(self, branch_name):
         """Upgrades the deployment."""
-
         rc = "rc" in branch_name
-        upgrade_branch_name = branch_name.rstrip("rc")
-
-        upgrade = self.get_upgrade(upgrade_branch_name)
+        upgrade = upgrades_util.get_upgrade(branch_name)
         upgrade.upgrade(rc)
 
     def destroy(self):
@@ -169,3 +144,7 @@ class Deployment(base.Deployment):
         for feature in self.features:
             container.update(feature.to_dict)
         return container
+
+    @property
+    def chefservers(self):
+        return self.nodes_with_role('chefserver')
