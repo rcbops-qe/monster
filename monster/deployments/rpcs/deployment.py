@@ -35,11 +35,14 @@ class Deployment(base.Deployment):
         return repr(self)
 
     def __repr__(self):
+        return str(self.to_dict)
+
+    @property
+    def to_dict(self):
         return {'name': self.name, 'os_name': self.os_name,
                 'branch': self.branch, 'status': self.status,
-                'product': self.product, 'nodes': self.node_names,
-                'features': self.feature_names,
-                'provisioner': self.provisioner_name}.__str__()
+                'nodes': self.node_names, 'features': self.features_dict,
+                'product': self.product, 'provisioner': self.provisioner_name}
 
     def fetch_nodes(self):
         active.node_names = set(self.node_names)
@@ -48,6 +51,9 @@ class Deployment(base.Deployment):
         nodes = monster.threading_iface.execute(func_list)
         assert nodes is not None
         return nodes
+
+    def add_nodes(self, node_request):
+        pass
 
     def get_upgrade(self, branch_name):
         """This will return an instance of the correct upgrade class.
@@ -83,10 +89,6 @@ class Deployment(base.Deployment):
         upgrade = self.get_upgrade(upgrade_branch_name)
         upgrade.upgrade(rc)
 
-    def update_environment(self):
-        """Saves deployment for restore after update environment."""
-        super(Deployment, self).update_environment()
-
     def destroy(self):
         """Destroys Chef Deployment."""
         self.status = "destroying"
@@ -95,10 +97,20 @@ class Deployment(base.Deployment):
         self.environment.destroy()
         self.status = "destroyed"
 
+    def update_environment(self):
+        """Saves deployment for restore after update environment."""
+        super(Deployment, self).update_environment()
+        self.save_to_environment()
+    # make sure this works; changes have been made...
+
+    def save_to_environment(self):
+        """Save deployment restore attributes to chef environment."""
+        deployment = self.to_dict
+        self.environment.add_override_attr('deployment', deployment)
+
     def horizon(self):
         url = "https://{0}".format(self.horizon_ip)
         webbrowser.open_new_tab(url)
-    # make sure this works; changes have been made...
 
     def openrc(self):
         """Opens a new shell with variables loaded for nova-client."""
@@ -151,5 +163,9 @@ class Deployment(base.Deployment):
         except KeyError:
             return self.first_node_with_role("controller").ipaddress
 
-    def add_nodes(self, node_request):
-        pass
+    @property
+    def features_dict(self):
+        container = {}
+        for feature in self.features:
+            container.update(feature.to_dict)
+        return container
