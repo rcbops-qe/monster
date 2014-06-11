@@ -92,14 +92,14 @@ class Neutron(deployment_.Feature):
             iface = controller.vmnet_iface
             command = self.iface_bb_cmd(iface)
             logger.debug("Running {0} on {1}".format(command, controller))
-            controller.run_cmd(command)
+            controller.run_cmd(command, attempts=10)
 
         # loop through compute nodes and run
         for compute in computes:
             iface = compute.vmnet_iface
             command = self.iface_bb_cmd(iface)
             logger.debug("Running {0} on {1}".format(command, compute))
-            compute.run_cmd(command)
+            compute.run_cmd(command, attempts=10)
 
         logger.info("### End of Networking Block ###")
 
