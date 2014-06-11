@@ -90,18 +90,18 @@ class Neutron(deployment_.Feature):
             command = self.iface_bb_cmd(iface)
             logger.debug("Running {0} on {1}".format(command, controller))
             try:
-                controller.run_cmd(command, attempts=10)
+                controller.run_cmd(command, attempts=1)
             except Exception:
-                logger.info("Failed to build bridge on "+controller.name)
+                logger.warning("Failed to build bridge on "+controller.name)
 
         for compute in self.deployment.computes:
             iface = compute.vmnet_iface
             command = self.iface_bb_cmd(iface)
             logger.debug("Running {0} on {1}".format(command, compute))
             try:
-                compute.run_cmd(command, attempts=10)
+                compute.run_cmd(command, attempts=1)
             except Exception:
-                logger.info("Failed to build bridge on "+compute.name)
+                logger.warning("Failed to build bridge on "+compute.name)
 
         logger.info("### End of Networking Block ###")
 
@@ -116,15 +116,12 @@ class Neutron(deployment_.Feature):
     def clear_bridge_iface(self):
         """Clears configured interface for Neutron use."""
 
-        controllers = self.deployment.nodes_with_role('controller')
-        computes = self.deployment.nodes_with_role('compute')
-
-        for controller in controllers:
+        for controller in self.deployment.controllers:
             iface = controller.vmnet_iface
             cmd = self.iface_cb_cmd(iface)
             controller.run_cmd(cmd)
 
-        for compute in computes:
+        for compute in self.deployment.computes:
             iface = compute.vmnet_iface
             cmd = self.iface_cb_cmd(iface)
             compute.run_cmd(cmd)
@@ -502,8 +499,7 @@ class Cinder(deployment_.Feature):
             str(self), self.environment)
 
     def post_configure(self):
-        computes = self.deployment.nodes_with_role("compute")
-        for compute in computes:
+        for compute in self.deployment.computes:
             compute.run()
 
 

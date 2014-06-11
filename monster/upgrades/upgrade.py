@@ -23,37 +23,14 @@ class Upgrade(object):
         Returns a deployments nodes
         """
 
-        return (self.deployment_chef_server(),
-                self.deployment_controllers(),
-                self.deployment_computes())
-
-    def deployment_chef_server(self):
-        """
-        Returns the deployments chef server
-        """
-
-        return self.deployment.first_node_with_role('chefserver')
-
-    def deployment_controllers(self):
-        """
-        Returns a deployments controller(s)
-        """
-
-        return list(self.deployment.nodes_with_role('controller'))
-
-    def deployment_computes(self):
-        """
-        Returns a deployments computes
-        """
-
-        return list(self.deployment.nodes_with_role('compute'))
+        return (self.deployment.first_node_with_role('chefserver'),
+                self.deployment.controllers,
+                self.deployment.computes)
 
     def fix_celiometer(self):
         """
         Fixes a deployments fix_celiometer
         """
-        controllers = self.deployment_controllers()
-        computes = self.deployment_computes()
         ncmds = ["{0} clean".format(self.pkg_up_cmd),
                  "{0} update".format(self.pkg_up_cmd),
                  "{0} -y install python-warlock".format(self.pkg_up_cmd),
@@ -62,17 +39,16 @@ class Upgrade(object):
 
         node_commands = "; ".join(ncmds)
 
-        for controller in controllers:
+        for controller in self.deployment.controllers:
             controller.run_cmd(node_commands)
 
-        for compute in computes:
+        for compute in self.deployment.computes:
             compute.run_cmd(node_commands)
 
     def fix_horizon(self):
         """
         Fixes a deployments horizon
         """
-        controllers = self.deployment_controllers()
         ccmds = [
             "{0} clean".format(self.pkg_up_cmd),
             "{0} update".format(self.pkg_up_cmd),
@@ -81,24 +57,22 @@ class Upgrade(object):
         ]
         controller_commands = "; ".join(ccmds)
 
-        for controller in controllers:
+        for controller in self.deployment.controllers:
             controller.run_cmd(controller_commands)
 
     def fix_qemu(self):
         """
         Fixes a deployments QEMU
         """
-        controllers = self.deployment_controllers()
-        computes = self.deployment_computes()
-        ncmds = (["{0} update".format(self.pkg_up_cmd),
+        ncmds = ["{0} update".format(self.pkg_up_cmd),
                   "{0} remove qemu-utils -y".format(self.pkg_up_cmd),
-                  "{0} install qemu-utils -y".format(self.pkg_up_cmd)])
+                  "{0} install qemu-utils -y".format(self.pkg_up_cmd)]
         node_commands = "; ".join(ncmds)
 
-        for controller in controllers:
+        for controller in self.deployment.controllers:
             controller.run_cmd(node_commands)
 
-        for compute in computes:
+        for compute in self.deployment.computes:
             compute.run_cmd(node_commands)
 
     def mungerate(self):
@@ -107,9 +81,8 @@ class Upgrade(object):
         or from grizzly to havana
         """
 
-        chef_server = self.deployment_chef_server()
-        controllers = self.deployment_controllers()
-        controller1 = controllers[0]
+        chef_server = self.deployment.chef_server()
+        controller1 = self.deployment.controllers[0]
         munge = []
 
         # For mungerator

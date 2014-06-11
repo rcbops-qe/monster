@@ -194,8 +194,7 @@ class Controller(node.Feature):
         self.node.deployment.has_controller = True
 
         if self.number == 2:
-            controllers = self.node.deployment.nodes_with_role('controller')
-            controller1 = next(controllers)
+            controller1 = next(self.node.deployment.controllers)
             controller1.run()
 
     def archive(self):

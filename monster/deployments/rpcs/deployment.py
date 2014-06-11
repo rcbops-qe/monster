@@ -15,15 +15,10 @@ class Deployment(base.Deployment):
     """Deployment mechanisms specific to a RPCS deployment using Chef as
     configuration management.
     """
-    def __init__(self, name, environment, clients=None):
+    def __init__(self, name, clients=None):
 
-        """Initializes a RPCS deployment object.
-        :type name: str
-        :type environment: monster.environments.chef.environment.Environment
-        """
-        super(Deployment, self).__init__(name=name,
-                                         environment=environment,
-                                         status="provisioning",
+        """Initializes a RPCS deployment object."""
+        super(Deployment, self).__init__(name=name, status="provisioning",
                                          clients=clients)
         self.has_controller = False
         self.has_orch_master = False

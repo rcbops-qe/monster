@@ -24,31 +24,21 @@ logger = monster_logger.Logger().logger_setup()
 
 @argh.named("rpcs")
 @database.store_build_params
-def rackspace_private_cloud_build(name, template="ubuntu-default",
-                                  branch="master",
-                                  config="pubcloud-neutron.yaml", dry=False,
-                                  log=None, provisioner="rackspace",
-                                  secret="secret.yaml", orchestrator="chef"):
+def rpcs_build(name, template="ubuntu-default", branch="master",
+               config="pubcloud-neutron.yaml", provisioner="rackspace",
+               orchestrator="chef", secret="secret.yaml", dry=False, log=None):
     """Build an Rackspace Private Cloud deployment."""
     data.load_config(name)
-
-    logger.info("Building deployment object for {0}".format(name))
-    env = get_orchestrator(orchestrator).get_env(name)
-    deployment = rpcs.Deployment(name, env)
-    if dry:
-        deployment.update_environment()
-    else:
-        deployment.build()
-
+    deployment = rpcs.Deployment(name)
+    deployment.build()
     database.store(deployment)
     logger.info(deployment)
 
 
 @database.store_build_params
 def devstack(name, template="ubuntu-default", branch="master",
-             config="pubcloud-neutron.yaml", dry=False,
-             log=None, provisioner="rackspace",
-             secret="secret.yaml", orchestrator="chef"):
+             config="pubcloud-neutron.yaml", provisioner="rackspace",
+             orchestrator="chef", secret="secret.yaml", dry=False, log=None):
     """Build an devstack deployment."""
     pass
 
@@ -66,8 +56,7 @@ def tempest(name, deployment=None, iterations=1):
 
     env = deployment.environment.name
     local = "./results/{0}/".format(env)
-    controllers = deployment.nodes_with_role('controller')
-    for controller in controllers:
+    for controller in deployment.controllers:
         ip, user, password = controller.creds
         remote = "{0}@{1}:~/*.xml".format(user, ip)
         get_file(ip, user, password, remote, local)
@@ -97,8 +86,7 @@ def ha(name, deployment=None, iterations=1, progress=False):
 
     env = deployment.environment.name
     local = "./results/{0}/".format(env)
-    controllers = deployment.nodes_with_role('controller')
-    for controller in controllers:
+    for controller in deployment.controllers:
         ip, user, password = controller.creds
         remote = "{0}@{1}:~/*.xml".format(user, ip)
         get_file(ip, user, password, remote, local)
@@ -196,7 +184,7 @@ def status():
 
 def run():
     parser = argh.ArghParser()
-    argh.add_commands(parser, [devstack, rackspace_private_cloud_build],
+    argh.add_commands(parser, [devstack, rpcs_build],
                       namespace='build', title="build-related commands")
     argh.add_commands(parser, [cloudcafe, ha, tempest],
                       namespace='test',

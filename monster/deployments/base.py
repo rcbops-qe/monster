@@ -5,6 +5,7 @@ import tmuxp
 
 import monster.features.deployment.features as deployment_features
 import monster.active as active
+from monster.orchestrator.util import get_orchestrator
 import monster.threading_iface as threading
 from monster.utils.retrofit import Retrofit
 from monster.utils.introspection import module_classes
@@ -16,11 +17,12 @@ logger = logging.getLogger(__name__)
 
 class Deployment(object):
     """Base for OpenStack deployments."""
-    def __init__(self, name, environment, status=None, clients=None):
+    def __init__(self, name, status=None, clients=None):
         self.name = name
         self.os_name = active.template['os']
         self.branch = active.build_args['branch']
-        self.environment = environment
+        self.orchestrator = get_orchestrator(active.build_args['orchestrator'])
+        self.environment = self.orchestrator.get_env(name)
         self.nodes = []
         self.features = []
         self.status = status or "provisioning"
@@ -44,7 +46,7 @@ class Deployment(object):
 
     def build(self):
         """Runs build steps for node's features."""
-
+        logger.info("Building deployment object for {}".format(self.name))
         logger.debug("Deployment step: update environment")
         self.update_environment()
         logger.debug("Deployment step: pre-configure")
