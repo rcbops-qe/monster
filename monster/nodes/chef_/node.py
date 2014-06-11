@@ -65,6 +65,7 @@ class Node(base.Node):
         """Runs chef client before apply features on node."""
         self.status = "apply-feature"
         if not self.has_feature("chefserver"):
+            from IPython import embed; embed()
             self.run()
         super(Node, self).apply_feature()
 

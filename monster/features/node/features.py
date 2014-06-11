@@ -159,8 +159,7 @@ class Compute(node.Feature):
 
     def archive(self):
         """Archives all services on a compute node."""
-
-        self.save_noderunning_services()
+        self.save_node_running_services()
         self._set_nodearchive()
 
     def post_configure(self):
@@ -203,10 +202,10 @@ class Controller(node.Feature):
         """Services on a controller to archive."""
 
         self.build_archive()
-        self.save_noderunning_services()
-        self._set_nodearchive()
+        self.save_node_running_services()
+        self._set_node_archive()
 
-    def _set_nodearchive(self):
+    def _set_node_archive(self):
         """Sets a dict in the node object of services and their logs."""
 
         self.archive = {"log": ["apache2",
@@ -336,7 +335,7 @@ class Remote(node.Feature):
 
     def _bootstrap_chef(self):
         """Bootstraps the node to a chef server."""
-        chef_server = self.node.deployment.first_nodewith_role('chefserver')
+        chef_server = self.node.deployment.first_node_with_role('chefserver')
         client_version = actv.config['chef']['client']['version']
 
         chef_server.run_cmd(
