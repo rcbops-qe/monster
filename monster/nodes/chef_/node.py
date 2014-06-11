@@ -17,10 +17,10 @@ class Node(base.Node):
         self.branch = deployment.branch
         self.run_list = run_list or []
         self.add_features(features)
+        self.set_environment()
 
     def __getitem__(self, item):
         """Node has access to chef attributes."""
-
         logger.debug("getting {0} on {1}".format(item, self.name))
         return self.local_node[item]
 
@@ -31,6 +31,11 @@ class Node(base.Node):
         local_node = self.local_node
         local_node[item] = value
         self.save(local_node)
+
+    def set_environment(self):
+        node = self.local_node
+        node.chef_environment = self.environment.name
+        node.save()
 
     def build(self):
         """Builds the node."""
