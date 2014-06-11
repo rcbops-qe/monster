@@ -34,7 +34,7 @@ class Node(object):
         self.status = "unknown"
 
     def __repr__(self):
-        return ('class: {cls}\n'.format(cls=self.__class__.__name__)
+        return ('class: {cls}\n\t'.format(cls=self.__class__.__name__)
                 + '\n\t'.join('{}: {}'.format(attr, getattr(self, attr))
                               for attr in self.__dict__
                               if attr != 'deployment'))
