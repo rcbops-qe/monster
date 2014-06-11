@@ -50,7 +50,8 @@ class Deployment(base.Deployment):
                      for spec in active.template['nodes']]
         nodes = monster.threading_iface.execute(func_list)
         assert nodes is not None
-        return nodes.sort(key=lambda node: node.name)
+        nodes.sort(key=lambda node: node.name)
+        return nodes
 
     def add_nodes(self, node_request):
         pass
