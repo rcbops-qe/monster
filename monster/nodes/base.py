@@ -1,6 +1,5 @@
 """Provides classes of nodes (server entities)"""
 import logging
-import types
 import time
 
 from weakref import proxy
@@ -35,20 +34,10 @@ class Node(object):
         self.status = "unknown"
 
     def __repr__(self):
-        features = []
-        outl = 'class: ' + self.__class__.__name__
-        for attr in self.__dict__:
-            # We want to not print the deployment because
-            # it is a circular reference
-            if attr not in ['deployment', 'password']:
-                if attr == 'features':
-                    features = "\tFeatures: {0}".format(
-                        ", ".join(map(str, self.features)))
-                elif isinstance(getattr(self, attr), types.NoneType):
-                    outl += '\n\t{0} : {1}'.format(attr, 'None')
-                else:
-                    outl += '\n\t{0} : {1}'.format(attr, getattr(self, attr))
-        return "\n".join([outl, features])
+        return ('class: {cls}\n'.format(cls=self.__class__.__name__)
+                + '\n\t'.join('{}: {}'.format(attr, getattr(self, attr))
+                              for attr in self.__dict__
+                              if attr != 'deployment'))
 
     def __getitem__(self, item):
         raise NotImplementedError()
@@ -152,8 +141,6 @@ class Node(object):
     def build(self):
         """Runs build steps for node's features."""
         self['in_use'] = self.feature_names
-        if self.has_feature('chefserver'):
-            from IPython import embed; embed()
         self.pre_configure()
         self.apply_feature()
         self.post_configure()

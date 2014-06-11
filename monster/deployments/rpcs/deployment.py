@@ -13,7 +13,6 @@ import monster.deployments.base as base
 from monster.utils.introspection import module_classes
 
 
-
 class Deployment(base.Deployment):
     """Deployment mechanisms specific to a RPCS deployment using Chef as
     configuration management.
@@ -36,13 +35,11 @@ class Deployment(base.Deployment):
         return repr(self)
 
     def __repr__(self):
-        return str({'name': self.name, 'os_name': self.os_name,
-                    'branch': self.branch, 'status': self.status,
-                    'product': self.product, 'nodes': self.node_names,
-                    'features': self.feature_names,
-                    'provisioner': self.provisioner_name})
-
-
+        return {'name': self.name, 'os_name': self.os_name,
+                'branch': self.branch, 'status': self.status,
+                'product': self.product, 'nodes': self.node_names,
+                'features': self.feature_names,
+                'provisioner': self.provisioner_name}.__str__()
 
     def fetch_nodes(self):
         active.node_names = set(self.node_names)

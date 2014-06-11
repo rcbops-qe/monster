@@ -1,8 +1,8 @@
-import monster.features.node.base as node_
+import monster.features.node.base as node
 import monster.active as actv
 
 
-class Berkshelf(node_.Feature):
+class Berkshelf(node.Feature):
     """Represents a node with berks installed."""
 
     def pre_configure(self):
@@ -49,7 +49,7 @@ class Berkshelf(node_.Feature):
         )
 
 
-class ChefServer(node_.Feature):
+class ChefServer(node.Feature):
     """Represents a chef server."""
 
     def __init__(self, node):
@@ -141,7 +141,7 @@ class ChefServer(node_.Feature):
                 node.save()
 
 
-class Cinder(node_.Feature):
+class Cinder(node.Feature):
     """Enables cinder with local lvm backend."""
 
     def pre_configure(self):
@@ -151,7 +151,7 @@ class Cinder(node_.Feature):
         self.archive = {"log": [""], "configs": [""]}
 
 
-class Compute(node_.Feature):
+class Compute(node.Feature):
     """Represents a RPCS compute """
 
     def pre_configure(self):
@@ -160,19 +160,19 @@ class Compute(node_.Feature):
     def archive(self):
         """Archives all services on a compute node."""
 
-        self.save_node_running_services()
-        self._set_node_archive()
+        self.save_noderunning_services()
+        self._set_nodearchive()
 
     def post_configure(self):
         """Run chef-client a second time to lay down host keys."""
         self.node.run()
 
-    def _set_node_archive(self):
+    def _set_nodearchive(self):
 
         self.archive = {"log": ["nova"], "configs": ["nova"]}
 
 
-class Controller(node_.Feature):
+class Controller(node.Feature):
     """Represents a RPCS Controller """
 
     def __init__(self, node):
@@ -203,10 +203,10 @@ class Controller(node_.Feature):
         """Services on a controller to archive."""
 
         self.build_archive()
-        self.save_node_running_services()
-        self._set_node_archive()
+        self.save_noderunning_services()
+        self._set_nodearchive()
 
-    def _set_node_archive(self):
+    def _set_nodearchive(self):
         """Sets a dict in the node object of services and their logs."""
 
         self.archive = {"log": ["apache2",
@@ -235,7 +235,7 @@ class Controller(node_.Feature):
                                     "ufw"]}
 
 
-class Metrics(node_.Feature):
+class Metrics(node.Feature):
     """Represents a Metrics Node."""
 
     def __init__(self, node):
@@ -260,7 +260,7 @@ class Metrics(node_.Feature):
         self.node.add_run_list_item(role_config['run_list'])
 
 
-class Network(node_.Feature):
+class Network(node.Feature):
     """Sets the node to be a network."""
 
     def pre_configure(self):
@@ -270,7 +270,7 @@ class Network(node_.Feature):
         self.archive = {"log": [""], "configs": [""]}
 
 
-class NetworkManager(node_.Feature):
+class NetworkManager(node.Feature):
 
     def preconfigure(self):
         self.set_run_list()
@@ -279,7 +279,7 @@ class NetworkManager(node_.Feature):
         self.archive = {"log": [""], "configs": [""]}
 
 
-class OpenLDAP(node_.Feature):
+class OpenLDAP(node.Feature):
     """Represents a LDAP server."""
 
     def pre_configure(self):
@@ -293,7 +293,7 @@ class OpenLDAP(node_.Feature):
         self.archive = {"log": [""], "configs": [""]}
 
 
-class Orchestration(node_.Feature):
+class Orchestration(node.Feature):
 
     def __init__(self, node):
         super(Orchestration, self).__init__(node)
@@ -314,7 +314,7 @@ class Orchestration(node_.Feature):
         self.archive = {"log": [""], "configs": [""]}
 
 
-class Proxy(node_.Feature):
+class Proxy(node.Feature):
     """Represents a RPCS proxy node."""
 
     def pre_configure(self):
@@ -324,7 +324,7 @@ class Proxy(node_.Feature):
         self.archive = {"log": [""], "configs": [""]}
 
 
-class Remote(node_.Feature):
+class Remote(node.Feature):
     """Represents the deployment having a remote chef server."""
 
     def pre_configure(self):
@@ -336,7 +336,7 @@ class Remote(node_.Feature):
 
     def _bootstrap_chef(self):
         """Bootstraps the node to a chef server."""
-        chef_server = self.node.deployment.first_node_with_role('chefserver')
+        chef_server = self.node.deployment.first_nodewith_role('chefserver')
         client_version = actv.config['chef']['client']['version']
 
         chef_server.run_cmd(
@@ -347,7 +347,7 @@ class Remote(node_.Feature):
         self.node.save()
 
 
-class Storage(node_.Feature):
+class Storage(node.Feature):
     """Represents a RPCS proxy node."""
 
     def pre_configure(self):

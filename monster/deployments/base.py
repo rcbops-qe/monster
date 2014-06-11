@@ -82,7 +82,8 @@ class Deployment(object):
         threading.execute(node.build for node in self.chefservers)
 
         logger.info("Building controllers...")
-        threading.execute(node.build for node in self.controllers)
+        for node in self.controllers:
+            node.build()
 
         logger.info("Building the rest of the nodes.")
         threading.execute(node.build for node in self.misc_nodes)
