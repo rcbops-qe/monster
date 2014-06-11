@@ -17,7 +17,7 @@ class Node(base.Node):
         self.branch = deployment.branch
         self.run_list = run_list or []
         self.add_features(features)
-        self.set_environment()
+        self.set_chef_environment()
 
     def __getitem__(self, item):
         """Node has access to chef attributes."""
@@ -32,7 +32,7 @@ class Node(base.Node):
         local_node[item] = value
         self.save(local_node)
 
-    def set_environment(self):
+    def set_chef_environment(self):
         node = self.local_node
         node.chef_environment = self.environment.name
         node.save()
@@ -70,7 +70,6 @@ class Node(base.Node):
         """Runs chef client before apply features on node."""
         self.status = "apply-feature"
         if not self.has_feature("chefserver"):
-            from IPython import embed; embed()
             self.run()
         super(Node, self).apply_feature()
 

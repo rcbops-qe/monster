@@ -77,7 +77,7 @@ class Deployment(object):
     def build_nodes(self):
         """Builds each node."""
         self.status = "Building nodes..."
-
+        from IPython import embed; embed()
         logger.info("Building chef nodes...")
         threading.execute(node.build for node in self.chefservers)
 

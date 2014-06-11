@@ -101,7 +101,6 @@ class Deployment(base.Deployment):
         """Saves deployment for restore after update environment."""
         super(Deployment, self).update_environment()
         self.save_to_environment()
-    # make sure this works; changes have been made...
 
     def save_to_environment(self):
         """Save deployment restore attributes to chef environment."""
