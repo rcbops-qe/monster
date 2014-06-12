@@ -82,7 +82,7 @@ class Neutron(deployment_.Feature):
             try:
                 controller.run_cmd(command, attempts=2)
             except Exception:
-                logger.warning("Failed to build bridge on "+controller.name)
+                logger.warning("Failed to build bridge on " + controller.name)
 
         for compute in self.deployment.computes:
             command = self.iface_bb_cmd(compute.vmnet_iface)
@@ -90,7 +90,7 @@ class Neutron(deployment_.Feature):
             try:
                 compute.run_cmd(command, attempts=2)
             except Exception:
-                logger.warning("Failed to build bridge on "+compute.name)
+                logger.warning("Failed to build bridge on " + compute.name)
 
         logger.info("### End of Networking Block ###")
 
@@ -443,7 +443,6 @@ class Nova(deployment_.Feature):
         env.save()
 
 
-
 class Horizon(deployment_.Feature):
     """Represents the Dashboard feature."""
 
@@ -515,7 +514,6 @@ class Monitoring(RPCS):
         env = self.deployment.environment
         env.add_override_attr(self.name, self.environment)
         env.save()
-
 
 
 class MySql(RPCS):

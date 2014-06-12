@@ -1,7 +1,4 @@
-from functools import partial
-from monster import active as active
 import monster.deployments.base as base
-import monster.threading_iface
 
 
 class Deployment(base.Deployment):
@@ -79,7 +76,3 @@ class Deployment(base.Deployment):
 
     def wrap_node(self, node):
         raise NotImplementedError()
-
-    @property
-    def chefservers(self):
-        return self.nodes_with_role('chefserver')

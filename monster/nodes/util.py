@@ -58,11 +58,11 @@ class DebianOS(OS):
         return 'apt-get install -y {0}'.format(package)
 
     remove_chef_cmd = "apt-get remove --purge -y chef; rm -rf /etc/chef"
-    initial_update_cmd= "; ".join([
-            "DEBIAN_FRONTEND=noninteractive apt-get update -y",
-            "DEBIAN_FRONTEND=noninteractive apt-get upgrade -y",
-            "DEBIAN_FRONTEND=noninteractive apt-get install "
-            "openssh-client git curl -y"])
+    initial_update_cmd = "; ".join([
+        "DEBIAN_FRONTEND=noninteractive apt-get update -y",
+        "DEBIAN_FRONTEND=noninteractive apt-get upgrade -y",
+        "DEBIAN_FRONTEND=noninteractive apt-get install "
+        "openssh-client git curl -y"])
 
 
 class RHEL(OS):
@@ -77,16 +77,16 @@ class RHEL(OS):
 
     remove_chef_cmd = "yum remove -y chef; rm -rf /etc/chef /var/chef"
     initial_update_cmd = "; ".join([
-            "yum update -y",
-            "yum upgrade -y",
-            "yum install openssh-clients git curl -y",
-            "wget http://dl.fedoraproject.org/pub/epel/6/x86_64/"
-            "epel-release-6-8.noarch.rpm",
-            "wget http://rpms.famillecollet.com/enterprise/remi-release-6.rpm",
-            "sudo rpm -Uvh remi-release-6*.rpm epel-release-6*.rpm",
-            "/sbin/iptables -F",
-            "/etc/init.d/iptables save",
-            "/sbin/iptables -L"])
+        "yum update -y",
+        "yum upgrade -y",
+        "yum install openssh-clients git curl -y",
+        "wget http://dl.fedoraproject.org/pub/epel/6/x86_64/"
+        "epel-release-6-8.noarch.rpm",
+        "wget http://rpms.famillecollet.com/enterprise/remi-release-6.rpm",
+        "sudo rpm -Uvh remi-release-6*.rpm epel-release-6*.rpm",
+        "/sbin/iptables -F",
+        "/etc/init.d/iptables save",
+        "/sbin/iptables -L"])
 
 
 def get_os(os_name):

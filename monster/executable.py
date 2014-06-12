@@ -1,7 +1,5 @@
 #! /usr/bin/env python
-"""
-Command-line interface for building OpenStack clusters
-"""
+"""Command-line interface for building OpenStack clusters."""
 
 import subprocess
 import argh
@@ -12,7 +10,6 @@ from monster.data import data
 from monster.logger import logger as monster_logger
 from monster.utils.access import get_file
 from monster.utils.color import Color
-from monster.orchestrator.util import get_orchestrator
 from monster.tests.ha import HATest
 from monster.tests.cloudcafe import CloudCafe
 from monster.tests.tempest_neutron import TempestNeutron
@@ -27,7 +24,7 @@ logger = monster_logger.Logger().logger_setup()
 def rpcs_build(name, template="ubuntu-default", branch="master",
                config="pubcloud-neutron.yaml", provisioner="rackspace",
                orchestrator="chef", secret="secret.yaml", dry=False, log=None):
-    """Build an Rackspace Private Cloud deployment."""
+    """Build a Rackspace Private Cloud deployment."""
     data.load_config(name)
     deployment = rpcs.Deployment(name)
     deployment.build()
@@ -39,7 +36,7 @@ def rpcs_build(name, template="ubuntu-default", branch="master",
 def devstack(name, template="ubuntu-default", branch="master",
              config="pubcloud-neutron.yaml", provisioner="rackspace",
              orchestrator="chef", secret="secret.yaml", dry=False, log=None):
-    """Build an devstack deployment."""
+    """Build a Devstack deployment."""
     pass
 
 

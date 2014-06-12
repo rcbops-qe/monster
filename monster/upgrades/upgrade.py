@@ -2,9 +2,7 @@ import monster.active as active
 
 
 class Upgrade(object):
-    """
-    Base upgrade class
-    """
+    """Base upgrade class."""
 
     def __init__(self, deployment):
         self.deployment = deployment
@@ -19,55 +17,35 @@ class Upgrade(object):
         raise NotImplementedError
 
     def deployment_nodes(self):
-        """
-        Returns a deployments nodes
-        """
+        """Returns a deployment's nodes."""
 
         return (self.deployment.first_node_with_role('chefserver'),
-                self.deployment.controllers,
-                self.deployment.computes)
+                list(self.deployment.controllers),
+                list(self.deployment.computes))
 
     def fix_celiometer(self):
-        """
-        Fixes a deployments fix_celiometer
-        """
-        ncmds = ["{0} clean".format(self.pkg_up_cmd),
-                 "{0} update".format(self.pkg_up_cmd),
-                 "{0} -y install python-warlock".format(self.pkg_up_cmd),
-                 "{0} -y install python-swiftclient".format(self.pkg_up_cmd),
-                 "{0} -y install babel".format(self.pkg_up_cmd)]
-
-        node_commands = "; ".join(ncmds)
+        """Fixes a deployment's Celiometer."""
+        cmd = ("{0} clean; {0} update; {0} -y install python-warlock "
+               "python-swiftclient babel".format(self.pkg_up_cmd))
 
         for controller in self.deployment.controllers:
-            controller.run_cmd(node_commands)
+            controller.run_cmd(cmd)
 
         for compute in self.deployment.computes:
-            compute.run_cmd(node_commands)
+            compute.run_cmd(cmd)
 
     def fix_horizon(self):
-        """
-        Fixes a deployments horizon
-        """
-        ccmds = [
-            "{0} clean".format(self.pkg_up_cmd),
-            "{0} update".format(self.pkg_up_cmd),
-            "{0} -y install openstack-dashboard".format(self.pkg_up_cmd),
-            "{0} -y install python-django-horizon".format(self.pkg_up_cmd)
-        ]
-        controller_commands = "; ".join(ccmds)
+        """Fixes a deployment's Horizon."""
+        cmd = ("{0} clean; {0} update; {0} -y install openstack-dashboard "
+               "python-django-horizon".format(self.pkg_up_cmd))
 
         for controller in self.deployment.controllers:
-            controller.run_cmd(controller_commands)
+            controller.run_cmd(cmd)
 
     def fix_qemu(self):
-        """
-        Fixes a deployments QEMU
-        """
-        ncmds = ["{0} update".format(self.pkg_up_cmd),
-                  "{0} remove qemu-utils -y".format(self.pkg_up_cmd),
-                  "{0} install qemu-utils -y".format(self.pkg_up_cmd)]
-        node_commands = "; ".join(ncmds)
+        """Fixes a deployment's QEMU."""
+        node_commands = ("{0} update; {0} remove qemu-utils -y; "
+                         "{0} install qemu-utils -y".format(self.pkg_up_cmd))
 
         for controller in self.deployment.controllers:
             controller.run_cmd(node_commands)
@@ -76,9 +54,8 @@ class Upgrade(object):
             compute.run_cmd(node_commands)
 
     def mungerate(self):
-        """
-        Runs RCBOPS mungerator for upgradinf 4.1.x to 4.2.x
-        or from grizzly to havana
+        """Runs RCBOPS mungerator for upgrading 4.1.x to 4.2.x or from Grizzly
+        to Havana.
         """
 
         chef_server = self.deployment.chef_server()
@@ -87,22 +64,15 @@ class Upgrade(object):
 
         # For mungerator
         if self.deployment.os_name == "ubuntu":
-            munge.extend([
-                "{0} -y install python-dev".format(self.pkg_up_cmd),
-                "{0} -y install python-setuptools".format(self.pkg_up_cmd)
-            ])
+            munge.extend(["{0} -y install python-dev python-setuptools"
+                          .format(self.pkg_up_cmd)])
         if self.deployment.os_name == "centos":
-            munge.extend([
-                "{0} install -y openssl-devel".format(self.pkg_up_cmd),
-                "{0} install -y python-devel".format(self.pkg_up_cmd),
-                "{0} install -y python-setuptools".format(self.pkg_up_cmd)
-            ])
+            munge.extend(["{0} install -y openssl-devel python-devel "
+                          "python-setuptools".format(self.pkg_up_cmd)])
 
-        # backup db
         backup = active.config['upgrade']['commands']['backup-db']
         controller1.run_cmd(backup)
 
-        # Mungerate all the things
         munge_dir = "/opt/upgrade/mungerator"
         munge_repo = "https://github.com/rcbops/mungerator"
         munge.extend([
@@ -116,18 +86,13 @@ class Upgrade(object):
         self.deployment.environment.save_remote_to_local()
 
     def pre_upgrade(self):
-        """
-        Does upgrade prep
-        """
+        """Does upgrade prep."""
         self.fix_celiometer()
 
     def post_upgrade(self):
-        """
-        Fix stuff post upgrade
-        """
+        """Fix stuff post-upgrade."""
         self.fix_horizon()
 
-        # For QEMU
         provisioner = str(self.deployment.provisioner)
         if provisioner == "rackspace" or provisioner == "openstack":
             self.fix_qemu()
