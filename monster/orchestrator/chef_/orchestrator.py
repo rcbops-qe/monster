@@ -24,20 +24,3 @@ class Orchestrator(base.Orchestrator):
 
     def already_has_node(self, name):
         return False
-
-
-def chef_instance(self, node):
-    """Builds an instance with desired specs and initializes it with Chef.
-    :param node: node to build chef instance for
-    :type node: monster.nodes.chef_.node.Node
-    :rtype: chef.Node
-    """
-    chef_node = chef.Node(node.name, api=node.environment.local_api)
-    chef_node.chef_environment = node.environment.name
-    chef_node['in_use'] = "provisioning"
-    chef_node['ipaddress'] = node.ipaddress
-    chef_node['password'] = node.password
-    chef_node['uuid'] = node.uuid
-    chef_node['current_user'] = node.user
-    chef_node.save()
-    return chef_node

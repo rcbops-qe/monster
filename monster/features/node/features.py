@@ -16,7 +16,7 @@ class Berkshelf(node.Feature):
         self.archive = {"log": [""], "configs": [""]}
 
     def _install_berkshelf(self):
-        """Installs Berkshelf and correct rvms/gems."""
+        """Installs Berkshelf and correct gems."""
 
         dependencies = ['libxml2-dev', 'libxslt-dev', 'libz-dev']
         rvm_install = ("curl -L https://get.rvm.io | bash -s -- stable "
@@ -228,7 +228,7 @@ class Controller(node.Feature):
                                     "init.d",
                                     "network",
                                     "rabbitmq",
-                                    "rsylog.conf",
+                                    "rsyslog.conf",
                                     "rsyslog.d",
                                     "sysctl.conf",
                                     "sysctl.d",

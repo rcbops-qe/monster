@@ -158,7 +158,7 @@ class Node(object):
     def update_packages(self, dist_upgrade=False):
         """Updates installed packages."""
         logger.info('Updating Distribution Packages')
-        self.run_cmd(self.os.update_dist(dist_upgrade))
+        self.run_cmd(self.os.update_dist_cmd(dist_upgrade))
 
     def install_package(self, package):
         """Installs a package on an Ubuntu, CentOS, or RHEL node."""
