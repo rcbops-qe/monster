@@ -125,9 +125,7 @@ class Node(object):
             feature.apply_feature()
 
     def post_configure(self):
-        """
-        Post configures node for each feature
-        """
+        """Post-configures node for each feature."""
         self.status = "post-configure"
         for feature in self.features:
             log = "Node feature: post-configure: {}".format(feature)

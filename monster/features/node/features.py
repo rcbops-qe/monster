@@ -79,10 +79,9 @@ class ChefServer(node.Feature):
         """Installs chef server on the given node using a script."""
         url = actv.config['chef']['server']['install_script']
         filename = url.split('/')[-1]
-        curl_script = "curl {url} >> {script}".format(url=url, script=filename)
-        self.node.run_cmd(curl_script, attempts=5)
-        self.node.run_cmd("chmod u+x ~/{install_script}; ./{install_script}"
-                          .format(install_script=filename))
+        self.node.run_cmd("curl {url} >> ~/{install_script}; "
+                          "chmod u+x ~/{install_script}; ./{install_script}"
+                          .format(url=url, install_script=filename))
 
     def _install_cookbooks(self, directory=None):
 
@@ -138,8 +137,7 @@ class ChefServer(node.Feature):
     def _remote_other_nodes(self):
         for node in self.node.deployment.nodes:
             if not node.has_feature("chefserver"):
-                remote_feature = Remote(node)
-                node.features.insert(0, remote_feature)
+                node.features.insert(0, Remote(node))
                 node.save()
 
 
@@ -272,7 +270,7 @@ class Network(node.Feature):
 
 class NetworkManager(node.Feature):
 
-    def preconfigure(self):
+    def pre_configure(self):
         self.set_run_list()
 
     def archive(self):
