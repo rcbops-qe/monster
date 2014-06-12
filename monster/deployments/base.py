@@ -60,7 +60,7 @@ class Deployment(object):
 
     def update_environment(self):
         """Preconfigures node for each feature."""
-        logger.info("Building Configured Environment")
+        logger.info("Updating environment with deployment features...")
         self.status = "Loading environment..."
         for feature in self.features:
             logger.debug("Deployment feature {feature}: updating environment!"

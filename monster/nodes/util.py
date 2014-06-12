@@ -26,46 +26,76 @@ def node_search(query, environment=None, tries=10):
     return (n.object for n in search)
 
 
-class DebianOS(object):
-    def check_package(self, package):
+class OS(object):
+    def mkswap_cmd(self, size):
+        """Command to make a swap file of a given size on the OS.
+        :param size: Size of swap file in GBs
+        :type size: int
+        """
+        size_b = 1048576 * size
+        return (
+            "dd if=/dev/zero of=/mnt/swap bs=1024 count={size_b}; "
+            "mkswap /mnt/swap; "
+            "sed 's/vm.swappiness.*$/vm.swappiness=25/g' /etc/sysctl.conf "
+            "> /etc/sysctl.conf; "
+            "sysctl vm.swappiness=30; "
+            "swapon /mnt/swap; "
+            "echo '/mnt/swap swap swap defaults 0 0' >> /etc/fstab"
+            .format(size_b=size_b))
+
+
+class DebianOS(OS):
+    def check_package_cmd(self, package):
         return "dpkg -l | grep {0}".format(package)
 
-    def update_dist(self, dist_upgrade=False):
+    def update_dist_cmd(self, dist_upgrade=False):
         if dist_upgrade:
-            return 'apt-get update; apt-get dist-upgrade -y'
+            return 'apt-get update -y; apt-get dist-upgrade -y'
         else:
-            return 'apt-get update; apt-get upgrade -y'
+            return 'apt-get update -y; apt-get upgrade -y'
 
-    def install_package(self, package):
+    def install_package_cmd(self, package):
         return 'apt-get install -y {0}'.format(package)
 
-    def remove_chef(self):
-        return "apt-get remove --purge -y chef; rm -rf /etc/chef"
+    remove_chef_cmd = "apt-get remove --purge -y chef; rm -rf /etc/chef"
+    initial_update_cmd= "; ".join([
+            "DEBIAN_FRONTEND=noninteractive apt-get update -y",
+            "DEBIAN_FRONTEND=noninteractive apt-get upgrade -y",
+            "DEBIAN_FRONTEND=noninteractive apt-get install "
+            "openssh-client git curl -y"])
 
 
-class RHEL(object):
-    def check_package(self, package):
+class RHEL(OS):
+    def check_package_cmd(self, package):
         return "rpm -a | grep {0}".format(package)
 
-    def update_dist(self, dist_upgrade=False):
+    def update_dist_cmd(self, dist_upgrade=False):
         return 'yum update -y'
 
-    def install_package(self, package):
+    def install_package_cmd(self, package):
         return 'yum install -y {0}'.format(package)
 
-    def remove_chef(self):
-        return "yum remove -y chef; rm -rf /etc/chef /var/chef"
+    remove_chef_cmd = "yum remove -y chef; rm -rf /etc/chef /var/chef"
+    initial_update_cmd = "; ".join([
+            "yum update -y",
+            "yum upgrade -y",
+            "yum install openssh-clients git curl -y",
+            "wget http://dl.fedoraproject.org/pub/epel/6/x86_64/"
+            "epel-release-6-8.noarch.rpm",
+            "wget http://rpms.famillecollet.com/enterprise/remi-release-6.rpm",
+            "sudo rpm -Uvh remi-release-6*.rpm epel-release-6*.rpm",
+            "/sbin/iptables -F",
+            "/etc/init.d/iptables save",
+            "/sbin/iptables -L"])
 
 
-class OS:
-    @staticmethod
-    def commands(os_name):
-        """Given the name of an OS, returns an object that is capable of
-        providing OS specific command-line commands for many useful
-        functionalities, such as package upgrades."""
-        if os_name in ['ubuntu']:
-            return DebianOS()
-        elif os_name in ['rhel', 'centos']:
-            return RHEL()
-        else:
-            logger.exception("OS not supported at this time!")
+def get_os(os_name):
+    """Given the name of an OS, returns an object that is capable of
+    providing OS specific command-line commands for many useful
+    functionalities, such as package upgrades."""
+    if os_name in ['ubuntu']:
+        return DebianOS()
+    elif os_name in ['rhel', 'centos']:
+        return RHEL()
+    else:
+        logger.exception("OS not supported at this time!")

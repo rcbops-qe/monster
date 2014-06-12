@@ -152,28 +152,25 @@ class Node(object):
             logger.info("Node feature: upgrade: {}".format(feature))
             feature.upgrade()
 
+    def initial_update(self):
+        self.run_cmd(self.os.initial_update_cmd)
+
     def update_packages(self, dist_upgrade=False):
         """Updates installed packages."""
         logger.info('Updating Distribution Packages')
         self.run_cmd(self.os.update_dist(dist_upgrade))
 
     def install_package(self, package):
-        """Installs a package on an Ubuntu, CentOS, or RHEL node.
-        :param package: package to install
-        :type package: str
-        :rtype: function
-        """
-        return self.run_cmd(self.os.install_package(package))
+        """Installs a package on an Ubuntu, CentOS, or RHEL node."""
+        return self.run_cmd(self.os.install_package_cmd(package))
 
     def install_packages(self, packages):
-        """Installs multiple packages.
-        :type packages list(str)
-        """
+        """Installs multiple packages."""
         return self.install_package(" ".join(packages))
 
     def check_package(self, package):
         """Checks to see if a package is installed."""
-        return self.run_cmd(self.os.check_package(package))
+        return self.run_cmd(self.os.check_package_cmd(package))
 
     def install_ruby_gem(self, gem):
         self.run_cmd('source /usr/local/rvm/scripts/rvm; '
@@ -183,7 +180,10 @@ class Node(object):
         self.install_ruby_gem(" ".join(gems))
 
     def remove_chef(self):
-        self.run_cmd(self.os.remove_chef())
+        self.run_cmd(self.os.remove_chef_cmd)
+
+    def mkswap(self, size=2):
+        self.run_cmd(self.os.mkswap_cmd(size))
 
     def destroy(self):
         logger.info("Destroying node: {node}".format(node=self.name))
@@ -225,4 +225,4 @@ class Node(object):
 
     @lazy
     def os(self):
-        return node_util.OS.commands(self.os_name)
+        return node_util.get_os(self.os_name)

@@ -64,7 +64,6 @@ class Deployment(base.Deployment):
         """Destroys Chef Deployment."""
         self.status = "destroying"
         super(Deployment, self).destroy()
-        # Destroy rogue nodes
         self.environment.destroy()
         self.status = "destroyed"
 
@@ -79,7 +78,7 @@ class Deployment(base.Deployment):
         self.environment.add_override_attr('deployment', deployment)
 
     def horizon(self):
-        url = "https://{0}".format(self.horizon_ip)
+        url = "https://{ip}".format(ip=self.horizon_ip)
         webbrowser.open_new_tab(url)
 
     def openrc(self):

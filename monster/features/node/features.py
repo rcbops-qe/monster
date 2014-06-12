@@ -122,8 +122,10 @@ class ChefServer(node.Feature):
             "key": self._get_admin_pem(),
             "url": "https://{0}:443".format(self.node.ipaddress)
         }
-        self.node.environment.add_override_attr('remote_chef', remote_chef)
-        self.node.environment.chef_server_name = self.node.name
+        env = self.node.environment
+        env.add_override_attr('remote_chef', remote_chef)
+        env.chef_server_name = self.node.name
+        env.save()
 
     def _get_admin_pem(self):
         """Gets the admin pem from the chef server."""
@@ -160,13 +162,13 @@ class Compute(node.Feature):
     def archive(self):
         """Archives all services on a compute node."""
         self.save_node_running_services()
-        self._set_nodearchive()
+        self._set_node_archive()
 
     def post_configure(self):
         """Run chef-client a second time to lay down host keys."""
         self.node.run()
 
-    def _set_nodearchive(self):
+    def _set_node_archive(self):
 
         self.archive = {"log": ["nova"], "configs": ["nova"]}
 
