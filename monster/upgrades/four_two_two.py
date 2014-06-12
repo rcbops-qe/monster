@@ -9,17 +9,13 @@ logger = logging.getLogger(__name__)
 
 
 class FourTwoTwo(Upgrade):
-    """
-    4.2.2 Upgrade Procedures
-    """
+    """4.2.2 Upgrade Procedures"""
 
     def __init__(self, deployment):
         super(FourTwoTwo, self).__init__(deployment)
 
     def upgrade(self, rc=False):
-        """
-        Upgrades the deployment (very chefy, rcbopsy)
-        """
+        """Upgrades the deployment."""
 
         current_branch = self.deployment.branch
 
@@ -30,7 +26,7 @@ class FourTwoTwo(Upgrade):
 
         supported = actv.config['upgrade']['supported'][self.deployment.branch]
         if upgrade_branch not in supported:
-            logger.error("{0} to {1} upgarde not supported".format(
+            logger.error("{0} to {1} upgrade not supported".format(
                 self.deployment.branch,
                 upgrade_branch
             ))

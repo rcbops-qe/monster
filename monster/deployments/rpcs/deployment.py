@@ -48,7 +48,8 @@ class Deployment(base.Deployment):
 
     def build_nodes(self):
         base.logger.info("Building chef nodes...")
-        threading.execute(node.build for node in self.chefservers)
+        for node in self.chefservers:
+            node.build()
         super(Deployment, self).build_nodes()
 
     def add_nodes(self, node_request):
