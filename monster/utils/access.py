@@ -57,7 +57,7 @@ def scp_from(ip, remote_path, local_path, user, password=None):
     sftp.get(remote_path, local_path)
 
 
-def scp_to(local_path, ip, remote_path, user, password=None):
+def scp_to(ip, local_path, remote_path, user, password=None):
     """Send a file to a server.
     :param local_path: file on localhost to copy
     :param remote_path: destination to copy to

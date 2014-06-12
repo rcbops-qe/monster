@@ -72,10 +72,6 @@ class Node(object):
                             .format(command=cmd, n=attempts))
         return result
 
-    def run_cmds(self, remote_cmds, user='root', password=None, attempts=None):
-        cmd = "; ".join(remote_cmds)
-        self.run_cmd(cmd, user, password, attempts)
-
     def scp_to(self, local_path, user=None, password=None, remote_path=""):
         """Sends a file to the node.
         :param user: user to run the command as
@@ -85,15 +81,15 @@ class Node(object):
         """
         user = user or self.user
         password = password or self.password
-        return scp_to(local_path=local_path, ip=self.ipaddress, user=user,
-                      password=password, remote_path=remote_path)
+        return scp_to(self.ipaddress, local_path, remote_path,
+                      user=user, password=password)
 
     def scp_from(self, remote_path, user=None, password=None, local_path=""):
         """Retrieves a file from the node."""
         user = user or self.user
         password = password or self.password
-        return scp_from(ip=self.ipaddress, remote_path=remote_path, user=user,
-                        password=password, local_path=local_path)
+        return scp_from(self.ipaddress, remote_path, local_path,
+                        user=user, password=password)
 
     def pre_configure(self):
         """Preconfigures node for each feature."""

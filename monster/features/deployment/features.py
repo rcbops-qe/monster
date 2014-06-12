@@ -101,14 +101,11 @@ class Neutron(deployment_.Feature):
     def clear_bridge_iface(self):
         """Clears configured interface for Neutron use."""
 
-        controllers = self.deployment.nodes_with_role('controller')
-        computes = self.deployment.nodes_with_role('compute')
-
-        for controller in controllers:
+        for controller in self.deployment.controllers:
             iface = controller.vmnet_iface
             controller.run_cmd(self.iface_cb_cmd(iface))
 
-        for compute in computes:
+        for compute in self.deployment.computes:
             iface = compute.vmnet_iface
             compute.run_cmd(self.iface_cb_cmd(iface))
 
@@ -464,8 +461,7 @@ class Cinder(deployment_.Feature):
         self.environment = actv.config['environments'][str(self)][rpcs_feature]
 
     def post_configure(self):
-        computes = self.deployment.nodes_with_role("compute")
-        for compute in computes:
+        for compute in self.deployment.computes:
             compute.run()
 
     def update_environment(self):
