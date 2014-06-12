@@ -422,8 +422,6 @@ class Nova(deployment_.Feature):
         quantum: when quantum is neutron's rpcs feature
         """
         super(Nova, self).__init__(deployment, rpcs_feature)
-        net_choice = self.get_net_choice()
-        self.environment = actv.config['environments'][str(self)][net_choice]
 
     def get_net_choice(self):
         """Determines network choice."""
@@ -432,9 +430,11 @@ class Nova(deployment_.Feature):
                 if feature.__class__.__name__ == 'Neutron':
                     return feature.rpcs_feature
         else:
-            return "quantum"
+            return "default"
 
     def update_environment(self):
+        net_choice = self.get_net_choice()
+        self.environment = actv.config['environments'][str(self)][net_choice]
         env = self.deployment.environment
         env.add_override_attr(str(self), self.environment)
         env.save()
