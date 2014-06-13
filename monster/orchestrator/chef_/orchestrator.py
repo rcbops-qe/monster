@@ -2,11 +2,11 @@ import logging
 
 import chef
 import monster.orchestrator.base as base
+import monster.active as active
 
 from monster.environments.chef_.environment import Environment
 
 logger = logging.getLogger(__name__)
-local_api = chef.autoconfigure()
 
 
 def local_api():
@@ -28,6 +28,4 @@ class Orchestrator(base.Orchestrator):
         :type name: str
         :rtype: Deployment
         """
-        return Environment(name, local_api)
-    def already_has_node(self, name):
-        return False
+        return Environment(name, local_api())
