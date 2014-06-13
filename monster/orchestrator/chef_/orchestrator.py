@@ -9,8 +9,16 @@ logger = logging.getLogger(__name__)
 local_api = chef.autoconfigure()
 
 
-class Orchestrator(base.Orchestrator):
+def local_api():
+    try:
+        knife_override = active.config['secrets']['chef']['knife']
+        logger.debug("Using knife.rb found at {}".format(knife_override))
+        return chef.autoconfigure(knife_override)
+    except KeyError:
+        return chef.autoconfigure()
 
+
+class Orchestrator(base.Orchestrator):
     def create_deployment_from_file(self, name):
         raise NotImplementedError()
 
@@ -21,6 +29,5 @@ class Orchestrator(base.Orchestrator):
         :rtype: Deployment
         """
         return Environment(name, local_api)
-
     def already_has_node(self, name):
         return False
