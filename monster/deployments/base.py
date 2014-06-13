@@ -152,6 +152,15 @@ class Deployment(object):
         """
         return [str(feature).lower() for feature in self.features]
 
+    def feature(self, feature_name):
+        """Returns feature of a given name, if the node has it."""
+        try:
+            return next(feature for feature in self.features
+                        if feature.name == feature_name)
+        except StopIteration:
+            logger.warning("{} does not have the feature {}"
+                           .format(self.name, feature_name))
+
     @property
     def node_names(self):
         """Returns list of nodes as strings.
@@ -173,6 +182,15 @@ class Deployment(object):
     @property
     def controllers(self):
         return self.nodes_with_role('controller')
+
+    def controller(self, controller_num):
+        """Returns the requested controller, if the node has it."""
+        try:
+            return next(node for node in self.controllers
+                        if node.feature('controller').number == controller_num)
+        except StopIteration:
+            logger.warning("{} does not have a controller number {}"
+                           .format(self.name, controller_num))
 
     @property
     def computes(self):

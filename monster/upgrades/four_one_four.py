@@ -45,8 +45,7 @@ class FourOneFour(Upgrade):
         chef_server = self.deployment.first_node_with_role('chefserver')
         chef_server.upgrade()
 
-        controllers = list(self.deployment.controllers)
-        controller1 = controllers[0]
+        controller1 = self.deployment.controller(1)
 
         # save image upload value
         try:
@@ -58,7 +57,7 @@ class FourOneFour(Upgrade):
             pass
 
         if self.deployment.has_feature('highavailability'):
-            controller2 = controllers[1]
+            controller2 = self.deployment.controller(2)
             stop = actv.config['upgrade']['commands']['stop-services']
             start = actv.config['upgrade']['commands']['start-services']
 

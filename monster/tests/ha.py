@@ -151,9 +151,8 @@ class HATest(Test):
         self.iterations = 1
         self.progress = progress
         self.current_iteration = 0
-        controllers = self.deployment.controllers
-        self.controller1 = controllers[0]
-        self.controller2 = controllers[1]
+        self.controller1 = self.deployment.controller(1)
+        self.controller2 = self.deployment.controller(2)
         # get creds
         creds = self.gather_creds(deployment)
 

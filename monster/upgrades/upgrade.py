@@ -59,7 +59,6 @@ class Upgrade(object):
         """
 
         chef_server = self.deployment.chef_server()
-        controller1 = self.deployment.controllers[0]
         munge = []
 
         # For mungerator
@@ -71,7 +70,7 @@ class Upgrade(object):
                           "python-setuptools".format(self.pkg_up_cmd)])
 
         backup = active.config['upgrade']['commands']['backup-db']
-        controller1.run_cmd(backup)
+        self.deployment.controller(1).run_cmd(backup)
 
         munge_dir = "/opt/upgrade/mungerator"
         munge_repo = "https://github.com/rcbops/mungerator"
