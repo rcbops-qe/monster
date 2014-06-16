@@ -98,7 +98,8 @@ class Deployment(object):
         self.status = "destroying..."
         logger.info("Destroying deployment: {}".format(self.name))
         for node in self.nodes:
-            node.destroy()
+            self.provisioner.destroy_node(node)
+            #clean db
         self.status = "Destroyed!"
 
     def artifact(self):

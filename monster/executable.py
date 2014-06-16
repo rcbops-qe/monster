@@ -14,6 +14,7 @@ from monster.tests.ha import HATest
 from monster.tests.cloudcafe import CloudCafe
 from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
+from monster.utils.safe_build import cleanup_on_failure
 
 
 logger = monster_logger.Logger().logger_setup()
@@ -21,13 +22,16 @@ logger = monster_logger.Logger().logger_setup()
 
 @argh.named("rpcs")
 @database.store_build_params
-def rpcs_build(name, template="ubuntu-default", branch="master",
-               config="pubcloud-neutron.yaml", provisioner="rackspace",
-               orchestrator="chef", secret="secret.yaml", dry=False, log=None):
+def rpcs_build(
+        name, template="ubuntu-default", branch="master",
+        config="pubcloud-neutron.yaml", provisioner="rackspace",
+        orchestrator="chef", secret="secret.yaml", dry=False, log=None,
+        destroy_on_failure=False):
     """Build a Rackspace Private Cloud deployment."""
     data.load_config(name)
     deployment = rpcs.Deployment(name)
-    deployment.build()
+    with cleanup_on_failure(deployment):
+        deployment.build()
     database.store(deployment)
     logger.info(deployment)
 
