@@ -5,7 +5,6 @@ import tmuxp
 
 import monster.features.deployment.features as deployment_features
 import monster.active as active
-from monster.nodes.base import Node
 import monster.threading_iface as threading
 import monster.db_iface as database
 from monster.orchestrator.util import get_orchestrator

@@ -1,4 +1,3 @@
-import sys
 import logging
 from contextlib import contextmanager
 import monster.active as active
