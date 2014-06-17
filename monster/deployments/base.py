@@ -5,6 +5,7 @@ import tmuxp
 
 import monster.features.deployment.features as deployment_features
 import monster.active as active
+from monster.nodes.base import Node
 import monster.threading_iface as threading
 import monster.db_iface as database
 from monster.orchestrator.util import get_orchestrator
@@ -61,6 +62,12 @@ class Deployment(object):
         logger.info(self)
         database.store(self)
 
+    def update(self):
+        """Updates a deployment's nodes, both via package managers and any
+        orchestration system in play, such as by running chef-client."""
+        for node in self.nodes:
+            node.update_packages()
+
     def update_environment(self):
         """Preconfigures node for each feature."""
         logger.info("Updating environment with deployment features...")
@@ -114,8 +121,14 @@ class Deployment(object):
             node.archive()
 
     def nodes_with_role(self, feature_name):
-        """Returns nodes that have the desired role."""
-        return (node for node in self.nodes if node.has_feature(feature_name))
+        """Returns nodes that have a specified role."""
+        return (node for node in self.nodes
+                if node.has_feature(feature_name))
+
+    def nodes_without_role(self, feature_name):
+        """Returns nodes that do not have a specified role."""
+        return (node for node in self.nodes
+                if not node.has_feature(feature_name))
 
     def first_node_with_role(self, feature_name):
         return next(self.nodes_with_role(feature_name))

@@ -112,6 +112,13 @@ def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
     deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
 
 
+def update_nodes(name):
+    """Runs package updates on all nodes in a deployment, in addition to
+    running chef-client (or the equivalent) on all non-orchestrator nodes."""
+    deployment = data.load_deployment(name)
+    deployment.update()
+
+
 @database.store_upgrade_params
 def upgrade(name, upgrade_branch='v4.1.3rc'):
     """Upgrade a current deployment to the new branch / tag."""
