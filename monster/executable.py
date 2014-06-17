@@ -3,12 +3,15 @@
 
 import subprocess
 import argh
+import sys
+from monster import active
 
 import monster.db_iface as database
 import monster.deployments.rpcs.deployment as rpcs
+import monster.provisioners.rackspace.provisioner as rackspace
 from monster.data import data
 from monster.logger import logger as monster_logger
-from monster.utils.access import get_file
+from monster.utils.access import get_file, check_port
 from monster.utils.color import Color
 from monster.tests.ha import HATest
 from monster.tests.cloudcafe import CloudCafe
@@ -183,10 +186,31 @@ def add_nodes(name, compute_nodes=0, controller_nodes=0, cinder_nodes=0,
     database.store(deployment)
 
 
-def status():
-    pass
-# check to ensure the DB is up and running on port 6379
-# check to ensure the secret credentials exist and are valid
+def status(secrets="secret.yaml"):
+    data.load_only_secrets(secrets)
+    try:
+        database.ping_db()
+    except AssertionError:
+        logger.warning("Database is not responding normally...")
+        sys.exit(1)
+    else:
+        logger.info("Database is up!")
+    try:
+        rackspace.Provisioner()
+    except Exception:
+        logger.warning("Rackspace credentials did not authenticate.")
+        sys.exit(1)
+    else:
+        logger.info("Rackspace credentials look good!")
+    try:
+        check_port(host=active.config['secrets']['rackspace'], port=8026)
+    except Exception:
+        logger.warning("Razor host did not seem responsive on port 8026.")
+        sys.exit(0)
+    else:
+        logger.info("Razor host is up and responding on port 8026!")
+    logger.info("All clear!")
+    sys.exit(0)
 
 
 def run():
