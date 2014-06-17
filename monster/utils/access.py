@@ -11,10 +11,10 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def check_port(host, port, timeout=2):
+def check_port(host, port, timeout=2, attempts=100):
     logger.debug("Testing connection to - {0}:{1}".format(host, port))
     ssh_up = False
-    while not ssh_up:
+    for attempt in xrange(attempts):
         try:
             s = socket.create_connection((host, port), timeout)
             s.close()
@@ -24,6 +24,10 @@ def check_port(host, port, timeout=2):
             time.sleep(0.5)
         else:
             ssh_up = True
+            break
+    else:
+        raise Exception("Connection unsuccessful to {host}:{port}"
+                        .format(host=host, port=port))
     return ssh_up
 
 
