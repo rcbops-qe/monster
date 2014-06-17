@@ -193,8 +193,6 @@ def status(secrets="secret.yaml"):
     except AssertionError:
         logger.warning("Database is not responding normally...")
         sys.exit(1)
-    else:
-        logger.info("Database is up!")
     try:
         rackspace.Provisioner()
     except Exception:

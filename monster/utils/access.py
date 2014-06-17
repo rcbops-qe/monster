@@ -12,15 +12,14 @@ logger = logging.getLogger(__name__)
 
 
 def check_port(host, port, timeout=2, attempts=100):
-    logger.debug("Testing connection to - {0}:{1}".format(host, port))
-    ssh_up = False
+    logger.info("Testing connection to - {0}:{1}".format(host, port))
     for attempt in xrange(attempts):
         try:
             s = socket.create_connection((host, port), timeout)
             s.close()
         except socket.error:
             ssh_up = False
-            logger.debug("Waiting for ssh connection...")
+            logger.info("Waiting for ssh connection...")
             time.sleep(0.5)
         else:
             ssh_up = True
