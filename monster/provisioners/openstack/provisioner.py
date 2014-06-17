@@ -56,8 +56,9 @@ class Provisioner(base.Provisioner):
                 if server.status == "ACTIVE":
                     check_port(server.accessIPv4, 22, timeout=2)
                     return server, password
-                logger.info("{}: {}%".format(server.status, server.progress))
-                time.sleep(3)
+                logger.info("NODE: {:<23} STATUS: {:<8} PROGRESS: {:>3}%"
+                            .format(node_name, server.status, server.progress))
+                time.sleep(10)
             else:
                 logger.error("Unable to build instance. Retrying...")
                 server.delete()

@@ -35,21 +35,22 @@ def node_search(query, environment=None, tries=10):
 
 
 class OS(object):
-    def mkswap_cmd(self, size):
+    def mkswap_cmds(self, size):
         """Command to make a swap file of a given size on the OS.
         :param size: Size of swap file in GBs
         :type size: int
         """
         size_b = 1048576 * size
-        return (
-            "dd if=/dev/zero of=/mnt/swap bs=1024 count={size_b}; "
-            "mkswap /mnt/swap; "
+        return [
+            "dd if=/dev/zero of=/mnt/swap bs=1024 count={size_b}"
+            .format(size_b=size_b),
+            "mkswap /mnt/swap",
             "sed 's/vm.swappiness.*$/vm.swappiness=25/g' /etc/sysctl.conf "
-            "> /etc/sysctl.conf; "
-            "sysctl vm.swappiness=30; "
-            "swapon /mnt/swap; "
+            "> /etc/sysctl.conf",
+            "sysctl vm.swappiness=30",
+            "swapon /mnt/swap",
             "echo '/mnt/swap swap swap defaults 0 0' >> /etc/fstab"
-            .format(size_b=size_b))
+        ]
 
 
 class DebianOS(OS):
@@ -66,11 +67,11 @@ class DebianOS(OS):
         return 'apt-get install -y {0}'.format(package)
 
     remove_chef_cmd = "apt-get remove --purge -y chef; rm -rf /etc/chef"
-    initial_update_cmd = "; ".join([
+    initial_update_cmds = [
         "DEBIAN_FRONTEND=noninteractive apt-get update -y",
         "DEBIAN_FRONTEND=noninteractive apt-get upgrade -y",
         "DEBIAN_FRONTEND=noninteractive apt-get install "
-        "openssh-client git curl -y"])
+        "openssh-client git curl -y"]
 
 
 class RHEL(OS):
@@ -84,7 +85,7 @@ class RHEL(OS):
         return 'yum install -y {0}'.format(package)
 
     remove_chef_cmd = "yum remove -y chef; rm -rf /etc/chef /var/chef"
-    initial_update_cmd = "; ".join([
+    initial_update_cmds = [
         "yum update -y",
         "yum upgrade -y",
         "yum install openssh-clients git curl -y",
@@ -94,7 +95,7 @@ class RHEL(OS):
         "sudo rpm -Uvh remi-release-6*.rpm epel-release-6*.rpm",
         "/sbin/iptables -F",
         "/etc/init.d/iptables save",
-        "/sbin/iptables -L"])
+        "/sbin/iptables -L"]
 
 
 def get_os(os_name):

@@ -34,7 +34,7 @@ class Logger(object):
         if _log_level in avail_level:
             lvl = avail_level[_log_level]
             formatter = logging.Formatter(
-                "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+                "%(asctime)-15s %(name)-36s %(levelname)-9s %(message)s"
             )
             logger.setLevel(lvl)
 

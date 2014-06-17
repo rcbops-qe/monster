@@ -12,16 +12,17 @@ logger = logging.getLogger(__name__)
 
 
 def check_port(host, port, timeout=2, attempts=100):
-    logger.info("Testing connection to - {0}:{1}".format(host, port))
+    logger.debug("Testing connection to - {0}:{1}".format(host, port))
     for attempt in xrange(attempts):
         try:
             s = socket.create_connection((host, port), timeout)
             s.close()
         except socket.error:
-            ssh_up = False
-            logger.info("Waiting for ssh connection...")
+            logger.debug("Waiting for ssh connection...")
             time.sleep(0.5)
         else:
+            logger.debug("Connection successful to {host}:{port}".
+                         format(host=host, port=port))
             ssh_up = True
             break
     else:
@@ -42,7 +43,7 @@ def get_file(ip, user, password, remote, local, remote_delete=False):
 
 def get_paramiko_ssh_client():
     ssh = paramiko.SSHClient()
-    ssh.set_missing_host_key_policy(paramiko.WarningPolicy())
+    ssh.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     return ssh
 
 
@@ -83,6 +84,9 @@ def ssh_cmd(server_ip, remote_cmd, user='root', password=None, attempts=5,
     :param remote_cmd
     :return A map based on pass / fail run info
     """
+    remote_log_string = ("IP: %(ip)-17s HOST: %(host)-23s " %
+                         {"ip": server_ip, "host": hostname})
+
     output = cStringIO.StringIO()
     error = cStringIO.StringIO()
     ssh = get_paramiko_ssh_client()
@@ -92,20 +96,21 @@ def ssh_cmd(server_ip, remote_cmd, user='root', password=None, attempts=5,
                         allow_agent=False)
             break
         except (EOFError, socket.error):
-            logger.info(hostname + " - Error connecting; retrying...")
+            logger.info(remote_log_string + "Error connecting; retrying...")
             time.sleep(0.5)
     else:
-        logger.exception(hostname + " - Ran out of connection attempts...")
+        logger.exception(remote_log_string + "Ran out of connection attempts!")
+    logger.info(remote_log_string + "Running: " + remote_cmd)
     stdin, stdout, stderr = ssh.exec_command(remote_cmd)
     stdin.close()
     for line in stdout:
         if logger < 10:
-            logger.debug(hostname + " - " + line)
+            logger.debug(remote_log_string + line)
             sys.stdout.write(line)
-        logger.info(hostname + " - " +  line.strip())
+        logger.info(remote_log_string + line.strip())
         output.write(line)
     for line in stderr:
-        logger.error(hostname + " - " + line.strip())
+        logger.error(remote_log_string + line.strip())
         error.write(line)
     exit_status = stdout.channel.recv_exit_status()
     result = {'success': True if exit_status == 0 else False,

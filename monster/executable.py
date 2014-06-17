@@ -1,26 +1,35 @@
 #! /usr/bin/env python
 """Command-line interface for building OpenStack clusters."""
 
-import subprocess
-import argh
 import sys
-from monster import active
+import argh
 
 import monster.db_iface as database
 import monster.deployments.rpcs.deployment as rpcs
-import monster.provisioners.rackspace.provisioner as rackspace
 from monster.data import data
 from monster.logger import logger as monster_logger
-from monster.utils.access import get_file, check_port
+from monster.utils.access import get_file, run_cmd
 from monster.utils.color import Color
 from monster.tests.ha import HATest
 from monster.tests.cloudcafe import CloudCafe
 from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
 from monster.utils.safe_build import cleanup_on_failure
+from monster.utils.status import check_monster_status
 
 
 logger = monster_logger.Logger().logger_setup()
+
+
+def status(secrets="secret.yaml"):
+    logger.setLevel(20)
+    data.load_only_secrets(secrets)
+    try:
+        check_monster_status()
+    except:
+        sys.exit(1)
+    else:
+        sys.exit(0)
 
 
 @argh.named("rpcs")
@@ -40,71 +49,56 @@ def rpcs_build(
 @database.store_build_params
 def devstack(name, template="ubuntu-default", branch="master",
              config="pubcloud-neutron.yaml", provisioner="rackspace",
-             orchestrator="chef", secret="secret.yaml", dry=False, log=None):
+             orchestrator="chef", secret="secret.yaml", dry=False, log=None,
+             destroy_on_failure=False):
     """Build a Devstack deployment."""
     pass
 
 
-def tempest(name, deployment=None, iterations=1):
+def tempest(name, iterations=1):
     """Test an OpenStack deployment."""
-    if not deployment:
-        deployment = data.load_deployment(name)
-
+    deployment = data.load_deployment(name)
     branch = TempestQuantum.tempest_branch(deployment.branch)
     if "grizzly" in branch:
         test_object = TempestQuantum(deployment)
     else:
         test_object = TempestNeutron(deployment)
+    local = "./results/{}/".format(deployment.name)
+    run_cmd("mkdir -p {}".format(local))
 
-    env = deployment.environment.name
-    local = "./results/{0}/".format(env)
     for controller in deployment.controllers:
-        ip, user, password = controller.creds
+        ip, user, password = (controller.ipaddress, controller.user,
+                              controller.password)
         remote = "{0}@{1}:~/*.xml".format(user, ip)
         get_file(ip, user, password, remote, local)
 
     for i in range(iterations):
-        logger.info(Color.cyan('Running iteration {0} of {1}!'
+        logger.info(Color.cyan('Tempest: running iteration {0} of {1}!'
                          .format(i + 1, iterations)))
+        test_object.test()
 
-        #Prepare directory for xml files to be SCPed over
-        subprocess.call(['mkdir', '-p', '{0}'.format(local)])
-
-        if test_object:
-            logger.info(Color.cyan('Running Tempest test!'))
-            test_object.test()
-
-    logger.info(Color.cyan("Tests have been completed with {0} iterations"
-                           .format(iterations)))
+    logger.info(Color.cyan("Tempest tests completed..."))
 
 
-def ha(name, deployment=None, iterations=1, progress=False):
+def ha(name, iterations=1, progress=False):
     """Test an OpenStack deployment."""
-    if not deployment:
-        deployment = data.load_deployment(name)
-    # if deployment.has_feature("highavailability"):
-
+    deployment = data.load_deployment(name)
     test_object = HATest(deployment, progress)
+    local = "./results/{0}/".format(deployment.name)
+    run_cmd("mkdir -p {}".format(local))
 
-    env = deployment.environment.name
-    local = "./results/{0}/".format(env)
     for controller in deployment.controllers:
-        ip, user, password = controller.creds
+        ip, user, password = (controller.ipaddress, controller.user,
+                              controller.password)
         remote = "{0}@{1}:~/*.xml".format(user, ip)
         get_file(ip, user, password, remote, local)
 
-    for i in range(iterations):
-        logger.info(Color.cyan('Running iteration {0} of {1}!'
+    for i in xrange(iterations):
+        logger.info(Color.cyan('HA: running iteration {0} of {1}!'
                          .format(i + 1, iterations)))
-
-        #Prepare directory for xml files to be SCPed over
-        subprocess.call(['mkdir', '-p', '{0}'.format(local)])
-
-        logger.info(Color.cyan('Running High Availability test!'))
         test_object.test(iterations)
 
-    logger.info(Color.cyan("Tests have been completed with {0} iterations"
-                           .format(iterations)))
+    logger.info(Color.cyan("HA tests completed..."))
 
 
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
@@ -184,37 +178,6 @@ def add_nodes(name, compute_nodes=0, controller_nodes=0, cinder_nodes=0,
 
     deployment.add_nodes(node_request)
     database.store(deployment)
-
-
-def status(secrets="secret.yaml"):
-    data.load_only_secrets(secrets)
-    try:
-        database.ping_db()
-    except AssertionError:
-        logger.warning("Database is not responding normally...")
-        sys.exit(1)
-    try:
-        rackspace.Provisioner()
-    except Exception:
-        logger.warning("Rackspace credentials did not authenticate.")
-        sys.exit(1)
-    else:
-        logger.info("Rackspace credentials look good!")
-    try:
-        check_port(host=active.config['secrets']['razor']['ip'], port=8026,
-                   attempts=1)
-    except KeyError:
-        logger.info("No razor IP specified; Razor provisioner will not be "
-                    "available.")
-    except Exception:
-        logger.warning("Specified Razor host did not seem responsive on port "
-                       "8026. Razor provisioner will likely be unavailable.")
-        sys.exit(0)
-    else:
-        logger.info("Razor host is up and responding on port 8026!")
-
-    logger.info("All clear!")
-    sys.exit(0)
 
 
 def run():
