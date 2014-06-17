@@ -52,3 +52,4 @@ nosetests.xml
 *.log
 *.xunit
 log
+.DS_Store

@@ -33,7 +33,7 @@ class TempestQuantum(Test):
         # Needs to be changed!!!!
         ###############################
         self.path = "/tmp/%s.conf" % self.deployment.name
-        self.test_node = next(self.deployment.search_role("controller"))
+        self.test_node = self.deployment.controller(1)
         time_cmd = subprocess.Popen(['date', '+%F_%T'],
                                     stdout=subprocess.PIPE)
         self.time = time_cmd.stdout.read().rstrip()
@@ -54,10 +54,10 @@ class TempestQuantum(Test):
         """
         tempest = self.tempest_config
         override = self.deployment.override_attrs
-        controller = next(self.deployment.search_role("controller"))
+        controller = self.deployment.controller(1)
         ip = controller['rabbitmq']['address']
 
-        if "highavailability" in self.deployment.feature_names():
+        if self.deployment.has_feature("highavailability"):
             #use vips
             vips = override['vips']
             tempest['identity'] = vips['keystone-service-api']

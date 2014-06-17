@@ -8,8 +8,6 @@ class Retrofit(object):
     """Tool to retrofit a install."""
     def __init__(self, deployment):
         self.deployment = deployment
-        self.controllers = list(self.deployment.search_role('controller'))
-        self.computes = list(self.deployment.search_role('compute'))
 
     def __repr__(self):
         """Print out current instance."""
@@ -28,10 +26,10 @@ class Retrofit(object):
         self._check_neutron()
         self._check_brctl()
 
-        for controller in self.controllers:
+        for controller in self.deployment.controllers:
             self._install_repo(controller, branch)
 
-        for compute in self.computes:
+        for compute in self.deployment.computes:
             self._install_repo(compute, branch)
 
     def bootstrap(self, iface, lx_bridge, ovs_bridge):
@@ -44,10 +42,10 @@ class Retrofit(object):
                               "".format(iface, lx_bridge, ovs_bridge)]
         bootstrap_command = "; ".join(bootstrap_commands)
 
-        for controller in self.controllers:
+        for controller in self.deployment.controllers:
             controller.run_cmd(bootstrap_command)
 
-        for compute in self.computes:
+        for compute in self.deployment.computes:
             compute.run_cmd(bootstrap_command)
 
     def convert(self, iface, lx_bridge, ovs_bridge):
@@ -59,10 +57,10 @@ class Retrofit(object):
                             "".format(iface, lx_bridge, ovs_bridge)]
         convert_command = "; ".join(convert_commands)
 
-        for controller in self.controllers:
+        for controller in self.deployment.controllers:
             controller.run_cmd(convert_command)
 
-        for compute in self.computes:
+        for compute in self.deployment.computes:
             compute.run_cmd(convert_command)
 
     def revert(self, iface, lx_bridge, ovs_bridge):
@@ -74,10 +72,10 @@ class Retrofit(object):
                            "".format(iface, lx_bridge, ovs_bridge)]
         revert_command = "; ".join(revert_commands)
 
-        for controller in self.controllers:
+        for controller in self.deployment.controllers:
             controller.run_cmd(revert_command)
 
-        for compute in self.computes:
+        for compute in self.deployment.computes:
             compute.run_cmd(revert_command)
 
     def remove_port_from_bridge(self, ovs_bridge, del_port):
@@ -90,10 +88,10 @@ class Retrofit(object):
 
         remove_cmd = "ovs-vsctl del-port {0} {1}".format(ovs_bridge, del_port)
 
-        for controller in self.controllers:
+        for controller in self.deployment.controllers:
             controller.run_cmd(remove_cmd)
 
-        for compute in self.computes:
+        for compute in self.deployment.computes:
             compute.run_cmd(remove_cmd)
 
     def _install_repo(self, node, branch='master'):
@@ -133,12 +131,12 @@ class Retrofit(object):
 
     def _check_brctl(self):
         """Checks to see if bridge-util is installed on nodes."""
-        for controller in self.controllers:
+        for controller in self.deployment.controllers:
             installed = controller.check_package('bridge-utils')['success']
             if not installed:
                 controller.install_package('bridge-utils')
 
-        for compute in self.computes:
+        for compute in self.deployment.computes:
             installed = compute.check_package('bridge-utils')['success']
             if not installed:
                 compute.install_package('bridge-utils')

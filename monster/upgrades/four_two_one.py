@@ -50,7 +50,7 @@ class FourTwoOne(Upgrade):
 
         # Gather all the nodes of the deployment
         chef_server, controllers, computes = self.deployment_nodes()
-        controller1 = controllers[0]
+        controller1 = self.deployment.controller(1)
 
         # upgrade chef
         chef_server.upgrade()
@@ -69,7 +69,7 @@ class FourTwoOne(Upgrade):
 
         # Upgrade nodes
         if self.deployment.has_feature('highavailability'):
-            controller2 = controllers[1]
+            controller2 = self.deployment.controller(2)
 
             # add heat
             controller2.add_run_list_item(['role[heat-api]',

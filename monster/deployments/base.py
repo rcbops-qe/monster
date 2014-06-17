@@ -1,11 +1,12 @@
 import types
 import logging
+
 import tmuxp
 
 import monster.features.deployment.features as deployment_features
 import monster.active as active
-import monster.threading_iface
-
+from monster.orchestrator.util import get_orchestrator
+import monster.threading_iface as threading
 from monster.utils.retrofit import Retrofit
 from monster.utils.introspection import module_classes
 from monster.provisioners.util import get_provisioner
@@ -16,19 +17,18 @@ logger = logging.getLogger(__name__)
 
 class Deployment(object):
     """Base for OpenStack deployments."""
-
-    def __init__(self, name, environment, status=None, clients=None):
+    def __init__(self, name, status=None, clients=None):
         self.name = name
         self.os_name = active.template['os']
         self.branch = active.build_args['branch']
-        self.environment = environment
-        self.features = []
+        self.orchestrator = get_orchestrator(active.build_args['orchestrator'])
+        self.environment = self.orchestrator.get_env(name)
         self.nodes = []
+        self.features = []
         self.status = status or "provisioning"
         self.provisioner_name = active.build_args['provisioner']
         self.product = active.template['product']
         self.clients = clients
-        #if 'features' in template:  # investigate further
         self.add_features(active.template['features'])
 
     def __repr__(self):
@@ -46,7 +46,7 @@ class Deployment(object):
 
     def build(self):
         """Runs build steps for node's features."""
-
+        logger.info("Building deployment object for {}".format(self.name))
         logger.debug("Deployment step: update environment")
         self.update_environment()
         logger.debug("Deployment step: pre-configure")
@@ -60,11 +60,11 @@ class Deployment(object):
 
     def update_environment(self):
         """Preconfigures node for each feature."""
-        logger.info("Building Configured Environment")
+        logger.info("Updating environment with deployment features...")
         self.status = "Loading environment..."
         for feature in self.features:
-            logger.debug("Deployment feature {0}: updating environment!"
-                         .format(str(feature)))
+            logger.debug("Deployment feature {feature}: updating environment!"
+                         .format(feature=feature))
             feature.update_environment()
         self.status = "Environment ready!"
 
@@ -72,37 +72,31 @@ class Deployment(object):
         """Preconfigures node for each feature."""
         self.status = "Pre-configuring nodes for features..."
         for feature in self.features:
-            logger.debug("Deployment feature: pre-configure: {0}"
-                         .format(str(feature)))
+            logger.debug("Deployment feature: pre-configure: {feature}"
+                         .format(feature=feature))
             feature.pre_configure()
 
     def build_nodes(self):
         """Builds each node."""
-        self.status = "Building nodes..."
-        logger.info("Building chef node.")
-        self.nodes[0].build()
-        logger.info("Building first controller.")
-        self.nodes[1].build()
-        logger.info("Building second controller.")
-        self.nodes[2].build()
+        logger.info("Building controllers...")
+        for node in self.controllers:
+            node.build()
         logger.info("Building the rest of the nodes.")
-        func_list = [node.build for node in self.nodes[3:]]
-        monster.threading_iface.execute(func_list)
+        threading.execute(node.build for node in self.misc_nodes)
         self.status = "Nodes built!"
 
     def post_configure(self):
         """Post configures node for each feature."""
-        self.status = "Post-configuration..."
+        self.status = "post-configuration..."
         for feature in self.features:
-            log = "Deployment feature: post-configure: {0}"\
-                .format(str(feature))
-            logger.debug(log)
+            logger.debug("Deployment feature: post-configure: {}"
+                         .format(feature))
             feature.post_configure()
 
     def destroy(self):
         """Destroys an OpenStack deployment."""
-        self.status = "Destroying..."
-        logger.info("Destroying deployment: {0}".format(self.name))
+        self.status = "destroying..."
+        logger.info("Destroying deployment: {}".format(self.name))
         for node in self.nodes:
             node.destroy()
         self.status = "Destroyed!"
@@ -115,20 +109,15 @@ class Deployment(object):
         for node in self.nodes:
             node.archive()
 
-    def search_role(self, feature_name):
-        """Returns nodes that have the desired role.
-        :param feature_name: feature to be searched for
-        :type feature_name: str
-        :rtype: Iterator (monster.nodes.base.Node)
-        """
+    def nodes_with_role(self, feature_name):
+        """Returns nodes that have the desired role."""
         return (node for node in self.nodes if node.has_feature(feature_name))
 
+    def first_node_with_role(self, feature_name):
+        return next(self.nodes_with_role(feature_name))
+
     def has_feature(self, feature_name):
-        """Boolean function to determine if a feature exists in deployment.
-        :param feature_name: feature to be searched for
-        :type feature_name: str
-        :rtype: bool
-        """
+        """Boolean function to determine if a feature exists in deployment."""
         return feature_name in self.feature_names
 
     def add_features(self, features):
@@ -161,7 +150,7 @@ class Deployment(object):
         """Returns list of features as strings.
         :rtype: list (str)
         """
-        return [str(feature) for feature in self.features]
+        return [str(feature).lower() for feature in self.features]
 
     @property
     def node_names(self):
@@ -181,6 +170,29 @@ class Deployment(object):
     def provisioner(self):
         return get_provisioner(self.provisioner_name)
 
+    @property
+    def controllers(self):
+        return self.nodes_with_role('controller')
+
+    def controller(self, controller_num):
+        """Returns the requested controller, if the node has it."""
+        try:
+            return next(node for node in self.controllers
+                        if node.feature('controller').number == controller_num)
+        except StopIteration:
+            logger.warning("{} does not have a controller number {}"
+                           .format(self.name, controller_num))
+
+    @property
+    def computes(self):
+        return self.nodes_with_role('compute')
+
+    @property
+    def misc_nodes(self):
+        return [node for node in self.nodes
+                if not node.has_feature('chefserver')
+                and not node.has_feature('controller')]
+
     def retrofit(self, branch, ovs_bridge, lx_bridge, iface,
                  old_port_to_delete=None):
         """Retrofit the deployment."""
@@ -194,3 +206,15 @@ class Deployment(object):
 
         retrofit.install(branch)
         retrofit.bootstrap(iface, lx_bridge, ovs_bridge)
+
+    def upgrade(self, upgrade_branch):
+        pass
+
+    def openrc(self):
+        pass
+
+    def horizon(self):
+        pass
+
+    def add_nodes(self, node_request):
+        pass

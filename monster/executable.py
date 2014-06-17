@@ -1,18 +1,15 @@
 #! /usr/bin/env python
-"""
-Command-line interface for building OpenStack clusters
-"""
+"""Command-line interface for building OpenStack clusters."""
 
-import os
 import subprocess
 import argh
 
 import monster.db_iface as database
+import monster.deployments.rpcs.deployment as rpcs
 from monster.data import data
 from monster.logger import logger as monster_logger
 from monster.utils.access import get_file
 from monster.utils.color import Color
-from monster.orchestrator.util import get_orchestrator
 from monster.tests.ha import HATest
 from monster.tests.cloudcafe import CloudCafe
 from monster.tests.tempest_neutron import TempestNeutron
@@ -22,32 +19,24 @@ from monster.tests.tempest_quantum import TempestQuantum
 logger = monster_logger.Logger().logger_setup()
 
 
+@argh.named("rpcs")
 @database.store_build_params
-def rpcs(name, template="ubuntu-default", branch="master",
-         config="pubcloud-neutron.yaml", dry=False,
-         log=None, provisioner="rackspace",
-         secret="secret.yaml", orchestrator="chef"):
-    """Build an Rackspace Private Cloud deployment."""
+def rpcs_build(name, template="ubuntu-default", branch="master",
+               config="pubcloud-neutron.yaml", provisioner="rackspace",
+               orchestrator="chef", secret="secret.yaml", dry=False, log=None):
+    """Build a Rackspace Private Cloud deployment."""
     data.load_config(name)
-
-    orchestrator = get_orchestrator(orchestrator)
-    deployment = orchestrator.create_deployment_from_file(name)
-
-    if dry:
-        deployment.update_environment()
-    else:
-        deployment.build()
-
+    deployment = rpcs.Deployment(name)
+    deployment.build()
     database.store(deployment)
     logger.info(deployment)
 
 
 @database.store_build_params
 def devstack(name, template="ubuntu-default", branch="master",
-             config="pubcloud-neutron.yaml", dry=False,
-             log=None, provisioner="rackspace",
-             secret="secret.yaml", orchestrator="chef"):
-    """Build an devstack deployment."""
+             config="pubcloud-neutron.yaml", provisioner="rackspace",
+             orchestrator="chef", secret="secret.yaml", dry=False, log=None):
+    """Build a Devstack deployment."""
     pass
 
 
@@ -64,8 +53,7 @@ def tempest(name, deployment=None, iterations=1):
 
     env = deployment.environment.name
     local = "./results/{0}/".format(env)
-    controllers = deployment.search_role('controller')
-    for controller in controllers:
+    for controller in deployment.controllers:
         ip, user, password = controller.creds
         remote = "{0}@{1}:~/*.xml".format(user, ip)
         get_file(ip, user, password, remote, local)
@@ -95,8 +83,7 @@ def ha(name, deployment=None, iterations=1, progress=False):
 
     env = deployment.environment.name
     local = "./results/{0}/".format(env)
-    controllers = deployment.search_role('controller')
-    for controller in controllers:
+    for controller in deployment.controllers:
         ip, user, password = controller.creds
         remote = "{0}@{1}:~/*.xml".format(user, ip)
         get_file(ip, user, password, remote, local)
@@ -174,10 +161,16 @@ def cloudcafe(cmd, name, network=None):
     CloudCafe(deployment).config(cmd, network_name=network)
 
 
-def _load(name, orchestrator_name="chef"):
-    orchestrator = get_orchestrator(orchestrator_name)
-    deployment = orchestrator.load_deployment_from_name(name)
-    return deployment
+def add_nodes(name, compute_nodes=0, controller_nodes=0, cinder_nodes=0,
+              request=None):
+    """Add a node (or nodes) to an existing deployment."""
+    deployment = data.load_deployment(name)
+    node_request = request or list([['compute']] * compute_nodes +
+                                   [['controller']] * controller_nodes +
+                                   [['cinder']] * cinder_nodes)
+
+    deployment.add_nodes(node_request)
+    database.store(deployment)
 
 
 def status():
@@ -188,20 +181,14 @@ def status():
 
 def run():
     parser = argh.ArghParser()
-    parser.add_commands([retrofit, upgrade, destroy,
-                         openrc, horizon, show, tmux])
-
-    argh.add_commands(parser, [devstack, rpcs], namespace='build',
-                      title="build-related commands")
+    argh.add_commands(parser, [devstack, rpcs_build],
+                      namespace='build', title="build-related commands")
     argh.add_commands(parser, [cloudcafe, ha, tempest],
                       namespace='test',
                       title="test-related commands")
 
-    if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
-        logger.warning("You are not using the virtual environment! We "
-                       "cannot guarantee that your monster will be well"
-                       "-behaved.  To load the virtual environment, use "
-                       "the command \"source .venv/bin/activate\"")
+    parser.add_commands([show, upgrade, retrofit, add_nodes, destroy,
+                         openrc, horizon, tmux])
     parser.dispatch()
 
 

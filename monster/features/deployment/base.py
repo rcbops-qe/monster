@@ -12,6 +12,10 @@ class Feature(base.Feature):
     def __repr__(self):
         return 'class: ' + self.__class__.__name__
 
+    @property
+    def to_dict(self):
+        return {str(self).lower(): self.rpcs_feature}
+
     def update_environment(self):
         pass
 

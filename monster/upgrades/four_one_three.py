@@ -41,14 +41,10 @@ class FourOneThree(Upgrade):
         override['deployment']['branch'] = upgrade_branch
         self.deployment.environment.save()
 
-        # Gather all the nodes of the deployment
-        chef_server = next(self.deployment.search_role('chefserver'))
-        controllers = list(self.deployment.search_role('controller'))
-        computes = list(self.deployment.search_role('compute'))
-
-        # upgrade the chef server
+        chef_server = self.deployment.first_node_with_role('chefserver')
         chef_server.upgrade()
-        controller1 = controllers[0]
+
+        controller1 = self.deployment.controller(1)
 
         # save image upload value
         try:
@@ -60,7 +56,7 @@ class FourOneThree(Upgrade):
             pass
 
         if self.deployment.has_feature('highavailability'):
-            controller2 = controllers[1]
+            controller2 = self.deployment.controller(2)
             stop = actv.config['upgrade']['commands']['stop-services']
             start = actv.config['upgrade']['commands']['start-services']
 
@@ -92,7 +88,7 @@ class FourOneThree(Upgrade):
             controller1.upgrade()
 
         # run the computes
-        for compute in computes:
+        for compute in self.deployment.computes:
             compute.upgrade(times=2)
 
         # restore value of image upload
@@ -121,7 +117,7 @@ class FourOneThree(Upgrade):
                 self.ovs_fix(controller1)
                 sleep(10)
 
-            for compute in computes:
+            for compute in self.deployment.computes:
                 self.ovs_fix(compute)
 
     def ovs_fix(self, node):

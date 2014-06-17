@@ -13,13 +13,11 @@ def get_provisioner(provisioner_name):
     :type provisioner_name: str
     :rtype: monster.provisioners.base.Provisioner
     """
-    if provisioner_name == 'openstack':
-        return openstack.Provisioner()
-    elif provisioner_name == 'rackspace':
-        return rackspace.Provisioner()
-    elif provisioner_name == 'razor':
-        return razor.Provisioner()
-    elif provisioner_name == 'razor2':
-        return razor2.Provisioner()
-    else:
+    provisioner_dict = {'openstack': openstack.Provisioner,
+                        'rackspace': rackspace.Provisioner,
+                        'razor': razor.Provisioner,
+                        'razor2': razor2.Provisioner}
+    try:
+        return provisioner_dict[provisioner_name]()
+    except KeyError:
         logger.critical("Provisioner {} not found.".format(provisioner_name))
