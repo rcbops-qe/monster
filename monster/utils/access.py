@@ -71,7 +71,8 @@ def scp_to(ip, local_path, remote_path, user, password=None):
     sftp.put(local_path, remote_path)
 
 
-def ssh_cmd(server_ip, remote_cmd, user='root', password=None, attempts=5):
+def ssh_cmd(server_ip, remote_cmd, user='root', password=None, attempts=5,
+            hostname=""):
     """
     :param server_ip
     :param user
@@ -88,20 +89,20 @@ def ssh_cmd(server_ip, remote_cmd, user='root', password=None, attempts=5):
                         allow_agent=False)
             break
         except (EOFError, socket.error):
-            logger.info("Error connecting; retrying...")
+            logger.info(hostname + " - Error connecting; retrying...")
             time.sleep(0.5)
     else:
-        logger.exception("Ran out of connection attempts...")
+        logger.exception(hostname + " - Ran out of connection attempts...")
     stdin, stdout, stderr = ssh.exec_command(remote_cmd)
     stdin.close()
     for line in stdout:
         if logger < 10:
-            logger.debug(line)
+            logger.debug(hostname + " - " + line)
             sys.stdout.write(line)
-        logger.info(line.strip())
+        logger.info(hostname + " - " +  line.strip())
         output.write(line)
     for line in stderr:
-        logger.error(line.strip())
+        logger.error(hostname + " - " + line.strip())
         error.write(line)
     exit_status = stdout.channel.recv_exit_status()
     result = {'success': True if exit_status == 0 else False,

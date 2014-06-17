@@ -14,5 +14,4 @@ def cleanup_on_failure(deployment):
         if active.build_args['destroy_on_failure']:
             logger.info("build failed; deleting partially-built servers...")
             deployment.destroy()
-            sys.exit(1)
         raise e

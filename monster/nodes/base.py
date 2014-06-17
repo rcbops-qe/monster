@@ -62,7 +62,8 @@ class Node(object):
         logger.info("Running: {cmd} on {host}".format(cmd=cmd, host=self.name))
 
         for attempt in range(attempts):
-            result = ssh_cmd(self.ipaddress, cmd, user, password)
+            result = ssh_cmd(self.ipaddress, cmd, user, password,
+                             hostname=self.name)
             if result['success']:
                 break
             else:
