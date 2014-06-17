@@ -175,7 +175,7 @@ def add_nodes(name, compute_nodes=0, controller_nodes=0, cinder_nodes=0,
     node_request = request or list([['compute']] * compute_nodes +
                                    [['controller']] * controller_nodes +
                                    [['cinder']] * cinder_nodes)
-
+    from IPython import embed; embed()
     deployment.add_nodes(node_request)
     database.store(deployment)
 

@@ -22,7 +22,7 @@ class Deployment(base.Deployment):
                                          clients=clients)
         self.has_controller = False
         self.has_orch_master = False
-        self.nodes = self.acquire_nodes()
+        self.nodes = self.acquire_nodes(active.template['nodes'])
 
     def __str__(self):
         return repr(self)
@@ -37,23 +37,27 @@ class Deployment(base.Deployment):
                 'nodes': self.node_names, 'features': self.features_dict,
                 'product': self.product, 'provisioner': self.provisioner_name}
 
-    def acquire_nodes(self):
+    def acquire_nodes(self, specs):
         active.node_names = set(self.node_names)
         func_list = [partial(self.provisioner.build_node, self, spec)
-                     for spec in active.template['nodes']]
+                     for spec in specs]
         nodes = threading.execute(func_list)
         assert nodes is not None
         nodes.sort(key=lambda node: node.name)
         return nodes
+
+    def add_nodes(self, node_request):
+        print("in add nodes!")
+        additional_nodes = self.acquire_nodes(node_request)
+        from IPython import embed; embed()
+        self.nodes.extend(additional_nodes)
+        self.nodes.sort(key=lambda node: node.name)
 
     def build_nodes(self):
         base.logger.info("Building chef nodes...")
         for node in self.chefservers:
             node.build()
         super(Deployment, self).build_nodes()
-
-    def add_nodes(self, node_request):
-        pass
 
     def update(self):
         super(Deployment, self).update()
