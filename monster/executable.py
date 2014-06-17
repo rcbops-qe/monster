@@ -203,9 +203,13 @@ def status(secrets="secret.yaml"):
     else:
         logger.info("Rackspace credentials look good!")
     try:
-        check_port(host=active.config['secrets']['rackspace'], port=8026)
+        check_port(host=active.config['secrets']['razor']['ip'], port=8026)
+    except KeyError:
+        logger.info("No razor IP specified; Razor provisioner will not be "
+                    "available.")
     except Exception:
-        logger.warning("Razor host did not seem responsive on port 8026.")
+        logger.warning("Specified Razor host did not seem responsive on port "
+                       "8026. Razor provisioner will likely be unavailable.")
         sys.exit(0)
     else:
         logger.info("Razor host is up and responding on port 8026!")
