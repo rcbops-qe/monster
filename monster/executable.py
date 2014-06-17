@@ -215,14 +215,15 @@ def status(secrets="secret.yaml"):
 
 def run():
     parser = argh.ArghParser()
+    parser.add_commands([status])
     argh.add_commands(parser, [devstack, rpcs_build],
                       namespace='build', title="build-related commands")
     argh.add_commands(parser, [cloudcafe, ha, tempest],
                       namespace='test',
                       title="test-related commands")
 
-    parser.add_commands([show, upgrade, retrofit, add_nodes, destroy,
-                         openrc, horizon, tmux])
+    parser.add_commands([show, update_nodes, upgrade, retrofit, add_nodes,
+                         destroy, openrc, horizon, tmux])
     parser.dispatch()
 
 
