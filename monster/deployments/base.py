@@ -5,8 +5,9 @@ import tmuxp
 
 import monster.features.deployment.features as deployment_features
 import monster.active as active
-from monster.orchestrator.util import get_orchestrator
 import monster.threading_iface as threading
+import monster.db_iface as database
+from monster.orchestrator.util import get_orchestrator
 from monster.utils.retrofit import Retrofit
 from monster.utils.introspection import module_classes
 from monster.provisioners.util import get_provisioner
@@ -56,7 +57,9 @@ class Deployment(object):
         logger.debug("Deployment step: post-configure")
         self.post_configure()
         self.status = "post-build"
+
         logger.info(self)
+        database.store(self)
 
     def update_environment(self):
         """Preconfigures node for each feature."""
@@ -99,7 +102,7 @@ class Deployment(object):
         logger.info("Destroying deployment: {}".format(self.name))
         for node in self.nodes:
             self.provisioner.destroy_node(node)
-            #clean db
+        database.remove_key(self.name)
         self.status = "Destroyed!"
 
     def artifact(self):

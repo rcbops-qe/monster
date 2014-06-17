@@ -32,8 +32,6 @@ def rpcs_build(
     deployment = rpcs.Deployment(name)
     with cleanup_on_failure(deployment):
         deployment.build()
-    database.store(deployment)
-    logger.info(deployment)
 
 
 @database.store_build_params
@@ -127,6 +125,7 @@ def destroy(name):
     deployment = data.load_deployment(name)
     logger.info(deployment)
     deployment.destroy()
+    database.remove_key(deployment.name)
 
 
 def artifact(name):
