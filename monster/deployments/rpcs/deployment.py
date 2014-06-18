@@ -55,6 +55,11 @@ class Deployment(base.Deployment):
     def add_nodes(self, node_request):
         pass
 
+    def update(self):
+        super(Deployment, self).update()
+        for node in self.nodes_without_role('chefserver'):
+            node.run_cmd('chef-client')
+
     def upgrade(self, branch_name):
         """Upgrades the deployment."""
         rc = "rc" in branch_name

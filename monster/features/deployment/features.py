@@ -78,7 +78,7 @@ class Neutron(deployment_.Feature):
 
         for controller in self.deployment.controllers:
             command = self.iface_bb_cmd(controller.vmnet_iface)
-            logger.debug("Running {0} on {1}".format(command, controller))
+            logger.debug("Running {0} on {1}".format(command, controller.name))
             try:
                 controller.run_cmd(command, attempts=2)
             except Exception:
@@ -86,7 +86,7 @@ class Neutron(deployment_.Feature):
 
         for compute in self.deployment.computes:
             command = self.iface_bb_cmd(compute.vmnet_iface)
-            logger.debug("Running {0} on {1}".format(command, compute))
+            logger.debug("Running {0} on {1}".format(command, compute.name))
             try:
                 compute.run_cmd(command, attempts=2)
             except Exception:

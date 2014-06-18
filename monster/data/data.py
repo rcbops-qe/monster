@@ -30,6 +30,16 @@ def load_config(name):
     active.build_args = database.fetch_build_args(name)
 
 
+def load_only_secrets(secret_path):
+    active.config = {'secrets': fetch_secrets(secret_path)}
+
+
+def fetch_secrets(secret):
+    with open(_secret_path(secret), 'r') as f:
+        secrets = load(f.read())
+    return secrets
+
+
 def fetch_config(name):
     """Returns a dictionary with the deployment's config loaded in it.
     :param name: name of your deployment
@@ -39,9 +49,7 @@ def fetch_config(name):
     with open(_config_path(config), 'r') as f:
         config = defaultdict(None, load(f.read()))
 
-    with open(_secret_path(secret), 'r') as f:
-        config['secrets'] = load(f.read())
-
+    config['secrets'] = fetch_secrets(secret)
     return config
 
 

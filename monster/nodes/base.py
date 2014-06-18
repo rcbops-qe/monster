@@ -59,10 +59,10 @@ class Node(object):
         """
         user = user or self.user
         password = password or self.password
-        logger.info("Running: {cmd} on {host}".format(cmd=cmd, host=self.name))
 
         for attempt in range(attempts):
-            result = ssh_cmd(self.ipaddress, cmd, user, password)
+            result = ssh_cmd(self.ipaddress, cmd, user, password,
+                             hostname=self.name)
             if result['success']:
                 break
             else:
@@ -156,7 +156,8 @@ class Node(object):
             feature.upgrade()
 
     def initial_update(self):
-        self.run_cmd(self.os.initial_update_cmd)
+        for command in self.os.initial_update_cmds:
+            self.run_cmd(command)
 
     def update_packages(self, dist_upgrade=False):
         """Updates installed packages."""
@@ -186,7 +187,8 @@ class Node(object):
         self.run_cmd(self.os.remove_chef_cmd)
 
     def mkswap(self, size=2):
-        self.run_cmd(self.os.mkswap_cmd(size))
+        for command in self.os.mkswap_cmds(size):
+            self.run_cmd(command)
 
     def destroy(self):
         logger.info("Destroying node: {node}".format(node=self.name))

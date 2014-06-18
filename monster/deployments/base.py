@@ -5,8 +5,9 @@ import tmuxp
 
 import monster.features.deployment.features as deployment_features
 import monster.active as active
-from monster.orchestrator.util import get_orchestrator
 import monster.threading_iface as threading
+import monster.db_iface as database
+from monster.orchestrator.util import get_orchestrator
 from monster.utils.retrofit import Retrofit
 from monster.utils.introspection import module_classes
 from monster.provisioners.util import get_provisioner
@@ -56,7 +57,15 @@ class Deployment(object):
         logger.debug("Deployment step: post-configure")
         self.post_configure()
         self.status = "post-build"
+
         logger.info(self)
+        database.store(self)
+
+    def update(self):
+        """Updates a deployment's nodes, both via package managers and any
+        orchestration system in play, such as by running chef-client."""
+        for node in self.nodes:
+            node.update_packages()
 
     def update_environment(self):
         """Preconfigures node for each feature."""
@@ -98,7 +107,8 @@ class Deployment(object):
         self.status = "destroying..."
         logger.info("Destroying deployment: {}".format(self.name))
         for node in self.nodes:
-            node.destroy()
+            self.provisioner.destroy_node(node)
+        database.remove_key(self.name)
         self.status = "Destroyed!"
 
     def artifact(self):
@@ -110,8 +120,14 @@ class Deployment(object):
             node.archive()
 
     def nodes_with_role(self, feature_name):
-        """Returns nodes that have the desired role."""
-        return (node for node in self.nodes if node.has_feature(feature_name))
+        """Returns nodes that have a specified role."""
+        return (node for node in self.nodes
+                if node.has_feature(feature_name))
+
+    def nodes_without_role(self, feature_name):
+        """Returns nodes that do not have a specified role."""
+        return (node for node in self.nodes
+                if not node.has_feature(feature_name))
 
     def first_node_with_role(self, feature_name):
         return next(self.nodes_with_role(feature_name))

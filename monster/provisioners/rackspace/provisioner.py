@@ -12,7 +12,6 @@ logger = logging.getLogger(__name__)
 class Provisioner(openstack.Provisioner):
     """Provisions Chef nodes in Rackspace Cloud Servers VMS."""
     def __init__(self):
-
         rackspace = active.config['secrets']['rackspace']
         self.creds = openstack_client.Creds(username=rackspace['user'],
                                             apikey=rackspace['api_key'],
