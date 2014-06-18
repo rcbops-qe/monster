@@ -14,7 +14,7 @@ class Feature(base.Feature):
         self.node = proxy(node)
 
     def __repr__(self):
-        return 'class: ' + self.__class__.__name__
+        return self.__class__.__name__.lower()
 
     def pre_configure(self):
         pass
