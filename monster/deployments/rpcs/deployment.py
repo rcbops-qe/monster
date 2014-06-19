@@ -53,6 +53,7 @@ class Deployment(base.Deployment):
         self.nodes.sort(key=lambda node: node.name)
         chefserver = self.first_node_with_role('chefserver')
         chefserver.feature('chefserver').remote_other_nodes()
+        threading.execute(node.build for node in additional_nodes)
         self.update()
 
     def build_nodes(self):
@@ -69,7 +70,7 @@ class Deployment(base.Deployment):
     def upgrade(self, branch_name):
         """Upgrades the deployment."""
         rc = "rc" in branch_name
-        upgrade = upgrades_util.get_upgrade(branch_name)
+        upgrade = upgrades_util.get_upgrade(self, branch_name)
         upgrade.upgrade(rc)
 
     def destroy(self):
