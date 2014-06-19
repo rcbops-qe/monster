@@ -13,15 +13,26 @@ def build_rpcs(request):
     return Response(json.dumps(deployment.to_dict))
 
 
-def show_rpcs(request):
+def show(request):
     deployment = monster.executable.show(request.matchdict['name'])
     return Response(json.dumps(deployment.to_dict))
+
+
+def delete(request):
+    name = request.matchdict['name']
+    try:
+        monster.executable.destroy(name)
+    except:
+        Response("Failure!")
+    else:
+        Response("{} deleted!".format(name))
 
 
 if __name__ == '__main__':
     config = Configurator()
     config.add_route('rpcs', '/rpcs/deployment/{name}')
     config.add_view(build_rpcs, route_name='rpcs', request_method='POST')
-    config.add_view(show_rpcs, route_name='rpcs', request_method='GET')
+    config.add_view(show, route_name='rpcs', request_method='GET')
+    config.add_view(delete, route_name='rpcs', request_method='DELETE')
     app = config.make_wsgi_app()
     serve(app, host='0.0.0.0')
