@@ -13,9 +13,15 @@ def build_rpcs(request):
     return Response(json.dumps(deployment.to_dict))
 
 
+def show_rpcs(request):
+    deployment = monster.executable.show(request.matchdict['name'])
+    return Response(json.dumps(deployment.to_dict))
+
+
 if __name__ == '__main__':
     config = Configurator()
     config.add_route('rpcs', '/rpcs/deployment/{name}')
-    config.add_view(build_rpcs, route_name='rpcs')  # add request method
+    config.add_view(build_rpcs, route_name='rpcs', request_method='POST')
+    config.add_view(show_rpcs, route_name='rpcs', request_method='GET')
     app = config.make_wsgi_app()
     serve(app, host='0.0.0.0')

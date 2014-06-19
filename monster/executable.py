@@ -161,6 +161,7 @@ def show(name):
     """Show details about an OpenStack deployment."""
     deployment = data.load_deployment(name)
     logger.info(str(deployment))
+    return deployment
 
 
 def cloudcafe(cmd, name, network=None):
