@@ -6,6 +6,7 @@ fabric
 futures
 lazy
 paramiko
+paste
 pychef
 pytest
 pyrabbit
