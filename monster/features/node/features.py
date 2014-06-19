@@ -62,7 +62,7 @@ class ChefServer(node.Feature):
         self._install()
         self._install_cookbooks()
         self._set_up_remote()
-        self._remote_other_nodes()
+        self.remote_other_nodes()
         self.node.environment.save()
 
     def archive(self):
@@ -74,6 +74,13 @@ class ChefServer(node.Feature):
 
     def destroy(self):
         pass
+
+    def remote_other_nodes(self):
+        for node in self.node.deployment.nodes:
+            if not node.has_feature('chefserver') and \
+                    not node.has_feature('remote'):
+                node.features.insert(0, Remote(node))
+                node.save()
 
     def _install(self):
         """Installs chef server on the given node using a script."""
@@ -133,12 +140,6 @@ class ChefServer(node.Feature):
         if not pem:
             raise Exception("Chef Server setup error")
         return pem
-
-    def _remote_other_nodes(self):
-        for node in self.node.deployment.nodes:
-            if not node.has_feature("chefserver"):
-                node.features.insert(0, Remote(node))
-                node.save()
 
 
 class Cinder(node.Feature):

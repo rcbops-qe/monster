@@ -49,9 +49,11 @@ class Deployment(base.Deployment):
     def add_nodes(self, node_request):
         print("in add nodes!")
         additional_nodes = self.acquire_nodes(node_request)
-        from IPython import embed; embed()
         self.nodes.extend(additional_nodes)
         self.nodes.sort(key=lambda node: node.name)
+        chefserver = self.first_node_with_role('chefserver')
+        chefserver.feature('chefserver').remote_other_nodes()
+        self.update()
 
     def build_nodes(self):
         base.logger.info("Building chef nodes...")

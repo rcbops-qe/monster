@@ -205,7 +205,7 @@ class Node(object):
         self.provisioner.power_up(self)
 
     def has_feature(self, feature_name):
-        return feature_name in self.feature_names
+        return feature_name in (str(feature) for feature in self.features)
 
     @property
     def creds(self):
@@ -226,7 +226,7 @@ class Node(object):
 
     @lazy
     def feature_names(self):
-        return [str(feature).lower() for feature in self.features]
+        return [str(feature) for feature in self.features]
 
     @lazy
     def os(self):
