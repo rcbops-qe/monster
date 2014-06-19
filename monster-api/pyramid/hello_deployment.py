@@ -1,7 +1,6 @@
 from paste.httpserver import serve
 from pyramid.config import Configurator
 from pyramid.response import Response
-from pyramid.view import view_config
 
 import monster.executable
 import json
@@ -10,7 +9,6 @@ import json
 def build_rpcs(request):
     request_dict = json.loads(request.body)
     request_dict.update(request.matchdict)
-    from IPython import embed; embed()
     monster.executable.rpcs_build(**request_dict)
     return Response('Hello %(deployment)s!' % request.matchdict)
 
