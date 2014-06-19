@@ -20,7 +20,7 @@ class Provisioner(object):
         """Provisions a node.
         :param deployment: Deployment to provision for
         :type deployment: Deployment
-        :rtype: dict
+        :rtype: monster.nodes.base.Node
         """
         raise NotImplementedError
 

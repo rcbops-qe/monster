@@ -47,6 +47,7 @@ class Provisioner(base.Provisioner):
                                  deployment=deployment, features=specs)
 
     def get_server(self, node_name, image, flavor, nics):
+        logger.info("Requesting a new server for {}...".format(node_name))
         for creation_attempt in range(3):
             server = self.compute_client.servers.create(node_name, image,
                                                         flavor, nics=nics)
@@ -60,7 +61,8 @@ class Provisioner(base.Provisioner):
                             .format(node_name, server.status, server.progress))
                 time.sleep(10)
             else:
-                logger.error("Unable to build instance. Retrying...")
+                logger.error("Unable to build server for {}. Retrying..."
+                             .format(node_name))
                 server.delete()
         else:
             logger.exception("Server creation failed three times; exiting...")

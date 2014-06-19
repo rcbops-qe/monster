@@ -1,4 +1,5 @@
 from functools import partial
+import logging
 import os
 import webbrowser
 
@@ -10,13 +11,14 @@ import monster.clients.openstack as openstack
 import monster.deployments.base as base
 import monster.upgrades.util as upgrades_util
 
+logger = logging.getLogger(__name__)
+
 
 class Deployment(base.Deployment):
     """Deployment mechanisms specific to a RPCS deployment using Chef as
     configuration management.
     """
     def __init__(self, name, clients=None):
-
         """Initializes a RPCS deployment object."""
         super(Deployment, self).__init__(name=name, status="provisioning",
                                          clients=clients)
@@ -47,7 +49,7 @@ class Deployment(base.Deployment):
         return nodes
 
     def add_nodes(self, node_request):
-        print("in add nodes!")
+        logger.info("Adding nodes...")
         additional_nodes = self.acquire_nodes(node_request)
         self.nodes.extend(additional_nodes)
         self.nodes.sort(key=lambda node: node.name)
