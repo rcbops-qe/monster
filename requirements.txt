@@ -4,13 +4,13 @@ argcomplete
 argh
 fabric
 futures
-gevent
 lazy
 paramiko
 pychef
 pytest
 pyrabbit
 pyrax
+pyramid
 python-cinderclient
 python-keystoneclient
 python-neutronclient
