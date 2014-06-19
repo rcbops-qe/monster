@@ -9,8 +9,8 @@ import json
 def build_rpcs(request):
     request_dict = json.loads(request.body)
     request_dict.update(request.matchdict)
-    monster.executable.rpcs_build(**request_dict)
-    return Response('Hello %(deployment)s!' % request.matchdict)
+    deployment = monster.executable.rpcs_build(**request_dict)
+    return Response(json.dumps(deployment.to_dict))
 
 
 if __name__ == '__main__':

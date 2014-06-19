@@ -44,6 +44,7 @@ def rpcs_build(
     deployment = rpcs.Deployment(name)
     with cleanup_on_failure(deployment):
         deployment.build()
+    return deployment
 
 
 @database.store_build_params
