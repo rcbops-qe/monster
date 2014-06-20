@@ -5,6 +5,14 @@ from pyramid.response import Response
 import monster.executable
 import json
 
+# TODO (james): this only works in a single process; it should either kick off
+#  a new process or subprocess to touch the app
+
+
+def list_deployments(request):
+    # deployments = monster.executable.list_deployments()
+    return Response()
+
 
 def build_rpcs(request):
     request_dict = json.loads(request.body)
