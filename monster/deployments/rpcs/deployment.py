@@ -100,7 +100,7 @@ class Deployment(base.Deployment):
         """Opens a new shell with variables loaded for nova-client."""
         strategy = 'keystone'
         keystone = self.override_attrs['keystone']
-        url = keystone['publicURL']
+        url = self.controller(1).local_node['keystone']['publicURL']
         user = keystone['admin_user']
         password = keystone['users'][user]['password']
         tenant = keystone['users'][user]['roles'].keys()[0]
