@@ -174,6 +174,13 @@ def show(name):
     return deployment
 
 
+def explore(name):
+    """Explore a deployment in IPython."""
+    data.load_config(name)
+    deployment = data.load_deployment(name)
+    from IPython import embed; embed()
+
+
 @argh.named("list")
 def list_deployments():
     """Lists all deployments"""
@@ -218,7 +225,7 @@ def run():
 
     deployment_parser.add_commands([list_deployments, show, update, upgrade,
                                     retrofit, add_nodes, destroy, openrc,
-                                    horizon, tmux])
+                                    horizon, tmux, explore])
 
     parser.dispatch()
 

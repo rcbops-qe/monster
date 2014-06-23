@@ -4,6 +4,7 @@ argcomplete
 argh
 fabric
 futures
+ipython
 lazy
 paramiko
 paste
