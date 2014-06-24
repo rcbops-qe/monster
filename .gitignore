@@ -4,6 +4,7 @@ secret.yaml
 ipython_tools/
 results/
 .venv/
+build_profile.txt
 
 # C extensions
 *.so
