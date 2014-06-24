@@ -54,6 +54,9 @@ class OS(object):
 
 
 class DebianOS(OS):
+    def __repr__(self):
+        return 'debian/ubuntu'
+
     def check_package_cmd(self, package):
         return "dpkg -l | grep {0}".format(package)
 
@@ -75,6 +78,9 @@ class DebianOS(OS):
 
 
 class RHEL(OS):
+    def __repr__(self):
+        return 'rhel/centos'
+
     def check_package_cmd(self, package):
         return "rpm -a | grep {0}".format(package)
 

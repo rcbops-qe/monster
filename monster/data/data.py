@@ -15,19 +15,18 @@ logger = logging.getLogger(__name__)
 def load_deployment(name):
     """Loads the deployment from the database.
     :rtype: monster.deployments.base.Deployment"""
-    try:
-        load_config(name)
-    except IOError as exc:
-        logger.error("Ensure correct deployment name: {0}".format(exc))
-        exit(1)
     deployment = database.fetch_deployment(name)
     return deployment
 
 
 def load_config(name):
-    active.config = fetch_config(name)
-    active.template = fetch_template(name)
-    active.build_args = database.fetch_build_args(name)
+    try:
+        active.config = fetch_config(name)
+        active.template = fetch_template(name)
+        active.build_args = database.fetch_build_args(name)
+    except IOError as exc:
+        logger.error("Ensure correct deployment name: {0}".format(exc))
+        exit(1)
 
 
 def load_only_secrets(secret_path):

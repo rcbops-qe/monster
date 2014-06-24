@@ -30,14 +30,14 @@ class Node(object):
         self.deployment = proxy(deployment)
         self.provisioner_name = deployment.provisioner_name
         self.features = []
-        self._cleanups = []
         self.status = "unknown"
 
     def __repr__(self):
-        return ('class: {cls}\n\t'.format(cls=self.__class__.__name__)
-                + '\n\t'.join('{}: {}'.format(attr, getattr(self, attr))
-                              for attr in self.__dict__
-                              if attr != 'deployment'))
+        return ('\nclass: Node \n\tname: {}\n\t'.format(self.name) +
+                '\n\t'.join(sorted('{}: {}'.format(attr, getattr(self, attr))
+                            for attr in self.__dict__
+                            if attr not in ['name', 'deployment', 'run_list',
+                                            'feature_names', 'environment'])))
 
     def __getitem__(self, item):
         raise NotImplementedError()
@@ -205,7 +205,7 @@ class Node(object):
         self.provisioner.power_up(self)
 
     def has_feature(self, feature_name):
-        return feature_name in self.feature_names
+        return feature_name in (str(feature) for feature in self.features)
 
     @property
     def creds(self):
@@ -226,7 +226,7 @@ class Node(object):
 
     @lazy
     def feature_names(self):
-        return [str(feature).lower() for feature in self.features]
+        return [str(feature) for feature in self.features]
 
     @lazy
     def os(self):

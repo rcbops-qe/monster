@@ -1,4 +1,5 @@
 from functools import partial
+import logging
 import os
 import webbrowser
 
@@ -10,19 +11,20 @@ import monster.clients.openstack as openstack
 import monster.deployments.base as base
 import monster.upgrades.util as upgrades_util
 
+logger = logging.getLogger(__name__)
+
 
 class Deployment(base.Deployment):
     """Deployment mechanisms specific to a RPCS deployment using Chef as
     configuration management.
     """
     def __init__(self, name, clients=None):
-
         """Initializes a RPCS deployment object."""
         super(Deployment, self).__init__(name=name, status="provisioning",
                                          clients=clients)
         self.has_controller = False
         self.has_orch_master = False
-        self.nodes = self.acquire_nodes()
+        self.nodes = self.acquire_nodes(active.template['nodes'])
 
     def __str__(self):
         return repr(self)
@@ -37,23 +39,30 @@ class Deployment(base.Deployment):
                 'nodes': self.node_names, 'features': self.features_dict,
                 'product': self.product, 'provisioner': self.provisioner_name}
 
-    def acquire_nodes(self):
+    def acquire_nodes(self, specs):
         active.node_names = set(self.node_names)
         func_list = [partial(self.provisioner.build_node, self, spec)
-                     for spec in active.template['nodes']]
+                     for spec in specs]
         nodes = threading.execute(func_list)
         assert nodes is not None
         nodes.sort(key=lambda node: node.name)
         return nodes
+
+    def add_nodes(self, node_request):
+        logger.info("Adding nodes...")
+        additional_nodes = self.acquire_nodes(node_request)
+        self.nodes.extend(additional_nodes)
+        self.nodes.sort(key=lambda node: node.name)
+        chefserver = self.first_node_with_role('chefserver')
+        chefserver.feature('chefserver').remote_other_nodes()
+        threading.execute(node.build for node in additional_nodes)
+        self.update()
 
     def build_nodes(self):
         base.logger.info("Building chef nodes...")
         for node in self.chefservers:
             node.build()
         super(Deployment, self).build_nodes()
-
-    def add_nodes(self, node_request):
-        pass
 
     def update(self):
         super(Deployment, self).update()
@@ -63,7 +72,7 @@ class Deployment(base.Deployment):
     def upgrade(self, branch_name):
         """Upgrades the deployment."""
         rc = "rc" in branch_name
-        upgrade = upgrades_util.get_upgrade(branch_name)
+        upgrade = upgrades_util.get_upgrade(self, branch_name)
         upgrade.upgrade(rc)
 
     def destroy(self):
@@ -91,7 +100,7 @@ class Deployment(base.Deployment):
         """Opens a new shell with variables loaded for nova-client."""
         strategy = 'keystone'
         keystone = self.override_attrs['keystone']
-        url = keystone['publicURL']
+        url = self.controller(1).local_node['keystone']['publicURL']
         user = keystone['admin_user']
         password = keystone['users'][user]['password']
         tenant = keystone['users'][user]['roles'].keys()[0]
