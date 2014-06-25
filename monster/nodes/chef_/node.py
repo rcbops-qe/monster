@@ -10,12 +10,14 @@ logger = logging.getLogger(__name__)
 class Node(base.Node):
     """Wraps a Chef node.
     Provides chef related server functions."""
-    def __init__(self, name, ip, user, password, deployment,
-                 run_list=None):
-        super(Node, self).__init__(name, ip, user, password, deployment)
+    def __init__(self, name, ip, user, password, deployment, uuid,
+                 run_list=None, features=None):
+        super(Node, self).__init__(name, ip, user, password, deployment, uuid)
         self.environment = deployment.environment
         self.branch = deployment.branch
         self.run_list = run_list or []
+        self.add_features(features)
+        self.set_chef_environment()
 
     def __getitem__(self, item):
         """Node has access to chef attributes."""
@@ -30,10 +32,20 @@ class Node(base.Node):
         local_node[item] = value
         self.save(local_node)
 
+    def set_chef_environment(self):
+        node = self.local_node
+        node.chef_environment = self.environment.name
+        node.save()
+
     def build(self):
         """Builds the node."""
         self.clear_run_list()
         super(Node, self).build()
+
+    def destroy(self):
+        self.local_node.delete()
+        self.client.delete()
+        super(Node, self).destroy()
 
     def upgrade(self, times=1, accept_failure=False):
         """Upgrade the node according to its features.
@@ -67,7 +79,6 @@ class Node(base.Node):
         node = node or self.local_node
         node.save(self.local_api)
         if self.remote_api:
-            # syncs to remote chef server if available
             node.save(self.remote_api)
 
     def save_locally(self, node=None):

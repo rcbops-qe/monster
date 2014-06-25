@@ -26,18 +26,15 @@ class Neutron(deployment_.Feature):
         :param provider: feature provider (quantum/neutron)
         :type provider: String
         """
-
         super(Neutron, self).__init__(deployment, provider)
-
-        # Grab correct environment based on the provider passed in the config
         self.env = actv.config['environments'][str(self)][provider]
-
-        # Set the provider name in object (future use)
         self.provider = provider
 
     def update_environment(self):
         """Updates environment file to include feature."""
-        self.deployment.environment.add_override_attr(self.provider, self.env)
+        env = self.deployment.environment
+        env.add_override_attr(self.provider, self.env)
+        env.save()
 
     def post_configure(self):
         """Runs cluster post-configure commands."""
@@ -51,86 +48,70 @@ class Neutron(deployment_.Feature):
     def _add_security_rules(self):
         """Auto adds security rules for ping and SSH."""
 
-        icmp_command = ("source openrc admin; "
-                        "{0} security-group-rule-create "
-                        "--protocol icmp "
-                        "--direction ingress "
-                        "default").format(self.provider)
-        tcp_command = ("source openrc admin; "
-                       "{0} security-group-rule-create "
-                       "--protocol tcp "
-                       "--port-range-min 22 "
-                       "--port-range-max 22 "
-                       "--direction ingress "
-                       "default").format(self.provider)
-        tcp_command2 = ("source openrc admin; "
-                        "{0} security-group-rule-create "
-                        "--protocol tcp "
-                        "--port-range-min 8080 "
-                        "--port-range-max 8080 "
-                        "--direction ingress "
-                        "default").format(self.provider)
+        controller = self.deployment.first_node_with_role('controller')
 
-        controller = next(self.deployment.search_role('controller'))
         logger.info("## Setting up ICMP security rule ##")
-        controller.run_cmd(icmp_command)
+        controller.run_cmd(
+            "source openrc admin; "
+            "{provider} security-group-rule-create --protocol icmp "
+            "--direction ingress default".format(provider=self.provider))
+
         logger.info("## Setting up TCP security rule ##")
-        controller.run_cmd(tcp_command)
+        controller.run_cmd(
+            "source openrc admin; "
+            "{provider} security-group-rule-create --protocol tcp "
+            "--port-range-min 22 --port-range-max 22 --direction ingress "
+            "default".format(provider=self.provider))
+
         logger.info("## Setting up LBAAS testing security rule ##")
-        controller.run_cmd(tcp_command2)
+        controller.run_cmd(
+            "source openrc admin; "
+            "{provider} security-group-rule-create --protocol tcp "
+            "--port-range-min 8080 --port-range-max 8080 --direction ingress "
+            "default".format(provider=self.provider))
 
     def _build_bridges(self):
         """Builds the subnets."""
 
         logger.info("### Beginning of Networking Block ###")
-        controllers = self.deployment.search_role('controller')
-        computes = self.deployment.search_role('compute')
-
         logger.info("### Building OVS Bridge and Ports on network nodes ###")
 
-        for controller in controllers:
-            iface = controller.vmnet_iface
-            command = self.iface_bb_cmd(iface)
-            logger.debug("Running {0} on {1}".format(command, controller))
-            controller.run_cmd(command)
+        for controller in self.deployment.controllers:
+            command = self.iface_bb_cmd(controller.vmnet_iface)
+            logger.debug("Running {0} on {1}".format(command, controller.name))
+            try:
+                controller.run_cmd(command, attempts=2)
+            except Exception:
+                logger.warning("Failed to build bridge on " + controller.name)
 
-        # loop through compute nodes and run
-        for compute in computes:
-            iface = compute.vmnet_iface
-            command = self.iface_bb_cmd(iface)
-            logger.debug("Running {0} on {1}".format(command, compute))
-            compute.run_cmd(command)
+        for compute in self.deployment.computes:
+            command = self.iface_bb_cmd(compute.vmnet_iface)
+            logger.debug("Running {0} on {1}".format(command, compute.name))
+            try:
+                compute.run_cmd(command, attempts=2)
+            except Exception:
+                logger.warning("Failed to build bridge on " + compute.name)
 
         logger.info("### End of Networking Block ###")
 
     def iface_bb_cmd(self, iface):
         logger.info("Using iface: {0}".format(iface))
-        commands = ['ip a f {0}'.format(iface),
-                    'ovs-vsctl add-port br-{0} {0}'.format(
-                        iface)]
-        command = "; ".join(commands)
-        return command
+        return 'ip a f {0}; ovs-vsctl add-port br-{0} {0}'.format(iface)
 
     def clear_bridge_iface(self):
         """Clears configured interface for Neutron use."""
 
-        controllers = self.deployment.search_role('controller')
-        computes = self.deployment.search_role('compute')
-
-        for controller in controllers:
+        for controller in self.deployment.controllers:
             iface = controller.vmnet_iface
-            cmd = self.iface_cb_cmd(iface)
-            controller.run_cmd(cmd)
+            controller.run_cmd(self.iface_cb_cmd(iface))
 
-        for compute in computes:
+        for compute in self.deployment.computes:
             iface = compute.vmnet_iface
-            cmd = self.iface_cb_cmd(iface)
-            compute.run_cmd(cmd)
+            compute.run_cmd(self.iface_cb_cmd(iface))
 
     def iface_cb_cmd(self, iface):
-        logger.info("Using iface: {0}".format(iface))
-        cmd = "ip a f {0}".format(iface)
-        return cmd
+        logger.info("Using iface: {}".format(iface))
+        return "ip a f {}".format(iface)
 
 
 class Swift(deployment_.Feature):
@@ -138,13 +119,14 @@ class Swift(deployment_.Feature):
 
     def __init__(self, deployment, rpcs_feature='default'):
         super(Swift, self).__init__(deployment, rpcs_feature)
-        self.env = actv.config['environments'][str(self)][rpcs_feature]
+        self.environment = actv.config['environments'][str(self)][rpcs_feature]
 
     def update_environment(self):
-        self.deployment.environment.add_override_attr(
-            str(self), self.env)
+        env = self.deployment.environment
+        env.add_override_attr(str(self), self.environment)
         self._set_keystone_urls()
         self._fix_environment()
+        env.save()
 
     def post_configure(self, auto=False):
         build_rings = auto or \
@@ -153,18 +135,13 @@ class Swift(deployment_.Feature):
 
     def _set_keystone_urls(self):
         """Gets the controller's IP and sets the url for the env."""
-        proxy_ip = next(
-            self.deployment.search_role('proxy')).ipaddress
+        proxy_ip = self.deployment.first_node_with_role('proxy').ipaddress
+        proxy_url = "http://{}:8080/v1/AUTH_%(tenant_id)s".format(proxy_ip)
 
         env = self.deployment.environment
-
-        proxy_url = \
-            "http://{0}:8080/v1/AUTH_%(tenant_id)s".format(proxy_ip)
-
         for item in env.override_attrs['keystone']:
             if 'url' in item:
                 env.override_attrs['keystone'][item] = proxy_url
-
         env.save()
 
     def _fix_environment(self):
@@ -178,13 +155,12 @@ class Swift(deployment_.Feature):
         swift = env.override_attrs['swift'][master_key]
         swift['keystone'] = keystone
 
-        logger.info("Matching environment: {0} to RPCS "
-                    "swift requirements".format(env.name))
+        logger.info("Matching environment: {} to RPCS swift requirements"
+                    .format(env.name))
 
         env.del_override_attr('keystone')
         env.del_override_attr('swift')
         env.add_override_attr(master_key, swift)
-
         env.save()
 
     def _build_rings(self, auto=False):
@@ -195,9 +171,9 @@ class Swift(deployment_.Feature):
         """
 
         # Gather all the nodes
-        controller = next(self.deployment.search_role('controller'))
-        proxy_nodes = list(self.deployment.search_role('proxy'))
-        storage_nodes = list(self.deployment.search_role('storage'))
+        controller = self.deployment.first_node_with_role('controller')
+        proxy_nodes = self.deployment.nodes_with_role('proxy')
+        storage_nodes = self.deployment.nodes_with_role('storage')
 
         #####################################################################
         ################## Run chef on the controller node ##################
@@ -213,12 +189,13 @@ class Swift(deployment_.Feature):
         disk = actv.config['swift']['disk']
         label = actv.config['swift']['disk_label']
         for storage_node in storage_nodes:
-            commands = ["/usr/local/bin/swift-partition.sh {0}".format(disk),
-                        "/usr/local/bin/swift-format.sh {0}".format(label),
-                        "mkdir -p /srv/node/{0}".format(label),
+            commands = ("/usr/local/bin/swift-partition.sh {disk}; "
+                        "/usr/local/bin/swift-format.sh {label}; "
+                        "mkdir -p /srv/node/{label}; "
                         "mount -t xfs -o noatime,nodiratime,logbufs=8 "
-                        "/dev/{0} /srv/node/{0}".format(label),
-                        "chown -R swift:swift /srv/node"]
+                        "/dev/{label} /srv/node/{label}; "
+                        "chown -R swift:swift /srv/node"
+                        .format(label=label, disk=disk))
             if auto:
                 logger.info(
                     "## Configuring Disks on Storage Node @ {0} ##".format(
@@ -227,9 +204,8 @@ class Swift(deployment_.Feature):
                 storage_node.run_cmd(command)
             else:
                 logger.info("## Info to setup drives for Swift ##")
-                logger.info(
-                    "## Log into root@{0} and run the following commands: "
-                    "##".format(storage_node.ipaddress))
+                logger.info("## Log into root@{ip} and run the following "
+                            "commands: ##".format(ip=storage_node.ipaddress))
                 for command in commands:
                     logger.info(command)
 
@@ -257,9 +233,7 @@ class Swift(deployment_.Feature):
                                          replicas,
                                          min_part_hours)]
 
-        # Determine how many storage nodes we have and add them
         builders = actv.config['swift']['builders']
-
         for builder in builders:
             name = builder
             port = builders[builder]['port']
@@ -288,6 +262,7 @@ class Swift(deployment_.Feature):
                     "sudo cp *.gz /etc/swift",
                     "sudo chown -R swift: /etc/swift"]
         commands.extend(cmd_list)
+        command = "; ".join(commands)
 
         if auto:
             logger.info(
@@ -297,10 +272,8 @@ class Swift(deployment_.Feature):
         else:
             logger.info("## Info to manually set up swift rings: ##")
             logger.info(
-                "## Log into root@{0} and run the following commands: "
-                "##".format(controller.ipaddress))
-            for command in commands:
-                logger.info(command)
+                "## Log into root@{host} and run: {cmd}"
+                .format(host=controller.ipaddress, cmd=command))
 
         #####################################################################
         ############# Time to distribute the ring to all the boxes ##########
@@ -310,26 +283,22 @@ class Swift(deployment_.Feature):
         for proxy_node in proxy_nodes:
             if auto:
                 logger.info(
-                    "## Pulling swift ring down on proxy node @ {0}: "
-                    "##".format(proxy_node.ipaddress))
+                    "## Pulling swift ring down on proxy node {host} ##"
+                    .format(host=proxy_node.ipaddress))
                 proxy_node.run_cmd(command)
             else:
-                logger.info(
-                    "## On node root@{0} run the following command: "
-                    "##".format(proxy_node.ipaddress))
-                logger.info(command)
+                logger.info("## On node {0} run: {cmd}"
+                            .format(host=proxy_node.ipaddress, cmd=command))
 
         for storage_node in storage_nodes:
             if auto:
                 logger.info(
-                    "## Pulling swift ring down on storage node: {0} "
-                    "##".format(storage_node.ipaddress))
+                    "## Pulling swift ring down on storage node: {host} ##"
+                    .format(host=storage_node.ipaddress))
                 storage_node.run_cmd(command)
             else:
-                logger.info(
-                    "## On node root@{0} run the following command: "
-                    "##".format(storage_node.ipaddress))
-                logger.info(command)
+                logger.info("## On node {host} run: {cmd}"
+                            .format(host=storage_node.ipaddress, cmd=command))
 
         #####################################################################
         ############### Finalize by running chef on controller ##############
@@ -344,13 +313,13 @@ class Swift(deployment_.Feature):
             controller.run()
         else:
             for proxy_node in proxy_nodes:
-                logger.info("On node root@{0}, run: "
-                            "chef client".format(proxy_node.ipaddress))
+                logger.info("On node {host}, run: chef client"
+                            .format(host=proxy_node.ipaddress))
             for storage_node in storage_nodes:
-                logger.info("On node root@{0}, run: "
-                            "chef client".format(storage_node.ipaddress))
-            logger.info("On node root@{0} run the following command: "
-                        "chef-client ##".format(controller.ipaddress))
+                logger.info("On node {host}, run: chef client"
+                            .format(host=storage_node.ipaddress))
+            logger.info("On node {host} run: chef-client"
+                        .format(host=controller.ipaddress))
 
         logger.info("## Done setting up swift rings ##")
 
@@ -363,10 +332,11 @@ class Glance(deployment_.Feature):
         self.environment = actv.config['environments'][str(self)][rpcs_feature]
 
     def update_environment(self):
-        self.deployment.environment.add_override_attr(
-            str(self), self.environment)
+        env = self.deployment.environment
+        env.add_override_attr(str(self), self.environment)
         if self.rpcs_feature == 'cf':
             self._add_credentials()
+        env.save()
 
     def _add_credentials(self):
         cf_secrets = actv.config['secrets']['cloudfiles']
@@ -388,14 +358,12 @@ class Glance(deployment_.Feature):
         try:
             services = response.json()['access']['serviceCatalog']
         except KeyError:
-            logger.info(
-                "Response content for glance files has no key: serviceCatalog")
+            logger.info("Response for glance files has no key: serviceCatalog")
             sys.exit(1)
 
         cloudfiles = next(s for s in services if s['type'] == "object-store")
         tenant_id = cloudfiles['endpoints'][0]['tenantId']
 
-        # set api credentials in environment
         api = self.environment['api']
         api['swift_store_user'] = "{0}:{1}".format(tenant_id, user)
         api['swift_store_key'] = password
@@ -409,8 +377,8 @@ class Keystone(deployment_.Feature):
         self.environment = actv.config['environments'][str(self)][rpcs_feature]
 
     def update_environment(self):
-        self.deployment.environment.add_override_attr(
-            str(self), self.environment)
+        env = self.deployment.environment
+        env.add_override_attr(str(self), self.environment)
 
         # Check to see if we need to add the secret info to
         # connect to AD/LDAP
@@ -421,14 +389,11 @@ class Keystone(deployment_.Feature):
             password = actv.config['secrets'][self.rpcs_feature]['password']
             users = actv.config['secrets'][self.rpcs_feature]['users']
 
-            env = self.deployment.environment
-
             env.override_attrs['keystone']['ldap']['url'] = url
             env.override_attrs['keystone']['ldap']['user'] = user
             env.override_attrs['keystone']['ldap']['password'] = password
             env.override_attrs['keystone']['users'] = users
-
-            self.deployment.environment.save()
+            env.save()
 
     def pre_configure(self):
 
@@ -444,7 +409,7 @@ class Keystone(deployment_.Feature):
                 if self.deployment.has_feature(user):
                     env.override_attrs[user]['service_pass'] = \
                         value['service_pass']
-            self.deployment.environment.save()
+            env.save()
 
 
 class Nova(deployment_.Feature):
@@ -470,10 +435,9 @@ class Nova(deployment_.Feature):
     def update_environment(self):
         net_choice = self.get_net_choice()
         self.environment = actv.config['environments'][str(self)][net_choice]
-        self.deployment.environment.add_override_attr(
-            str(self), self.environment)
-
-        self.deployment.environment.save()
+        env = self.deployment.environment
+        env.add_override_attr(str(self), self.environment)
+        env.save()
 
 
 class Horizon(deployment_.Feature):
@@ -484,8 +448,9 @@ class Horizon(deployment_.Feature):
         self.environment = actv.config['environments'][str(self)][rpcs_feature]
 
     def update_environment(self):
-        self.deployment.environment.add_override_attr(
-            str(self), self.environment)
+        env = self.deployment.environment
+        env.add_override_attr(str(self), self.environment)
+        env.save()
 
 
 class Cinder(deployment_.Feature):
@@ -495,14 +460,14 @@ class Cinder(deployment_.Feature):
         super(Cinder, self).__init__(deployment, rpcs_feature)
         self.environment = actv.config['environments'][str(self)][rpcs_feature]
 
-    def update_environment(self):
-        self.deployment.environment.add_override_attr(
-            str(self), self.environment)
-
     def post_configure(self):
-        computes = self.deployment.search_role("compute")
-        for compute in computes:
+        for compute in self.deployment.computes:
             compute.run()
+
+    def update_environment(self):
+        env = self.deployment.environment
+        env.add_override_attr(str(self), self.environment)
+        env.save()
 
 
 class Ceilometer(deployment_.Feature):
@@ -513,8 +478,9 @@ class Ceilometer(deployment_.Feature):
         self.environment = actv.config['environments'][str(self)][rpcs_feature]
 
     def update_environment(self):
-        self.deployment.environment.add_override_attr(
-            str(self), self.environment)
+        env = self.deployment.environment
+        env.add_override_attr(str(self), self.environment)
+        env.save()
 
 
 #############################################################################
@@ -537,105 +503,101 @@ class Monitoring(RPCS):
     """Represents a Monitoring feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(Monitoring, self).__init__(deployment, rpcs_feature,
-                                         str(self))
+        super(Monitoring, self).__init__(deployment, rpcs_feature, str(self))
         self.environment = actv.config['environments'][self.name][rpcs_feature]
 
     def update_environment(self):
-        self.deployment.environment.add_override_attr(
-            str(self), self.environment)
+        env = self.deployment.environment
+        env.add_override_attr(self.name, self.environment)
+        env.save()
 
 
 class MySql(RPCS):
     """Represents a MySQL feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(MySql, self).__init__(deployment, rpcs_feature,
-                                    str(self))
+        super(MySql, self).__init__(deployment, rpcs_feature, str(self))
         self.environment = actv.config['environments'][self.name][rpcs_feature]
 
     def update_environment(self):
-        self.deployment.environment.add_override_attr(
-            self.name, self.environment)
+        env = self.deployment.environment
+        env.add_override_attr(self.name, self.environment)
+        env.save()
 
 
 class OsOps(RPCS):
     """Represents an OpenStack Ops feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(OsOps, self).__init__(deployment, rpcs_feature,
-                                    str(self))
+        super(OsOps, self).__init__(deployment, rpcs_feature, str(self))
         self.environment = actv.config['environments'][self.name][rpcs_feature]
 
     def update_environment(self):
-        self.deployment.environment.add_override_attr(
-            self.name, self.environment)
+        env = self.deployment.environment
+        env.add_override_attr(self.name, self.environment)
+        env.save()
 
 
 class DeveloperMode(RPCS):
     """Represents developer mode feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(DeveloperMode, self).__init__(deployment, rpcs_feature,
-                                            'developer_mode')
+        super(DeveloperMode, self).__init__(deployment,
+                                            rpcs_feature, 'developer_mode')
         self.environment = actv.config['environments'][self.name][rpcs_feature]
 
     def update_environment(self):
-        self.deployment.environment.add_override_attr(
-            self.name, self.environment)
+        env = self.deployment.environment
+        env.add_override_attr(self.name, self.environment)
+        env.save()
 
 
 class OsOpsNetworks(RPCS):
     """Represents OpenStack Ops Networking feature."""
 
     def __init__(self, deployment, rpcs_feature='default'):
-        super(OsOpsNetworks, self).__init__(deployment, rpcs_feature,
-                                            'osops_networks')
+        super(OsOpsNetworks, self).__init__(deployment,
+                                            rpcs_feature, 'osops_networks')
         self.environment = actv.config['environments'][self.name]
 
     def update_environment(self):
-
-        self.deployment.environment.add_override_attr(
-            self.name, self.environment)
+        env = self.deployment.environment
+        env.add_override_attr(self.name, self.environment)
+        env.save()
 
 
 class HighAvailability(RPCS):
     """Represents a 'Highly Available' cluster."""
 
     def __init__(self, deployment, rpcs_feature):
-        super(HighAvailability, self).__init__(deployment, rpcs_feature,
-                                               'vips')
+        super(HighAvailability, self).__init__(deployment,
+                                               rpcs_feature, 'vips')
         self.environment = actv.config['environments'][self.name]
 
     def update_environment(self):
-        self.deployment.environment.add_override_attr(self.name,
-                                                      self.environment)
+        env = self.deployment.environment
+        env.add_override_attr(self.name, self.environment)
+        env.save()
 
 
 class OpenLDAP(RPCS):
     """Represents a keystone with an OpenLDAP backend."""
 
     def __init__(self, deployment, rpcs_feature):
-        super(OpenLDAP, self).__init__(deployment, rpcs_feature,
-                                       str(self))
+        super(OpenLDAP, self).__init__(deployment, rpcs_feature, str(self))
         self.environment = actv.config['environments'][self.name]
 
     def update_environment(self):
-        self.deployment.environment.add_override_attr(
-            self.name, self.environment)
+        env = self.deployment.environment
+        env.add_override_attr(self.name, self.environment)
 
-        ldap_server = self.deployment.search_role('openldap')
+        ldap_server = self.deployment.first_node_with_role('openldap')
         password = actv.config['ldap']['pass']
         ip = ldap_server.ipaddress
-        env = self.deployment.environment
 
-        # Override the attrs
-        env.override_attrs['keystone']['ldap']['url'] = \
-            "ldap://{0}".format(ip)
+        env.override_attrs['keystone']['ldap']['url'] = "ldap://{0}".format(ip)
         env.override_attrs['keystone']['ldap']['password'] = password
-
-        # Save the Environment
-        self.deployment.environment.save()
+        env.save()
 
 
 class Openssh(RPCS):
@@ -646,5 +608,6 @@ class Openssh(RPCS):
         self.environment = actv.config['environments'][self.name]
 
     def update_environment(self):
-        self.deployment.environment.add_override_attr(
-            self.name, self.environment)
+        env = self.deployment.environment
+        env.add_override_attr(self.name, self.environment)
+        env.save()

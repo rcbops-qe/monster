@@ -14,7 +14,7 @@ class Feature(base.Feature):
         self.node = proxy(node)
 
     def __repr__(self):
-        return 'class: ' + self.__class__.__name__
+        return self.__class__.__name__.lower()
 
     def pre_configure(self):
         pass
@@ -63,5 +63,5 @@ class Feature(base.Feature):
 
     def save_node_running_services(self):
         store_running_services = "{0} > {1}/running-services.out".format(
-            self.deployment.list_packages_cmd, self.misc_path)
-        self.run_cmd(store_running_services)
+            self.node.deployment.list_packages_cmd, self.misc_path)
+        self.node.run_cmd(store_running_services)

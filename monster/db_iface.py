@@ -33,8 +33,20 @@ def store_upgrade_params(f, *args):
     return f(*args)
 
 
+def ping_db():
+    database.ping_db()
+
+
 def store(deployment):
     return db.hset(deployment.name, "deployment-obj", pickle.dumps(deployment))
+
+
+def list_deployments():
+    temp = {}
+    for key in db.keys():
+        if 'deployment-obj' in db.hgetall(key):
+            temp[key] = pickle.loads(db.hget(key, "deployment-obj"))
+    return temp
 
 
 def fetch_deployment(name):

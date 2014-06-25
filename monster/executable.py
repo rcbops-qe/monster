@@ -1,131 +1,130 @@
 #! /usr/bin/env python
-"""
-Command-line interface for building OpenStack clusters
-"""
+"""Command-line interface for building OpenStack clusters."""
 
-import os
-import subprocess
+import sys
 import argh
 
 import monster.db_iface as database
+import monster.deployments.rpcs.deployment as rpcs
 from monster.data import data
 from monster.logger import logger as monster_logger
-from monster.utils.access import get_file
+from monster.utils.access import get_file, run_cmd
 from monster.utils.color import Color
-from monster.orchestrator.util import get_orchestrator
 from monster.tests.ha import HATest
 from monster.tests.cloudcafe import CloudCafe
 from monster.tests.tempest_neutron import TempestNeutron
 from monster.tests.tempest_quantum import TempestQuantum
+from monster.utils.safe_build import cleanup_on_failure
+from monster.utils.status import check_monster_status
 
 
 logger = monster_logger.Logger().logger_setup()
 
 
-@database.store_build_params
-def rpcs(name, template="ubuntu-default", branch="master",
-         config="pubcloud-neutron.yaml", dry=False,
-         log=None, provisioner="rackspace",
-         secret="secret.yaml", orchestrator="chef"):
-    """Build an Rackspace Private Cloud deployment."""
-    data.load_config(name)
-
-    orchestrator = get_orchestrator(orchestrator)
-    deployment = orchestrator.create_deployment_from_file(name)
-
-    if dry:
-        deployment.update_environment()
+def status(secrets="secret.yaml"):
+    logger.setLevel(20)
+    data.load_only_secrets(secrets)
+    try:
+        check_monster_status()
+    except:
+        sys.exit(1)
     else:
-        deployment.build()
+        sys.exit(0)
 
-    database.store(deployment)
-    logger.info(deployment)
+
+@argh.named("rpcs")
+@database.store_build_params
+def rpcs_build(
+        name, template="ubuntu-default", branch="master",
+        config="pubcloud-neutron.yaml", provisioner="rackspace",
+        orchestrator="chef", secret="secret.yaml", dry=False, log=None,
+        destroy_on_failure=False):
+    """Build a Rackspace Private Cloud deployment."""
+    data.load_config(name)
+    deployment = rpcs.Deployment(name)
+    with cleanup_on_failure(deployment):
+        deployment.build()
+    return deployment
 
 
 @database.store_build_params
 def devstack(name, template="ubuntu-default", branch="master",
-             config="pubcloud-neutron.yaml", dry=False,
-             log=None, provisioner="rackspace",
-             secret="secret.yaml", orchestrator="chef"):
-    """Build an devstack deployment."""
+             config="pubcloud-neutron.yaml", provisioner="rackspace",
+             orchestrator="chef", secret="secret.yaml", dry=False, log=None,
+             destroy_on_failure=False):
+    """Build a Devstack deployment."""
     pass
 
 
-def tempest(name, deployment=None, iterations=1):
+def tempest(name, iterations=1):
     """Test an OpenStack deployment."""
-    if not deployment:
-        deployment = data.load_deployment(name)
-
+    data.load_config(name)
+    deployment = data.load_deployment(name)
     branch = TempestQuantum.tempest_branch(deployment.branch)
     if "grizzly" in branch:
         test_object = TempestQuantum(deployment)
     else:
         test_object = TempestNeutron(deployment)
+    local = "./results/{}/".format(deployment.name)
+    run_cmd("mkdir -p {}".format(local))
 
-    env = deployment.environment.name
-    local = "./results/{0}/".format(env)
-    controllers = deployment.search_role('controller')
-    for controller in controllers:
-        ip, user, password = controller.creds
+    for controller in deployment.controllers:
+        ip, user, password = (controller.ipaddress, controller.user,
+                              controller.password)
         remote = "{0}@{1}:~/*.xml".format(user, ip)
         get_file(ip, user, password, remote, local)
 
     for i in range(iterations):
-        logger.info(Color.cyan('Running iteration {0} of {1}!'
+        logger.info(Color.cyan('Tempest: running iteration {0} of {1}!'
                          .format(i + 1, iterations)))
+        test_object.test()
 
-        #Prepare directory for xml files to be SCPed over
-        subprocess.call(['mkdir', '-p', '{0}'.format(local)])
-
-        if test_object:
-            logger.info(Color.cyan('Running Tempest test!'))
-            test_object.test()
-
-    logger.info(Color.cyan("Tests have been completed with {0} iterations"
-                           .format(iterations)))
+    logger.info(Color.cyan("Tempest tests completed..."))
 
 
-def ha(name, deployment=None, iterations=1, progress=False):
+def ha(name, iterations=1, progress=False):
     """Test an OpenStack deployment."""
-    if not deployment:
-        deployment = data.load_deployment(name)
-    # if deployment.has_feature("highavailability"):
-
+    data.load_config(name)
+    deployment = data.load_deployment(name)
     test_object = HATest(deployment, progress)
+    local = "./results/{0}/".format(deployment.name)
+    run_cmd("mkdir -p {}".format(local))
 
-    env = deployment.environment.name
-    local = "./results/{0}/".format(env)
-    controllers = deployment.search_role('controller')
-    for controller in controllers:
-        ip, user, password = controller.creds
+    for controller in deployment.controllers:
+        ip, user, password = (controller.ipaddress, controller.user,
+                              controller.password)
         remote = "{0}@{1}:~/*.xml".format(user, ip)
         get_file(ip, user, password, remote, local)
 
-    for i in range(iterations):
-        logger.info(Color.cyan('Running iteration {0} of {1}!'
+    for i in xrange(iterations):
+        logger.info(Color.cyan('HA: running iteration {0} of {1}!'
                          .format(i + 1, iterations)))
-
-        #Prepare directory for xml files to be SCPed over
-        subprocess.call(['mkdir', '-p', '{0}'.format(local)])
-
-        logger.info(Color.cyan('Running High Availability test!'))
         test_object.test(iterations)
 
-    logger.info(Color.cyan("Tests have been completed with {0} iterations"
-                           .format(iterations)))
+    logger.info(Color.cyan("HA tests completed..."))
 
 
 def retrofit(name='autotest', retro_branch='dev', ovs_bridge='br-eth1',
              x_bridge='lxb-mgmt', iface='eth0', del_port=None):
     """Retrofit a deployment."""
+    data.load_config(name)
     deployment = data.load_deployment(name)
     logger.info(deployment)
     deployment.retrofit(retro_branch, ovs_bridge, x_bridge, iface, del_port)
 
 
+def update(name):
+    """Runs package updates on all nodes in a deployment, in addition to
+    running chef-client (or the equivalent) on all non-orchestrator nodes."""
+    data.load_config(name)
+    deployment = data.load_deployment(name)
+    deployment.update()
+
+
 @database.store_upgrade_params
 def upgrade(name, upgrade_branch='v4.1.3rc'):
     """Upgrade a current deployment to the new branch / tag."""
+    data.load_config(name)
     deployment = data.load_deployment(name)
     logger.info(deployment)
     deployment.upgrade(upgrade_branch)
@@ -134,74 +133,100 @@ def upgrade(name, upgrade_branch='v4.1.3rc'):
 def destroy(name):
     """Destroy an existing OpenStack deployment."""
     deployment = data.load_deployment(name)
+    data.load_config(name)
     logger.info(deployment)
     deployment.destroy()
+    database.remove_key(deployment.name)
 
 
 def artifact(name):
     """Artifact a deployment (configs/running services)."""
+    data.load_config(name)
     deployment = data.load_deployment(name)
     deployment.artifact()
 
 
 def openrc(name):
     """Export OpenStack credentials into shell environment."""
+    data.load_config(name)
     deployment = data.load_deployment(name)
     deployment.openrc()
 
 
 def tmux(name):
     """Load OpenStack nodes into a new tmux session."""
+    data.load_config(name)
     deployment = data.load_deployment(name)
     deployment.tmux()
 
 
 def horizon(name):
     """Open Horizon in a browser tab."""
+    data.load_config(name)
     deployment = data.load_deployment(name)
     deployment.horizon()
 
 
 def show(name):
     """Show details about an OpenStack deployment."""
+    data.load_config(name)
     deployment = data.load_deployment(name)
-    logger.info(str(deployment))
+    return deployment
+
+
+def explore(name):
+    """Explore a deployment in IPython."""
+    data.load_config(name)
+    deployment = data.load_deployment(name)
+    from IPython import embed; embed()
+
+
+@argh.named("list")
+def list_deployments():
+    """Lists all deployments"""
+    deployments = database.list_deployments()
+    return '\n'.join(sorted(deployment for deployment in deployments))
 
 
 def cloudcafe(cmd, name, network=None):
     """Run CloudCafe test suite against a deployment."""
     deployment = data.load_deployment(name)
+    data.load_config(name)
     CloudCafe(deployment).config(cmd, network_name=network)
 
 
-def _load(name, orchestrator_name="chef"):
-    orchestrator = get_orchestrator(orchestrator_name)
-    deployment = orchestrator.load_deployment_from_name(name)
-    return deployment
-
-
-def status():
-    pass
-# check to ensure the DB is up and running on port 6379
-# check to ensure the secret credentials exist and are valid
+def add_nodes(name, compute_nodes=0, controller_nodes=0, cinder_nodes=0,
+              request=None):
+    """Add a node (or nodes) to an existing deployment."""
+    data.load_config(name)
+    deployment = data.load_deployment(name)
+    node_request = request or list([['compute']] * compute_nodes +
+                                   [['controller']] * controller_nodes +
+                                   [['cinder']] * cinder_nodes)
+    deployment.add_nodes(node_request)
+    database.store(deployment)
 
 
 def run():
     parser = argh.ArghParser()
-    parser.add_commands([retrofit, upgrade, destroy,
-                         openrc, horizon, show, tmux])
+    subparsers = parser.add_subparsers()
 
-    argh.add_commands(parser, [devstack, rpcs], namespace='build',
-                      title="build-related commands")
-    argh.add_commands(parser, [cloudcafe, ha, tempest],
-                      namespace='test',
-                      title="test-related commands")
+    subparsers.add_parser('status').set_defaults(function=status)
 
-    if 'monster' not in os.environ.get('VIRTUAL_ENV', ''):
-        logger.warning("You are not using the virtual environment! We "
-                       "cannot guarantee that your monster will be well"
-                       "-behaved.  To load the virtual environment, use "
-                       "the command \"source .venv/bin/activate\"")
+    deployment_parser = subparsers.add_parser('deployment')
+
+    deployment_parser.add_commands([devstack, rpcs_build],
+                                   namespace='build',
+                                   title="Build-related commands")
+
+    deployment_parser.add_commands([cloudcafe, ha, tempest],
+                                   namespace='test',
+                                   title="Test-related commands")
+
+    deployment_parser.add_commands([list_deployments, show, update, upgrade,
+                                    retrofit, add_nodes, destroy, openrc,
+                                    horizon, tmux, explore])
+
     parser.dispatch()
 
 

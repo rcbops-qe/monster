@@ -21,7 +21,7 @@ class Provisioner(base.Provisioner):
     def __str__(self):
         return 'razor2'
 
-    def provision(self, deployment):
+    def provision_node(self, deployment, specs):
         """Provisions nodes using Razor environment.
         :param deployment: ChefDeployment to provision for
         :type deployment: Deployment
@@ -30,7 +30,7 @@ class Provisioner(base.Provisioner):
         logger.info("Provisioning with Razor!")
         image = deployment.os_name
         self.nodes += [self.available_node(image, deployment)
-                       for _ in active.template['nodes']]
+                       for _ in specs]
         return self.nodes
 
     def available_node(self, image, deployment):
@@ -96,7 +96,7 @@ class Provisioner(base.Provisioner):
                 node.delete()
             except Exception:
                 logger.error("Node unreachable. "
-                             "Manual restart required:{0}".format(str(node)))
+                             "Manual restart required: {}".format(node))
 
 
 class RazorAPI2(object):

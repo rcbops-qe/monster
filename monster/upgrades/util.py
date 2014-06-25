@@ -1,9 +1,13 @@
+import sys
 from monster.upgrades import *
 
 
 # Borrowed from vegaseat
 # http://www.daniweb.com/software-development/
 # python/code/216839/number-to-word-converter-python
+from monster.utils.introspection import module_classes
+
+
 def int2word(n):
     """
     convert an integer number n into a string of english words
@@ -48,6 +52,31 @@ def int2word(n):
         if b3 > 0:
             nw = ones[b3] + "hundred " + nw
     return nw
+
+
+def get_upgrade(deployment, branch_name):
+    """This will return an instance of the correct upgrade class.
+    :param branch_name: The name of the provisioner
+    :type branch_name: str
+    :rtype: monster.deployments.base.Deployment
+    """
+
+    # convert branch into a list of int strings
+    word_b = [int2word(int(numeral))
+              for numeral in
+              branch_name.rstrip('rc').lstrip('v').split('.')]
+
+    # convert list to class name
+    up_class = "".join(word_b).replace(" ", "")
+    up_class_module = "_".join(word_b).replace(" ", "")
+
+    try:
+        identifier = getattr(sys.modules['monster'].upgrades,
+                             up_class_module)
+    except AttributeError:
+        raise NameError("{0} doesn't exist.".format(up_class_module))
+    return module_classes(identifier)[up_class](deployment)
+
 
 ############# globals ################
 ones = ["", "one ", "two ", "three ", "four ", "five ",

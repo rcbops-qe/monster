@@ -1,5 +1,4 @@
 import logging
-import monster.active as active
 
 logger = logging.getLogger(__name__)
 
@@ -9,16 +8,19 @@ class Provisioner(object):
     Enforce implementation of provision and destroy_node and naming convention.
     """
 
-    nodes = []
+    def build_node(self, deployment, specs):
+        node = self.provision_node(deployment, specs)
+        self.post_provision(node)
+        return node
 
     def __repr__(self):
         return self.__class__.__name__.lower()
 
-    def provision(self, deployment):
-        """Provisions nodes.
+    def provision_node(self, deployment, specs):
+        """Provisions a node.
         :param deployment: Deployment to provision for
         :type deployment: Deployment
-        :rtype: list (chef.Node)
+        :rtype: monster.nodes.base.Node
         """
         raise NotImplementedError
 
@@ -49,18 +51,3 @@ class Provisioner(object):
         :type node: monster.nodes.base.Node
         """
         raise NotImplementedError
-
-    def build_nodes(self, deployment):
-        """Provisions a new set of nodes for a deployment."""
-        assert deployment.nodes == []
-        nodes_to_wrap = self.provision(deployment)
-
-        built_nodes = []
-        for node in nodes_to_wrap:
-            wrapped_node = deployment.wrap_node(node)
-            self.post_provision(wrapped_node)
-            built_nodes.append(wrapped_node)
-
-        for node, features in zip(built_nodes, active.template['nodes']):
-            node.add_features(features)
-        deployment.nodes = built_nodes

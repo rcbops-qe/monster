@@ -13,19 +13,30 @@ logger = logging.getLogger(__name__)
 
 
 def load_deployment(name):
-    try:
-        load_config(name)
-    except IOError as exc:
-        logger.error("Ensure correct deployment name: {0}".format(exc))
-        exit(1)
+    """Loads the deployment from the database.
+    :rtype: monster.deployments.base.Deployment"""
     deployment = database.fetch_deployment(name)
     return deployment
 
 
 def load_config(name):
-    active.config = fetch_config(name)
-    active.template = fetch_template(name)
-    active.build_args = database.fetch_build_args(name)
+    try:
+        active.config = fetch_config(name)
+        active.template = fetch_template(name)
+        active.build_args = database.fetch_build_args(name)
+    except IOError as exc:
+        logger.error("Ensure correct deployment name: {0}".format(exc))
+        exit(1)
+
+
+def load_only_secrets(secret_path):
+    active.config = {'secrets': fetch_secrets(secret_path)}
+
+
+def fetch_secrets(secret):
+    with open(_secret_path(secret), 'r') as f:
+        secrets = load(f.read())
+    return secrets
 
 
 def fetch_config(name):
@@ -37,9 +48,7 @@ def fetch_config(name):
     with open(_config_path(config), 'r') as f:
         config = defaultdict(None, load(f.read()))
 
-    with open(_secret_path(secret), 'r') as f:
-        config['secrets'] = load(f.read())
-
+    config['secrets'] = fetch_secrets(secret)
     return config
 
 

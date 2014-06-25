@@ -6,16 +6,17 @@ logger = logging.getLogger(__name__)
 
 
 def start_db():
-    logger.info("Attempting to start db.")
+    logger.debug("Attempting to start db.")
     subprocess.call("redis-server")
 
 
 def ping_db():
-    logger.info("Pinging redis...")
+    logger.debug("Pinging redis...")
     ping = "redis-cli -p 6379 ping".split()
     if subprocess.check_output(ping) == "PONG\n":
-        logger.info("Redis responded normally.")
+        logger.debug("Redis responded normally.")
     else:
+        logger.debug("Redis did not respond normally.")
         raise AssertionError()
 
 
