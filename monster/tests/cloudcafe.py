@@ -2,10 +2,13 @@
 Module to test OpenStack deployments with CloudCafe
 """
 
+import logging
 import os
 
 from monster.tests.test import Test
 from monster.utils.access import run_cmd
+
+logger = logging.getLogger(__name__)
 
 
 class CloudCafe(Test):
@@ -13,7 +16,7 @@ class CloudCafe(Test):
         super(CloudCafe, self).__init__(deployment)
 
     def get_endpoint(self):
-        auth_url = "http://{0}:5000".format(self.deployment.horizon_ip())
+        auth_url = "http://{0}:5000".format(self.deployment.horizon_ip)
         return auth_url
 
     def get_admin_user(self):
@@ -59,6 +62,7 @@ class CloudCafe(Test):
 
     def get_network_id(self, network_name):
         neutron = self.deployment.openstack_clients.neutronclient
+
         return next(net['id'] for net in neutron.list_networks()['networks'] if
                     net['name'] == network_name)
 
