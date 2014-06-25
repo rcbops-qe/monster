@@ -142,7 +142,7 @@ class Deployment(base.Deployment):
         region = "RegionOne"
         password = users[user]["password"]
         tenant_name = "admin"
-        auth_url = "http://{0}:5000/v2.0".format(self.horizon_ip())
+        auth_url = "http://{0}:5000/v2.0".format(self.horizon_ip)
 
         creds = openstack.Creds(username=user, password=password,
                                 region=region, auth_url=auth_url,
