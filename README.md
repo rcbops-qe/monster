@@ -26,12 +26,33 @@ may resolve these issues.
 
 ## CLI
 
+### top-level commands
+
+**status**
+
+Verifies that all dependant services are up and running and that secret credentials authenticate.
+
+```
+monster status
+```
+
+
+### deployment-level commands
+
+**list**
+
+List all current deployments.
+
+```
+monster deployment list
+```
+
 **build**
 
 Deploy an OS cluster.
 
 ```
-monster build rpcs my_build -t ubuntu-ha-neutron -c pubcloud-neutron.yaml -b v4.1.5 -p rackspace
+monster deployment build rpcs my_build -t ubuntu-ha-neutron -c pubcloud-neutron.yaml -b v4.1.5 -p rackspace
 ```
 
 **show**
@@ -39,15 +60,32 @@ monster build rpcs my_build -t ubuntu-ha-neutron -c pubcloud-neutron.yaml -b v4.
 Show details about an OS deployment.
 
 ```
-monster show my_build
+monster deployment show my_build
 ```
+
+**update**
+
+Runs package updates on deployment nodes.
+
+```
+monster deployment update my_build
+```
+
+**explore**
+
+Opens up an ipython shell with a deployment object loaded.
+
+```
+monster deployment explore my_build
+```
+
 
 **destroy**
 
 Destroy an OS deployment.
 
 ```
-monster destroy my_build
+monster deployment destroy my_build
 ```
 
 **openrc**
@@ -56,7 +94,7 @@ Load openrc environment variables into shell. Once loaded,
 openstack CLI commands will communicate to cluster.
 
 ```
-monster openrc my_build
+monster deployment openrc my_build
 nova boot --image cirros-image --flavor 1
 ```
 
@@ -65,7 +103,7 @@ nova boot --image cirros-image --flavor 1
 Open Horizon in browser.
 
 ```
-monster horizon my_build
+monster deployment horizon my_build
 ```
 
 **test**
@@ -73,13 +111,13 @@ monster horizon my_build
 Run tests on an OS cluster.
 
 ```
-monster test cloudcafe my_build
+monster deployment test cloudcafe my_build
 ```
 ```
-monster test ha my_build
+monster deployment test ha my_build
 ```
 ```
-monster test tempest my_build
+monster deployment test tempest my_build
 ```
 
 **upgrade**
@@ -87,7 +125,7 @@ monster test tempest my_build
 Upgrade the deployment to the specified branch.
 
 ```
-monster upgrade my_build -u v4.2.1
+monster deployment upgrade my_build -u v4.2.1
 ```
 
 **tmux**
@@ -95,7 +133,7 @@ monster upgrade my_build -u v4.2.1
 Open a tmux session with each node in a different window.
 
 ```
-monster tmux my_build
+monster deployment tmux my_build
 ```
 
 **Requires tmux version >= 1.8**
@@ -111,16 +149,6 @@ apt-get install tmux -y
 ---------------------------------------
 
 ## Development
-
-#### iPython
-To make development of monster easier you can load deployment objects in iPython.
-
-1. Start `ipython` in top monster directory
-2. Run:
-```python
-from monster.utils.ipython import load
-deployment = load("my_build")
-```
 
 #### CLI
 

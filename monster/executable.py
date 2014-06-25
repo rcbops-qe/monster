@@ -3,6 +3,7 @@
 
 import sys
 import argh
+import IPython
 
 import monster.db_iface as database
 import monster.deployments.rpcs.deployment as rpcs
@@ -178,7 +179,7 @@ def explore(name):
     """Explore a deployment in IPython."""
     data.load_config(name)
     deployment = data.load_deployment(name)
-    from IPython import embed; embed()
+    IPython.embed()
 
 
 @argh.named("list")
