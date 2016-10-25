@@ -1,3 +1,5 @@
+# RPCQE NO LONGER MAINTAINS OR USES THIS REPO FOR RPC TESTING
+
 # Monster
 
 An OpenStack Orchestration Engine
